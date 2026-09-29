@@ -23,7 +23,7 @@ window.DATE_CONFIG = {
      а он пересылает их тебе в Telegram. Настройка: relay/README.md.
      Пусто — у неё в финале будет кнопка «Отправить ответ».          */
   telegram: {
-    relayUrl: '',       // https://script.google.com/macros/s/…/exec
+    relayUrl: 'https://script.google.com/macros/s/AKfycbz85t7_wNqFwV-uwp1GL_fhnp88y2Cf1APmpl7kYcSrRDpPUfr6X_8NqpvgpDrmbNa24Q/exec',
     notifyOpen: true,   // присылать «👀 Она открыла приглашение»
     notifyYes: true,    // присылать «💕 Она сказала Да!» сразу, не дожидаясь конца
   },
