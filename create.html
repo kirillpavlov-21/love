@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Конструктор приглашения</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>🛠️</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap">
+  <link rel="stylesheet" href="assets/create.css?v=4">
+</head>
+<body>
+  <header class="top">
+    <div>
+      <h1>💌 Конструктор приглашения</h1>
+      <p>Заполни поля → скопируй ссылку → отправь ей. Сайт перезаливать не нужно: всё хранится в самой ссылке.</p>
+    </div>
+  </header>
+
+  <div class="layout">
+    <main class="form" id="form">
+
+      <section class="card">
+        <h2>1. Кого приглашаем</h2>
+        <div class="grid2">
+          <label>Её имя <input id="her" maxlength="40" placeholder="Маша"></label>
+          <label>Твоё имя <input id="me" maxlength="40" placeholder="Саша"></label>
+        </div>
+        <label>Имя котика-почтальона <input id="catName" maxlength="30" placeholder="Мурчик"></label>
+        <div class="field-label">Котик</div>
+        <div class="swatches" id="cats"></div>
+        <div class="field-label">Цвета</div>
+        <div class="swatches" id="themes"></div>
+      </section>
+
+      <section class="card">
+        <h2>2. Тексты</h2>
+        <p class="hint">Можно вставлять <code>{her}</code> — её имя, <code>{me}</code> — твоё, <code>{cat}</code> — имя котика.</p>
+        <label>Приветствие котика <textarea id="greeting" rows="3" maxlength="300"></textarea></label>
+        <label>Вопрос в письме <input id="question" maxlength="120"></label>
+        <label>Подпись в письме <input id="signature" maxlength="60"></label>
+        <label>Фраза в финале <input id="finale" maxlength="160"></label>
+      </section>
+
+      <section class="card">
+        <h2>3. Уровни</h2>
+        <div id="levels" class="toggles"></div>
+        <div class="grid2">
+          <label>Сколько сердечек поймать <input id="heartsGoal" type="number" min="3" max="50" inputmode="numeric"></label>
+          <label>Кнопка «Нет»
+            <select id="noButton">
+              <option value="runaway">убегает от пальца 😜</option>
+              <option value="real">честная, можно нажать</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>4. Места <small>(шарики)</small></h2>
+        <div class="list" id="places"></div>
+        <button class="btn-add" data-add="places">＋ Добавить место</button>
+        <div class="toggles compact">
+          <label class="tg"><input type="checkbox" id="placeSurprise"><span></span><b>Шарик «🎁 Сюрприз»</b><i>выбираешь ты</i></label>
+          <label class="tg"><input type="checkbox" id="placeCustom"><span></span><b>Шарик «✍️ Свой вариант»</b><i>она пишет сама</i></label>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>5. Даты <small>(календарь)</small></h2>
+        <div class="seg" id="dateMode">
+          <label><input type="radio" name="dmode" value="next" checked><span>Ближайшие дни</span></label>
+          <label><input type="radio" name="dmode" value="list"><span>Конкретные даты</span></label>
+        </div>
+        <div id="dNext">
+          <div class="grid2">
+            <label>Начиная с <input id="dStart" type="date"><small>пусто — с завтрашнего дня</small></label>
+            <label>Сколько дней <input id="dDays" type="number" min="1" max="60" inputmode="numeric"></label>
+          </div>
+          <div class="field-label">Какие дни недели подходят</div>
+          <div class="chips" id="weekdays"></div>
+        </div>
+        <div id="dList" class="hidden">
+          <div class="list" id="dates"></div>
+          <button class="btn-add" data-add="dates">＋ Добавить дату</button>
+        </div>
+        <p class="hint" id="dateInfo"></p>
+        <div class="toggles compact">
+          <label class="tg"><input type="checkbox" id="dateOther"><span></span><b>Кнопка «Ни один день не подходит»</b><i>она сможет написать свой вариант</i></label>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>6. Время</h2>
+        <div class="grid4">
+          <label>С <input id="tFrom" type="time"></label>
+          <label>До <input id="tTo" type="time"></label>
+          <label>Шаг
+            <select id="tStep"><option value="15">15 мин</option><option value="30">30 мин</option><option value="60">1 час</option></select>
+          </label>
+          <label>Сначала <input id="tDef" type="time"></label>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>7. Еда <small>(свайпы)</small></h2>
+        <div class="list" id="food"></div>
+        <button class="btn-add" data-add="food">＋ Добавить блюдо</button>
+      </section>
+
+      <div class="emoji-bar hidden" id="emojiBar"></div>
+
+      <section class="card result" id="result">
+        <h2>🔗 Ссылка для неё</h2>
+        <div class="linkbox">
+          <input id="link" readonly>
+          <button class="btn primary" id="copy">Скопировать</button>
+        </div>
+        <div class="row">
+          <button class="btn" id="share">📤 Поделиться</button>
+          <button class="btn" id="open">👀 Открыть как она</button>
+          <button class="btn" id="openPv">🧪 Превью без отправки</button>
+        </div>
+        <p class="hint" id="linkLen"></p>
+        <p class="hint">«Открыть как она» — настоящая игра: ответы уйдут в Telegram. Для проверки жми «Превью без отправки».</p>
+      </section>
+
+      <section class="card" id="tg">
+        <h2>🤖 Ответы в Telegram</h2>
+        <div id="tgStatus" class="status"></div>
+        <button class="btn" id="tgTest">✉️ Отправить тестовое сообщение</button>
+        <p class="hint">Токен бота на сайте не хранится: ответы уходят через твой Google Apps Script. Настройка описана в <code>relay/README.md</code>.</p>
+      </section>
+
+      <section class="card" id="histCard">
+        <h2>🗂 Мои приглашения</h2>
+        <div id="hist" class="hist"></div>
+        <p class="hint">Сохраняются в этом браузере, когда ты копируешь или открываешь ссылку.</p>
+      </section>
+
+      <div class="footer-actions">
+        <button class="btn" id="reset">↺ Сбросить к настройкам из config.js</button>
+      </div>
+    </main>
+
+    <aside class="preview">
+      <div class="pv-steps" id="pvSteps"></div>
+      <div class="phone"><iframe id="pv" title="Превью"></iframe></div>
+      <p class="hint center">Превью обновляется само. В нём ничего не отправляется.</p>
+    </aside>
+  </div>
+
+  <div class="toast hidden" id="toast"></div>
+
+  <script src="config.js?v=4"></script>
+  <script src="assets/shared.js?v=4"></script>
+  <script src="assets/create.js?v=4"></script>
+</body>
+</html>
