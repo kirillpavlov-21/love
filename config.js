@@ -36,7 +36,7 @@ window.DATE_CONFIG = {
     her: 'Маша',                 // её имя (так и будет написано в игре)
     me: 'Саша',                  // твоё имя
     catName: 'Мурчик',           // имя котика-почтальона
-    cat: 'ginger',               // окрас: ginger | grey | white | black
+    cat: 'line',                 // окрас: line (контурный) | ginger | grey | white | black
     theme: 'pink',               // цвета: pink | lavender | peach | mint
 
     greeting: 'Я {cat} — почтовый котик 🐾 {me} попросил передать тебе кое-что очень важное… Но сначала пройди маленькую игру!',

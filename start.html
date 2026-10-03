@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ru" data-theme="pink">
+<html lang="ru" data-mode="date">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -8,17 +8,17 @@
   <meta property="og:title" content="Куда идём?">
   <meta property="og:description" content="Готовые планы на вечер в Москве и приглашения-игры для свидания, пацанов и подружек.">
   <meta property="og:type" content="website">
-  <meta name="theme-color" content="#ffd6e2">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>📍</text></svg>">
+  <meta name="theme-color" content="#0F0E13">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect width='24' height='24' rx='6' fill='%230F0E13'/><path d='M12 19s-5-4.6-5-9a5 5 0 0 1 10 0c0 4.4-5 9-5 9z' fill='none' stroke='%23FF6F91' stroke-width='2'/></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap">
-  <link rel="stylesheet" href="assets/hub.css?v=6">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="assets/hub.css?v=7">
 </head>
 <body>
   <header class="top">
-    <a class="logo" href="start.html">📍 Куда идём?</a>
-    <p class="tag">Готовые планы на вечер в Москве и приглашения-игры</p>
+    <a class="logo" href="start.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/></svg>Куда идём?</a>
+    <span class="city">Москва</span>
   </header>
 
   <nav class="modes" id="modes" aria-label="Повод"></nav>
@@ -28,41 +28,44 @@
   <section class="block">
     <div class="block-head">
       <h2>Готовые планы</h2>
-      <p class="muted">Занятие и еда рядом, с маршрутом в Яндекс Картах</p>
+      <span class="count" id="count"></span>
     </div>
     <div class="cards" id="cards"></div>
   </section>
 
   <section class="block hidden" id="adultBlock">
-    <button class="btn ghost wide" id="adultBtn">🔞 Показать места 18+</button>
-    <div class="cards hidden" id="adultCards"></div>
+    <button class="btn ghost wide" id="adultBtn" type="button">Показать места 18+</button>
+    <div class="hidden" id="adultWrap">
+      <p class="adult-note">Только для взрослых. Перед походом проверь условия входа.</p>
+      <div class="cards" id="adultCards"></div>
+    </div>
   </section>
 
   <section class="block how">
     <h2>Как это работает</h2>
     <ol>
-      <li><b>Выбери план</b> или собери свои варианты.</li>
-      <li><b>Отправь ссылку</b> — у друзей откроется мини-игра с голосованием.</li>
-      <li><b>Смотри итоги</b> — кто идёт, куда и в какой день удобнее всем.</li>
+      <li><span><b>Выбери план</b> или собери свои варианты в конструкторе.</span></li>
+      <li><span><b>Отправь ссылку</b> — откроется мини-игра с голосованием.</span></li>
+      <li><span><b>Смотри итоги</b> — кто идёт, куда и в какой день удобнее всем.</span></li>
     </ol>
   </section>
 
   <footer class="foot">
-    Описания мест — по открытым источникам на октябрь 2026. Перед походом проверь часы работы в Яндекс Картах.
+    Описания мест — по открытым источникам на октябрь 2026. Перед походом проверь часы работы в Яндекс Картах.<br>
     Координаты © участники OpenStreetMap.
   </footer>
 
   <div class="sheet-bg hidden" id="sheetBg"><div class="psheet" id="sheet" role="dialog" aria-modal="true"></div></div>
-  <div class="sheet-bg hidden" id="ageBg"><div class="psheet age" role="dialog" aria-modal="true">
-    <div class="age-emoji">🔞</div>
-    <h3>Тебе уже есть 18 лет?</h3>
+  <div class="sheet-bg hidden" id="ageBg"><div class="psheet age" role="dialog" aria-modal="true" aria-labelledby="ageTitle">
+    <div class="age-ic">18+</div>
+    <h3 id="ageTitle">Тебе уже есть 18 лет?</h3>
     <p class="muted">Дальше — места только для взрослых.</p>
-    <div class="row"><button class="btn ghost" id="ageNo">Нет</button><button class="btn primary" id="ageYes">Да, мне 18+</button></div>
+    <div class="row" style="width:100%"><button class="btn ghost" id="ageNo" type="button">Нет</button><button class="btn primary" id="ageYes" type="button">Да, мне 18+</button></div>
   </div></div>
-  <div class="toast hidden" id="toast"></div>
+  <div class="toast hidden" id="toast" role="status"></div>
 
-  <script src="assets/shared.js?v=6"></script>
-  <script src="assets/places.js?v=6"></script>
-  <script src="assets/hub.js?v=6"></script>
+  <script src="assets/shared.js?v=7"></script>
+  <script src="assets/places.js?v=7"></script>
+  <script src="assets/hub.js?v=7"></script>
 </body>
 </html>

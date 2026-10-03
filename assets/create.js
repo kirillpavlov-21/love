@@ -26,19 +26,19 @@
       ['date', '📅 Выбор дней', 'каждый отмечает все удобные дни'],
     ],
   };
-  const CAT_NAMES = { ginger: 'Рыжий', grey: 'Серый', white: 'Белый', black: 'Чёрный' };
+  const CAT_NAMES = { line: 'Контурный', ginger: 'Рыжий', grey: 'Серый', white: 'Белый', black: 'Чёрный' };
   const THEME_INFO = {
-    pink: ['Розовая', 'linear-gradient(135deg,#ffd2df,#ff4f86)'],
-    lavender: ['Лаванда', 'linear-gradient(135deg,#e2d8ff,#7b5cff)'],
-    peach: ['Персик', 'linear-gradient(135deg,#ffdcc9,#ff6848)'],
-    mint: ['Мята', 'linear-gradient(135deg,#d3f1e6,#ff5a7c)'],
-    sport: ['Спорт', 'linear-gradient(135deg,#d3dff1,#ff6a1a)'],
+    pink: ['Роза', '#FF6F91'],
+    lavender: ['Лаванда', '#B9A1FF'],
+    peach: ['Янтарь', '#FFA463'],
+    mint: ['Мята', '#6EE7B7'],
+    sport: ['Лайм', '#D7F25C'],
   };
   const WEEK = [[1, 'Пн'], [2, 'Вт'], [3, 'Ср'], [4, 'Чт'], [5, 'Пт'], [6, 'Сб'], [0, 'Вс']];
   const EMOJIS = '☕ 🎬 🌳 🍝 ⛸️ 🎡 🎳 🎤 🖼️ 🌊 🍷 🎭 🏛️ 🚲 🌅 🎨 📚 🎮 🧗 🛶 🏖️ 🍕 🍣 🍔 🥐 🍜 🥩 🥗 🍰 🍦 🧋 🍫 🌮 🥟 🍤 🍓 🍿 🎱 🎯 🧖 ⚽ 💅 💃'.split(' ');
 
   const DEF = K.defaults();
-  let state = { mode: 'date', cat: 'ginger', theme: 'pink', texts: {} };
+  let state = { mode: 'date', cat: 'line', theme: 'pink', texts: {} };
   let code = '';
   let pvStep = 0;
   let pvCounter = 0;
@@ -82,10 +82,10 @@
         <input class="no" value="${esc(it.note || (pl && pl.why) || '')}" maxlength="90" placeholder="Подпись (необязательно)">
         ${pl ? `<span class="plan-tag">📋 Готовый план: ${esc(K.planStops(pl).map(p => p.name).join(' → '))}</span>` : ''}
       </div>
-      <button class="del" type="button" title="Удалить">✕</button>
+      <button class="del" type="button" title="Удалить" aria-label="Удалить">${K.icon('x')}</button>
     </div>`;
   }
-  const dateRow = d => `<div class="li date-li"><input class="dt" type="date" value="${esc(d || '')}"><button class="del" type="button" title="Удалить">✕</button></div>`;
+  const dateRow = d => `<div class="li date-li"><input class="dt" type="date" value="${esc(d || '')}"><button class="del" type="button" title="Удалить" aria-label="Удалить">${K.icon('x')}</button></div>`;
   function renderList(id, items) {
     const box = $('#' + id);
     box.innerHTML = id === 'dates' ? items.map(dateRow).join('') : items.map(it => itemRow(it, id)).join('');
@@ -121,7 +121,7 @@
   /* ---------- режим ---------- */
   function renderModeSeg() {
     $('#modeSeg').innerHTML = MODE_ORDER.map(m =>
-      `<button type="button" data-mode="${m}" class="${m === state.mode ? 'on' : ''}">${K.MODES[m].emoji} ${K.MODES[m].label}</button>`).join('');
+      `<button type="button" data-mode="${m}" class="${m === state.mode ? 'on' : ''}">${K.icon(K.MODE_ICON[m])}${K.MODES[m].label}</button>`).join('');
   }
   function renderLevels(levels) {
     const list = isGroup() ? LEVELS.group : LEVELS.date;
@@ -131,8 +131,8 @@
   function applyModeUi() {
     document.body.dataset.mode = state.mode;
     renderModeSeg();
-    $('#resTitle').textContent = isGroup() ? '🔗 Ссылка для общего чата' : '🔗 Ссылка для неё';
-    $('#open').textContent = isGroup() ? '👀 Открыть как участник' : '👀 Открыть как она';
+    $('#resTitle').textContent = isGroup() ? 'Ссылка для общего чата' : 'Ссылка для неё';
+    $('#open').innerHTML = K.icon('ext') + (isGroup() ? 'Открыть как участник' : 'Открыть как она');
   }
   function switchMode(next) {
     if (next === state.mode || !K.MODES[next]) return;
@@ -166,7 +166,7 @@
       if (!inv.question || inv.question === DEF.question) $('#question').value = MC().question;
     }
     $('#title').value = inv.title || MC().title || '';
-    state.cat = K.CATS[inv.cat] ? inv.cat : 'ginger';
+    state.cat = K.CATS[inv.cat] ? inv.cat : 'line';
     state.theme = K.THEMES.includes(inv.theme) ? inv.theme : themeDefault(state.mode);
     renderSwatches();
     renderLevels(inv.levels);
@@ -243,7 +243,7 @@
     $('#cats').innerHTML = Object.keys(K.CATS).map(c =>
       `<button type="button" class="sw ${c === state.cat ? 'on' : ''}" data-cat="${c}" style="${K.catVars(c)}">${K.catSVG('normal')}${CAT_NAMES[c]}</button>`).join('');
     $('#themes').innerHTML = K.THEMES.map(t =>
-      `<button type="button" class="sw ${t === state.theme ? 'on' : ''}" data-theme="${t}"><div class="theme-dot" style="background:${THEME_INFO[t][1]}"></div>${THEME_INFO[t][0]}</button>`).join('');
+      `<button type="button" class="sw ${t === state.theme ? 'on' : ''}" data-theme="${t}"><div class="theme-dot" style="--dot:${THEME_INFO[t][1]}"></div>${THEME_INFO[t][0]}</button>`).join('');
   }
   function syncDateMode() {
     const mode = ($('input[name="dmode"]:checked') || {}).value;
@@ -253,7 +253,7 @@
   function dateInfo(inv) {
     const days = K.listDates(inv.dates);
     const box = $('#dateInfo');
-    if (!days.length) { box.textContent = '⚠️ Сейчас не получится ни одного дня — выбор дня будет пропущен или заменён полем «напиши, когда удобно».'; return; }
+    if (!days.length) { box.textContent = 'Сейчас не получится ни одного дня — выбор дня будет пропущен или заменён полем «напиши, когда удобно».'; return; }
     const f = s => { const d = K.parseYmd(s); return d.getDate() + '.' + String(d.getMonth() + 1).padStart(2, '0'); };
     const n = days.length, w = n % 10 === 1 && n % 100 !== 11 ? 'день' : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20)) ? 'дня' : 'дней';
     box.textContent = `В календаре будет ${n} ${w}: ${f(days[0])} — ${f(days[n - 1])}` +
@@ -324,7 +324,7 @@
         <b>${esc(x.label || x.her)}<small>${new Date(x.at).toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</small></b>
         <button class="btn" data-h="copy" data-i="${i}">Копировать</button>
         <button class="btn" data-h="load" data-i="${i}">В форму</button>
-        <button class="btn" data-h="del" data-i="${i}">✕</button>
+        <button class="btn" data-h="del" data-i="${i}" aria-label="Удалить">${K.icon('x')}</button>
       </div>`).join('') : '<p class="hint">Пока пусто.</p>';
     $('#hist')._list = list;
   }

@@ -4,7 +4,7 @@
 
   /* Запасные значения, если в config.js чего-то не хватает */
   const BASE = {
-    her: 'Солнышко', me: 'Я', catName: 'Мурчик', cat: 'ginger', theme: 'pink',
+    her: 'Солнышко', me: 'Я', catName: 'Мурчик', cat: 'line', theme: 'pink',
     greeting: 'Я {cat} — почтовый котик 🐾 {me} попросил передать тебе кое-что очень важное… Но сначала пройди маленькую игру!',
     question: 'Пойдёшь со мной на свидание?',
     signature: 'Твой {me}',
@@ -242,7 +242,7 @@
       label: 'Пацаны', emoji: '🍻', theme: 'sport', acc: 'shades', group: true,
       title: 'Пятница с пацанами',
       greeting: 'Йо! Я {cat}, и у меня срочное донесение: {me} собирает пацанов — «{title}». Но сначала разминка!',
-      question: 'Погнали? Ты с нами?', yes: 'Я в деле 🤘', no: 'Не смогу',
+      question: 'Погнали? Ты с нами?', yes: 'Я в деле', no: 'Не смогу',
       catchTitle: 'Собери всё для вечера', good: ['🍕', '🎱', '🎳', '🏆', '🔥'], gold: '👑', bad: '🧦',
       done: 'Кидай ссылку пацанам в чат — пусть тоже отметятся.',
     },
@@ -250,7 +250,7 @@
       label: 'Подружки', emoji: '💅', theme: 'lavender', acc: 'bow', group: true,
       title: 'Девичник',
       greeting: 'Привет! Я {cat} 🎀 {me} собирает девочек — «{title}». Но сначала маленькая игра!',
-      question: 'Девочки, собираемся? Ты с нами?', yes: 'Конечно! 💃', no: 'Не смогу',
+      question: 'Девочки, собираемся? Ты с нами?', yes: 'Конечно!', no: 'Не смогу',
       catchTitle: 'Собери всё для девичника', good: ['💅', '🌸', '🧁', '🎀', '☕'], gold: '💎', bad: '🧹',
       done: 'Отправь ссылку девочкам в чат, чтобы все отметились.',
     },
@@ -279,6 +279,7 @@
 
   /* ---------- котик ---------- */
   const CATS = {
+    line:   { fur: '#1A1920', belly: '#1A1920', line: '#F4F1EA', inner: 'var(--accent)', stripe: 'transparent', eye: '#F4F1EA', hi: '#0F0E13', sh: '#F4F1EA' },
     ginger: { fur: '#ffb35c', belly: '#fff0dc', line: '#6b3a22', inner: '#ff9db3', stripe: '#ef8a34', eye: '#3b2230' },
     grey:   { fur: '#b8bfd3', belly: '#f4f5fb', line: '#434862', inner: '#ffadc1', stripe: '#959cb4', eye: '#2d2f45' },
     white:  { fur: '#fffaf4', belly: '#ffffff', line: '#6e5560', inner: '#ffb3c6', stripe: 'transparent', eye: '#3b2a33' },
@@ -286,8 +287,35 @@
   };
   function catVars(name) {
     const c = CATS[name] || CATS.ginger;
-    return `--fur:${c.fur};--belly:${c.belly};--line:${c.line};--inner:${c.inner};--stripe:${c.stripe};--eye:${c.eye}`;
+    return `--fur:${c.fur};--belly:${c.belly};--line:${c.line};--inner:${c.inner};--stripe:${c.stripe};--eye:${c.eye};--hi:${c.hi || '#fff'};--sh:${c.sh || '#1c1b29'}`;
   }
+  /* Линейные иконки интерфейса (24×24, цвет — currentColor) */
+  const ICONS = {
+    heart: '<path d="M12 20s-7-4.35-7-10a4 4 0 0 1 7-2.65A4 4 0 0 1 19 10c0 5.65-7 10-7 10z"/>',
+    mug: '<path d="M6 5h10v13a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z"/><path d="M16 9h2a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-2"/><path d="M6 9h10"/>',
+    sparkle: '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 3v4"/><path d="M17 5h4"/>',
+    pin: '<path d="M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/>',
+    arrow: '<path d="M5 12h14"/><path d="M13 6l6 6-6 6"/>',
+    ext: '<path d="M7 17L17 7"/><path d="M8 7h9v9"/>',
+    clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    route: '<circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h8.5a3.5 3.5 0 0 0 0-7h-9a3.5 3.5 0 0 1 0-7H16"/>',
+    sound: '<path d="M11 5L6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/>',
+    mute: '<path d="M11 5L6 9H3v6h3l5 4z"/><path d="M22 9l-6 6"/><path d="M16 9l6 6"/>',
+    check: '<path d="M5 12l5 5L20 7"/>',
+    x: '<path d="M6 6l12 12"/><path d="M18 6L6 18"/>',
+    chat: '<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.7A8 8 0 1 1 21 12z"/>',
+    link: '<path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1"/><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"/>',
+    calendar: '<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18"/><path d="M8 3v4"/><path d="M16 3v4"/>',
+    wheel: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2"/><path d="M12 3v7"/><path d="M12 14v7"/><path d="M3 12h7"/><path d="M14 12h7"/>',
+    pen: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13 7l4 4"/>',
+    redo: '<path d="M4 12a8 8 0 0 1 14-5.3L20 9"/><path d="M20 4v5h-5"/>',
+    share: '<path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/>',
+    food: '<path d="M7 3v7a2 2 0 0 0 2 2v9"/><path d="M5 3v5"/><path d="M9 3v5"/><path d="M17 21V3c-2 1.5-3 4.5-3 7.5S15 15 17 15"/>',
+    users: '<circle cx="9" cy="8" r="3.5"/><path d="M3 20a6 6 0 0 1 12 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7"/><path d="M21 20a6 6 0 0 0-4-5.6"/>',
+  };
+  const icon = (name, cls) => `<svg class="ic${cls ? ' ' + cls : ''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name] || ''}</svg>`;
+  const MODE_ICON = { date: 'heart', guys: 'mug', girls: 'sparkle' };
+
   const HEART_D = 'M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z';
 
   function catSVG(mood, extra) {
@@ -314,12 +342,12 @@
       <ellipse cx="140" cy="112" rx="12" ry="7.5" fill="var(--inner)" opacity=".7"/>
       <g class="m m-normal eyes-blink">
         <ellipse cx="76" cy="92" rx="7.5" ry="9.5" fill="var(--eye)"/><ellipse cx="124" cy="92" rx="7.5" ry="9.5" fill="var(--eye)"/>
-        <circle cx="79" cy="88" r="3" fill="#fff"/><circle cx="127" cy="88" r="3" fill="#fff"/>
+        <circle cx="79" cy="88" r="3" fill="var(--hi, #fff)"/><circle cx="127" cy="88" r="3" fill="var(--hi, #fff)"/>
       </g>
       <g class="m m-wow">
         <circle cx="76" cy="91" r="12" fill="var(--eye)"/><circle cx="124" cy="91" r="12" fill="var(--eye)"/>
-        <circle cx="80" cy="86" r="4.5" fill="#fff"/><circle cx="128" cy="86" r="4.5" fill="#fff"/>
-        <circle cx="72" cy="96" r="2" fill="#fff"/><circle cx="120" cy="96" r="2" fill="#fff"/>
+        <circle cx="80" cy="86" r="4.5" fill="var(--hi, #fff)"/><circle cx="128" cy="86" r="4.5" fill="var(--hi, #fff)"/>
+        <circle cx="72" cy="96" r="2" fill="var(--hi, #fff)"/><circle cx="120" cy="96" r="2" fill="var(--hi, #fff)"/>
       </g>
       <g class="m m-happy" fill="none" stroke="var(--line)" stroke-width="4.5" stroke-linecap="round">
         <path d="M67 95 Q76 82 85 95"/><path d="M115 95 Q124 82 133 95"/>
@@ -330,7 +358,7 @@
       </g>
       <g class="m m-sad">
         <ellipse cx="76" cy="95" rx="7" ry="8" fill="var(--eye)"/><ellipse cx="124" cy="95" rx="7" ry="8" fill="var(--eye)"/>
-        <circle cx="78" cy="92" r="2.5" fill="#fff"/><circle cx="126" cy="92" r="2.5" fill="#fff"/>
+        <circle cx="78" cy="92" r="2.5" fill="var(--hi, #fff)"/><circle cx="126" cy="92" r="2.5" fill="var(--hi, #fff)"/>
         <path d="M64 80 L84 85 M136 80 L116 85" stroke="var(--line)" stroke-width="4" stroke-linecap="round"/>
         <path class="tear" d="M70 106 q-4 7 0 10 q4 -3 0 -10z" fill="#7cc7ff"/>
       </g>
@@ -344,9 +372,9 @@
         <path d="M30 100 l20 3"/><path d="M31 112 l19 -2"/><path d="M170 100 l-20 3"/><path d="M169 112 l-19 -2"/>
       </g>
       <g class="acc acc-shades">
-        <path d="M56 82 h40 v9 q0 13 -14 13 h-12 q-14 0 -14 -13z" fill="#1c1b29" stroke="#1c1b29" stroke-width="2" stroke-linejoin="round"/>
-        <path d="M104 82 h40 v9 q0 13 -14 13 h-12 q-14 0 -14 -13z" fill="#1c1b29" stroke="#1c1b29" stroke-width="2" stroke-linejoin="round"/>
-        <path d="M96 86 h8" stroke="#1c1b29" stroke-width="4"/>
+        <path d="M56 82 h40 v9 q0 13 -14 13 h-12 q-14 0 -14 -13z" fill="#1c1b29" stroke="var(--sh, #1c1b29)" stroke-width="2.5" stroke-linejoin="round"/>
+        <path d="M104 82 h40 v9 q0 13 -14 13 h-12 q-14 0 -14 -13z" fill="#1c1b29" stroke="var(--sh, #1c1b29)" stroke-width="2.5" stroke-linejoin="round"/>
+        <path d="M96 86 h8" stroke="var(--sh, #1c1b29)" stroke-width="4"/>
         <path d="M63 87 l9 0 M111 87 l9 0" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".55"/>
       </g>
       <g class="acc acc-bow" transform="translate(140 38) rotate(18)">
@@ -362,7 +390,7 @@
   window.DateKit = {
     BASE, merge, defaults, diffInvite, encodeInvite, decodeInvite, encodeData, decodeData, readHash, esc, fill, hash,
     ymd, parseYmd, addDays, listDates, fmtDay, dayNum, numDay, toMin, fromMin, relaySend, relayRegister,
-    CATS, catVars, catSVG, HEART_D,
+    CATS, catVars, catSVG, HEART_D, ICONS, icon, MODE_ICON,
     MODES, modeOf, kuda, placeById, planById, planStops, distM, walkMin, priceText, mapUrl, routeUrl,
     THEMES: ['pink', 'lavender', 'peach', 'mint', 'sport'],
   };
