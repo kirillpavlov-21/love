@@ -3,20 +3,21 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Конструктор приглашения</title>
+  <title>Конструктор — Куда идём?</title>
   <meta name="robots" content="noindex, nofollow">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>🛠️</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap">
-  <link rel="stylesheet" href="assets/create.css?v=5">
+  <link rel="stylesheet" href="assets/create.css?v=6">
 </head>
 <body>
   <header class="top">
     <div>
       <h1>💌 Конструктор приглашения</h1>
-      <p>Заполни поля → скопируй ссылку → отправь ей. Сайт перезаливать не нужно: всё хранится в самой ссылке.</p>
+      <p>Заполни поля → скопируй ссылку → отправь. Сайт перезаливать не нужно: всё хранится в самой ссылке. <a href="start.html">← Все подборки</a></p>
     </div>
+    <div class="modeseg" id="modeSeg"></div>
   </header>
 
   <div class="layout">
@@ -25,7 +26,8 @@
       <section class="card">
         <h2>1. Кого приглашаем</h2>
         <div class="grid2">
-          <label>Её имя <input id="her" maxlength="40" placeholder="Маша"></label>
+          <label class="only-date">Её имя <input id="her" maxlength="40" placeholder="Маша"></label>
+          <label class="only-group">Что за сбор <input id="title" maxlength="40" placeholder="Пятница с пацанами"></label>
           <label>Твоё имя <input id="me" maxlength="40" placeholder="Саша"></label>
         </div>
         <label>Имя котика-почтальона <input id="catName" maxlength="30" placeholder="Мурчик"></label>
@@ -37,18 +39,18 @@
 
       <section class="card">
         <h2>2. Тексты</h2>
-        <p class="hint">Можно вставлять <code>{her}</code> — её имя, <code>{me}</code> — твоё, <code>{cat}</code> — имя котика.</p>
+        <p class="hint">Можно вставлять <code class="only-date">{her}</code><span class="only-date"> — её имя, </span><code class="only-group">{title}</code><span class="only-group"> — название сбора, </span><code>{me}</code> — твоё имя, <code>{cat}</code> — имя котика.</p>
         <label>Приветствие котика <textarea id="greeting" rows="3" maxlength="300"></textarea></label>
         <label>Вопрос в письме <input id="question" maxlength="120"></label>
-        <label>Подпись в письме <input id="signature" maxlength="60"></label>
-        <label>Фраза в финале <input id="finale" maxlength="160"></label>
+        <label class="only-date">Подпись в письме <input id="signature" maxlength="60"></label>
+        <label class="only-date">Фраза в финале <input id="finale" maxlength="160"></label>
       </section>
 
       <section class="card">
         <h2>3. Уровни</h2>
         <div id="levels" class="toggles"></div>
         <div class="grid2">
-          <label>Сколько сердечек поймать <input id="heartsGoal" type="number" min="3" max="50" inputmode="numeric"></label>
+          <label>Сколько поймать в 1-м уровне <input id="heartsGoal" type="number" min="3" max="50" inputmode="numeric"></label>
           <label>Кнопка «Нет»
             <select id="noButton">
               <option value="runaway">убегает от пальца 😜</option>
@@ -58,8 +60,18 @@
         </div>
       </section>
 
-      <section class="card">
+      <section class="card only-group">
+        <h2>4. Варианты для голосования</h2>
+        <p class="hint">Отметь готовые планы и/или добавь свои варианты — друзья свайпнут «за» или «против».</p>
+        <div class="plan-pick" id="planPick"></div>
+        <div class="list" id="opts"></div>
+        <button class="btn-add" data-add="opts">＋ Свой вариант</button>
+      </section>
+
+      <section class="card only-date">
         <h2>4. Места <small>(шарики)</small></h2>
+        <div class="field-label">Готовые планы — нажми, чтобы добавить шариком</div>
+        <div class="plan-pick" id="datePlans"></div>
         <div class="list" id="places"></div>
         <button class="btn-add" data-add="places">＋ Добавить место</button>
         <div class="toggles compact">
@@ -87,12 +99,12 @@
           <button class="btn-add" data-add="dates">＋ Добавить дату</button>
         </div>
         <p class="hint" id="dateInfo"></p>
-        <div class="toggles compact">
+        <div class="toggles compact only-date">
           <label class="tg"><input type="checkbox" id="dateOther"><span></span><b>Кнопка «Ни один день не подходит»</b><i>она сможет написать свой вариант</i></label>
         </div>
       </section>
 
-      <section class="card">
+      <section class="card only-date">
         <h2>6. Время</h2>
         <div class="grid4">
           <label>С <input id="tFrom" type="time"></label>
@@ -104,7 +116,7 @@
         </div>
       </section>
 
-      <section class="card">
+      <section class="card only-date">
         <h2>7. Еда <small>(свайпы)</small></h2>
         <div class="list" id="food"></div>
         <button class="btn-add" data-add="food">＋ Добавить блюдо</button>
@@ -113,7 +125,7 @@
       <div class="emoji-bar hidden" id="emojiBar"></div>
 
       <section class="card result" id="result">
-        <h2>🔗 Ссылка для неё</h2>
+        <h2 id="resTitle">🔗 Ссылка для неё</h2>
         <div class="linkbox">
           <input id="link" readonly>
           <button class="btn primary" id="copy">Скопировать</button>
@@ -124,12 +136,14 @@
           <button class="btn" id="openPv">🧪 Превью без отправки</button>
         </div>
         <p class="hint" id="linkLen"></p>
-        <p class="hint">«Открыть как она» — настоящая игра: ответы уйдут в Telegram. Для проверки жми «Превью без отправки».</p>
+        <p class="hint">«Открыть как она» — настоящая игра. Для проверки жми «Превью без отправки».</p>
       </section>
 
       <section class="card" id="tg">
         <h2>🤖 Ответы в Telegram</h2>
         <div id="tgStatus" class="status"></div>
+        <label>Ключ владельца <input id="ownerKey" type="password" autocomplete="off" spellcheck="false" placeholder="только для тебя"></label>
+        <p class="hint">С ключом твои приглашения будут присылать ответы тебе в Telegram. Без ключа — ответ приходит ссылкой-билетом, которую тебе отправит сам человек. Ключ хранится только в этом браузере.</p>
         <button class="btn" id="tgTest">✉️ Отправить тестовое сообщение</button>
         <p class="hint">Токен бота на сайте не хранится: ответы уходят через твой Google Apps Script. Настройка описана в <code>relay/README.md</code>.</p>
       </section>
@@ -154,8 +168,9 @@
 
   <div class="toast hidden" id="toast"></div>
 
-  <script src="config.js?v=5"></script>
-  <script src="assets/shared.js?v=5"></script>
-  <script src="assets/create.js?v=5"></script>
+  <script src="config.js?v=6"></script>
+  <script src="assets/shared.js?v=6"></script>
+  <script src="assets/places.js?v=6"></script>
+  <script src="assets/create.js?v=6"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-/* Конструктор: форма → приглашение → ссылка #i=... */
+/* Конструктор: форма → приглашение → короткая ссылка. Режимы: свидание, пацаны, подружки. */
 (function () {
   'use strict';
 
@@ -9,29 +9,41 @@
   const esc = K.esc;
   const DRAFT = 'date-constructor-draft';
   const HIST = 'date-constructor-history';
+  const OWNER = 'kuda-owner-key';
+  const MODE_ORDER = ['date', 'guys', 'girls'];
 
-  const LEVELS = [
-    ['hearts', '❤️ Поймай сердечки', 'мини-игра: котик ловит сердечки в корзинку'],
-    ['letter', '💌 Письмо с вопросом', '«Пойдёшь со мной на свидание?» и кнопки Да/Нет'],
-    ['place', '🎈 Шарики с местами', 'она лопает шарик с местом'],
-    ['date', '📅 Календарь', 'ставит сердечко на удобный день'],
-    ['time', '🌇 Время', 'слайдер с небом: утро → ночь'],
-    ['food', '🍕 Свайпы еды', 'вправо — хочу, влево — нет'],
-  ];
+  const LEVELS = {
+    date: [
+      ['hearts', '❤️ Поймай сердечки', 'мини-игра: котик ловит сердечки в корзинку'],
+      ['letter', '💌 Письмо с вопросом', '«Пойдёшь со мной на свидание?» и кнопки Да/Нет'],
+      ['place', '🎈 Шарики с местами', 'она лопает шарик с местом'],
+      ['date', '📅 Календарь', 'ставит сердечко на удобный день'],
+      ['time', '🌇 Время', 'слайдер с небом: утро → ночь'],
+      ['food', '🍕 Свайпы еды', 'вправо — хочу, влево — нет'],
+    ],
+    group: [
+      ['hearts', '🎮 Мини-игра', 'разминка: котик ловит предметы'],
+      ['date', '📅 Выбор дней', 'каждый отмечает все удобные дни'],
+    ],
+  };
   const CAT_NAMES = { ginger: 'Рыжий', grey: 'Серый', white: 'Белый', black: 'Чёрный' };
   const THEME_INFO = {
     pink: ['Розовая', 'linear-gradient(135deg,#ffd2df,#ff4f86)'],
     lavender: ['Лаванда', 'linear-gradient(135deg,#e2d8ff,#7b5cff)'],
     peach: ['Персик', 'linear-gradient(135deg,#ffdcc9,#ff6848)'],
     mint: ['Мята', 'linear-gradient(135deg,#d3f1e6,#ff5a7c)'],
+    sport: ['Спорт', 'linear-gradient(135deg,#d3dff1,#ff6a1a)'],
   };
   const WEEK = [[1, 'Пн'], [2, 'Вт'], [3, 'Ср'], [4, 'Чт'], [5, 'Пт'], [6, 'Сб'], [0, 'Вс']];
-  const EMOJIS = '☕ 🎬 🌳 🍝 ⛸️ 🎡 🎳 🎤 🖼️ 🌊 🍷 🎭 🏛️ 🚲 🌅 🎨 📚 🎮 🧗 🛶 🏖️ 🍕 🍣 🍔 🥐 🍜 🥩 🥗 🍰 🍦 🧋 🍫 🌮 🥟 🍤 🍓 🍿'.split(' ');
+  const EMOJIS = '☕ 🎬 🌳 🍝 ⛸️ 🎡 🎳 🎤 🖼️ 🌊 🍷 🎭 🏛️ 🚲 🌅 🎨 📚 🎮 🧗 🛶 🏖️ 🍕 🍣 🍔 🥐 🍜 🥩 🥗 🍰 🍦 🧋 🍫 🌮 🥟 🍤 🍓 🍿 🎱 🎯 🧖 ⚽ 💅 💃'.split(' ');
 
-  let state = { cat: 'ginger', theme: 'pink' };
+  const DEF = K.defaults();
+  let state = { mode: 'date', cat: 'ginger', theme: 'pink', texts: {} };
   let code = '';
   let pvStep = 0;
   let pvCounter = 0;
+  const isGroup = () => state.mode !== 'date';
+  const MC = () => K.MODES[state.mode];
 
   function toast(t) {
     const el = $('#toast');
@@ -50,14 +62,25 @@
     } catch (e) { return false; }
   }
   const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
+  const ls = {
+    get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) { /* ок */ } },
+  };
 
-  /* ---------- списки: места, еда, даты ---------- */
+  /* ---------- текст и тема по умолчанию для режима ---------- */
+  const modeDefault = (mode, key) => (mode === 'date' ? DEF[key] : K.MODES[mode][key]);
+  const themeDefault = mode => (mode === 'date' ? DEF.theme : K.MODES[mode].theme);
+  const noDefault = mode => (mode === 'date' ? DEF.noButton : 'real');
+
+  /* ---------- списки: места, варианты, еда, даты ---------- */
   function itemRow(it, kind) {
-    return `<div class="li">
-      <input class="em" value="${esc(it.emoji || '')}" maxlength="8" aria-label="Эмодзи" placeholder="🙂">
+    const pl = it.plan ? K.planById(it.plan) : null;
+    return `<div class="li"${pl ? ` data-plan="${esc(pl.id)}"` : ''}>
+      <input class="em" value="${esc(it.emoji || (pl && pl.emoji) || '')}" maxlength="8" aria-label="Эмодзи" placeholder="🙂">
       <div class="li-main">
-        <input class="ti" value="${esc(it.title || '')}" maxlength="40" placeholder="${kind === 'places' ? 'Название места' : 'Блюдо'}">
-        <input class="no" value="${esc(it.note || '')}" maxlength="90" placeholder="Подпись (необязательно)">
+        <input class="ti" value="${esc(it.title || (pl && pl.title) || '')}" maxlength="40" placeholder="${kind === 'food' ? 'Блюдо' : 'Название места'}">
+        <input class="no" value="${esc(it.note || (pl && pl.why) || '')}" maxlength="90" placeholder="Подпись (необязательно)">
+        ${pl ? `<span class="plan-tag">📋 Готовый план: ${esc(K.planStops(pl).map(p => p.name).join(' → '))}</span>` : ''}
       </div>
       <button class="del" type="button" title="Удалить">✕</button>
     </div>`;
@@ -72,23 +95,88 @@
       const o = { emoji: $('.em', r).value.trim(), title: $('.ti', r).value.trim() };
       const note = $('.no', r).value.trim();
       if (note) o.note = note;
+      if (r.dataset.plan) {
+        const pl = K.planById(r.dataset.plan);
+        // если подписи совпадают с планом — храним только id плана (короче ссылка)
+        if (pl && o.emoji === pl.emoji && o.title === pl.title && (o.note || '') === pl.why) return { plan: pl.id };
+        o.plan = r.dataset.plan;
+      }
       return o;
-    }).filter(o => o.title);
+    }).filter(o => o.title || o.plan);
+  }
+
+  /* ---------- готовые планы ---------- */
+  function renderPlanPickers(selectedGroup) {
+    const datePlans = K.kuda().scenarios.filter(s => s.mode === 'date');
+    const inPlaces = new Set($$('#places .li[data-plan]').map(r => r.dataset.plan));
+    $('#datePlans').innerHTML = datePlans.map(p =>
+      `<button type="button" data-dplan="${p.id}" class="${inPlaces.has(p.id) ? 'on' : ''}">${p.emoji} ${esc(p.title)}<small>${esc(K.planStops(p).map(x => x.name).join(' → '))}</small></button>`).join('');
+    if (isGroup()) {
+      const sel = selectedGroup || new Set($$('#planPick button.on').map(b => b.dataset.gplan));
+      $('#planPick').innerHTML = K.kuda().scenarios.filter(s => s.mode === state.mode).map(p =>
+        `<button type="button" data-gplan="${p.id}" class="${sel.has(p.id) ? 'on' : ''}">${p.emoji} ${esc(p.title)}<small>${esc(K.planStops(p).map(x => x.name).join(' → '))}</small></button>`).join('');
+    }
+  }
+
+  /* ---------- режим ---------- */
+  function renderModeSeg() {
+    $('#modeSeg').innerHTML = MODE_ORDER.map(m =>
+      `<button type="button" data-mode="${m}" class="${m === state.mode ? 'on' : ''}">${K.MODES[m].emoji} ${K.MODES[m].label}</button>`).join('');
+  }
+  function renderLevels(levels) {
+    const list = isGroup() ? LEVELS.group : LEVELS.date;
+    $('#levels').innerHTML = list.map(([id, t, d]) =>
+      `<label class="tg"><input type="checkbox" id="lv-${id}"${(levels || {})[id] !== false ? ' checked' : ''}><span></span><b>${t}</b><i>${d}</i></label>`).join('');
+  }
+  function applyModeUi() {
+    document.body.dataset.mode = state.mode;
+    renderModeSeg();
+    $('#resTitle').textContent = isGroup() ? '🔗 Ссылка для общего чата' : '🔗 Ссылка для неё';
+    $('#open').textContent = isGroup() ? '👀 Открыть как участник' : '👀 Открыть как она';
+  }
+  function switchMode(next) {
+    if (next === state.mode || !K.MODES[next]) return;
+    const prev = state.mode;
+    state.texts[prev] = { greeting: $('#greeting').value, question: $('#question').value, title: $('#title').value };
+    const t = state.texts[next] || {};
+    $('#greeting').value = t.greeting != null ? t.greeting : modeDefault(next, 'greeting');
+    $('#question').value = t.question != null ? t.question : modeDefault(next, 'question');
+    $('#title').value = t.title || K.MODES[next].title || '';
+    if (state.theme === themeDefault(prev)) state.theme = themeDefault(next);
+    if ($('#noButton').value === noDefault(prev)) $('#noButton').value = noDefault(next);
+    state.mode = next;
+    const levels = {};
+    $$('#levels input').forEach(i => { levels[i.id.slice(3)] = i.checked; });
+    renderLevels(levels);
+    renderSwatches();
+    applyModeUi();
+    const sel = new Set($$('#planPick button.on').map(b => b.dataset.gplan).filter(id => (K.planById(id) || {}).mode === next));
+    if (!sel.size && !readList('opts').length) K.kuda().scenarios.filter(s => s.mode === next).slice(0, 3).forEach(p => sel.add(p.id));
+    renderPlanPickers(sel);
+    update();
   }
 
   /* ---------- форма ⇄ приглашение ---------- */
   function fillForm(inv) {
     inv = K.merge(K.BASE, inv);
+    state.mode = K.modeOf(inv);
     ['her', 'me', 'catName', 'greeting', 'question', 'signature', 'finale'].forEach(k => { $('#' + k).value = inv[k] || ''; });
+    if (isGroup()) {
+      if (!inv.greeting || inv.greeting === DEF.greeting) $('#greeting').value = MC().greeting;
+      if (!inv.question || inv.question === DEF.question) $('#question').value = MC().question;
+    }
+    $('#title').value = inv.title || MC().title || '';
     state.cat = K.CATS[inv.cat] ? inv.cat : 'ginger';
-    state.theme = K.THEMES.includes(inv.theme) ? inv.theme : 'pink';
+    state.theme = K.THEMES.includes(inv.theme) ? inv.theme : themeDefault(state.mode);
     renderSwatches();
-    LEVELS.forEach(([id]) => { $('#lv-' + id).checked = (inv.levels || {})[id] !== false; });
+    renderLevels(inv.levels);
     $('#heartsGoal').value = inv.heartsGoal || 12;
     $('#noButton').value = inv.noButton === 'real' ? 'real' : 'runaway';
     renderList('places', inv.places || []);
     $('#placeSurprise').checked = !!inv.placeSurprise;
     $('#placeCustom').checked = !!inv.placeCustom;
+    const opts = Array.isArray(inv.opts) ? inv.opts : [];
+    renderList('opts', opts.filter(o => o && !o.plan));
     const d = inv.dates || {};
     $$('input[name="dmode"]').forEach(r => { r.checked = r.value === (d.mode === 'list' ? 'list' : 'next'); });
     $('#dStart').value = d.start || '';
@@ -104,33 +192,51 @@
     $('#tDef').value = t.def || '19:00';
     renderList('food', inv.food || []);
     syncDateMode();
+    applyModeUi();
+    renderPlanPickers(new Set(opts.filter(o => o && o.plan).map(o => o.plan)));
   }
   function readForm() {
     const v = id => $('#' + id).value.trim();
     const levels = {};
-    LEVELS.forEach(([id]) => { levels[id] = $('#lv-' + id).checked; });
-    const mode = ($('input[name="dmode"]:checked') || {}).value || 'next';
-    return {
-      her: v('her') || 'Солнышко', me: v('me') || 'Я', catName: v('catName') || 'Мурчик',
+    $$('#levels input').forEach(i => { levels[i.id.slice(3)] = i.checked; });
+    const dmode = ($('input[name="dmode"]:checked') || {}).value || 'next';
+    const inv = {
+      me: v('me') || 'Я', catName: v('catName') || 'Мурчик',
       cat: state.cat, theme: state.theme,
-      greeting: v('greeting'), question: v('question'), signature: v('signature'), finale: v('finale'),
+      greeting: v('greeting'), question: v('question'),
       levels,
       heartsGoal: Math.max(3, Math.min(50, parseInt(v('heartsGoal'), 10) || 12)),
       noButton: v('noButton'),
-      places: readList('places'),
-      placeSurprise: $('#placeSurprise').checked,
-      placeCustom: $('#placeCustom').checked,
       dates: {
-        mode,
-        start: mode === 'next' ? v('dStart') : '',
+        mode: dmode,
+        start: dmode === 'next' ? v('dStart') : '',
         days: Math.max(1, Math.min(60, parseInt(v('dDays'), 10) || 14)),
         skipWeekdays: $$('#weekdays input').filter(c => !c.checked).map(c => +c.value),
-        list: mode === 'list' ? $$('#dates .dt').map(i => i.value).filter(Boolean) : [],
+        list: dmode === 'list' ? $$('#dates .dt').map(i => i.value).filter(Boolean) : [],
       },
-      dateOther: $('#dateOther').checked,
-      time: { from: v('tFrom') || '12:00', to: v('tTo') || '22:00', step: +v('tStep') || 30, def: v('tDef') || '19:00' },
-      food: readList('food'),
     };
+    if (isGroup()) {
+      // стандартные тексты режима не кладём в ссылку — игра подставит их сама
+      if (inv.greeting === MC().greeting) inv.greeting = DEF.greeting;
+      if (inv.question === MC().question) inv.question = DEF.question;
+      Object.assign(inv, {
+        mode: state.mode,
+        title: v('title') || MC().title,
+        opts: $$('#planPick button.on').map(b => ({ plan: b.dataset.gplan })).concat(readList('opts')),
+      });
+    } else {
+      Object.assign(inv, {
+        her: v('her') || 'Солнышко', signature: v('signature'), finale: v('finale'),
+        places: readList('places'),
+        placeSurprise: $('#placeSurprise').checked,
+        placeCustom: $('#placeCustom').checked,
+        dateOther: $('#dateOther').checked,
+        time: { from: v('tFrom') || '12:00', to: v('tTo') || '22:00', step: +v('tStep') || 30, def: v('tDef') || '19:00' },
+        food: readList('food'),
+      });
+    }
+    if (ownerKey() && relayUrl()) inv.tg = 1;
+    return inv;
   }
 
   function renderSwatches() {
@@ -147,10 +253,11 @@
   function dateInfo(inv) {
     const days = K.listDates(inv.dates);
     const box = $('#dateInfo');
-    if (!days.length) { box.textContent = '⚠️ Сейчас не получится ни одного дня — она увидит поле «напиши, когда удобно».'; return; }
+    if (!days.length) { box.textContent = '⚠️ Сейчас не получится ни одного дня — выбор дня будет пропущен или заменён полем «напиши, когда удобно».'; return; }
     const f = s => { const d = K.parseYmd(s); return d.getDate() + '.' + String(d.getMonth() + 1).padStart(2, '0'); };
-    box.textContent = `В календаре будет ${days.length} ${days.length % 10 === 1 && days.length % 100 !== 11 ? 'день' : (days.length % 10 >= 2 && days.length % 10 <= 4 && (days.length % 100 < 10 || days.length % 100 >= 20)) ? 'дня' : 'дней'}: ${f(days[0])} — ${f(days[days.length - 1])}` +
-      (inv.dates.mode === 'next' && !inv.dates.start ? ' (считается от дня, когда она откроет ссылку)' : '');
+    const n = days.length, w = n % 10 === 1 && n % 100 !== 11 ? 'день' : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20)) ? 'дня' : 'дней';
+    box.textContent = `В календаре будет ${n} ${w}: ${f(days[0])} — ${f(days[n - 1])}` +
+      (inv.dates.mode === 'next' && !inv.dates.start ? ' (считается от дня, когда откроют ссылку)' : '');
   }
 
   /* ---------- ссылка и превью ---------- */
@@ -163,10 +270,19 @@
 
   function pvSteps(inv) {
     const on = inv.levels || {};
-    const lv = LEVELS.filter(([id]) => on[id] !== false &&
-      !(id === 'food' && !(inv.food || []).length) &&
-      !(id === 'place' && !(inv.places || []).length && !inv.placeCustom && !inv.placeSurprise));
-    const items = [['Старт', 0]].concat(lv.map((l, i) => [String(i + 1) + ' ' + l[1].split(' ')[0], i + 1]), [['🎫 Финал', lv.length + 1]]);
+    let lv;
+    if (isGroup()) {
+      lv = [];
+      if (on.hearts !== false) lv.push('🎮');
+      lv.push('💌');
+      if ((inv.opts || []).length) lv.push('🗳');
+      if (on.date !== false) lv.push('📅');
+    } else {
+      lv = LEVELS.date.filter(([id]) => on[id] !== false &&
+        !(id === 'food' && !(inv.food || []).length) &&
+        !(id === 'place' && !(inv.places || []).length && !inv.placeCustom && !inv.placeSurprise)).map(l => l[1].split(' ')[0]);
+    }
+    const items = [['Старт', 0]].concat(lv.map((e, i) => [String(i + 1) + ' ' + e, i + 1]), [[isGroup() ? '📊 Финал' : '🎫 Финал', lv.length + 1]]);
     if (pvStep > lv.length + 1) pvStep = 0;
     $('#pvSteps').innerHTML = items.map(([t, s]) => `<button type="button" data-step="${s}" class="${s === pvStep ? 'on' : ''}">${t}</button>`).join('');
   }
@@ -179,31 +295,33 @@
 
   const update = debounce(async () => {
     const inv = readForm();
-    try { localStorage.setItem(DRAFT, JSON.stringify(inv)); } catch (e) { /* ок */ }
+    ls.set(DRAFT, JSON.stringify(inv));
     dateInfo(inv);
     pvSteps(inv);
-    code = await K.encodeInvite(K.diffInvite(inv, K.defaults()));
+    renderPlanPickers();
+    code = await K.encodeInvite(K.diffInvite(inv, DEF));
     $('#link').value = realLink();
     $('#linkLen').textContent = `Длина ссылки: ${realLink().length} символов`;
     reloadPreview();
   }, 450);
 
+  /* ---------- история ---------- */
+  function histList() { try { return JSON.parse(ls.get(HIST) || '[]'); } catch (e) { return []; } }
   function remember() {
     const inv = readForm();
-    let list = [];
-    try { list = JSON.parse(localStorage.getItem(HIST) || '[]'); } catch (e) { /* пусто */ }
+    const label = isGroup() ? `${MC().emoji} ${inv.title}` : inv.her;
     const link = realLink();
-    list = list.filter(x => x.link !== link && !(x.her === inv.her && Date.now() - x.at < 60 * 60 * 1000));
-    list.unshift({ her: inv.her, link, at: Date.now() });
-    try { localStorage.setItem(HIST, JSON.stringify(list.slice(0, 30))); } catch (e) { /* ок */ }
+    let list = histList().filter(x => x.link !== link && !((x.label || x.her) === label && Date.now() - x.at < 60 * 60 * 1000));
+    list.unshift({ label, link, at: Date.now() });
+    ls.set(HIST, JSON.stringify(list.slice(0, 30)));
     renderHist();
+    registerIds([K.hash(code)]);
   }
   function renderHist() {
-    let list = [];
-    try { list = JSON.parse(localStorage.getItem(HIST) || '[]'); } catch (e) { /* пусто */ }
+    const list = histList();
     $('#hist').innerHTML = list.length ? list.map((x, i) => `
       <div class="hist-item">
-        <b>${esc(x.her)}<small>${new Date(x.at).toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</small></b>
+        <b>${esc(x.label || x.her)}<small>${new Date(x.at).toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</small></b>
         <button class="btn" data-h="copy" data-i="${i}">Копировать</button>
         <button class="btn" data-h="load" data-i="${i}">В форму</button>
         <button class="btn" data-h="del" data-i="${i}">✕</button>
@@ -211,19 +329,34 @@
     $('#hist')._list = list;
   }
 
-  /* ---------- Telegram (через посредника) ---------- */
+  /* ---------- Telegram (через посредника, только для владельца) ---------- */
+  const relayUrl = () => (CFG.telegram || {}).relayUrl || '';
+  const ownerKey = () => ls.get(OWNER) || '';
+  function registerIds(ids) {
+    if (!relayUrl() || !ownerKey() || !ids.length) return Promise.resolve(false);
+    return K.relayRegister(relayUrl(), ownerKey(), ids);
+  }
+  function registerHistory() {
+    const ids = histList().map(x => K.readHash('#' + (x.link.split('#')[1] || '')).code).filter(Boolean).map(K.hash);
+    return registerIds(ids);
+  }
   function tgStatus() {
-    const url = (CFG.telegram || {}).relayUrl;
     const el = $('#tgStatus');
-    el.className = url ? 'status ok' : 'status';
-    el.textContent = url
-      ? '✓ Посредник подключён — ответы будут приходить тебе в Telegram.'
-      : 'Посредник не настроен. Ответы всё равно можно получить: в финале у неё будет кнопка «Отправить ответ».';
-    $('#tgTest').disabled = !url;
+    const url = relayUrl(), key = ownerKey();
+    el.className = url && key ? 'status ok' : 'status';
+    el.textContent = !url
+      ? 'Посредник не настроен. Ответы всё равно придут: человек отправит тебе ссылку-билет.'
+      : key ? '✓ Ключ сохранён — ответы на твои приглашения будут приходить в Telegram.'
+        : 'Посредник подключён. Введи ключ владельца, чтобы ответы на твои приглашения приходили тебе в Telegram.';
+    $('#tgTest').disabled = !url || !key;
+    $('#ownerKey').value = key;
   }
   async function tgTest() {
-    const ok = await K.relaySend((CFG.telegram || {}).relayUrl, '✅ <b>Тест из конструктора</b>: всё работает 💌');
-    toast(ok ? 'Отправлено — проверь Telegram ✓' : 'Не получилось. Проверь адрес посредника в config.js');
+    try {
+      const r = await fetch(relayUrl(), { method: 'POST', body: JSON.stringify({ action: 'test', key: ownerKey() }) });
+      const j = await r.json();
+      toast(j.ok ? 'Отправлено — проверь Telegram ✓' : 'Ключ не подошёл — проверь его');
+    } catch (e) { toast('Не удалось связаться с посредником'); }
   }
 
   /* ---------- эмодзи-панель ---------- */
@@ -248,22 +381,50 @@
     });
   }
 
+  /* ---------- приход с главной: ?mode=guys&plan=g-sanduny ---------- */
+  function applyUrlParams() {
+    const q = new URLSearchParams(location.search);
+    const m = q.get('mode'), planId = q.get('plan');
+    if (m && K.MODES[m]) switchMode(m);
+    const pl = planId ? K.planById(planId) : null;
+    if (!pl) return;
+    if (pl.mode !== state.mode) switchMode(pl.mode);
+    if (pl.mode === 'date') {
+      if (!$(`#places .li[data-plan="${pl.id}"]`)) $('#places').insertAdjacentHTML('afterbegin', itemRow({ plan: pl.id }, 'places'));
+      $('#lv-place').checked = true;
+    } else {
+      const sel = new Set([pl.id].concat($$('#planPick button.on').map(b => b.dataset.gplan)));
+      K.kuda().scenarios.filter(s => s.mode === pl.mode && !sel.has(s.id)).slice(0, Math.max(0, 3 - sel.size)).forEach(s => sel.add(s.id));
+      renderPlanPickers(sel);
+    }
+    toast(`Добавил план «${pl.title}» ✓`);
+    history.replaceState(null, '', 'create.html');
+  }
+
   /* ---------- запуск ---------- */
   function init() {
-    $('#levels').innerHTML = LEVELS.map(([id, t, d]) =>
-      `<label class="tg"><input type="checkbox" id="lv-${id}"><span></span><b>${t}</b><i>${d}</i></label>`).join('');
     $('#weekdays').innerHTML = WEEK.map(([n, t]) => `<label class="chip"><input type="checkbox" value="${n}"><span>${t}</span></label>`).join('');
 
     let draft = null;
-    try { draft = JSON.parse(localStorage.getItem(DRAFT) || 'null'); } catch (e) { /* пусто */ }
-    fillForm(draft || K.defaults());
+    try { draft = JSON.parse(ls.get(DRAFT) || 'null'); } catch (e) { /* пусто */ }
+    fillForm(draft || DEF);
     tgStatus();
     renderHist();
     initEmojiBar();
 
     const form = $('#form');
-    form.addEventListener('input', e => { if (!e.target.closest('#tg')) update(); });
+    form.addEventListener('input', e => {
+      if (e.target.id === 'ownerKey') return;
+      if (!e.target.closest('#tg')) update();
+    });
     form.addEventListener('change', e => {
+      if (e.target.id === 'ownerKey') {
+        ls.set(OWNER, e.target.value.trim());
+        tgStatus();
+        if (ownerKey()) registerHistory().then(ok => toast(ok ? 'Ключ подошёл ✓ Старые приглашения тоже подключены' : 'Ключ не подошёл — проверь его'));
+        update();
+        return;
+      }
       if (e.target.name === 'dmode') syncDateMode();
       if (!e.target.closest('#tg')) update();
     });
@@ -275,6 +436,14 @@
         if (sw.dataset.theme) state.theme = sw.dataset.theme;
         renderSwatches(); update(); return;
       }
+      const dp = t.closest('[data-dplan]');
+      if (dp) {
+        const row = $(`#places .li[data-plan="${dp.dataset.dplan}"]`);
+        if (row) row.remove(); else $('#places').insertAdjacentHTML('beforeend', itemRow({ plan: dp.dataset.dplan }, 'places'));
+        update(); return;
+      }
+      const gp = t.closest('[data-gplan]');
+      if (gp) { gp.classList.toggle('on'); update(); return; }
       if (t.closest('.del')) { t.closest('.li').remove(); update(); return; }
       const add = t.closest('.btn-add');
       if (add) {
@@ -286,6 +455,10 @@
         update(); return;
       }
     });
+    $('#modeSeg').addEventListener('click', e => {
+      const b = e.target.closest('[data-mode]');
+      if (b) switchMode(b.dataset.mode);
+    });
     $('#pvSteps').addEventListener('click', e => {
       const b = e.target.closest('button');
       if (!b) return;
@@ -294,10 +467,14 @@
       reloadPreview();
     });
 
-    $('#copy').onclick = async () => { remember(); toast(await copyText(realLink()) ? 'Ссылка скопирована 💌 Отправь её ей!' : 'Скопируй ссылку вручную'); };
+    $('#copy').onclick = async () => {
+      remember();
+      toast(await copyText(realLink()) ? (isGroup() ? 'Ссылка скопирована — кидай в общий чат 💬' : 'Ссылка скопирована 💌 Отправь её ей!') : 'Скопируй ссылку вручную');
+    };
     $('#share').onclick = async () => {
       remember();
-      if (navigator.share) { try { await navigator.share({ title: '💌', text: 'У меня для тебя кое-что есть 💌', url: realLink() }); return; } catch (e) { if (e.name === 'AbortError') return; } }
+      const text = isGroup() ? `${MC().emoji} ${$('#title').value || MC().title} — голосуем, куда и когда идём!` : 'У меня для тебя кое-что есть 💌';
+      if (navigator.share) { try { await navigator.share({ title: text, text, url: realLink() }); return; } catch (e) { if (e.name === 'AbortError') return; } }
       toast(await copyText(realLink()) ? 'Ссылка скопирована' : 'Скопируй ссылку вручную');
     };
     $('#open').onclick = () => { remember(); window.open(realLink(), '_blank'); };
@@ -305,7 +482,8 @@
     $('#reset').onclick = () => {
       if (!confirm('Сбросить форму к настройкам из config.js?')) return;
       try { localStorage.removeItem(DRAFT); } catch (e) { /* ок */ }
-      fillForm(K.defaults()); update();
+      state.texts = {};
+      fillForm(DEF); update();
     };
 
     $('#tgTest').onclick = tgTest;
@@ -319,19 +497,21 @@
       if (b.dataset.h === 'load') {
         try {
           const c = K.readHash('#' + (x.link.split('#')[1] || '')).code;
-          fillForm(K.merge(K.defaults(), await K.decodeInvite(c))); update();
+          state.texts = {};
+          fillForm(K.merge(DEF, await K.decodeInvite(c))); update();
           window.scrollTo({ top: 0, behavior: 'smooth' });
           toast('Загрузил в форму ✓');
         } catch (err) { toast('Не удалось прочитать ссылку'); }
       }
       if (b.dataset.h === 'del') {
         list.splice(+b.dataset.i, 1);
-        try { localStorage.setItem(HIST, JSON.stringify(list)); } catch (err) { /* ок */ }
+        ls.set(HIST, JSON.stringify(list));
         renderHist();
       }
     });
 
     addEventListener('resize', debounce(reloadPreview, 400));
+    applyUrlParams();
     update();
   }
 

@@ -26,6 +26,15 @@ html[data-theme="peach"] {
   --blob1: #ffc3a0; --blob2: #ffdb91; --blob3: #ffbccb;
   --env1: #ff9d7e; --env2: #ffcdb8; --env3: #ffb49a;
 }
+html[data-theme="sport"] {
+  --bg-a: #e5ecf7; --bg-b: #d3dff1; --bg-c: #f5e8da;
+  --accent: #ff6a1a; --accent-d: #d64f06; --accent-2: #ffad73;
+  --soft: #e6eef9; --soft-2: #fff0e1;
+  --ink: #1c2a44; --ink-2: #566a8c;
+  --card: #fbfcff; --glow: rgba(255, 106, 26, .26);
+  --blob1: #b5ccef; --blob2: #ffcfa6; --blob3: #c7d4ea;
+  --env1: #5b84c9; --env2: #a9c2ea; --env3: #7fa1d9;
+}
 html[data-theme="mint"] {
   --bg-a: #e5f8f0; --bg-b: #d3f1e6; --bg-c: #ffeef2;
   --accent: #ff5a7c; --accent-d: #dd3d5f; --accent-2: #86d9bd;
@@ -515,3 +524,36 @@ h1, h2, h3 { margin: 0; line-height: 1.12; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+/* ================= Режимы: аксессуары котика ================= */
+.cat .acc { display: none; }
+html[data-acc="shades"] .cat[data-mood="normal"] .acc-shades,
+html[data-acc="shades"] .cat[data-mood="happy"] .acc-shades { display: inline; }
+html[data-acc="bow"] .cat .acc-bow { display: inline; }
+
+/* падающие эмодзи в групповых режимах */
+.fall .emo { display: grid; place-items: center; width: 100%; height: 100%; font-size: 30px; line-height: 1; filter: drop-shadow(0 3px 3px rgba(0, 0, 0, .15)); }
+.fall.f-gold .emo { font-size: 36px; }
+.legend .emo { font-size: 24px; width: 28px; text-align: center; }
+
+/* ================= Голосование ================= */
+.opt-stops { position: relative; font-size: 13px; font-weight: 800; color: var(--ink-2); padding: 0 16px; text-align: center; }
+.multi-hint { width: 100%; text-align: center; font-weight: 800; font-size: 14px; color: var(--ink-2); }
+.name-box { width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: 10px; }
+.tally { width: 100%; max-width: 400px; background: var(--card); border-radius: 26px; padding: 16px; box-shadow: 0 12px 30px rgba(0, 0, 0, .08); text-align: left; }
+.tally h3 { font-size: 18px; font-weight: 900; margin: 2px 0 10px; }
+.t-item { position: relative; display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 16px; background: var(--soft); margin-bottom: 8px; overflow: hidden; }
+.t-item .bar { position: absolute; left: 0; top: 0; bottom: 0; background: var(--accent-2); opacity: .35; border-radius: inherit; transition: width .6s cubic-bezier(.2, .9, .3, 1); }
+.t-item > *:not(.bar) { position: relative; }
+.t-item .e { font-size: 24px; width: 30px; text-align: center; }
+.t-item .n { flex: 1; font-weight: 900; font-size: 15px; line-height: 1.2; }
+.t-item .n small { display: block; font-weight: 700; font-size: 12px; color: var(--ink-2); margin-top: 2px; }
+.t-item .c { font-weight: 900; font-size: 16px; }
+.t-item.lead { box-shadow: inset 0 0 0 3px var(--accent); }
+.t-item.spin { box-shadow: inset 0 0 0 3px var(--accent-d); transform: scale(1.02); }
+.voters { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.voters span { padding: 5px 10px; border-radius: 99px; background: var(--soft); font-weight: 800; font-size: 13px; }
+.voters span.out { opacity: .55; text-decoration: line-through; }
+.merge-box { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 8px; }
+.plan-links { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.chip-link { display: inline-flex; align-items: center; gap: 6px; padding: 9px 14px; border-radius: 99px; background: #fff; color: var(--ink); font-weight: 800; font-size: 14px; text-decoration: none; box-shadow: 0 3px 0 rgba(0, 0, 0, .06); }

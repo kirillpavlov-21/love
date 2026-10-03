@@ -130,3 +130,14 @@ pre:empty { display: none; }
 .cat .m, .cat .cat-wave { display: none; }
 .cat[data-mood="normal"] .m-normal { display: inline; }
 .pv-steps button { padding: 6px 9px; }
+
+/* режимы */
+.modeseg { display: inline-grid; grid-template-columns: repeat(3, auto); gap: 6px; margin-top: 12px; padding: 5px; border-radius: 18px; background: #fff; box-shadow: 0 4px 14px rgba(120, 30, 70, .07); }
+.modeseg button { border: 0; border-radius: 13px; padding: 9px 14px; background: transparent; font: inherit; font-weight: 900; font-size: 15px; color: var(--ink-2); cursor: pointer; }
+.modeseg button.on { background: var(--accent); color: #fff; }
+body[data-mode="date"] .only-group, body:not([data-mode="date"]) .only-date { display: none !important; }
+.plan-pick { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.plan-pick button { border: 2px solid var(--line); border-radius: 14px; background: #fff9fb; padding: 8px 12px; font: inherit; font-weight: 800; font-size: 14px; color: var(--ink); cursor: pointer; text-align: left; }
+.plan-pick button small { display: block; font-weight: 700; color: var(--ink-2); font-size: 12px; }
+.plan-pick button.on { border-color: var(--accent); background: #fff; box-shadow: inset 0 0 0 1px var(--accent); }
+.li .plan-tag { grid-column: 2; font-size: 12px; font-weight: 800; color: var(--accent-d); }

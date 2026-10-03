@@ -76,7 +76,7 @@
   /* Короткие имена полей (только для ссылки) */
   const KEYS = ('her:a me:b catName:c cat:d theme:e greeting:f question:g signature:h finale:i levels:j heartsGoal:k ' +
     'noButton:l places:m placeSurprise:n placeCustom:o dates:p dateOther:q time:r food:s emoji:t title:u note:v mode:w ' +
-    'start:x days:y skipWeekdays:z list:A from:B to:C step:D def:E hearts:F letter:G place:H date:I').split(' ').map(x => x.split(':'));
+    'start:x days:y skipWeekdays:z list:A from:B to:C step:D def:E hearts:F letter:G place:H date:I opts:J plan:K tg:L').split(' ').map(x => x.split(':'));
   const SHORT = Object.fromEntries(KEYS), LONG = Object.fromEntries(KEYS.map(([l, sh]) => [sh, l]));
   function rekey(v, map) {
     if (Array.isArray(v)) return v.map(x => rekey(x, map));
@@ -133,6 +133,25 @@
     if (kind === 'c' || kind === 'k') return rekey(JSON.parse(unpackText(bytes)), LONG);
     return JSON.parse(new TextDecoder().decode(bytes));
   }
+  /* То же, но без коротких ключей — для голосов и ответов, где ключи и так короткие */
+  async function encodeData(obj) {
+    const bytes = packText(JSON.stringify(obj));
+    let best = 'c' + toB64url(bytes);
+    if (window.CompressionStream) {
+      try {
+        const c = 'k' + toB64url(await pipe(bytes, CompressionStream, 'deflate-raw'));
+        if (c.length < best.length) best = c;
+      } catch (e) { /* без сжатия */ }
+    }
+    return best;
+  }
+  async function decodeData(code) {
+    const kind = code[0];
+    let bytes = fromB64url(code.slice(1));
+    if (kind === 'k') bytes = await pipe(bytes, DecompressionStream, 'deflate-raw');
+    else if (kind !== 'c') throw new Error('bad code');
+    return JSON.parse(unpackText(bytes));
+  }
   function readHash(hash) {
     const parts = String(hash === undefined ? location.hash : hash).replace(/^#/, '').split('&');
     const p = {};
@@ -143,7 +162,7 @@
       if (eq < 0) { if (i === 0) code = part; return; }
       try { p[part.slice(0, eq)] = decodeURIComponent(part.slice(eq + 1)); } catch (e) { /* битый параметр */ }
     });
-    return { code: code || p.i || '', preview: p.p === '1', start: parseInt(p.s, 10) || 0 };
+    return { code: code || p.i || '', preview: p.p === '1', start: parseInt(p.s, 10) || 0, votes: p.v || '', answer: p.a || '', results: p.r === '1' };
   }
 
   /* ---------- тексты ---------- */
@@ -151,7 +170,7 @@
     return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }
   function fill(str, inv) {
-    return String(str || '').replace(/\{her\}/g, inv.her).replace(/\{me\}/g, inv.me).replace(/\{cat\}/g, inv.catName);
+    return String(str || '').replace(/\{her\}/g, inv.her).replace(/\{me\}/g, inv.me).replace(/\{cat\}/g, inv.catName).replace(/\{title\}/g, inv.title || '');
   }
   function hash(str) {
     let h = 5381;
@@ -193,21 +212,69 @@
     const t = new Intl.DateTimeFormat('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' }).format(d);
     return t.charAt(0).toUpperCase() + t.slice(1);
   }
+  const DAY0 = Date.UTC(2020, 0, 1);
+  const dayNum = s => { const d = parseYmd(s); return d ? Math.round((Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) - DAY0) / 864e5) : -1; };
+  const numDay = n => { const d = new Date(DAY0 + n * 864e5); return d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate()); };
   const toMin = t => { const [h, m] = String(t || '0:0').split(':').map(Number); return (h || 0) * 60 + (m || 0); };
   const fromMin = m => pad(Math.floor(m / 60) % 24) + ':' + pad(m % 60);
 
   /* ---------- отправка ответов ----------
      Токена на сайте нет: текст уходит посреднику (Google Apps Script),
      он пересылает его в Telegram. text/plain — чтобы браузер не делал preflight. */
-  async function relaySend(url, text) {
+  async function relayPost(url, body) {
     if (!url) return false;
     try {
-      const r = await fetch(url, { method: 'POST', body: JSON.stringify({ text }) });
+      const r = await fetch(url, { method: 'POST', body: JSON.stringify(body) });
       const j = await r.json();
       return !!j.ok;
     } catch (e) {
       return false;
     }
+  }
+  /* id — хэш приглашения: посредник пересылает только приглашения, которые зарегистрировал владелец */
+  const relaySend = (url, text, id) => relayPost(url, { text, id: id || '' });
+  const relayRegister = (url, key, ids) => relayPost(url, { action: 'register', key, ids });
+
+  /* ---------- режимы ---------- */
+  const MODES = {
+    date: { label: 'Свидание', emoji: '💕', theme: 'pink', acc: '', group: false },
+    guys: {
+      label: 'Пацаны', emoji: '🍻', theme: 'sport', acc: 'shades', group: true,
+      title: 'Пятница с пацанами',
+      greeting: 'Йо! Я {cat}, и у меня срочное донесение: {me} собирает пацанов — «{title}». Но сначала разминка!',
+      question: 'Погнали? Ты с нами?', yes: 'Я в деле 🤘', no: 'Не смогу',
+      catchTitle: 'Собери всё для вечера', good: ['🍕', '🎱', '🎳', '🏆', '🔥'], gold: '👑', bad: '🧦',
+      done: 'Кидай ссылку пацанам в чат — пусть тоже отметятся.',
+    },
+    girls: {
+      label: 'Подружки', emoji: '💅', theme: 'lavender', acc: 'bow', group: true,
+      title: 'Девичник',
+      greeting: 'Привет! Я {cat} 🎀 {me} собирает девочек — «{title}». Но сначала маленькая игра!',
+      question: 'Девочки, собираемся? Ты с нами?', yes: 'Конечно! 💃', no: 'Не смогу',
+      catchTitle: 'Собери всё для девичника', good: ['💅', '🌸', '🧁', '🎀', '☕'], gold: '💎', bad: '🧹',
+      done: 'Отправь ссылку девочкам в чат, чтобы все отметились.',
+    },
+  };
+  const modeOf = inv => (MODES[inv && inv.mode] ? inv.mode : 'date');
+
+  const kuda = () => window.KUDA || { places: {}, scenarios: [], adult: [] };
+  const placeById = id => kuda().places[id] || null;
+  const planById = id => kuda().scenarios.find(s => s.id === id) || null;
+  const planStops = plan => (plan ? plan.stops.map(placeById).filter(Boolean) : []);
+  function distM(a, b) {
+    const R = 6371000, toR = x => x * Math.PI / 180;
+    const dLat = toR(b.lat - a.lat), dLon = toR(b.lon - a.lon);
+    const h = Math.sin(dLat / 2) ** 2 + Math.cos(toR(a.lat)) * Math.cos(toR(b.lat)) * Math.sin(dLon / 2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(h));
+  }
+  const walkMin = (a, b) => Math.max(1, Math.round(distM(a, b) * 1.3 / 75));
+  const priceText = n => '₽'.repeat(Math.max(1, Math.min(3, n || 1)));
+  const mapUrl = p => 'https://yandex.ru/maps/213/moscow/?text=' + encodeURIComponent(p.name + ', ' + p.addr);
+  function routeUrl(stops) {
+    const pts = stops.map(p => p.lat.toFixed(6) + ',' + p.lon.toFixed(6));
+    let far = 0;
+    for (let i = 1; i < stops.length; i++) far = Math.max(far, distM(stops[i - 1], stops[i]));
+    return 'https://yandex.ru/maps/?rtext=~' + pts.join('~') + '&rtt=' + (far > 1500 ? 'mt' : 'pd');
   }
 
   /* ---------- котик ---------- */
@@ -276,15 +343,27 @@
       <g stroke="var(--line)" stroke-width="2.4" stroke-linecap="round" opacity=".75">
         <path d="M30 100 l20 3"/><path d="M31 112 l19 -2"/><path d="M170 100 l-20 3"/><path d="M169 112 l-19 -2"/>
       </g>
+      <g class="acc acc-shades">
+        <path d="M56 82 h40 v9 q0 13 -14 13 h-12 q-14 0 -14 -13z" fill="#1c1b29" stroke="#1c1b29" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M104 82 h40 v9 q0 13 -14 13 h-12 q-14 0 -14 -13z" fill="#1c1b29" stroke="#1c1b29" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M96 86 h8" stroke="#1c1b29" stroke-width="4"/>
+        <path d="M63 87 l9 0 M111 87 l9 0" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".55"/>
+      </g>
+      <g class="acc acc-bow" transform="translate(140 38) rotate(18)">
+        <path d="M0 0 L-19 -12 Q-25 0 -19 12 Z" fill="#ff5c9a" stroke="var(--line)" stroke-width="2.5" stroke-linejoin="round"/>
+        <path d="M0 0 L19 -12 Q25 0 19 12 Z" fill="#ff5c9a" stroke="var(--line)" stroke-width="2.5" stroke-linejoin="round"/>
+        <circle r="5.5" fill="#ff8fbf" stroke="var(--line)" stroke-width="2.5"/>
+      </g>
     </g>
   </g>
 </svg>`;
   }
 
   window.DateKit = {
-    BASE, merge, defaults, diffInvite, encodeInvite, decodeInvite, readHash, esc, fill, hash,
-    ymd, parseYmd, addDays, listDates, fmtDay, toMin, fromMin, relaySend,
+    BASE, merge, defaults, diffInvite, encodeInvite, decodeInvite, encodeData, decodeData, readHash, esc, fill, hash,
+    ymd, parseYmd, addDays, listDates, fmtDay, dayNum, numDay, toMin, fromMin, relaySend, relayRegister,
     CATS, catVars, catSVG, HEART_D,
-    THEMES: ['pink', 'lavender', 'peach', 'mint'],
+    MODES, modeOf, kuda, placeById, planById, planStops, distM, walkMin, priceText, mapUrl, routeUrl,
+    THEMES: ['pink', 'lavender', 'peach', 'mint', 'sport'],
   };
 })();

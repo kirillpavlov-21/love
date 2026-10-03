@@ -27,9 +27,22 @@
   let STEPS = [];
   let LEVEL_COUNT = 0;
   let RESUME = 0;
+  let MODE = 'date', MC = K.MODES.date, GROUP = false;
+  let CODE = '';            // код приглашения из ссылки
+  let PRIOR = [];           // голоса, которые уже лежат в ссылке (групповой режим)
+  let VOTER_ID = '';
+  let ANSWER = null;        // ответ девушки, открытый по ссылке-билету
+  const DEF = K.defaults();
   const T = s => K.fill(s, INV);
+  /* Текст режима: свой из приглашения или стандартный для пацанов/подружек */
+  const MT = key => {
+    const v = INV[key];
+    return GROUP && (v == null || v === '' || v === DEF[key]) ? MC[key] : v;
+  };
+  const groupTitle = () => INV.title || MC.title || '';
+  const canNotify = () => TG_READY && !PREVIEW && !!INV.tg;
 
-  const freshAnswers = () => ({ yes: false, noTries: 0, hearts: 0, place: null, placeText: '', date: '', dateOther: '', time: '', food: null, note: '' });
+  const freshAnswers = () => ({ yes: false, noTries: 0, hearts: 0, place: null, placeText: '', date: '', dateOther: '', time: '', food: null, note: '', coming: null, opts: [], days: [], name: '' });
   const S = { step: 0, a: freshAnswers(), sent: {} };
 
   function save() {
@@ -364,6 +377,13 @@
     return L.join('\n');
   }
   function tgText(kind) {
+    if (GROUP) {
+      const who = '<b>' + esc(S.a.name || 'Кто-то') + '</b>';
+      if (kind === 'open') return `👀 Открыли приглашение «${esc(groupTitle())}»`;
+      const opts = optItems().filter((o, i) => (S.a.opts || []).includes(i)).map(o => o.emoji + ' ' + o.title).join(', ') || '—';
+      const days = (S.a.days || []).map(d => K.fmtDay(d)).join(', ') || 'любой / пока не знает';
+      return S.a.coming === false ? `${MC.emoji} ${who} не сможет` : `${MC.emoji} ${who} в деле!\n📍 За: ${esc(opts)}\n📅 Может: ${esc(days)}`;
+    }
     const her = '<b>' + esc(INV.her) + '</b>';
     if (kind === 'open') return `👀 ${her} открыла приглашение`;
     if (kind === 'yes') return `💕 ${her} сказала «Да»!\n` + (S.a.noTries ? `Пыталась нажать «Нет»: ${S.a.noTries} ${plural(S.a.noTries, 'раз', 'раза', 'раз')} 😅` : 'С первой попытки 😍');
@@ -372,11 +392,16 @@
     return summary(true);
   }
   function notify(kind) {
-    if (PREVIEW || !TG_READY) return Promise.resolve(false);
-    return K.relaySend(TG.relayUrl, tgText(kind));
+    if (!canNotify()) return Promise.resolve(false);
+    return K.relaySend(TG.relayUrl, tgText(kind), INV_ID);
+  }
+  async function answerLink() {
+    const a = S.a;
+    const payload = { yes: a.yes, place: a.place, placeText: a.placeText, date: a.date, dateOther: a.dateOther, time: a.time, food: a.food, note: a.note };
+    return baseUrl() + '#' + CODE + '&a=' + await K.encodeData(payload);
   }
   async function shareAnswer() {
-    const text = summary(false);
+    const text = summary(false) + (CODE ? '\n\nМой билет: ' + await answerLink() : '');
     const tgUser = String(CFG.myTelegram || '').replace(/^@/, '').trim();
     if (tgUser) {
       const ok = await copyText(text);
@@ -391,13 +416,38 @@
     toast(ok ? 'Ответ скопирован! Отправь его в личку 💌' : 'Сделай скриншот билета и отправь его 📸');
   }
 
+  const baseUrl = () => location.href.split('#')[0].replace(/[?].*$/, '');
+  function stopsLine(plan) {
+    const st = K.planStops(plan);
+    if (!st.length) return '';
+    let walk = 0;
+    for (let i = 1; i < st.length; i++) walk += K.walkMin(st[i - 1], st[i]);
+    return st.map(p => p.name).join(' → ') + (st.length > 1 ? ` · ${walk} мин пешком` : '');
+  }
+  function planBlock(plan) {
+    const st = K.planStops(plan);
+    if (!st.length) return '';
+    return `<div class="plan-links">
+      ${st.map(p => `<a class="chip-link" href="${K.mapUrl(p)}" target="_blank" rel="noopener">${p.emoji} ${esc(p.name)}</a>`).join('')}
+      <a class="chip-link" href="${K.routeUrl(st)}" target="_blank" rel="noopener">🧭 Маршрут в Яндекс Картах</a>
+    </div>`;
+  }
+
   /* ================= Навигация ================= */
   let current = null, cleanup = null, CUR = 0;
   function go(i) {
-    if (cleanup) { try { cleanup(); } catch (e) { /* ок */ } cleanup = null; }
     CUR = clamp(i, 0, STEPS.length - 1);
     const step = STEPS[CUR];
     if (step.id !== 'intro') { S.step = CUR; save(); }
+    mount(step, () => go(CUR + 1));
+    renderProgress();
+  }
+  function showScreen(id, run) {
+    mount({ id, run }, () => {});
+    $('#progress').innerHTML = '';
+  }
+  function mount(step, next) {
+    if (cleanup) { try { cleanup(); } catch (e) { /* ок */ } cleanup = null; }
     const el = document.createElement('section');
     el.className = 'screen s-' + step.id + ' enter';
     el.addEventListener('animationend', function done(e) {
@@ -409,8 +459,7 @@
     current = el;
     if (old) { old.classList.remove('enter'); old.classList.add('leave'); setTimeout(() => old.remove(), 380); }
     stage.appendChild(el);
-    cleanup = step.run(el, () => go(CUR + 1), step) || null;
-    renderProgress();
+    cleanup = step.run(el, next, step) || null;
   }
   function renderProgress() {
     const box = $('#progress');
@@ -423,6 +472,7 @@
 
   /* ================= Экран: приветствие ================= */
   function scrIntro(el, next) {
+    if (GROUP) return scrIntroGroup(el, next);
     const resume = RESUME > 0 && RESUME < STEPS.length;
     el.innerHTML = `
       <div>
@@ -446,21 +496,45 @@
   }
   let RESUME_TARGET = 1;
 
+  function scrIntroGroup(el, next) {
+    const mine = PRIOR.some(v => v.id === VOTER_ID);
+    const names = PRIOR.map(v => esc(v.n)).join(', ');
+    el.innerHTML = `
+      <div>
+        <span class="badge">${MC.emoji} ${esc(MC.label)} · зовёт ${esc(INV.me)}</span>
+        <h1 class="title"><span class="hl">${esc(groupTitle())}</span></h1>
+      </div>
+      <div class="intro-mid">
+        <div class="bubble b-down" id="greet"></div>
+        <div class="intro-cat">${K.catSVG('normal', 'waving')}</div>
+      </div>
+      <div class="actions">
+        ${PRIOR.length ? `<p class="hint">Уже отметились (${PRIOR.length}): ${names}</p>` : ''}
+        <button class="btn btn-primary btn-xl pulse" id="go">${mine ? 'Изменить голос ▶' : 'Погнали ▶'}</button>
+        ${PRIOR.length ? '<button class="link-btn" id="res">📊 Посмотреть итоги</button>' : '<p class="hint">🔊 Со звуком веселее</p>'}
+      </div>`;
+    const t = setTimeout(() => typeInto($('#greet', el), T(MT('greeting'))), 380);
+    $('#go', el).onclick = () => { Sfx.init(); Sfx.click(); S.a = freshAnswers(); next(); };
+    const res = $('#res', el);
+    if (res) res.onclick = () => { Sfx.click(); showResults(PRIOR); };
+    return () => clearTimeout(t);
+  }
+
   /* ================= Уровень: поймай сердечки ================= */
   function lvlHearts(el, next, step) {
     const goal = clamp(parseInt(INV.heartsGoal, 10) || 12, 3, 50);
+    const emo = e => `<span class="emo">${e}</span>`;
+    const legend = GROUP
+      ? `<div>${emo(MC.good.slice(0, 3).join(''))} <span>+1</span></div><div>${emo(MC.gold)} <span>+3 джекпот!</span></div><div>${emo(MC.bad)} <span>−1 мимо</span></div>`
+      : `<div>${heartSVG('pink')} <span>+1</span></div><div>${heartSVG('gold')} <span>+3 золотое!</span></div><div>${heartSVG('broken')} <span>−1 разбитое</span></div>`;
     el.innerHTML = `
-      ${head(step, 'Поймай сердечки', `Води котика пальцем и собери <b>${goal}</b> ${plural(goal, 'сердечко', 'сердечка', 'сердечек')}`)}
+      ${head(step, GROUP ? MC.catchTitle : 'Поймай сердечки', GROUP ? `Води котика пальцем и собери <b>${goal}</b> штук` : `Води котика пальцем и собери <b>${goal}</b> ${plural(goal, 'сердечко', 'сердечка', 'сердечек')}`)}
       <div class="meter"><div class="meter-bar"><i></i></div><b class="meter-num">0 / ${goal}</b></div>
       <div class="pf">
         <div class="catcher"><div class="cat-slot">${K.catSVG('normal')}</div><div class="basket">${BASKET}</div></div>
         <div class="pf-hand hidden">👆</div>
         <div class="pf-overlay"><div class="pf-card">
-          <div class="legend">
-            <div>${heartSVG('pink')} <span>+1</span></div>
-            <div>${heartSVG('gold')} <span>+3 золотое!</span></div>
-            <div>${heartSVG('broken')} <span>−1 разбитое</span></div>
-          </div>
+          <div class="legend">${legend}</div>
           <button class="btn btn-primary" id="play">Поехали! ▶</button>
         </div></div>
       </div>`;
@@ -493,9 +567,11 @@
       const type = r < 0.1 ? 'gold' : r < 0.24 ? 'broken' : 'pink';
       const size = type === 'gold' ? 42 : rand(32, 42);
       const d = document.createElement('div');
-      d.className = 'fall';
+      d.className = 'fall f-' + type;
       d.style.width = d.style.height = size + 'px';
-      d.innerHTML = heartSVG(type, PINKS[(Math.random() * PINKS.length) | 0]);
+      d.innerHTML = GROUP
+        ? emo(type === 'gold' ? MC.gold : type === 'broken' ? MC.bad : MC.good[(Math.random() * MC.good.length) | 0])
+        : heartSVG(type, PINKS[(Math.random() * PINKS.length) | 0]);
       pf.appendChild(d);
       const speed = rand(150, 195) * (1 + score * 0.025) * clamp(H / 520, 0.8, 1.3);
       items.push({ el: d, type, x0: rand(24, W - 24), x: 0, y: -30, v: speed, a: rand(6, 22), f: rand(1.4, 3), ph: rand(0, 6.28), size });
@@ -577,7 +653,7 @@
       ov.innerHTML = `<div class="pf-card">
           <div style="font-size:54px;line-height:1">🎉</div>
           <h3 style="font-size:24px;font-weight:900">Уровень пройден!</h3>
-          <p class="sub" style="margin:0">Ты собрала ${score} ❤ — этого хватит, чтобы открыть секретное письмо 💌</p>
+          <p class="sub" style="margin:0">${GROUP ? `Собрано ${score} — можно открывать приглашение 💌` : `Ты собрала ${score} ❤ — этого хватит, чтобы открыть секретное письмо 💌`}</p>
           <button class="btn btn-primary">Дальше →</button></div>`;
       pf.appendChild(ov);
       $('button', ov).onclick = () => { Sfx.click(); next(); };
@@ -607,14 +683,14 @@
       <div class="env-area">
         <div class="envelope">
           <div class="env-back"></div>
-          <div class="env-paper">${esc(INV.her)} ❤</div>
+          <div class="env-paper">${esc(GROUP ? groupTitle() : INV.her)} ${GROUP ? MC.emoji : '❤'}</div>
           <div class="env-front"></div>
           <div class="env-flap"></div>
           <button class="seal" aria-label="Открыть письмо"><svg viewBox="0 0 24 24"><path d="${K.HEART_D}" fill="#fff" opacity=".92"/></svg></button>
           <span class="tap-hint">👆</span>
         </div>
       </div>
-      <div class="letter-cat"><div class="cat-slot">${K.catSVG('normal')}</div><div class="bubble b-left">Тебе письмо! Открывай скорее 🥺</div></div>`;
+      <div class="letter-cat"><div class="cat-slot">${K.catSVG('normal')}</div><div class="bubble b-left">${GROUP ? 'Тебе приглашение! Открывай 👀' : 'Тебе письмо! Открывай скорее 🥺'}</div></div>`;
     const bub = $('.letter-cat .bubble', el);
     let timers = [];
     $('.seal', el).onclick = async () => {
@@ -631,10 +707,10 @@
       $('.env-area', el).innerHTML = `
         <div class="letter">
           <div class="letter-stamp">💌</div>
-          <p class="l-to">${esc(INV.her)},</p>
-          <p class="l-q">${esc(T(INV.question))}</p>
-          <p class="l-sign">${esc(T(INV.signature))}</p>
-          <div class="yn"><button class="btn btn-primary yes">Да 💕</button><button class="btn btn-soft no">Нет</button></div>
+          <p class="l-to">${GROUP ? 'Привет!' : esc(INV.her) + ','}</p>
+          <p class="l-q">${esc(T(GROUP ? MT('question') : INV.question))}</p>
+          <p class="l-sign">${esc(GROUP ? '— ' + INV.me : T(INV.signature))}</p>
+          <div class="yn"><button class="btn btn-primary yes">${esc(GROUP ? MC.yes : 'Да 💕')}</button><button class="btn btn-soft no">${esc(GROUP ? MC.no : 'Нет')}</button></div>
         </div>`;
       $('.lvl-head .sub', el).textContent = 'Ответь честно 😇';
       mood(el, 'normal');
@@ -684,7 +760,14 @@
         if (tries >= 8) { no.classList.add('gone'); mood(el, 'happy'); }
       }
 
-      if (real) {
+      if (real && GROUP) {
+        no.onclick = () => {
+          S.a.coming = false; S.a.opts = []; S.a.days = []; save();
+          Sfx.sad(); mood(el, 'sad');
+          say(bub, 'Жаль 😢 Но отметься — так всем будет понятно');
+          timers.push(setTimeout(() => go(STEPS.length - 1), 1100));
+        };
+      } else if (real) {
         no.onclick = () => {
           S.a.noTries++; save();
           Sfx.sad(); mood(el, 'sad');
@@ -700,18 +783,18 @@
       yes.onclick = () => {
         if (yes.disabled) return;
         yes.disabled = true;
-        S.a.yes = true; save();
+        S.a.yes = true; if (GROUP) S.a.coming = true; save();
         Sfx.success(); vibrate([30, 50, 30]);
         no.classList.add('gone');
         FX.burst({ n: 150, power: 1.25 });
         timers.push(setTimeout(() => FX.rain(45), 450));
-        if (TG.notifyYes !== false && !S.sent.yes) notify('yes').then(ok => { if (ok) { S.sent.yes = true; save(); } });
+        if (!GROUP && TG.notifyYes !== false && !S.sent.yes) notify('yes').then(ok => { if (ok) { S.sent.yes = true; save(); } });
         const ov = document.createElement('div');
         ov.className = 'celebrate';
         ov.innerHTML = `
           <svg class="big-heart" viewBox="0 0 24 24"><path d="${K.HEART_D}"/></svg>
-          <h2>Ураааа!</h2>
-          <p>${esc(INV.catName)} танцует от счастья 💃 Осталось выбрать детали!</p>
+          <h2>${GROUP ? 'Йееес!' : 'Ураааа!'}</h2>
+          <p>${GROUP ? `${esc(INV.catName)} уже в предвкушении 🎉 Осталось решить, куда и когда!` : `${esc(INV.catName)} танцует от счастья 💃 Осталось выбрать детали!`}</p>
           <div class="cat-slot">${K.catSVG('love')}</div>
           <button class="btn btn-primary btn-xl">Дальше →</button>`;
         el.appendChild(ov);
@@ -723,7 +806,10 @@
 
   /* ================= Уровень: шарики с местами ================= */
   function lvlPlace(el, next, step) {
-    const opts = (INV.places || []).filter(p => p && p.title).map(p => ({ emoji: p.emoji || '📍', title: p.title, note: p.note || '' }));
+    const opts = (INV.places || []).filter(p => p && (p.title || K.planById(p.plan))).map(p => {
+      const pl = p.plan ? K.planById(p.plan) : null;
+      return { emoji: p.emoji || (pl && pl.emoji) || '📍', title: p.title || pl.title, note: p.note || (pl && pl.why) || '', plan: pl ? pl.id : '' };
+    });
     if (INV.placeSurprise) opts.push({ emoji: '🎁', title: 'Сюрприз', note: `Пусть ${INV.me} выберет сам — и не скажет куда 🤫`, kind: 'surprise' });
     if (INV.placeCustom) opts.push({ emoji: '✍️', title: 'Свой вариант', note: 'Напиши, куда тебе хочется', kind: 'custom' });
     const cols = opts.length <= 4 ? 2 : 3;
@@ -755,7 +841,7 @@
       timer = setTimeout(() => sheet(o), 480);
     });
     function sheet(o) {
-      S.a.place = { emoji: o.emoji, title: o.title, kind: o.kind || '' };
+      S.a.place = { emoji: o.emoji, title: o.title, kind: o.kind || '', plan: o.plan || '' };
       save();
       const sh = document.createElement('div');
       sh.className = 'sheet';
@@ -763,6 +849,7 @@
         <div class="sheet-emoji">${esc(o.emoji)}</div>
         <h3>${esc(o.title)}</h3>
         ${o.note ? `<p>${esc(T(o.note))}</p>` : ''}
+        ${o.plan ? `<p class="opt-stops">📍 ${esc(stopsLine(K.planById(o.plan)))}</p>` : ''}
         ${o.kind === 'custom' ? `<input class="field" maxlength="80" placeholder="Например: каток в парке" value="${esc(S.a.placeText)}">` : ''}
         <div class="row"><button class="btn btn-soft again">↺ Другое</button><button class="btn btn-primary ok">Дальше →</button></div>`;
       el.appendChild(sh);
@@ -825,17 +912,28 @@
         <div class="cal-grid">${cells.join('')}</div>
       </div>`;
     }
-    const other = INV.dateOther || !days.length;
+    const multi = GROUP;
+    const other = !multi && (INV.dateOther || !days.length);
     el.innerHTML = `
-      ${head(step, 'Когда увидимся?', days.length ? 'Поставь сердечко на удобный день' : 'Напиши, когда тебе удобно')}
+      ${head(step, multi ? 'Когда удобно?' : 'Когда увидимся?', multi ? 'Отметь все дни, когда можешь' : days.length ? 'Поставь сердечко на удобный день' : 'Напиши, когда тебе удобно')}
       ${cal}
       <div class="pick-line"></div>
-      ${days.length ? miniCat('Выбирай любой — я всё запомню 📝') : ''}
+      ${days.length ? miniCat(multi ? 'Отмечай всё, что подходит — выберем день, когда смогут все' : 'Выбирай любой — я всё запомню 📝') : ''}
+      ${multi ? '<button class="link-btn idk">Пока не знаю 🤷</button>' : ''}
       ${other ? `<button class="link-btn other ${days.length ? '' : 'hidden'}">Ни один день не подходит 🙈</button>
         <div class="other-box ${days.length ? 'hidden' : ''}" style="width:100%"><input class="field" maxlength="80" placeholder="Например: в следующие выходные"></div>` : ''}
       <div class="actions"><button class="btn btn-primary btn-wide next" disabled>Дальше →</button></div>`;
     const nextBtn = $('.next', el), line = $('.pick-line', el), bub = $('.comment .bubble', el), inp = $('.other-box input', el);
-    const upd = () => { nextBtn.disabled = !(S.a.date || (inp && inp.value.trim())); };
+    const upd = () => { nextBtn.disabled = multi ? false : !(S.a.date || (inp && inp.value.trim())); };
+    const stampHtml = `<svg class="stamp" viewBox="0 0 24 24"><path d="${K.HEART_D}"/></svg>`;
+    function toggle(b, quiet) {
+      const d = b.dataset.d, on = !b.classList.contains('picked');
+      b.classList.toggle('picked', on);
+      if (on) b.insertAdjacentHTML('afterbegin', stampHtml); else { const st = $('.stamp', b); if (st) st.remove(); }
+      S.a.days = on ? Array.from(new Set(S.a.days.concat(d))).sort() : S.a.days.filter(x => x !== d);
+      line.textContent = S.a.days.length ? `📅 Отмечено: ${S.a.days.length} ${plural(S.a.days.length, 'день', 'дня', 'дней')}` : '';
+      if (!quiet) { save(); if (on) { Sfx.stamp(); vibrate(15); mood(el, 'happy', 700); } else Sfx.click(); }
+    }
     function mark(b, quiet) {
       $$('.day.picked', el).forEach(x => { x.classList.remove('picked'); const s = $('.stamp', x); if (s) s.remove(); });
       if (!b) { line.textContent = ''; return; }
@@ -848,6 +946,7 @@
     el.addEventListener('click', e => {
       const b = e.target.closest('.day.avail');
       if (!b) return;
+      if (multi) { toggle(b); upd(); return; }
       S.a.date = b.dataset.d; S.a.dateOther = '';
       if (inp) inp.value = '';
       save(); mark(b); upd();
@@ -864,7 +963,13 @@
       if (S.a.dateOther && S.a.date) { S.a.date = ''; mark(null); }
       save(); upd();
     };
-    if (S.a.date && avail.has(S.a.date)) mark($(`.day[data-d="${S.a.date}"]`, el), true);
+    const idk = $('.idk', el);
+    if (idk) idk.onclick = () => { Sfx.click(); S.a.days = []; save(); next(); };
+    if (multi) {
+      const keep = (S.a.days || []).filter(d => avail.has(d));
+      S.a.days = [];
+      keep.forEach(d => toggle($(`.day[data-d="${d}"]`, el), true));
+    } else if (S.a.date && avail.has(S.a.date)) mark($(`.day[data-d="${S.a.date}"]`, el), true);
     else S.a.date = '';
     if (S.a.dateOther && inp) { inp.value = S.a.dateOther; $('.other-box', el).classList.remove('hidden'); if (otherBtn) otherBtn.classList.add('hidden'); }
     upd();
@@ -936,26 +1041,27 @@
     $('.next', el).onclick = () => { Sfx.click(); next(); };
   }
 
-  /* ================= Уровень: свайпы еды ================= */
-  function lvlFood(el, next, step) {
-    const items = (INV.food || []).filter(f => f && f.title).map(f => ({ emoji: f.emoji || '🍽', title: f.title, note: f.note || '' }));
+  /* ================= Свайпы: еда (свидание) и голосование за планы (компания) ================= */
+  function swipeLevel(el, next, step, cfg) {
+    const items = cfg.items;
     el.innerHTML = `
-      ${head(step, 'Что будем есть?', 'Свайпай: вправо — хочу ❤, влево — не хочу')}
+      ${head(step, cfg.title, cfg.sub)}
       <div class="deck"></div>
       <div class="deck-count"></div>
-      <div class="swipe-btns"><button class="round nope" aria-label="Не хочу">✕</button><button class="round like" aria-label="Хочу">❤</button></div>
+      <div class="swipe-btns"><button class="round nope" aria-label="Нет">✕</button><button class="round like" aria-label="Да">❤</button></div>
       <div class="food-result hidden"></div>
       <div class="actions hidden"><div class="row"><button class="btn btn-soft again">↺ Заново</button><button class="btn btn-primary ok">Дальше →</button></div></div>`;
     const deck = $('.deck', el), cnt = $('.deck-count', el), btns = $('.swipe-btns', el), res = $('.food-result', el), acts = $('.actions', el);
-    let idx = 0, liked = [], busy = false;
+    let idx = 0, liked = [], likedIdx = [], busy = false;
     const topCard = () => $(`.fcard[data-i="${idx}"]`, deck);
 
     function build() {
-      idx = 0; liked = []; busy = false;
+      idx = 0; liked = []; likedIdx = []; busy = false;
       deck.innerHTML = items.map((f, i) => `
         <div class="fcard" data-i="${i}" style="--c:${FCOL[i % FCOL.length]};z-index:${items.length - i}">
-          <span class="tag like">ХОЧУ</span><span class="tag nope">НЕТ</span>
+          <span class="tag like">${cfg.likeTag}</span><span class="tag nope">${cfg.nopeTag}</span>
           <div class="fe">${esc(f.emoji)}</div><div class="ft">${esc(f.title)}</div>${f.note ? `<div class="fn">${esc(f.note)}</div>` : ''}
+          ${f.stops ? `<div class="opt-stops">📍 ${esc(f.stops)}</div>` : ''}
         </div>`).join('');
       [deck, cnt, btns].forEach(x => x.classList.remove('hidden'));
       res.classList.add('hidden'); acts.classList.add('hidden');
@@ -1007,7 +1113,7 @@
       c.style.transform = `translate(${like ? 150 : -150}%, -8%) rotate(${like ? 26 : -26}deg)`;
       c.style.opacity = '0';
       if (like) {
-        liked.push(f);
+        liked.push(f); likedIdx.push(idx);
         Sfx.catch();
         const r = c.getBoundingClientRect();
         FX.burst({ x: r.left + r.width / 2, y: r.top + r.height / 2, n: 22, power: 0.6, shapes: ['heart'] });
@@ -1021,18 +1127,11 @@
       }, 320);
     }
     function finish() {
-      S.a.food = liked.map(f => ({ emoji: f.emoji, title: f.title }));
+      cfg.onFinish(liked, likedIdx);
       save();
       [deck, cnt, btns].forEach(x => x.classList.add('hidden'));
       res.classList.remove('hidden'); acts.classList.remove('hidden');
-      res.innerHTML = liked.length
-        ? `<h3 style="font-size:24px;font-weight:900">Твой выбор:</h3>
-           <div class="food-emojis">${liked.map((f, i) => `<span style="animation-delay:${(i * 0.08).toFixed(2)}s">${esc(f.emoji)}</span>`).join('')}</div>
-           <p class="sub" style="margin:0">${esc(liked.map(f => f.title).join(', '))}</p>
-           ${miniCat(liked.length > 2 ? 'Кто-то проголодался 😋' : 'Вкусный выбор! Записал 📝', 'happy')}`
-        : `<div class="food-emojis"><span>🤔</span></div>
-           <h3 style="font-size:24px;font-weight:900">Ничего не приглянулось?</h3>
-           ${miniCat(`Тогда ${INV.me} удивит тебя чем-нибудь вкусным 😉`, 'wow')}`;
+      res.innerHTML = cfg.result(liked);
       Sfx.success();
     }
     $('.nope', btns).onclick = () => decide(false);
@@ -1042,15 +1141,58 @@
     build();
   }
 
+  function lvlFood(el, next, step) {
+    const items = (INV.food || []).filter(f => f && f.title).map(f => ({ emoji: f.emoji || '🍽', title: f.title, note: f.note || '' }));
+    swipeLevel(el, next, step, {
+      title: 'Что будем есть?', sub: 'Свайпай: вправо — хочу ❤, влево — не хочу', items, likeTag: 'ХОЧУ', nopeTag: 'НЕТ',
+      onFinish: liked => { S.a.food = liked.map(f => ({ emoji: f.emoji, title: f.title })); },
+      result: liked => liked.length
+        ? `<h3 style="font-size:24px;font-weight:900">Твой выбор:</h3>
+           <div class="food-emojis">${liked.map((f, i) => `<span style="animation-delay:${(i * 0.08).toFixed(2)}s">${esc(f.emoji)}</span>`).join('')}</div>
+           <p class="sub" style="margin:0">${esc(liked.map(f => f.title).join(', '))}</p>
+           ${miniCat(liked.length > 2 ? 'Кто-то проголодался 😋' : 'Вкусный выбор! Записал 📝', 'happy')}`
+        : `<div class="food-emojis"><span>🤔</span></div>
+           <h3 style="font-size:24px;font-weight:900">Ничего не приглянулось?</h3>
+           ${miniCat(`Тогда ${INV.me} удивит тебя чем-нибудь вкусным 😉`, 'wow')}`,
+    });
+  }
+
+  /* Варианты для голосования: готовые планы из подборок или свои */
+  function optItems() {
+    return (INV.opts || []).map(o => {
+      const pl = o && o.plan ? K.planById(o.plan) : null;
+      if (pl) return { emoji: pl.emoji, title: pl.title, note: pl.why, stops: stopsLine(pl), plan: pl.id };
+      if (o && o.title) return { emoji: o.emoji || '📍', title: o.title, note: o.note || '', stops: '', plan: '' };
+      return { emoji: '❓', title: 'Вариант недоступен', note: '', stops: '', plan: '' };
+    });
+  }
+  function lvlVote(el, next, step) {
+    swipeLevel(el, next, step, {
+      title: 'Куда пойдём?', sub: 'Свайпай: вправо — за, влево — против', items: optItems(), likeTag: 'ЗА', nopeTag: 'НЕТ',
+      onFinish: (liked, idx) => { S.a.opts = idx; },
+      result: liked => liked.length
+        ? `<h3 style="font-size:24px;font-weight:900">Ты за:</h3>
+           <div class="food-emojis">${liked.map((f, i) => `<span style="animation-delay:${(i * 0.08).toFixed(2)}s">${esc(f.emoji)}</span>`).join('')}</div>
+           <p class="sub" style="margin:0">${esc(liked.map(f => f.title).join(', '))}</p>
+           ${miniCat('Записал! Посмотрим, что выберут остальные 📝', 'happy')}`
+        : `<div class="food-emojis"><span>🤷</span></div>
+           <h3 style="font-size:24px;font-weight:900">Тебе всё равно?</h3>
+           ${miniCat('Так и запишем: подойдёт любой вариант 😉', 'wow')}`,
+    });
+  }
+
   /* ================= Финал: билет ================= */
   function scrFinal(el) {
+    if (GROUP) return scrFinalGroup(el);
     const rows = answerRows();
+    const plan = S.a.place && S.a.place.plan ? K.planById(S.a.place.plan) : null;
+    const view = !!ANSWER;
     const flight = 'LOVE-' + (parseInt(INV_ID, 36) % 900 + 100);
     const d = K.parseYmd(S.a.date);
     const topInfo = d ? `${d.getDate()} ${MONTHS_SHORT[d.getMonth()]}${S.a.time ? ' · ' + S.a.time : ''}` : (S.a.time || '❤');
     const tgUser = String(CFG.myTelegram || '').replace(/^@/, '').trim();
     el.innerHTML = `
-      <h2 class="final-title">Твой билет на свидание 🎫</h2>
+      <h2 class="final-title">${view ? `${esc(INV.her)} ответила «да»! 💌` : 'Твой билет на свидание 🎫'}</h2>
       <div class="ticket-wrap"><div class="ticket">
         <div class="t-top"><small>BOARDING PASS</small><b>${esc(topInfo)}</b></div>
         <div class="t-names">
@@ -1058,13 +1200,15 @@
           <div class="t-mid"><svg viewBox="0 0 24 24"><path d="${K.HEART_D}"/></svg></div>
           <div><small>Встречает</small><b>${esc(INV.me)}</b></div>
         </div>
-        <div class="t-rows">${rows.map(([i, l, v]) => `<div class="t-row"><i>${i}</i><div><small>${l}</small><b>${esc(v)}</b></div></div>`).join('')}</div>
+        <div class="t-rows">${rows.concat(view && S.a.note ? [['✉️', 'Пишет', S.a.note]] : []).map(([i, l, v]) => `<div class="t-row"><i>${i}</i><div><small>${l}</small><b>${esc(v)}</b></div></div>`).join('')}</div>
         <div class="t-cut"></div>
         <div class="t-bottom"><div class="barcode"></div><small>РЕЙС<br>${flight}</small></div>
       </div></div>
+      ${plan ? `<div class="tally"><h3>🧭 ${esc(plan.title)}</h3>${planBlock(plan)}</div>` : ''}
       <div class="send-state"></div>
-      <div class="final-cat"><div class="cat-slot">${K.catSVG('love')}</div><div class="bubble b-left">${esc(T(INV.finale))}</div></div>
-      <div class="actions">
+      <div class="final-cat"><div class="cat-slot">${K.catSVG('love')}</div><div class="bubble b-left">${esc(view ? 'Осталось только встретиться 😉' : T(INV.finale))}</div></div>
+      ${view ? '<div class="actions"><a class="btn btn-primary btn-wide" href="start.html">✨ Куда идём? Все подборки</a></div>' : ''}
+      <div class="actions${view ? ' hidden' : ''}">
         <button class="btn btn-primary btn-wide share">${tgUser ? 'Отправить ответ в Telegram 💌' : 'Отправить ответ 💌'}</button>
         <button class="btn btn-soft btn-wide note-open">✏️ Написать пару слов</button>
         <div class="note-box hidden">
@@ -1078,6 +1222,10 @@
     const setCut = () => ticket.style.setProperty('--cut', (cut.offsetTop + 1) + 'px');
     requestAnimationFrame(setCut);
     addEventListener('resize', setCut);
+    if (view) {
+      setTimeout(() => { Sfx.fanfare(); FX.burst({ n: 120, power: 1.1 }); }, 350);
+      return () => removeEventListener('resize', setCut);
+    }
 
     const state = $('.send-state', el), shareBtn = $('.share', el);
     const noteOpen = $('.note-open', el), noteBox = $('.note-box', el), noteArea = $('textarea', noteBox);
@@ -1085,7 +1233,7 @@
     const setState = (txt, ok) => { state.textContent = txt; state.classList.toggle('ok', !!ok); };
 
     if (PREVIEW) setState('👀 Это превью — в Telegram ничего не отправляется');
-    else if (TG_READY) {
+    else if (canNotify()) {
       shareBtn.classList.add('hidden');
       if (S.sent.final === sig) setState(`✓ ${INV.me} уже получил твой ответ`, true);
       else {
@@ -1110,7 +1258,7 @@
       if (!txt) { noteArea.focus(); return; }
       S.a.note = txt; save();
       Sfx.click();
-      if (TG_READY && !PREVIEW) {
+      if (canNotify()) {
         const ok = await notify('note');
         if (ok) {
           toast(`Отправлено! ${INV.me} прочитает 💌`);
@@ -1134,6 +1282,172 @@
     return () => { clearTimeout(rain); removeEventListener('resize', setCut); };
   }
 
+  /* ================= Компания: голос, итоги, объединение ссылок ================= */
+  function voterId() {
+    if (VOTER_ID) return VOTER_ID;
+    const k = 'kuda-voter:' + INV_ID;
+    try { VOTER_ID = localStorage.getItem(k) || ''; } catch (e) { /* приватный режим */ }
+    if (!VOTER_ID) {
+      VOTER_ID = Math.random().toString(36).slice(2, 8);
+      if (!PREVIEW) { try { localStorage.setItem(k, VOTER_ID); } catch (e) { /* ок */ } }
+    }
+    return VOTER_ID;
+  }
+  function cleanVotes(arr) {
+    return (Array.isArray(arr) ? arr : []).filter(v => v && typeof v.id === 'string' && v.id.length <= 12).map(v => ({
+      id: v.id, n: String(v.n || '?').slice(0, 30), y: v.y ? 1 : 0,
+      o: (Array.isArray(v.o) ? v.o : []).filter(Number.isInteger).slice(0, 20),
+      d: (Array.isArray(v.d) ? v.d : []).filter(Number.isInteger).slice(0, 60),
+      t: +v.t || 0,
+    }));
+  }
+  function mergeVotes(...lists) {
+    const m = new Map();
+    for (const list of lists) for (const v of cleanVotes(list)) { const p = m.get(v.id); if (!p || v.t >= p.t) m.set(v.id, v); }
+    return Array.from(m.values()).sort((a, b) => a.t - b.t);
+  }
+  const votesLink = async votes => baseUrl() + '#' + CODE + '&v=' + await K.encodeData(votes);
+  function tally(votes) {
+    const items = optItems();
+    const inV = votes.filter(v => v.y);
+    const opt = items.map((o, i) => ({ o, i, who: inV.filter(v => v.o.includes(i)).map(v => v.n) }))
+      .sort((a, b) => b.who.length - a.who.length || a.i - b.i);
+    const dm = new Map();
+    inV.forEach(v => v.d.forEach(d => dm.set(d, (dm.get(d) || []).concat(v.n))));
+    const days = Array.from(dm.entries()).map(([d, who]) => ({ d, who })).sort((a, b) => b.who.length - a.who.length || a.d - b.d);
+    return { opt, days, inV, any: inV.filter(v => !v.o.length).map(v => v.n) };
+  }
+  const shortDay = n => new Intl.DateTimeFormat('ru-RU', { weekday: 'short', day: 'numeric', month: 'short' }).format(K.parseYmd(K.numDay(n)));
+  function tallyHtml(votes) {
+    const t = tally(votes);
+    const max = Math.max(1, t.inV.length);
+    const top = t.opt.length ? t.opt[0].who.length : 0;
+    const leaders = t.opt.filter(x => top > 0 && x.who.length === top);
+    const dTop = t.days.length ? t.days[0].who.length : 0;
+    const row = (cls, e, title, who, n) => `<div class="t-item${cls}"><i class="bar" style="width:${(n / max * 100).toFixed(0)}%"></i>
+      <span class="e">${e}</span><span class="n">${esc(title)}<small>${who}</small></span><span class="c">${n}</span></div>`;
+    return `
+      <div class="tally">
+        <h3>📊 Проголосовали: ${votes.length}</h3>
+        <div class="voters">${votes.length ? votes.map(v => `<span class="${v.y ? '' : 'out'}">${v.y ? '✅' : '❌'} ${esc(v.n)}</span>`).join('') : '<span>пока никого</span>'}</div>
+      </div>
+      ${t.opt.length ? `<div class="tally"><h3>📍 Куда</h3>
+        ${t.opt.map(x => row(leaders.includes(x) ? ' lead' : '', esc(x.o.emoji), x.o.title, x.who.length ? esc(x.who.join(', ')) : 'пока никто', x.who.length).replace('class="t-item', `data-i="${x.i}" class="t-item`)).join('')}
+        ${t.any.length ? `<p class="hint">Подойдёт любой вариант: ${esc(t.any.join(', '))}</p>` : ''}
+        ${leaders.length > 1 ? '<button class="btn btn-soft btn-wide wheel">🎡 Ничья — крутить колесо</button>' : ''}
+      </div>` : ''}
+      ${t.days.length ? `<div class="tally"><h3>📅 Когда</h3>
+        ${t.days.slice(0, 6).map(x => row(x.who.length === dTop ? ' lead' : '', '🗓', shortDay(x.d), esc(x.who.join(', ')), x.who.length)).join('')}
+      </div>` : ''}
+      ${leaders.length === 1 && leaders[0].o.plan ? `<div class="tally"><h3>🧭 Лидер: ${esc(leaders[0].o.title)}</h3>${planBlock(K.planById(leaders[0].o.plan))}</div>` : ''}`;
+  }
+
+  function scrFinalGroup(el) {
+    let name = S.a.name || '';
+    if (!name) { try { name = localStorage.getItem('kuda-name') || ''; } catch (e) { /* ок */ } }
+    const out = S.a.coming === false;
+    el.innerHTML = `
+      <h2 class="final-title">${out ? 'Жаль, что не получится 😢' : 'Последний шаг ✍️'}</h2>
+      <div class="final-cat"><div class="cat-slot">${K.catSVG(out ? 'sad' : 'happy')}</div><div class="bubble b-left">Как тебя записать в голосовании?</div></div>
+      <div class="name-box">
+        <input class="field nm" maxlength="30" placeholder="Например: Петя" value="${esc(name)}">
+        <button class="btn btn-primary btn-wide send">Готово ✓</button>
+      </div>`;
+    const inp = $('.nm', el), btn = $('.send', el);
+    btn.disabled = !inp.value.trim();
+    inp.oninput = () => { btn.disabled = !inp.value.trim(); };
+    btn.onclick = () => {
+      S.a.name = inp.value.trim().slice(0, 30); save();
+      if (!PREVIEW) { try { localStorage.setItem('kuda-name', S.a.name); } catch (e) { /* ок */ } }
+      Sfx.success(); vibrate([20, 40, 20]);
+      const mine = { id: voterId(), n: S.a.name, y: out ? 0 : 1, o: S.a.opts || [], d: (S.a.days || []).map(K.dayNum).filter(n => n >= 0), t: Math.floor(Date.now() / 60000) };
+      PRIOR = mergeVotes(PRIOR, [mine]);
+      notify('vote');
+      showResults(PRIOR, true);
+    };
+  }
+
+  function showResults(votes, justVoted) {
+    showScreen('results', el => {
+      el.innerHTML = `
+        <h2 class="final-title">${justVoted ? MC.emoji + ' Голос учтён!' : '📊 Итоги голосования'}</h2>
+        <p class="sub" style="text-align:center;margin:0">${justVoted ? esc(MC.done) : esc(groupTitle()) + ' · зовёт ' + esc(INV.me)}</p>
+        <div class="actions" style="margin-top:0">
+          <button class="btn btn-primary btn-wide share">💬 Отправить ссылку в чат</button>
+          <button class="btn btn-soft btn-wide copy">🔗 Скопировать ссылку</button>
+        </div>
+        <div class="tally-wrap" style="width:100%;display:flex;flex-direction:column;align-items:center;gap:12px"></div>
+        <div class="merge-box">
+          <button class="link-btn merge-open">🧩 Голоса разошлись по разным ссылкам? Объединить</button>
+          <div class="merge hidden" style="display:flex;flex-direction:column;gap:8px">
+            <textarea class="field" rows="3" placeholder="Вставь сюда ссылки из чата — можно сразу несколько"></textarea>
+            <button class="btn btn-soft merge-go">Объединить голоса</button>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="link-btn revote">${justVoted ? '↺ Изменить мой голос' : '🗳 Проголосовать'}</button>
+          <a class="link-btn" href="start.html">✨ Создать свой сбор</a>
+        </div>`;
+      const wrap = $('.tally-wrap', el);
+      let cur = votes;
+      function render() {
+        wrap.innerHTML = tallyHtml(cur);
+        const wheel = $('.wheel', wrap);
+        if (wheel) wheel.onclick = () => spin(wrap, wheel);
+      }
+      render();
+      if (justVoted) setTimeout(() => FX.burst({ n: 120, power: 1.1 }), 250);
+      const shareText = async () => `${MC.emoji} ${groupTitle()}\nГолосуем, куда и когда идём! Уже отметились: ${cur.map(v => v.n).join(', ') || '—'}\n👉 ${await votesLink(cur)}`;
+      $('.share', el).onclick = async () => {
+        Sfx.click();
+        const text = await shareText();
+        if (navigator.share) { try { await navigator.share({ text }); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
+        toast(await copyText(text) ? 'Скопировано — вставь в общий чат 💬' : 'Не получилось скопировать');
+      };
+      $('.copy', el).onclick = async () => { Sfx.click(); toast(await copyText(await votesLink(cur)) ? 'Ссылка скопирована 🔗' : 'Не получилось скопировать'); };
+      $('.merge-open', el).onclick = () => { $('.merge', el).classList.toggle('hidden'); };
+      $('.merge-go', el).onclick = async () => {
+        const text = $('.merge textarea', el).value;
+        const re = /#([A-Za-z0-9_-]+)&v=([A-Za-z0-9_-]+)/g;
+        let m, added = 0, foreign = 0;
+        const lists = [];
+        while ((m = re.exec(text))) {
+          if (m[1] !== CODE) { foreign++; continue; }
+          try { lists.push(await K.decodeData(m[2])); added++; } catch (e) { /* битая ссылка */ }
+        }
+        if (!added) { toast(foreign ? 'Это ссылки от другого сбора' : 'Не нашёл ссылок с голосами'); return; }
+        cur = mergeVotes(cur, ...lists);
+        PRIOR = cur;
+        $('.merge textarea', el).value = '';
+        render();
+        Sfx.success();
+        toast(`Готово! Голосов теперь: ${cur.length}`);
+      };
+      $('.revote', el).onclick = () => { Sfx.click(); S.a = freshAnswers(); go(1); };
+    });
+  }
+  function spin(wrap, btn) {
+    const items = $$('.t-item.lead[data-i]', wrap);
+    if (items.length < 2) return;
+    btn.disabled = true;
+    const winner = (Math.random() * items.length) | 0;
+    const total = items.length * 3 + winner;
+    let k = 0;
+    const tick = () => {
+      items.forEach(x => x.classList.remove('spin'));
+      items[k % items.length].classList.add('spin');
+      Sfx.tick();
+      if (k++ < total) setTimeout(tick, 70 + k * k * 1.6);
+      else {
+        Sfx.fanfare();
+        FX.burst({ n: 100, power: 1 });
+        toast('🎡 Колесо выбрало: ' + $('.n', items[winner]).firstChild.textContent);
+        btn.disabled = false;
+      }
+    };
+    tick();
+  }
+
   /* ================= Ошибка ссылки ================= */
   function showError() {
     document.documentElement.style.cssText += ';' + K.catVars('ginger');
@@ -1146,11 +1460,12 @@
 
   /* Пример ответов для превью финала из конструктора */
   function demoAnswers() {
-    const p = (INV.places || []).find(x => x && x.title);
     const days = K.listDates(INV.dates);
+    if (GROUP) { Object.assign(S.a, { yes: true, coming: true, opts: [0], days: days.slice(0, 2), name: 'Ты' }); return; }
+    const p = (INV.places || []).find(x => x && (x.title || x.plan));
     Object.assign(S.a, {
       yes: true, hearts: INV.heartsGoal || 12,
-      place: p ? { emoji: p.emoji, title: p.title, kind: '' } : { emoji: '🎁', title: 'Сюрприз', kind: 'surprise' },
+      place: p ? { emoji: p.emoji || (K.planById(p.plan) || {}).emoji, title: p.title || (K.planById(p.plan) || {}).title, kind: '', plan: p.plan || '' } : { emoji: '🎁', title: 'Сюрприз', kind: 'surprise' },
       date: days[0] || '', dateOther: days[0] ? '' : 'в выходные',
       time: (INV.time && INV.time.def) || '19:00',
       food: (INV.food || []).filter(f => f && f.title).slice(0, 2).map(f => ({ emoji: f.emoji, title: f.title })),
@@ -1158,14 +1473,16 @@
   }
 
   /* ================= Запуск ================= */
-  const RUNNERS = { hearts: lvlHearts, letter: lvlLetter, place: lvlPlace, date: lvlDate, time: lvlTime, food: lvlFood };
+  const RUNNERS = { hearts: lvlHearts, letter: lvlLetter, place: lvlPlace, date: lvlDate, time: lvlTime, food: lvlFood, vote: lvlVote };
   function buildSteps() {
     const on = INV.levels || {};
     const list = [{ id: 'intro', run: scrIntro }];
     let n = 0;
-    for (const id of ['hearts', 'letter', 'place', 'date', 'time', 'food']) {
-      if (on[id] === false) continue;
-      if (id === 'place' && !(INV.places || []).some(p => p && p.title) && !INV.placeCustom && !INV.placeSurprise) continue;
+    const ids = GROUP ? ['hearts', 'letter', 'vote', 'date'] : ['hearts', 'letter', 'place', 'date', 'time', 'food'];
+    for (const id of ids) {
+      if (on[id] === false && !(GROUP && id === 'letter')) continue;
+      if (id === 'vote' && !(INV.opts || []).length) continue;
+      if (id === 'place' && !(INV.places || []).some(p => p && (p.title || p.plan)) && !INV.placeCustom && !INV.placeSurprise) continue;
       if (id === 'food' && !(INV.food || []).some(f => f && f.title)) continue;
       list.push({ id, level: ++n, run: RUNNERS[id] });
     }
@@ -1188,14 +1505,23 @@
       catch (e) { showError(); return; }
     }
     INV = inv;
+    CODE = h.code;
     INV_ID = K.hash(h.code || JSON.stringify(inv));
     KEY = 'date-invite:' + INV_ID;
-    document.documentElement.dataset.theme = K.THEMES.includes(INV.theme) ? INV.theme : 'pink';
+    MODE = K.modeOf(INV); MC = K.MODES[MODE]; GROUP = !!MC.group;
+    document.documentElement.dataset.theme = K.THEMES.includes(INV.theme) ? INV.theme : (MC.theme || 'pink');
+    document.documentElement.dataset.acc = MC.acc || '';
     document.documentElement.style.cssText += ';' + K.catVars(INV.cat);
-    document.title = '💌 Приглашение для ' + INV.her;
+    document.title = GROUP ? `${MC.emoji} ${groupTitle()}` : '💌 Приглашение для ' + INV.her;
     STEPS = buildSteps();
     load();
     floaters();
+    if (GROUP) {
+      voterId();
+      if (h.votes) { try { PRIOR = mergeVotes(await K.decodeData(h.votes)); } catch (e) { PRIOR = []; } }
+    } else if (h.answer) {
+      try { ANSWER = await K.decodeData(h.answer); } catch (e) { ANSWER = null; }
+    }
 
     const sb = $('#soundBtn');
     sb.textContent = Sfx.on ? '🔊' : '🔇';
@@ -1212,7 +1538,15 @@
     });
     addEventListener('hashchange', () => location.reload());
 
-    if (!PREVIEW && TG_READY && TG.notifyOpen !== false && !S.sent.open) {
+    if (ANSWER) {
+      PREVIEW = true;   // это ты смотришь её ответ — ничего не сохраняем и не отправляем
+      S.a = Object.assign(freshAnswers(), ANSWER);
+      showScreen('final', scrFinal);
+      return;
+    }
+    if (GROUP && h.results) { showResults(PRIOR); return; }
+
+    if (canNotify() && TG.notifyOpen !== false && !S.sent.open) {
       notify('open').then(ok => { if (ok) { S.sent.open = true; save(); } });
     }
 
@@ -1221,6 +1555,7 @@
       go(h.start);
       return;
     }
+    if (GROUP) { go(0); return; }
     const saved = S.step;
     if (saved >= STEPS.length - 1 && saved > 0) { go(STEPS.length - 1); return; }
     RESUME_TARGET = clamp(saved, 1, STEPS.length - 1);
