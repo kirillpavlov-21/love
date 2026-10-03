@@ -161,6 +161,7 @@
     inv = K.merge(K.BASE, inv);
     state.mode = K.modeOf(inv);
     ['her', 'me', 'catName', 'greeting', 'question', 'signature', 'finale'].forEach(k => { $('#' + k).value = inv[k] || ''; });
+    $('#tgu').value = K.tgUser(inv.tgu) ? '@' + K.tgUser(inv.tgu) : '';
     if (isGroup()) {
       if (!inv.greeting || inv.greeting === DEF.greeting) $('#greeting').value = MC().greeting;
       if (!inv.question || inv.question === DEF.question) $('#question').value = MC().question;
@@ -234,6 +235,8 @@
         time: { from: v('tFrom') || '12:00', to: v('tTo') || '22:00', step: +v('tStep') || 30, def: v('tDef') || '19:00' },
         food: readList('food'),
       });
+      const tgu = K.tgUser(v('tgu'));
+      if (tgu) inv.tgu = tgu;
     }
     if (ownerKey() && relayUrl()) inv.tg = 1;
     return inv;
@@ -479,6 +482,13 @@
     };
     $('#open').onclick = () => { remember(); window.open(realLink(), '_blank'); };
     $('#openPv').onclick = () => window.open(previewLink(pvStep), '_blank');
+    $('#mbPv').onclick = () => window.open(previewLink(0), '_blank');
+    $('#mbCopy').onclick = () => $('#copy').click();
+    $('#tgu').addEventListener('change', () => {
+      const raw = $('#tgu').value.trim(), u = K.tgUser(raw);
+      if (raw && !u) toast('Ник в Telegram: латиница, цифры и _, от 5 символов');
+      else if (u) $('#tgu').value = '@' + u;
+    });
     $('#reset').onclick = () => {
       if (!confirm('Сбросить форму к настройкам из config.js?')) return;
       try { localStorage.removeItem(DRAFT); } catch (e) { /* ок */ }

@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="assets/create.css?v=7">
+  <link rel="stylesheet" href="assets/create.css?v=8">
 </head>
 <body>
   <header class="top">
@@ -27,11 +27,13 @@
 
       <section class="card">
         <h2>1. Кого приглашаем</h2>
+        <p class="hint quick">Хватит имён — остальное уже настроено, ссылка готова сразу.</p>
         <div class="grid2">
           <label class="only-date">Её имя <input id="her" maxlength="40" placeholder="Маша"></label>
           <label class="only-group">Что за сбор <input id="title" maxlength="40" placeholder="Пятница с пацанами"></label>
           <label>Твоё имя <input id="me" maxlength="40" placeholder="Саша"></label>
         </div>
+        <label class="only-date">Твой ник в Telegram <input id="tgu" maxlength="40" placeholder="@username" autocomplete="off" autocapitalize="off" spellcheck="false"><small>Необязательно. С ником она отправит ответ тебе в личку в один тап.</small></label>
         <label>Имя котика-почтальона <input id="catName" maxlength="30" placeholder="Мурчик"></label>
         <div class="field-label">Котик</div>
         <div class="swatches" id="cats"></div>
@@ -168,11 +170,15 @@
     </aside>
   </div>
 
+  <div class="mbar" id="mbar">
+    <button class="btn" type="button" id="mbPv"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>Превью</button>
+    <button class="btn primary" type="button" id="mbCopy"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Скопировать ссылку</button>
+  </div>
   <div class="toast hidden" id="toast"></div>
 
-  <script src="config.js?v=7"></script>
-  <script src="assets/shared.js?v=7"></script>
-  <script src="assets/places.js?v=7"></script>
-  <script src="assets/create.js?v=7"></script>
+  <script src="config.js?v=8"></script>
+  <script src="assets/shared.js?v=8"></script>
+  <script src="assets/places.js?v=8"></script>
+  <script src="assets/create.js?v=8"></script>
 </body>
 </html>

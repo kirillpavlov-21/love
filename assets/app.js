@@ -401,13 +401,15 @@
     const payload = { yes: a.yes, place: a.place, placeText: a.placeText, date: a.date, dateOther: a.dateOther, time: a.time, food: a.food, note: a.note };
     return baseUrl() + '#' + CODE + '&a=' + await K.encodeData(payload);
   }
+  /* Ник владельца в Telegram: из приглашения или из config.js */
+  const hostTg = () => K.tgUser(INV.tgu) || K.tgUser(CFG.myTelegram);
   async function shareAnswer() {
     const text = summary(false) + (CODE ? '\n\nМой билет: ' + await answerLink() : '');
-    const tgUser = String(CFG.myTelegram || '').replace(/^@/, '').trim();
-    if (tgUser) {
-      const ok = await copyText(text);
-      toast(ok ? 'Ответ скопирован — вставь его в чат 💌' : 'Открываю Telegram…');
-      setTimeout(() => { location.href = 'https://t.me/' + encodeURIComponent(tgUser); }, 900);
+    const u = hostTg();
+    if (u) {
+      await copyText(text);   // запасной путь, если Telegram не подставит текст сам
+      toast('Открываю Telegram — ответ уже в поле сообщения');
+      setTimeout(() => { location.href = K.tgLink(u, text); }, 700);
       return;
     }
     if (navigator.share) {
@@ -431,6 +433,20 @@
     return `<div class="plan-links">
       ${st.map(p => `<a class="chip-link" href="${K.mapUrl(p)}" target="_blank" rel="noopener">${I('pin')}${esc(p.name)}</a>`).join('')}
       ${st.length > 1 ? `<a class="chip-link" href="${K.routeUrl(st)}" target="_blank" rel="noopener">${I('route')}Маршрут</a>` : ''}
+    </div>`;
+  }
+
+  const placeLoc = plan => { const p = K.planStops(plan)[0]; return p ? p.name + ', ' + p.addr : ''; };
+  const planDetails = plan => {
+    const st = K.planStops(plan);
+    return st.length ? stopsLine(plan) + (st.length > 1 ? '\nМаршрут: ' + K.routeUrl(st) : '\n' + K.mapUrl(st[0])) : '';
+  };
+  function calBlock(ev) {
+    let c;
+    try { c = K.calendarLinks(ev); } catch (e) { return ''; }
+    return `<div class="plan-links cal-links">
+      <a class="chip-link" href="${c.ics}" download="kuda-idem.ics">${I('calendar')}В календарь</a>
+      <a class="chip-link" href="${c.google}" target="_blank" rel="noopener">${I('calendar')}Google Календарь</a>
     </div>`;
   }
 
@@ -1192,7 +1208,12 @@
     const flight = 'LOVE-' + (parseInt(INV_ID, 36) % 900 + 100);
     const d = K.parseYmd(S.a.date);
     const topInfo = d ? `${d.getDate()} ${MONTHS_SHORT[d.getMonth()]}${S.a.time ? ' · ' + S.a.time : ''}` : (S.a.time || '❤');
-    const tgUser = String(CFG.myTelegram || '').replace(/^@/, '').trim();
+    const tgUser = hostTg();
+    const calEv = S.a.date ? {
+      title: `Свидание · ${INV.her} и ${INV.me}`, day: S.a.date, time: S.a.time || '',
+      location: plan ? placeLoc(plan) : (S.a.place && S.a.place.kind !== 'surprise' ? placeText(true) : ''),
+      details: plan ? planDetails(plan) : '',
+    } : null;
     el.innerHTML = `
       <div class="res-head"><p class="eyebrow">${view ? 'Ответ получен' : 'Готово'}</p>
         <h2 class="final-title">${view ? `${esc(INV.her)} ответила «да»` : 'Твой билет на свидание'}</h2></div>
@@ -1207,7 +1228,7 @@
         <div class="t-cut"></div>
         <div class="t-bottom"><div class="barcode"></div><small>РЕЙС<br>${flight}</small></div>
       </div></div>
-      ${plan ? `<div class="tally"><h3>${esc(plan.title)}</h3>${planBlock(plan)}</div>` : ''}
+      ${plan || calEv ? `<div class="tally"><h3>${plan ? esc(plan.title) : 'Не забудь'}</h3>${plan ? planBlock(plan) : ''}${calEv ? calBlock(calEv) : ''}</div>` : ''}
       <div class="send-state"></div>
       <div class="final-cat"><div class="cat-slot">${K.catSVG('love')}</div><div class="bubble b-left">${esc(view ? 'Осталось только встретиться 😉' : T(INV.finale))}</div></div>
       ${view ? `<div class="actions"><a class="btn btn-primary btn-wide" href="start.html">Все планы «Куда идём?»${I('arrow')}</a></div>` : ''}
@@ -1219,6 +1240,7 @@
           <button class="btn btn-primary note-send">Отправить</button>
         </div>
         <button class="link-btn replay">${I('redo')}Пройти заново</button>
+        <a class="link-btn viral" href="start.html?from=invite">${I('sparkle')}Сделать своё приглашение</a>
       </div>`;
 
     const ticket = $('.ticket', el), cut = $('.t-cut', el);
@@ -1321,7 +1343,37 @@
     return { opt, days, inV, any: inV.filter(v => !v.o.length).map(v => v.n) };
   }
   const shortDay = n => new Intl.DateTimeFormat('ru-RU', { weekday: 'short', day: 'numeric', month: 'short' }).format(K.parseYmd(K.numDay(n)));
-  function tallyHtml(votes) {
+  function verdict(votes, forced) {
+    const t = tally(votes);
+    const top = t.opt.length ? t.opt[0].who.length : 0;
+    const leaders = t.opt.filter(x => top > 0 && x.who.length === top);
+    const win = forced != null ? t.opt.find(x => x.i === forced) : leaders.length === 1 ? leaders[0] : null;
+    return { t, win, leaders, plan: win && win.o.plan ? K.planById(win.o.plan) : null, day: t.days.length ? t.days[0] : null };
+  }
+  function verdictText(votes, forced) {
+    const v = verdict(votes, forced);
+    const L = [`${MC.emoji} ${groupTitle()} — итог голосования`];
+    if (v.win) L.push(`📍 ${v.win.o.title}` + (v.plan ? `\n${planDetails(v.plan)}` : ''));
+    if (v.day) L.push(`📅 ${K.fmtDay(K.numDay(v.day.d))} — могут ${v.day.who.join(', ')}`);
+    L.push(`Голосовали: ${v.t.inV.map(x => x.n).join(', ') || '—'}`);
+    return L.join('\n');
+  }
+  function verdictHtml(votes, forced) {
+    const v = verdict(votes, forced);
+    if (!v.t.inV.length || (!v.win && !v.day && v.leaders.length < 2)) return '';
+    const tie = !v.win && v.leaders.length > 1;
+    const ev = v.day ? { title: groupTitle() + (v.win ? ' · ' + v.win.o.title : ''), day: K.numDay(v.day.d), location: v.plan ? placeLoc(v.plan) : '', details: v.plan ? planDetails(v.plan) : '' } : null;
+    return `<div class="tally verdict">
+      <p class="eyebrow">${forced != null ? 'Колесо решило' : tie ? 'Пока ничья' : 'Пока лидирует'}</p>
+      <h3 class="v-title">${v.win ? esc(v.win.o.title) : tie ? v.leaders.map(x => esc(x.o.title)).join(' или ') : 'Место пока не выбрано'}</h3>
+      ${tie ? '<p class="v-day">Крутани колесо ниже — оно решит</p>' : ''}
+      ${v.day ? `<p class="v-day">${I('calendar')}${esc(shortDay(v.day.d))} · могут ${v.day.who.length} из ${v.t.inV.length}</p>` : ''}
+      ${v.plan ? planBlock(v.plan) : ''}
+      ${ev ? calBlock(ev) : ''}
+      <button class="btn btn-soft btn-wide verdict-share">${I('send')}Отправить итог в чат</button>
+    </div>`;
+  }
+  function tallyHtml(votes, forced) {
     const t = tally(votes);
     const max = Math.max(1, t.inV.length);
     const top = t.opt.length ? t.opt[0].who.length : 0;
@@ -1329,7 +1381,7 @@
     const dTop = t.days.length ? t.days[0].who.length : 0;
     const row = (cls, title, who, n) => `<div class="t-item${cls}"><i class="bar" style="width:${(n / max * 100).toFixed(0)}%"></i>
       <span class="n">${esc(title)}<small>${who}</small></span><span class="c">${n}</span></div>`;
-    return `
+    return `${verdictHtml(votes, forced)}
       <div class="tally">
         <h3>Проголосовали: ${votes.length}</h3>
         <div class="voters">${votes.length ? votes.map(v => `<span class="${v.y ? '' : 'out'}"${v.y ? '' : ' title="не сможет"'}>${esc(v.n)}</span>`).join('') : '<span>пока никого</span>'}</div>
@@ -1341,8 +1393,7 @@
       </div>` : ''}
       ${t.days.length ? `<div class="tally"><h3>Когда</h3>
         ${t.days.slice(0, 6).map(x => row(x.who.length === dTop ? ' lead' : '', shortDay(x.d), esc(x.who.join(', ')), x.who.length)).join('')}
-      </div>` : ''}
-      ${leaders.length === 1 && leaders[0].o.plan ? `<div class="tally"><h3>Лидер: ${esc(leaders[0].o.title)}</h3>${planBlock(K.planById(leaders[0].o.plan))}</div>` : ''}`;
+      </div>` : ''}`;
   }
 
   function scrFinalGroup(el) {
@@ -1395,11 +1446,18 @@
           <a class="link-btn" href="start.html">Создать свой сбор${I('arrow')}</a>
         </div>`;
       const wrap = $('.tally-wrap', el);
-      let cur = votes;
+      let cur = votes, forced = null;
       function render() {
-        wrap.innerHTML = tallyHtml(cur);
+        wrap.innerHTML = tallyHtml(cur, forced);
         const wheel = $('.wheel', wrap);
-        if (wheel) wheel.onclick = () => spin(wrap, wheel);
+        if (wheel) wheel.onclick = () => spin(wrap, wheel, i => { forced = i; render(); wrap.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+        const vs = $('.verdict-share', wrap);
+        if (vs) vs.onclick = async () => {
+          Sfx.click();
+          const text = verdictText(cur, forced) + '\n👉 ' + await votesLink(cur);
+          if (navigator.share) { try { await navigator.share({ text }); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
+          toast(await copyText(text) ? 'Итог скопирован — вставь в общий чат' : 'Не получилось скопировать');
+        };
       }
       render();
       if (justVoted) setTimeout(() => FX.burst({ n: 120, power: 1.1 }), 250);
@@ -1423,7 +1481,7 @@
         }
         if (!added) { toast(foreign ? 'Это ссылки от другого сбора' : 'Не нашёл ссылок с голосами'); return; }
         cur = mergeVotes(cur, ...lists);
-        PRIOR = cur;
+        PRIOR = cur; forced = null;
         $('.merge textarea', el).value = '';
         render();
         Sfx.success();
@@ -1432,7 +1490,7 @@
       $('.revote', el).onclick = () => { Sfx.click(); S.a = freshAnswers(); go(1); };
     });
   }
-  function spin(wrap, btn) {
+  function spin(wrap, btn, onWin) {
     const items = $$('.t-item.lead[data-i]', wrap);
     if (items.length < 2) return;
     btn.disabled = true;
@@ -1449,6 +1507,7 @@
         FX.burst({ n: 100, power: 1 });
         toast('Колесо выбрало: ' + $('.n', items[winner]).firstChild.textContent);
         btn.disabled = false;
+        if (onWin) setTimeout(() => onWin(+items[winner].dataset.i), 900);
       }
     };
     tick();

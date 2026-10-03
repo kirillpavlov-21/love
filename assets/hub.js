@@ -58,6 +58,15 @@
     return { st, legs, price };
   }
   const createUrl = (m, planId) => `create.html?mode=${m}` + (planId ? `&plan=${encodeURIComponent(planId)}` : '');
+  /* Демо-приглашение для каждого режима: открывается как превью — ничего не отправляется */
+  const DEMO = {};
+  async function demoUrl(m) {
+    if (!DEMO[m]) {
+      const inv = m === 'date' ? {} : { mode: m, theme: K.MODES[m].theme, opts: D.scenarios.filter(s => s.mode === m).slice(0, 3).map(s => ({ plan: s.id })) };
+      DEMO[m] = 'index.html#' + await K.encodeInvite(inv) + '&p=1';
+    }
+    return DEMO[m];
+  }
   const kindLow = s => String(s || '').split(' · ')[0].toLowerCase();
 
   function renderModes() {
@@ -73,7 +82,13 @@
       <p class="eyebrow">${h.eyebrow}</p>
       <h1>${h.title}</h1>
       <p>${h.text}</p>
-      <a class="btn primary" href="${createUrl(mode)}">${h.cta}${I('arrow')}</a>`;
+      <div class="hero-actions">
+        <a class="btn primary" href="${createUrl(mode)}">${h.cta}${I('arrow')}</a>
+        <a class="btn ghost demo" href="#" target="_blank" rel="noopener">${I('eye')}Посмотреть пример</a>
+      </div>
+      <p class="usp"><span>${I('check')}Бесплатно</span><span>${I('check')}Без регистрации</span><span>${I('check')}Реальные места с маршрутом</span></p>`;
+    const demo = $('#hero .demo'), m = mode;
+    demoUrl(m).then(u => { if (m === mode) demo.href = u; });
   }
   function routeHtml(st, legs) {
     return st.map((p, i) => (i ? `<span class="dash"></span><span class="walk">${legs[i - 1]} мин пешком</span>` : '') +
@@ -151,6 +166,14 @@
     history.replaceState(null, '', '?m=' + mode);
     apply();
   });
+  $('#random').onclick = () => {
+    const plans = D.scenarios.filter(s => s.mode === mode);
+    const prev = $('#random')._last;
+    let p;
+    do { p = plans[(Math.random() * plans.length) | 0]; } while (plans.length > 1 && p.id === prev);
+    $('#random')._last = p.id;
+    openPlan(p.id);
+  };
   $('#cards').addEventListener('click', e => {
     const c = e.target.closest('.card[data-plan]');
     if (c) openPlan(c.dataset.plan);

@@ -76,7 +76,7 @@
   /* Короткие имена полей (только для ссылки) */
   const KEYS = ('her:a me:b catName:c cat:d theme:e greeting:f question:g signature:h finale:i levels:j heartsGoal:k ' +
     'noButton:l places:m placeSurprise:n placeCustom:o dates:p dateOther:q time:r food:s emoji:t title:u note:v mode:w ' +
-    'start:x days:y skipWeekdays:z list:A from:B to:C step:D def:E hearts:F letter:G place:H date:I opts:J plan:K tg:L').split(' ').map(x => x.split(':'));
+    'start:x days:y skipWeekdays:z list:A from:B to:C step:D def:E hearts:F letter:G place:H date:I opts:J plan:K tg:L tgu:M').split(' ').map(x => x.split(':'));
   const SHORT = Object.fromEntries(KEYS), LONG = Object.fromEntries(KEYS.map(([l, sh]) => [sh, l]));
   function rekey(v, map) {
     if (Array.isArray(v)) return v.map(x => rekey(x, map));
@@ -277,6 +277,38 @@
     return 'https://yandex.ru/maps/?rtext=~' + pts.join('~') + '&rtt=' + (far > 1500 ? 'mt' : 'pd');
   }
 
+  /* ---------- Telegram-ник владельца и календарь ---------- */
+  function tgUser(s) {
+    const u = String(s || '').trim().replace(/^https?:\/\/(t|telegram)\.me\//i, '').replace(/^@/, '').split(/[/?#]/)[0];
+    return /^[A-Za-z][A-Za-z0-9_]{3,31}$/.test(u) ? u : '';
+  }
+  const tgLink = (user, text) => 'https://t.me/' + user + (text ? '?text=' + encodeURIComponent(text) : '');
+  /* ev: { title, day: 'YYYY-MM-DD', time?: 'HH:MM', minutes?, location?, details? }.
+     Время — московское: UTC+3 без перехода на летнее время. */
+  function calendarLinks(ev) {
+    const stamp = ms => new Date(ms).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+    const [y, m, d] = ev.day.split('-').map(Number);
+    let a, b, ia, ib;
+    if (ev.time) {
+      const t = toMin(ev.time), st = Date.UTC(y, m - 1, d, 0, t - 180);
+      a = stamp(st); b = stamp(st + (ev.minutes || 180) * 60000);
+      ia = 'DTSTART:' + a; ib = 'DTEND:' + b;
+    } else {
+      a = ev.day.replace(/-/g, ''); b = ymd(addDays(parseYmd(ev.day), 1)).replace(/-/g, '');
+      ia = 'DTSTART;VALUE=DATE:' + a; ib = 'DTEND;VALUE=DATE:' + b;
+    }
+    const google = 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + encodeURIComponent(ev.title) +
+      '&dates=' + a + '/' + b + (ev.location ? '&location=' + encodeURIComponent(ev.location) : '') +
+      (ev.details ? '&details=' + encodeURIComponent(ev.details) : '') + '&ctz=Europe/Moscow';
+    const esc1 = t => String(t || '').replace(/\\/g, '\\\\').replace(/[,;]/g, x => '\\' + x).replace(/\n/g, '\\n');
+    const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Kuda idem//RU', 'CALSCALE:GREGORIAN', 'BEGIN:VEVENT',
+      'UID:' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8) + '@kuda-idem',
+      'DTSTAMP:' + stamp(Date.now()), ia, ib, 'SUMMARY:' + esc1(ev.title)]
+      .concat(ev.location ? ['LOCATION:' + esc1(ev.location)] : [], ev.details ? ['DESCRIPTION:' + esc1(ev.details)] : [],
+        ['BEGIN:VALARM', 'TRIGGER:-PT2H', 'ACTION:DISPLAY', 'DESCRIPTION:' + esc1(ev.title), 'END:VALARM', 'END:VEVENT', 'END:VCALENDAR']).join('\r\n');
+    return { google, ics: URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' })) };
+  }
+
   /* ---------- котик ---------- */
   const CATS = {
     line:   { fur: '#1A1920', belly: '#1A1920', line: '#F4F1EA', inner: 'var(--accent)', stripe: 'transparent', eye: '#F4F1EA', hi: '#0F0E13', sh: '#F4F1EA' },
@@ -311,6 +343,10 @@
     redo: '<path d="M4 12a8 8 0 0 1 14-5.3L20 9"/><path d="M20 4v5h-5"/>',
     share: '<path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/>',
     food: '<path d="M7 3v7a2 2 0 0 0 2 2v9"/><path d="M5 3v5"/><path d="M9 3v5"/><path d="M17 21V3c-2 1.5-3 4.5-3 7.5S15 15 17 15"/>',
+    dice: '<rect x="4" y="4" width="16" height="16" rx="3.5"/><circle cx="9" cy="9" r="1.3" fill="currentColor" stroke="none"/><circle cx="15" cy="15" r="1.3" fill="currentColor" stroke="none"/><circle cx="15" cy="9" r="1.3" fill="currentColor" stroke="none"/><circle cx="9" cy="15" r="1.3" fill="currentColor" stroke="none"/>',
+    eye: '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+    send: '<path d="M21 3L10 14"/><path d="M21 3l-7 18-4-7-7-4z"/>',
+    copy: '<rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>',
     users: '<circle cx="9" cy="8" r="3.5"/><path d="M3 20a6 6 0 0 1 12 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7"/><path d="M21 20a6 6 0 0 0-4-5.6"/>',
   };
   const icon = (name, cls) => `<svg class="ic${cls ? ' ' + cls : ''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name] || ''}</svg>`;
@@ -390,7 +426,7 @@
   window.DateKit = {
     BASE, merge, defaults, diffInvite, encodeInvite, decodeInvite, encodeData, decodeData, readHash, esc, fill, hash,
     ymd, parseYmd, addDays, listDates, fmtDay, dayNum, numDay, toMin, fromMin, relaySend, relayRegister,
-    CATS, catVars, catSVG, HEART_D, ICONS, icon, MODE_ICON,
+    CATS, catVars, catSVG, HEART_D, ICONS, icon, MODE_ICON, tgUser, tgLink, calendarLinks,
     MODES, modeOf, kuda, placeById, planById, planStops, distM, walkMin, priceText, mapUrl, routeUrl,
     THEMES: ['pink', 'lavender', 'peach', 'mint', 'sport'],
   };

@@ -171,3 +171,20 @@ body[data-mode="date"] .only-group, body:not([data-mode="date"]) .only-date { di
   .modeseg button { justify-content: center; padding: 10px 6px; font-size: 14px; }
   .top h1 { font-size: 24px; }
 }
+
+/* липкая панель на телефоне */
+.quick { margin: -6px 0 14px; color: var(--muted-2); }
+.mbar { display: none; }
+@media (max-width: 979px) {
+  .mbar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; display: flex; gap: 8px;
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+    background: rgba(15, 14, 19, .88); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+    border-top: 1px solid var(--line-1);
+  }
+  .mbar .btn { min-height: 50px; }
+  .mbar .btn.primary { flex: 1; }
+  body { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+  .toast { bottom: calc(86px + env(safe-area-inset-bottom)); }
+  .emoji-bar { bottom: calc(82px + env(safe-area-inset-bottom)); }
+}

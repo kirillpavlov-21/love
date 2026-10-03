@@ -592,3 +592,14 @@ html[data-theme="sport"] .t-mid svg path { fill: var(--paper-ink); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+/* ================= Итог голосования и календарь ================= */
+.verdict { border-color: rgba(var(--rgb), .35); background: linear-gradient(160deg, rgba(var(--rgb), .1), rgba(var(--rgb), 0) 60%), var(--surface); }
+.verdict .eyebrow { margin-bottom: -4px; }
+.verdict .v-title { font-family: var(--display); font-size: 21px; letter-spacing: -.02em; line-height: 1.15; }
+.v-day { margin: 0; display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600; color: var(--muted-2); }
+.v-day .ic { width: 18px; height: 18px; color: var(--accent); }
+.verdict .btn { margin-top: 2px; }
+.cal-links { margin-top: 2px; }
+.viral { color: var(--accent); }
+.cal-links .chip-link { font-size: 13px; padding: 0 12px; min-height: 38px; }

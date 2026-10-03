@@ -142,3 +142,25 @@ html[data-acc="shades"] .cat .acc-shades, html[data-acc="bow"] .cat .acc-bow { d
 
 .toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); z-index: 50; transform: translateX(-50%); max-width: 92vw; padding: 12px 18px; border-radius: 14px; background: var(--text); color: var(--bg); font-weight: 600; text-align: center; box-shadow: 0 12px 30px rgba(0, 0, 0, .4); }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; } }
+
+/* герой: действия и преимущества */
+.hero-actions { position: relative; display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
+.hero-actions .btn { margin-top: 0; }
+@media (min-width: 620px) { .hero-actions { flex-direction: row; } }
+.usp { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin: 2px 0 0; font-size: 13px !important; color: var(--muted) !important; }
+.usp span { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.usp .ic { width: 14px; height: 14px; color: var(--accent); stroke-width: 2.6; }
+.block h2 .count { margin-left: 6px; font: 500 13px var(--body); letter-spacing: 0; white-space: nowrap; }
+.mini { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px; border-radius: 99px; border: 1px solid var(--line-2); background: transparent; color: var(--text); font: 600 13px var(--body); cursor: pointer; }
+.mini .ic { width: 16px; height: 16px; color: var(--accent); }
+.mini:active { transform: scale(.96); }
+.block-head { align-items: center; }
+
+/* вопросы */
+.faq details { border-radius: 16px; background: var(--surface); border: 1px solid var(--line); margin-top: 10px; }
+.faq details:first-of-type { margin-top: 14px; }
+.faq summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; font-weight: 600; font-size: 15px; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: '+'; flex: 0 0 auto; font: 500 20px var(--display); color: var(--accent); transition: transform .2s; }
+.faq details[open] summary::after { transform: rotate(45deg); }
+.faq details p { margin: 0; padding: 0 16px 16px; font-size: 14px; line-height: 1.55; color: var(--muted-2); }
