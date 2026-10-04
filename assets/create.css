@@ -188,3 +188,4 @@ body[data-mode="date"] .only-group, body:not([data-mode="date"]) .only-date { di
   .toast { bottom: calc(86px + env(safe-area-inset-bottom)); }
   .emoji-bar { bottom: calc(82px + env(safe-area-inset-bottom)); }
 }
+.plan-pick button.more { border-style: dashed; color: var(--accent); background: transparent; align-self: center; }

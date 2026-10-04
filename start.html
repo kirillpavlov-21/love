@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="assets/hub.css?v=8">
+  <link rel="stylesheet" href="assets/hub.css?v=9">
 </head>
 <body>
   <header class="top">
@@ -34,6 +34,7 @@
       <h2>Готовые планы <span class="count" id="count"></span></h2>
       <button class="mini" id="random" type="button"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3.5"/><circle cx="9" cy="9" r="1.3" fill="currentColor" stroke="none"/><circle cx="15" cy="15" r="1.3" fill="currentColor" stroke="none"/><circle cx="15" cy="9" r="1.3" fill="currentColor" stroke="none"/><circle cx="9" cy="15" r="1.3" fill="currentColor" stroke="none"/></svg>Случайный</button>
     </div>
+    <div class="filters" id="filters" role="group" aria-label="Фильтр планов"></div>
     <div class="cards" id="cards"></div>
   </section>
 
@@ -61,7 +62,7 @@
     <details><summary>Как я узнаю ответ?</summary><p>В конце игры получатель нажимает «Отправить ответ» — тебе приходит сообщение с местом, днём и временем и ссылка-билет. Укажи в конструкторе свой ник в Telegram — тогда ответ сразу откроется в вашем чате.</p></details>
     <details><summary>Как собрать компанию?</summary><p>Выбери «Пацаны» или «Подружки», отметь подходящие планы и кинь ссылку в общий чат. Каждый отметит, куда и в какие дни может. Победитель виден сразу, а при ничьей поможет колесо.</p></details>
     <details><summary>Где хранятся имена и ответы?</summary><p>Только в самой ссылке. Мы не храним их на сервере и не просим аккаунтов — кто получил ссылку, тот и видит приглашение.</p></details>
-    <details><summary>Места только в Москве?</summary><p>Пока да — 35 проверенных мест в центре. В конструкторе можно добавить любые свои варианты, в том числе в другом городе.</p></details>
+    <details><summary>Места только в Москве?</summary><p>Пока да — больше 80 проверенных мест: центр, парки, ВДНХ, Коломенское и Царицыно. В конструкторе можно добавить любые свои варианты, в том числе в другом городе.</p></details>
   </section>
 
   <footer class="foot">
@@ -78,8 +79,8 @@
   </div></div>
   <div class="toast hidden" id="toast" role="status"></div>
 
-  <script src="assets/shared.js?v=8"></script>
-  <script src="assets/places.js?v=8"></script>
-  <script src="assets/hub.js?v=8"></script>
+  <script src="assets/shared.js?v=9"></script>
+  <script src="assets/places.js?v=9"></script>
+  <script src="assets/hub.js?v=9"></script>
 </body>
 </html>

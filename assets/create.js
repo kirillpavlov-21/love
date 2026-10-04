@@ -106,15 +106,22 @@
   }
 
   /* ---------- готовые планы ---------- */
+  /* Длинный список планов сворачиваем: первые 8 и все отмеченные */
+  const PICK_LIMIT = 8;
+  let pickAll = false;
+  function pickList(plans, isOn, attr) {
+    const shown = pickAll ? plans : plans.filter((p, i) => i < PICK_LIMIT || isOn(p));
+    return shown.map(p =>
+      `<button type="button" ${attr}="${p.id}" class="${isOn(p) ? 'on' : ''}">${p.emoji} ${esc(p.title)}<small>${esc(K.planStops(p).map(x => x.name).join(' → '))}</small></button>`).join('') +
+      (plans.length > PICK_LIMIT ? `<button type="button" class="more" data-more>${pickAll ? 'Свернуть' : `Показать все (${plans.length})`}</button>` : '');
+  }
   function renderPlanPickers(selectedGroup) {
     const datePlans = K.kuda().scenarios.filter(s => s.mode === 'date');
     const inPlaces = new Set($$('#places .li[data-plan]').map(r => r.dataset.plan));
-    $('#datePlans').innerHTML = datePlans.map(p =>
-      `<button type="button" data-dplan="${p.id}" class="${inPlaces.has(p.id) ? 'on' : ''}">${p.emoji} ${esc(p.title)}<small>${esc(K.planStops(p).map(x => x.name).join(' → '))}</small></button>`).join('');
+    $('#datePlans').innerHTML = pickList(datePlans, p => inPlaces.has(p.id), 'data-dplan');
     if (isGroup()) {
       const sel = selectedGroup || new Set($$('#planPick button.on').map(b => b.dataset.gplan));
-      $('#planPick').innerHTML = K.kuda().scenarios.filter(s => s.mode === state.mode).map(p =>
-        `<button type="button" data-gplan="${p.id}" class="${sel.has(p.id) ? 'on' : ''}">${p.emoji} ${esc(p.title)}<small>${esc(K.planStops(p).map(x => x.name).join(' → '))}</small></button>`).join('');
+      $('#planPick').innerHTML = pickList(K.kuda().scenarios.filter(s => s.mode === state.mode), p => sel.has(p.id), 'data-gplan');
     }
   }
 
@@ -439,6 +446,7 @@
         if (sw.dataset.theme) state.theme = sw.dataset.theme;
         renderSwatches(); update(); return;
       }
+      if (t.closest('[data-more]')) { pickAll = !pickAll; renderPlanPickers(); return; }
       const dp = t.closest('[data-dplan]');
       if (dp) {
         const row = $(`#places .li[data-plan="${dp.dataset.dplan}"]`);

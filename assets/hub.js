@@ -68,6 +68,17 @@
     return DEMO[m];
   }
   const kindLow = s => String(s || '').split(' · ')[0].toLowerCase();
+  const hasTag = (p, t) => (p.tags || []).includes(t);
+  const FILTERS = [
+    ['all', 'Все', () => true],
+    ['day', 'Днём', p => ['утро', 'день'].includes(p.when)],
+    ['eve', 'Вечером', p => ['закат', 'вечер', 'ночь'].includes(p.when)],
+    ['cheap', 'Недорого', p => planMeta(p).price <= 1],
+    ['active', 'Активно', p => hasTag(p, 'active')],
+    ['culture', 'Культура', p => hasTag(p, 'culture')],
+    ['view', 'С видом', p => hasTag(p, 'view')],
+  ];
+  let flt = 'all';
 
   function renderModes() {
     $('#modes').innerHTML = ORDER.map(m => {
@@ -94,12 +105,21 @@
     return st.map((p, i) => (i ? `<span class="dash"></span><span class="walk">${legs[i - 1]} мин пешком</span>` : '') +
       `<span class="dot${i ? ' o' : ''}"></span><span class="stop-name">${esc(p.name)} <span>· ${esc(kindLow(p.kind))}</span></span>`).join('');
   }
+  function renderFilters(all) {
+    const avail = FILTERS.filter(([id, , fn]) => id === 'all' || all.some(fn));
+    if (!avail.some(([id]) => id === flt)) flt = 'all';
+    $('#filters').innerHTML = avail.map(([id, label]) =>
+      `<button type="button" data-f="${id}" class="${id === flt ? 'on' : ''}" aria-pressed="${id === flt}">${label}</button>`).join('');
+  }
   function renderCards() {
-    const plans = D.scenarios.filter(s => s.mode === mode);
+    const all = D.scenarios.filter(s => s.mode === mode);
+    renderFilters(all);
+    const fn = (FILTERS.find(f => f[0] === flt) || FILTERS[0])[2];
+    const plans = all.filter(fn);
     $('#count').textContent = `${plans.length} ${plural(plans.length, 'план', 'плана', 'планов')}`;
     $('#cards').innerHTML = plans.map((p, i) => {
       const { st, legs, price } = planMeta(p);
-      return `<button type="button" class="card" data-plan="${p.id}" style="animation-delay:${(i * 0.05).toFixed(2)}s">
+      return `<button type="button" class="card" data-plan="${p.id}" style="animation-delay:${(Math.min(i, 8) * 0.05).toFixed(2)}s">
         <span class="card-head"><span class="ttl">${esc(p.title)}</span><span class="price">${K.priceText(price)}</span></span>
         <span class="route">${routeHtml(st, legs)}</span>
         <span class="chips">
@@ -162,12 +182,21 @@
     const b = e.target.closest('button[data-m]');
     if (!b || b.dataset.m === mode) return;
     mode = b.dataset.m;
+    flt = 'all';
     try { localStorage.setItem('kuda-mode', mode); } catch (err) { /* ок */ }
     history.replaceState(null, '', '?m=' + mode);
     apply();
   });
+  $('#filters').addEventListener('click', e => {
+    const b = e.target.closest('button[data-f]');
+    if (!b || b.dataset.f === flt) return;
+    flt = b.dataset.f;
+    renderCards();
+  });
   $('#random').onclick = () => {
-    const plans = D.scenarios.filter(s => s.mode === mode);
+    const fn = (FILTERS.find(f => f[0] === flt) || FILTERS[0])[2];
+    let plans = D.scenarios.filter(s => s.mode === mode && fn(s));
+    if (!plans.length) plans = D.scenarios.filter(s => s.mode === mode);
     const prev = $('#random')._last;
     let p;
     do { p = plans[(Math.random() * plans.length) | 0]; } while (plans.length > 1 && p.id === prev);
