@@ -171,3 +171,27 @@ html[data-acc="shades"] .cat .acc-shades, html[data-acc="bow"] .cat .acc-bow { d
 .filters button { flex: 0 0 auto; min-height: 38px; padding: 0 14px; border-radius: 99px; border: 1px solid var(--line-2); background: transparent; color: var(--muted-2); font: 600 14px var(--body); cursor: pointer; transition: background .2s, color .2s; }
 .filters button.on { background: var(--text); color: var(--bg); border-color: transparent; }
 .filters button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* каталог «Все места» */
+.block-note { margin: -6px 0 14px; font-size: 14px; line-height: 1.5; color: var(--muted); }
+.psearch { display: flex; align-items: center; gap: 10px; height: 50px; padding: 0 16px; margin-bottom: 12px; border-radius: 16px; background: var(--surface); border: 1px solid var(--line-2); color: var(--muted); }
+.psearch:focus-within { border-color: var(--accent); }
+.psearch .ic { width: 18px; height: 18px; flex: 0 0 auto; }
+.psearch input { flex: 1; min-width: 0; height: 100%; border: 0; outline: none; background: transparent; color: var(--text); font: 500 16px var(--body); }
+.psearch input::placeholder { color: #6F6A7A; }
+.plist { display: grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 12px; }
+@media (min-width: 620px) { .plist { grid-template-columns: 1fr 1fr; } }
+.pl-item { display: flex; align-items: center; gap: 12px; width: 100%; min-width: 0; padding: 12px 14px; border-radius: 16px; border: 1px solid var(--line); background: var(--surface); color: var(--text); text-align: left; cursor: pointer; font: inherit; transition: border-color .2s, transform .15s; }
+.pl-item:active { transform: scale(.99); }
+.pl-item:hover { border-color: var(--line-2); }
+.pl-item:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.pl-emo { display: grid; place-items: center; width: 40px; height: 40px; flex: 0 0 40px; border-radius: 12px; background: var(--surface-2); font-size: 20px; line-height: 1; }
+.pl-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.pl-name { font-weight: 600; font-size: 15px; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pl-sub { font-size: 13px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pl-item .price { flex: 0 0 auto; }
+.pl-empty { margin: 0; padding: 18px; border-radius: 16px; border: 1px dashed var(--line-2); color: var(--muted); font-size: 14px; text-align: center; }
+.stop.solo { margin: 0; }
+.in-plans { display: flex; flex-wrap: wrap; gap: 8px; }
+.in-plans .k { width: 100%; margin: 0; font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.in-plans .chip { border: 1px solid var(--line-2); cursor: pointer; font: 500 13px var(--body); color: var(--text); }

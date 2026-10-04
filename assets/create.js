@@ -121,7 +121,10 @@
     $('#datePlans').innerHTML = pickList(datePlans, p => inPlaces.has(p.id), 'data-dplan');
     if (isGroup()) {
       const sel = selectedGroup || new Set($$('#planPick button.on').map(b => b.dataset.gplan));
-      $('#planPick').innerHTML = pickList(K.kuda().scenarios.filter(s => s.mode === state.mode), p => sel.has(p.id), 'data-gplan');
+      const base = K.kuda().scenarios.filter(s => s.mode === state.mode);
+      // места из каталога («p-…») показываем первыми, если их выбрали
+      const extra = Array.from(sel).filter(id => !base.some(s => s.id === id)).map(K.planById).filter(Boolean);
+      $('#planPick').innerHTML = pickList(extra.concat(base), p => sel.has(p.id), 'data-gplan');
     }
   }
 
@@ -157,7 +160,7 @@
     renderLevels(levels);
     renderSwatches();
     applyModeUi();
-    const sel = new Set($$('#planPick button.on').map(b => b.dataset.gplan).filter(id => (K.planById(id) || {}).mode === next));
+    const sel = new Set($$('#planPick button.on').map(b => b.dataset.gplan).filter(id => { const pl = K.planById(id); return pl && (pl.mode === next || pl.single); }));
     if (!sel.size && !readList('opts').length) K.kuda().scenarios.filter(s => s.mode === next).slice(0, 3).forEach(p => sel.add(p.id));
     renderPlanPickers(sel);
     update();
@@ -398,13 +401,13 @@
     if (m && K.MODES[m]) switchMode(m);
     const pl = planId ? K.planById(planId) : null;
     if (!pl) return;
-    if (pl.mode !== state.mode) switchMode(pl.mode);
-    if (pl.mode === 'date') {
+    if (pl.mode && pl.mode !== state.mode) switchMode(pl.mode);
+    if (state.mode === 'date') {
       if (!$(`#places .li[data-plan="${pl.id}"]`)) $('#places').insertAdjacentHTML('afterbegin', itemRow({ plan: pl.id }, 'places'));
       $('#lv-place').checked = true;
     } else {
       const sel = new Set([pl.id].concat($$('#planPick button.on').map(b => b.dataset.gplan)));
-      K.kuda().scenarios.filter(s => s.mode === pl.mode && !sel.has(s.id)).slice(0, Math.max(0, 3 - sel.size)).forEach(s => sel.add(s.id));
+      K.kuda().scenarios.filter(s => s.mode === state.mode && !sel.has(s.id)).slice(0, Math.max(0, 3 - sel.size)).forEach(s => sel.add(s.id));
       renderPlanPickers(sel);
     }
     toast(`Добавил план «${pl.title}» ✓`);

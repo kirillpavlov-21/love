@@ -80,6 +80,23 @@
   ];
   let flt = 'all';
 
+  /* ---------- каталог «Все места» ---------- */
+  const PCATS = [['all', 'Все'], ['coffee', 'Кофе'], ['food', 'Рестораны'], ['bar', 'Бары'], ['culture', 'Культура'],
+    ['walk', 'Прогулки'], ['spa', 'Бани и спа'], ['fun', 'Развлечения'], ['books', 'Книжные']];
+  const CAT_BY_KIND = [
+    ['books', /книж/i], ['spa', /бан|спа|хамам|аквапарк|терм/i], ['coffee', /коф|пекар|кондитер|булоч|чайн/i],
+    ['fun', /тир|боулинг|картинг|vr|квест|скалодром|падел|стендап|бильярд|караоке|аттракц|развлеч|теплоход|студи|мастер|арт-вечер|танц|стадион|петанк/i],
+    ['culture', /музе|театр|кино|галере|планетар|концерт|дом культуры|культурн|центр|искусств|лекторий|архитектур/i],
+    ['walk', /парк|сад|набереж|усадьб|заповедник|смотров|квартал|дизайн-завод|креатив/i],
+    ['bar', /бар|паб|лаунж|винотек|крафт/i], ['food', /.*/],
+  ];
+  const catOf = p => p.cat || (CAT_BY_KIND.find(([, rx]) => rx.test(p.kind)) || ['food'])[0];
+  const PLACES = Object.entries(D.places).filter(([, p]) => !p.adult).map(([id, p]) => Object.assign({ id, c: catOf(p) }, p))
+    .sort((a, b) => a.name.localeCompare(b.name, 'ru'));
+  const PSTEP = 24;
+  let pcat = 'all', pq = '', plimit = PSTEP;
+  const norm = t => String(t || '').toLowerCase().replace(/ё/g, 'е');
+
   function renderModes() {
     $('#modes').innerHTML = ORDER.map(m => {
       const c = K.MODES[m];
@@ -139,6 +156,46 @@
         <span class="chips"><a class="chip" href="${K.mapUrl(p)}" target="_blank" rel="noopener">${I('pin')}${esc(p.addr)}</a></span>
       </div>`).join('');
   }
+  function renderPlaces() {
+    const q = norm(pq).trim();
+    const list = PLACES.filter(p => (pcat === 'all' || p.c === pcat) &&
+      (!q || norm(p.name + ' ' + p.kind + ' ' + p.metro + ' ' + p.addr).includes(q)));
+    $('#pfilters').innerHTML = PCATS.map(([id, label]) =>
+      `<button type="button" data-pc="${id}" class="${id === pcat ? 'on' : ''}" aria-pressed="${id === pcat}">${label}</button>`).join('');
+    $('#pcount').textContent = `${list.length} ${plural(list.length, 'место', 'места', 'мест')}`;
+    $('#plist').innerHTML = list.length ? list.slice(0, plimit).map(p => `
+      <button type="button" class="pl-item" data-pid="${p.id}">
+        <span class="pl-emo" aria-hidden="true">${esc(p.emoji)}</span>
+        <span class="pl-main"><span class="pl-name">${esc(p.name)}</span><span class="pl-sub">${esc(p.kind)} · м. ${esc(p.metro)}</span></span>
+        <span class="price">${K.priceText(p.price)}</span>
+      </button>`).join('') : '<p class="pl-empty">Ничего не нашлось. Попробуйте другое слово или категорию.</p>';
+    const rest = list.length - Math.min(plimit, list.length);
+    $('#pmore').classList.toggle('hidden', rest <= 0);
+    $('#pmore').textContent = `Показать ещё ${Math.min(rest, PSTEP)} из ${rest}`;
+  }
+  function openPlace(id) {
+    const p = K.placeById(id);
+    if (!p) return;
+    const inPlans = D.scenarios.filter(s => s.stops.includes(id));
+    $('#sheet').innerHTML = `
+      <span class="grab"></span>
+      <p class="eyebrow">${esc(p.kind)} · ${K.priceText(p.price)}</p>
+      <h3>${esc(p.name)}</h3>
+      <p class="why">${esc(p.note)}</p>
+      <div class="stop solo">
+        <span class="k">м. ${esc(p.metro)}</span>
+        <a href="${K.mapUrl(p)}" target="_blank" rel="noopener">${esc(p.addr)} — в Яндекс Картах${I('ext')}</a>
+      </div>
+      ${inPlans.length ? `<div class="in-plans"><p class="k">Есть в готовых планах</p>${inPlans.map(s =>
+        `<button type="button" class="chip" data-open-plan="${s.id}">${esc(s.title)}</button>`).join('')}</div>` : ''}
+      <div class="sheet-actions">
+        <a class="btn ghost wide" href="${K.mapUrl(p)}" target="_blank" rel="noopener">${I('pin')}Открыть в Яндекс Картах</a>
+        <a class="btn primary wide" href="${createUrl(mode, 'p-' + id)}">${HERO[mode].call}${I('arrow')}</a>
+      </div>`;
+    $('#sheetBg').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
   function apply() {
     document.documentElement.dataset.mode = mode;
     document.documentElement.dataset.acc = K.MODES[mode].acc || '';
@@ -187,6 +244,26 @@
     history.replaceState(null, '', '?m=' + mode);
     apply();
   });
+  $('#pfilters').addEventListener('click', e => {
+    const b = e.target.closest('button[data-pc]');
+    if (!b || b.dataset.pc === pcat) return;
+    pcat = b.dataset.pc; plimit = PSTEP;
+    renderPlaces();
+  });
+  let pqTimer = 0;
+  $('#psearch').addEventListener('input', e => {
+    clearTimeout(pqTimer);
+    pqTimer = setTimeout(() => { pq = e.target.value; plimit = PSTEP; renderPlaces(); }, 150);
+  });
+  $('#pmore').onclick = () => { plimit += PSTEP; renderPlaces(); };
+  $('#plist').addEventListener('click', e => {
+    const b = e.target.closest('.pl-item[data-pid]');
+    if (b) openPlace(b.dataset.pid);
+  });
+  $('#sheet').addEventListener('click', e => {
+    const b = e.target.closest('[data-open-plan]');
+    if (b) openPlan(b.dataset.openPlan);
+  });
   $('#filters').addEventListener('click', e => {
     const b = e.target.closest('button[data-f]');
     if (!b || b.dataset.f === flt) return;
@@ -230,4 +307,5 @@
   $('#ageNo').onclick = () => { closeSheets(); toast('Тогда подберём что-нибудь другое'); };
 
   apply();
+  renderPlaces();
 })();

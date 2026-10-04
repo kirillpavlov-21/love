@@ -259,7 +259,13 @@
 
   const kuda = () => window.KUDA || { places: {}, scenarios: [], adult: [] };
   const placeById = id => kuda().places[id] || null;
-  const planById = id => kuda().scenarios.find(s => s.id === id) || null;
+  /* Готовый план из подборки или «план» из одного места каталога: p-<id места> */
+  const planById = id => {
+    const s = kuda().scenarios.find(x => x.id === id);
+    if (s) return s;
+    const p = typeof id === 'string' && id.startsWith('p-') ? kuda().places[id.slice(2)] : null;
+    return p && !p.adult ? { id, mode: '', emoji: p.emoji, title: p.name, stops: [id.slice(2)], when: '', why: p.note, single: true } : null;
+  };
   const planStops = plan => (plan ? plan.stops.map(placeById).filter(Boolean) : []);
   function distM(a, b) {
     const R = 6371000, toR = x => x * Math.PI / 180;

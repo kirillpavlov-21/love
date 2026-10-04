@@ -423,6 +423,7 @@
   function stopsLine(plan) {
     const st = K.planStops(plan);
     if (!st.length) return '';
+    if (st.length === 1) return (st[0].name === plan.title ? '' : st[0].name + ' · ') + 'м. ' + st[0].metro;
     let walk = 0;
     for (let i = 1; i < st.length; i++) walk += K.walkMin(st[i - 1], st[i]);
     return st.map(p => p.name).join(' → ') + (st.length > 1 ? ` · ${walk} мин пешком` : '');
