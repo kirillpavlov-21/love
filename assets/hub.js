@@ -145,16 +145,26 @@
         </span>
       </button>`;
     }).join('');
-    $('#adultBlock').classList.toggle('hidden', mode !== 'guys');
   }
+  const ACATS = [['strip', 'Стриптиз'], ['men', 'Мужской стриптиз'], ['show', 'Бурлеск']];
+  const ADEF = { guys: 'strip', girls: 'men', date: 'show' };
+  const ADULT = D.adult.map(id => Object.assign({ id }, K.placeById(id))).filter(p => p.name);
+  let acat = ADEF[mode] || 'strip';
   function renderAdult() {
-    $('#adultCards').innerHTML = D.adult.map(K.placeById).filter(Boolean).map(p => `
-      <div class="card" style="cursor:default">
-        <span class="card-head"><span class="ttl">${esc(p.name)}</span><span class="chip a18">18+</span></span>
-        <span class="walk">${esc(kindLow(p.kind))} · м. ${esc(p.metro)}</span>
-        <span class="walk">${esc(p.note)}</span>
-        <span class="chips"><a class="chip" href="${K.mapUrl(p)}" target="_blank" rel="noopener">${I('pin')}${esc(p.addr)}</a></span>
-      </div>`).join('');
+    const list = ADULT.filter(p => p.a18 === acat);
+    $('#afilters').innerHTML = ACATS.map(([id, label]) =>
+      `<button type="button" data-ac="${id}" class="${id === acat ? 'on' : ''}" aria-pressed="${id === acat}">${label} · ${ADULT.filter(p => p.a18 === id).length}</button>`).join('');
+    $('#acount').textContent = `${ADULT.length} ${plural(ADULT.length, 'место', 'места', 'мест')}`;
+    $('#alist').innerHTML = list.map(p => `
+      <button type="button" class="pl-item" data-pid="${p.id}">
+        <span class="pl-emo" aria-hidden="true">${esc(p.emoji)}</span>
+        <span class="pl-main"><span class="pl-name">${esc(p.name)}</span><span class="pl-sub">${esc(p.kind.replace(' · 18+', ''))} · м. ${esc(p.metro)}</span></span>
+        <span class="price">${K.priceText(p.price)}</span>
+      </button>`).join('');
+    const f = $('#afilters'), on = f.querySelector('.on');
+    const fr = f.getBoundingClientRect(), r = on.getBoundingClientRect();
+    if (r.right > fr.right - 20) f.scrollLeft += r.right - fr.right + 20;
+    else if (r.left < fr.left + 20) f.scrollLeft -= fr.left + 20 - r.left;
   }
   function renderPlaces() {
     const q = norm(pq).trim();
@@ -189,8 +199,8 @@
       ${inPlans.length ? `<div class="in-plans"><p class="k">Есть в готовых планах</p>${inPlans.map(s =>
         `<button type="button" class="chip" data-open-plan="${s.id}">${esc(s.title)}</button>`).join('')}</div>` : ''}
       <div class="sheet-actions">
-        <a class="btn ghost wide" href="${K.mapUrl(p)}" target="_blank" rel="noopener">${I('pin')}Открыть в Яндекс Картах</a>
-        <a class="btn primary wide" href="${createUrl(mode, 'p-' + id)}">${HERO[mode].call}${I('arrow')}</a>
+        <a class="btn ${p.adult ? 'primary' : 'ghost'} wide" href="${K.mapUrl(p)}" target="_blank" rel="noopener">${I('pin')}Открыть в Яндекс Картах</a>
+        ${p.adult ? '' : `<a class="btn primary wide" href="${createUrl(mode, 'p-' + id)}">${HERO[mode].call}${I('arrow')}</a>`}
       </div>`;
     $('#sheetBg').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
@@ -200,8 +210,8 @@
     document.documentElement.dataset.mode = mode;
     document.documentElement.dataset.acc = K.MODES[mode].acc || '';
     renderModes(); renderHero(); renderCards();
-    $('#adultWrap').classList.add('hidden');
-    $('#adultBtn').classList.remove('hidden');
+    acat = ADEF[mode] || acat;
+    if (!$('#adultWrap').classList.contains('hidden')) renderAdult();
   }
 
   function openPlan(id) {
@@ -256,6 +266,16 @@
     pqTimer = setTimeout(() => { pq = e.target.value; plimit = PSTEP; renderPlaces(); }, 150);
   });
   $('#pmore').onclick = () => { plimit += PSTEP; renderPlaces(); };
+  $('#afilters').addEventListener('click', e => {
+    const b = e.target.closest('[data-ac]');
+    if (!b) return;
+    acat = b.dataset.ac;
+    renderAdult();
+  });
+  $('#alist').addEventListener('click', e => {
+    const b = e.target.closest('.pl-item[data-pid]');
+    if (b) openPlace(b.dataset.pid);
+  });
   $('#plist').addEventListener('click', e => {
     const b = e.target.closest('.pl-item[data-pid]');
     if (b) openPlace(b.dataset.pid);
@@ -290,9 +310,9 @@
   let adultOk = false;
   try { adultOk = sessionStorage.getItem('kuda-18') === '1'; } catch (e) { /* ок */ }
   function showAdult() {
-    renderAdult();
     $('#adultWrap').classList.remove('hidden');
     $('#adultBtn').classList.add('hidden');
+    renderAdult();
   }
   $('#adultBtn').onclick = () => {
     if (adultOk) { showAdult(); return; }

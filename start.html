@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="assets/hub.css?v=10">
+  <link rel="stylesheet" href="assets/hub.css?v=11">
 </head>
 <body>
   <header class="top">
@@ -49,11 +49,15 @@
     <button class="btn ghost wide hidden" id="pmore" type="button"></button>
   </section>
 
-  <section class="block hidden" id="adultBlock">
-    <button class="btn ghost wide" id="adultBtn" type="button">Показать места 18+</button>
+  <section class="block" id="adultBlock">
+    <button class="btn ghost wide" id="adultBtn" type="button">Места 18+: стриптиз и бурлеск</button>
     <div class="hidden" id="adultWrap">
-      <p class="adult-note">Только для взрослых. Перед походом проверь условия входа.</p>
-      <div class="cards" id="adultCards"></div>
+      <div class="block-head">
+        <h2>Места 18+ <span class="count" id="acount"></span></h2>
+      </div>
+      <p class="block-note">Стриптиз-клубы, мужской стриптиз для девичника и бурлеск-шоу. Только для взрослых: перед походом проверь условия входа и дресс-код.</p>
+      <div class="filters" id="afilters" role="group" aria-label="Разделы 18+"></div>
+      <div class="plist" id="alist"></div>
     </div>
   </section>
 
@@ -90,8 +94,8 @@
   </div></div>
   <div class="toast hidden" id="toast" role="status"></div>
 
-  <script src="assets/shared.js?v=10"></script>
-  <script src="assets/places.js?v=10"></script>
-  <script src="assets/hub.js?v=10"></script>
+  <script src="assets/shared.js?v=11"></script>
+  <script src="assets/places.js?v=11"></script>
+  <script src="assets/hub.js?v=11"></script>
 </body>
 </html>
