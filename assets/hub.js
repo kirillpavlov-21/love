@@ -146,15 +146,24 @@
       </button>`;
     }).join('');
   }
-  const ACATS = [['strip', 'Стриптиз'], ['men', 'Мужской стриптиз'], ['show', 'Бурлеск']];
-  const ADEF = { guys: 'strip', girls: 'men', date: 'show' };
+  const ALABEL = { strip: 'Стриптиз', men: 'Мужской стриптиз', show: 'Бурлеск' };
+  // мужской стриптиз — только в режиме «Подружки»; первая вкладка открывается по умолчанию
+  const AMODES = { guys: ['strip', 'show'], girls: ['men', 'strip', 'show'], date: ['show', 'strip'] };
+  const ANOTE = {
+    guys: 'Стриптиз-клубы и бурлеск-шоу.',
+    girls: 'Мужской стриптиз для девичника, стриптиз-клубы и бурлеск-шоу.',
+    date: 'Бурлеск-шоу и стриптиз-клубы.',
+  };
   const ADULT = D.adult.map(id => Object.assign({ id }, K.placeById(id))).filter(p => p.name);
-  let acat = ADEF[mode] || 'strip';
+  let acat = (AMODES[mode] || AMODES.guys)[0];
   function renderAdult() {
     const list = ADULT.filter(p => p.a18 === acat);
-    $('#afilters').innerHTML = ACATS.map(([id, label]) =>
-      `<button type="button" data-ac="${id}" class="${id === acat ? 'on' : ''}" aria-pressed="${id === acat}">${label} · ${ADULT.filter(p => p.a18 === id).length}</button>`).join('');
-    $('#acount').textContent = `${ADULT.length} ${plural(ADULT.length, 'место', 'места', 'мест')}`;
+    const cats = AMODES[mode] || AMODES.guys;
+    const n = ADULT.filter(p => cats.includes(p.a18)).length;
+    $('#afilters').innerHTML = cats.map(id =>
+      `<button type="button" data-ac="${id}" class="${id === acat ? 'on' : ''}" aria-pressed="${id === acat}">${ALABEL[id]} · ${ADULT.filter(p => p.a18 === id).length}</button>`).join('');
+    $('#acount').textContent = `${n} ${plural(n, 'место', 'места', 'мест')}`;
+    $('#anote').textContent = (ANOTE[mode] || ANOTE.guys) + ' Только для взрослых: перед походом проверь условия входа и дресс-код.';
     $('#alist').innerHTML = list.map(p => `
       <button type="button" class="pl-item" data-pid="${p.id}">
         <span class="pl-emo" aria-hidden="true">${esc(p.emoji)}</span>
@@ -210,7 +219,7 @@
     document.documentElement.dataset.mode = mode;
     document.documentElement.dataset.acc = K.MODES[mode].acc || '';
     renderModes(); renderHero(); renderCards();
-    acat = ADEF[mode] || acat;
+    acat = (AMODES[mode] || AMODES.guys)[0];
     if (!$('#adultWrap').classList.contains('hidden')) renderAdult();
   }
 
