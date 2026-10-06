@@ -267,6 +267,10 @@
     return p && !p.adult ? { id, mode: '', emoji: p.emoji, title: p.name, stops: [id.slice(2)], when: '', why: p.note, single: true } : null;
   };
   const planStops = plan => (plan ? plan.stops.map(placeById).filter(Boolean) : []);
+  /* Фото места из assets/photos.js (Wikimedia Commons): { s: большое, t: превью, a: автор, l: лицензия, u: страница файла } */
+  const photo = p => (p && p.ph) || null;
+  const planPhoto = plan => planStops(plan).map(photo).find(Boolean) || null;
+  const photoCredit = ph => ph ? `Фото: <a href="${esc(ph.u)}" target="_blank" rel="noopener">${esc(ph.a)}</a>, ${esc(ph.l)} · Wikimedia Commons` : '';
   function distM(a, b) {
     const R = 6371000, toR = x => x * Math.PI / 180;
     const dLat = toR(b.lat - a.lat), dLon = toR(b.lon - a.lon);
@@ -433,7 +437,7 @@
     BASE, merge, defaults, diffInvite, encodeInvite, decodeInvite, encodeData, decodeData, readHash, esc, fill, hash,
     ymd, parseYmd, addDays, listDates, fmtDay, dayNum, numDay, toMin, fromMin, relaySend, relayRegister,
     CATS, catVars, catSVG, HEART_D, ICONS, icon, MODE_ICON, tgUser, tgLink, calendarLinks,
-    MODES, modeOf, kuda, placeById, planById, planStops, distM, walkMin, priceText, mapUrl, routeUrl,
+    MODES, modeOf, kuda, placeById, planById, planStops, photo, planPhoto, photoCredit, distM, walkMin, priceText, mapUrl, routeUrl,
     THEMES: ['pink', 'lavender', 'peach', 'mint', 'sport'],
   };
 })();

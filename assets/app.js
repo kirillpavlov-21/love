@@ -827,7 +827,7 @@
   function lvlPlace(el, next, step) {
     const opts = (INV.places || []).filter(p => p && (p.title || K.planById(p.plan))).map(p => {
       const pl = p.plan ? K.planById(p.plan) : null;
-      return { emoji: p.emoji || (pl && pl.emoji) || '📍', title: p.title || pl.title, note: p.note || (pl && pl.why) || '', plan: pl ? pl.id : '' };
+      return { emoji: p.emoji || (pl && pl.emoji) || '📍', title: p.title || pl.title, note: p.note || (pl && pl.why) || '', plan: pl ? pl.id : '', ph: pl ? K.planPhoto(pl) : null };
     });
     if (INV.placeSurprise) opts.push({ emoji: '🎁', title: 'Сюрприз', note: `Пусть ${INV.me} выберет сам — и не скажет куда 🤫`, kind: 'surprise' });
     if (INV.placeCustom) opts.push({ emoji: '✍️', title: 'Свой вариант', note: 'Напиши, куда тебе хочется', kind: 'custom' });
@@ -865,7 +865,7 @@
       const sh = document.createElement('div');
       sh.className = 'sheet';
       sh.innerHTML = `
-        <div class="sheet-emoji">${esc(o.emoji)}</div>
+        ${o.ph ? `<figure class="sheet-ph"><img src="${o.ph.s}" alt="${esc(o.title)}" decoding="async"><figcaption>${K.photoCredit(o.ph)}</figcaption></figure>` : `<div class="sheet-emoji">${esc(o.emoji)}</div>`}
         <h3>${esc(o.title)}</h3>
         ${o.note ? `<p>${esc(T(o.note))}</p>` : ''}
         ${o.plan ? `<p class="opt-stops">${esc(stopsLine(K.planById(o.plan)))}</p>` : ''}
@@ -1077,8 +1077,9 @@
     function build() {
       idx = 0; liked = []; likedIdx = []; busy = false;
       deck.innerHTML = items.map((f, i) => `
-        <div class="fcard" data-i="${i}" style="--c:${FCOL[i % FCOL.length]};z-index:${items.length - i}">
+        <div class="fcard${f.ph ? ' has-ph' : ''}" data-i="${i}" style="--c:${FCOL[i % FCOL.length]};z-index:${items.length - i}">
           <span class="tag like">${cfg.likeTag}</span><span class="tag nope">${cfg.nopeTag}</span>
+          ${f.ph ? `<div class="fph"><img src="${f.ph.s}" alt="" draggable="false" decoding="async"><span class="fcap">© ${esc(f.ph.a)}, ${esc(f.ph.l)}</span></div>` : ''}
           <div class="fe">${esc(f.emoji)}</div><div class="ft">${esc(f.title)}</div>${f.note ? `<div class="fn">${esc(f.note)}</div>` : ''}
           ${f.stops ? `<div class="opt-stops">${esc(f.stops)}</div>` : ''}
         </div>`).join('');
@@ -1180,7 +1181,7 @@
   function optItems() {
     return (INV.opts || []).map(o => {
       const pl = o && o.plan ? K.planById(o.plan) : null;
-      if (pl) return { emoji: pl.emoji, title: pl.title, note: pl.why, stops: stopsLine(pl), plan: pl.id };
+      if (pl) return { emoji: pl.emoji, title: pl.title, note: pl.why, stops: stopsLine(pl), plan: pl.id, ph: K.planPhoto(pl) };
       if (o && o.title) return { emoji: o.emoji || '📍', title: o.title, note: o.note || '', stops: '', plan: '' };
       return { emoji: '❓', title: 'Вариант недоступен', note: '', stops: '', plan: '' };
     });

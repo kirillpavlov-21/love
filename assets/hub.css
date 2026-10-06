@@ -195,3 +195,19 @@ html[data-acc="shades"] .cat .acc-shades, html[data-acc="bow"] .cat .acc-bow { d
 .in-plans { display: flex; flex-wrap: wrap; gap: 8px; }
 .in-plans .k { width: 100%; margin: 0; font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
 .in-plans .chip { border: 1px solid var(--line-2); cursor: pointer; font: 500 13px var(--body); color: var(--text); }
+
+/* ---------- Фото мест (Wikimedia Commons) ---------- */
+.pl-emo { width: 48px; height: 48px; flex-basis: 48px; overflow: hidden; }
+.pl-emo.ph { background: var(--surface-3); }
+.pl-emo img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.card-ph { display: grid; grid-template-columns: repeat(var(--n, 1), minmax(0, 1fr)); gap: 3px; height: 112px; margin: -8px -8px 0; border-radius: 16px; overflow: hidden; background: var(--surface-2); }
+.card-ph.n2 { --n: 2; }
+.card-ph.n3 { --n: 3; }
+.card-ph img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.hero-ph, .stop-ph { margin: 0; }
+.hero-ph img { display: block; width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 20px; background: var(--surface-2); }
+.stop-ph { margin: -14px -16px 6px; }
+.stop-ph img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 18px 18px 0 0; background: var(--surface-3); }
+.hero-ph figcaption, .stop-ph figcaption { margin-top: 6px; font-size: 11px; line-height: 1.35; color: var(--muted); }
+.stop-ph figcaption { padding: 0 16px; }
+.hero-ph figcaption a, .stop-ph figcaption a { color: inherit; text-decoration: underline; text-decoration-color: rgba(163, 158, 174, .4); font-size: 11px; font-weight: 400; display: inline; }

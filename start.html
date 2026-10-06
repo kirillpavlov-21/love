@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="assets/hub.css?v=13">
+  <link rel="stylesheet" href="assets/hub.css?v=14">
 </head>
 <body>
   <header class="top">
@@ -42,7 +42,7 @@
     <div class="block-head">
       <h2>Все места <span class="count" id="pcount"></span></h2>
     </div>
-    <p class="block-note">Кофейни, рестораны, музеи, бани и прогулки по Москве. Работу каждого места проверяли в октябре 2026 года.</p>
+    <p class="block-note">Достопримечательности, музеи, кофейни, рестораны, бани и прогулки по Москве. Работу каждого места проверяли в октябре 2026 года.</p>
     <label class="psearch"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="psearch" type="search" placeholder="Название, метро или тип места" aria-label="Поиск по местам" autocomplete="off"></label>
     <div class="filters" id="pfilters" role="group" aria-label="Категории мест"></div>
     <div class="plist" id="plist"></div>
@@ -77,12 +77,12 @@
     <details><summary>Как я узнаю ответ?</summary><p>В конце игры получатель нажимает «Отправить ответ» — тебе приходит сообщение с местом, днём и временем и ссылка-билет. Укажи в конструкторе свой ник в Telegram — тогда ответ сразу откроется в вашем чате.</p></details>
     <details><summary>Как собрать компанию?</summary><p>Выбери «Пацаны» или «Подружки», отметь подходящие планы и кинь ссылку в общий чат. Каждый отметит, куда и в какие дни может. Победитель виден сразу, а при ничьей поможет колесо.</p></details>
     <details><summary>Где хранятся имена и ответы?</summary><p>Только в самой ссылке. Мы не храним их на сервере и не просим аккаунтов — кто получил ссылку, тот и видит приглашение.</p></details>
-    <details><summary>Места только в Москве?</summary><p>Пока да — больше 230 проверенных мест: центр, парки, ВДНХ, усадьбы и набережные. В конструкторе можно добавить любые свои варианты, в том числе в другом городе.</p></details>
+    <details><summary>Места только в Москве?</summary><p>Пока да — почти 300 проверенных мест: главные достопримечательности, парки, музеи, кофейни, бары и бани. В конструкторе можно добавить любые свои варианты, в том числе в другом городе.</p></details>
   </section>
 
   <footer class="foot">
     Описания мест — по открытым источникам на октябрь 2026. Перед походом проверь часы работы в Яндекс Картах.<br>
-    Координаты © участники OpenStreetMap.
+    Координаты © участники OpenStreetMap. Фото — Wikimedia Commons, автор и лицензия указаны под каждым снимком.
   </footer>
 
   <div class="sheet-bg hidden" id="sheetBg"><div class="psheet" id="sheet" role="dialog" aria-modal="true"></div></div>
@@ -94,8 +94,9 @@
   </div></div>
   <div class="toast hidden" id="toast" role="status"></div>
 
-  <script src="assets/shared.js?v=13"></script>
-  <script src="assets/places.js?v=13"></script>
-  <script src="assets/hub.js?v=13"></script>
+  <script src="assets/shared.js?v=14"></script>
+  <script src="assets/places.js?v=14"></script>
+  <script src="assets/photos.js?v=14"></script>
+  <script src="assets/hub.js?v=14"></script>
 </body>
 </html>

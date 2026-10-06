@@ -57,6 +57,11 @@
     const price = Math.max(...st.map(p => p.price || 1));
     return { st, legs, price };
   }
+  const phStrip = st => { const ph = st.map(K.photo).filter((x, i, a) => x && a.findIndex(y => y && y.u === x.u) === i).slice(0, 3);
+    return ph.length ? `<span class="card-ph n${ph.length}" aria-hidden="true">${ph.map(x => `<img src="${ph.length < 3 ? x.s : x.t}" alt="" loading="lazy" decoding="async">`).join('')}</span>` : ''; };
+  const emoTile = p => { const ph = K.photo(p);
+    return `<span class="pl-emo${ph ? ' ph' : ''}" aria-hidden="true">${ph ? `<img src="${ph.t}" alt="" loading="lazy" decoding="async">` : esc(p.emoji)}</span>`; };
+  const heroPh = (ph, alt) => ph ? `<figure class="hero-ph"><img src="${ph.s}" alt="${esc(alt)}" decoding="async"><figcaption>${K.photoCredit(ph)}</figcaption></figure>` : '';
   const createUrl = (m, planId) => `create.html?mode=${m}` + (planId ? `&plan=${encodeURIComponent(planId)}` : '');
   /* Демо-приглашение для каждого режима: открывается как превью — ничего не отправляется */
   const DEMO = {};
@@ -137,7 +142,7 @@
     $('#cards').innerHTML = plans.map((p, i) => {
       const { st, legs, price } = planMeta(p);
       return `<button type="button" class="card" data-plan="${p.id}" style="animation-delay:${(Math.min(i, 8) * 0.05).toFixed(2)}s">
-        <span class="card-head"><span class="ttl">${esc(p.title)}</span><span class="price">${K.priceText(price)}</span></span>
+        ${phStrip(st)}<span class="card-head"><span class="ttl">${esc(p.title)}</span><span class="price">${K.priceText(price)}</span></span>
         <span class="route">${routeHtml(st, legs)}</span>
         <span class="chips">
           <span class="chip">${I('clock')}${esc(p.when)}</span>
@@ -168,7 +173,7 @@
     $('#anote').textContent = (ANOTE[mode] || ANOTE.guys) + ' Только для взрослых: перед походом проверь условия входа и дресс-код.';
     $('#alist').innerHTML = list.map(p => `
       <button type="button" class="pl-item" data-pid="${p.id}">
-        <span class="pl-emo" aria-hidden="true">${esc(p.emoji)}</span>
+        ${emoTile(p)}
         <span class="pl-main"><span class="pl-name">${esc(p.name)}</span><span class="pl-sub">${esc(p.kind.replace(' · 18+', ''))} · м. ${esc(p.metro)}</span></span>
         <span class="price">${K.priceText(p.price)}</span>
       </button>`).join('');
@@ -186,7 +191,7 @@
     $('#pcount').textContent = `${list.length} ${plural(list.length, 'место', 'места', 'мест')}`;
     $('#plist').innerHTML = list.length ? list.slice(0, plimit).map(p => `
       <button type="button" class="pl-item" data-pid="${p.id}">
-        <span class="pl-emo" aria-hidden="true">${esc(p.emoji)}</span>
+        ${emoTile(p)}
         <span class="pl-main"><span class="pl-name">${esc(p.name)}</span><span class="pl-sub">${esc(p.kind)} · м. ${esc(p.metro)}</span></span>
         <span class="price">${K.priceText(p.price)}</span>
       </button>`).join('') : '<p class="pl-empty">Ничего не нашлось. Попробуйте другое слово или категорию.</p>';
@@ -200,6 +205,7 @@
     const inPlans = D.scenarios.filter(s => s.stops.includes(id));
     $('#sheet').innerHTML = `
       <span class="grab"></span>
+      ${heroPh(K.photo(p), p.name)}
       <p class="eyebrow">${esc(p.kind)} · ${K.priceText(p.price)}</p>
       <h3>${esc(p.name)}</h3>
       <p class="why">${esc(p.note)}</p>
@@ -230,9 +236,13 @@
     const plan = K.planById(id);
     if (!plan) return;
     const { st, legs, price } = planMeta(plan);
+    const shown = new Set();
+    const stopPh = p => { const ph = K.photo(p); if (!ph || shown.has(ph.u)) return ''; shown.add(ph.u);
+      return `<figure class="stop-ph"><img src="${ph.s}" alt="${esc(p.name)}" loading="lazy" decoding="async"><figcaption>${K.photoCredit(ph)}</figcaption></figure>`; };
     const parts = st.map((p, i) => (i ? `<span class="dash"></span><span class="walk">${legs[i - 1]} мин пешком</span>` : '') + `
       <span class="dot${i ? ' o' : ''}"></span>
       <div class="stop">
+        ${stopPh(p)}
         <b>${esc(p.name)}</b>
         <span class="k">${esc(p.kind)} · м. ${esc(p.metro)} · ${K.priceText(p.price)}</span>
         <p>${esc(p.note)}</p>
