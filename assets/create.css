@@ -189,3 +189,6 @@ body[data-mode="date"] .only-group, body:not([data-mode="date"]) .only-date { di
   .emoji-bar { bottom: calc(82px + env(safe-area-inset-bottom)); }
 }
 .plan-pick button.more { border-style: dashed; color: var(--accent); background: transparent; align-self: center; }
+
+.btn-reset { display: block; margin: -4px auto 12px; padding: 8px 12px; border: 0; background: transparent; color: var(--muted, #A39EAE); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; border-radius: 10px; }
+.btn-reset:hover { color: var(--accent); }

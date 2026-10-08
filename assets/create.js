@@ -173,7 +173,8 @@
 
   /* ---------- форма ⇄ приглашение ---------- */
   function fillForm(inv) {
-    inv = K.merge(K.BASE, inv);
+    inv = K.merge(DEF, inv);
+    if (!(inv.food || []).some(f => f && f.title)) inv.food = DEF.food;
     state.mode = K.modeOf(inv);
     ['her', 'me', 'catName', 'greeting', 'question', 'signature', 'finale'].forEach(k => { $('#' + k).value = inv[k] || ''; });
     $('#tgu').value = K.tgUser(inv.tgu) ? '@' + K.tgUser(inv.tgu) : '';
@@ -209,7 +210,7 @@
     applyModeUi();
     renderPlanPickers(new Set(opts.filter(o => o && o.plan).map(o => o.plan)));
   }
-  function readForm() {
+  function readForm(all) {
     const v = id => $('#' + id).value.trim();
     const levels = {};
     $$('#levels input').forEach(i => { levels[i.id.slice(3)] = i.checked; });
@@ -229,7 +230,18 @@
         list: dmode === 'list' ? $$('#dates .dt').map(i => i.value).filter(Boolean) : [],
       },
     };
+    const dateFields = () => ({
+      her: v('her') || 'Солнышко', signature: v('signature'), finale: v('finale'),
+      places: readList('places'),
+      placeSurprise: $('#placeSurprise').checked,
+      placeCustom: $('#placeCustom').checked,
+      dateOther: $('#dateOther').checked,
+      time: { from: v('tFrom') || '12:00', to: v('tTo') || '22:00', step: +v('tStep') || 30, def: v('tDef') || '19:00' },
+      food: readList('food'),
+    });
     if (isGroup()) {
+      // черновику нужны и поля свидания, иначе после перезагрузки пропадут блюда и места
+      if (all) Object.assign(inv, dateFields());
       // стандартные тексты режима не кладём в ссылку — игра подставит их сама
       if (inv.greeting === MC().greeting) inv.greeting = DEF.greeting;
       if (inv.question === MC().question) inv.question = DEF.question;
@@ -239,15 +251,7 @@
         opts: $$('#planPick button.on').map(b => ({ plan: b.dataset.gplan })).concat(readList('opts')),
       });
     } else {
-      Object.assign(inv, {
-        her: v('her') || 'Солнышко', signature: v('signature'), finale: v('finale'),
-        places: readList('places'),
-        placeSurprise: $('#placeSurprise').checked,
-        placeCustom: $('#placeCustom').checked,
-        dateOther: $('#dateOther').checked,
-        time: { from: v('tFrom') || '12:00', to: v('tTo') || '22:00', step: +v('tStep') || 30, def: v('tDef') || '19:00' },
-        food: readList('food'),
-      });
+      Object.assign(inv, dateFields());
       const tgu = K.tgUser(v('tgu'));
       if (tgu) inv.tgu = tgu;
     }
@@ -311,7 +315,7 @@
 
   const update = debounce(async () => {
     const inv = readForm();
-    ls.set(DRAFT, JSON.stringify(inv));
+    ls.set(DRAFT, JSON.stringify(readForm(true)));
     dateInfo(inv);
     pvSteps(inv);
     renderPlanPickers();
@@ -508,6 +512,17 @@
       try { localStorage.removeItem(DRAFT); } catch (e) { /* ок */ }
       state.texts = {};
       fillForm(DEF); update();
+    };
+
+    $('#foodDefaults').onclick = () => {
+      const cur = readList('food').filter(f => f.title);
+      const same = cur.length === DEF.food.length && cur.every((f, i) => f.title === DEF.food[i].title && f.emoji === DEF.food[i].emoji);
+      if (same) { toast('Уже стоят стандартные блюда'); return; }
+      if (cur.length && !confirm('Заменить список блюд стандартным набором?')) return;
+      renderList('food', DEF.food);
+      $('#lv-food').checked = true;
+      update();
+      toast('Вернул стандартные блюда ✓');
     };
 
     $('#tgTest').onclick = tgTest;
