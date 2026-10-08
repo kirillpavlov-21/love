@@ -71,6 +71,11 @@
   const modeDefault = (mode, key) => (mode === 'date' ? DEF[key] : K.MODES[mode][key]);
   const themeDefault = mode => (mode === 'date' ? DEF.theme : K.MODES[mode].theme);
   const noDefault = mode => (mode === 'date' ? DEF.noButton : 'real');
+  /* стандартный текст чужого режима (например, «собирает девочек» в свидании) — меняем на текст текущего */
+  const ownText = (mode, key, val) => {
+    const foreign = Object.keys(K.MODES).some(m => m !== mode && val === modeDefault(m, key));
+    return !val || foreign ? modeDefault(mode, key) : val;
+  };
 
   /* ---------- списки: места, варианты, еда, даты ---------- */
   function itemRow(it, kind) {
@@ -172,10 +177,8 @@
     state.mode = K.modeOf(inv);
     ['her', 'me', 'catName', 'greeting', 'question', 'signature', 'finale'].forEach(k => { $('#' + k).value = inv[k] || ''; });
     $('#tgu').value = K.tgUser(inv.tgu) ? '@' + K.tgUser(inv.tgu) : '';
-    if (isGroup()) {
-      if (!inv.greeting || inv.greeting === DEF.greeting) $('#greeting').value = MC().greeting;
-      if (!inv.question || inv.question === DEF.question) $('#question').value = MC().question;
-    }
+    $('#greeting').value = ownText(state.mode, 'greeting', (inv.greeting || '').trim());
+    $('#question').value = ownText(state.mode, 'question', (inv.question || '').trim());
     $('#title').value = inv.title || MC().title || '';
     state.cat = K.CATS[inv.cat] ? inv.cat : 'line';
     state.theme = K.THEMES.includes(inv.theme) ? inv.theme : themeDefault(state.mode);

@@ -1576,6 +1576,10 @@
     INV_ID = K.hash(h.code || JSON.stringify(inv));
     KEY = 'date-invite:' + INV_ID;
     MODE = K.modeOf(INV); MC = K.MODES[MODE]; GROUP = !!MC.group;
+    /* в свидании — не текст сбора пацанов/подружек */
+    if (!GROUP) ['greeting', 'question'].forEach(k => {
+      if (Object.values(K.MODES).some(m => m.group && INV[k] === m[k])) INV[k] = DEF[k];
+    });
     document.documentElement.dataset.theme = K.THEMES.includes(INV.theme) ? INV.theme : (MC.theme || 'pink');
     document.documentElement.dataset.acc = MC.acc || '';
     document.documentElement.style.cssText += ';' + K.catVars(INV.cat);
