@@ -7,7 +7,10 @@
   const $ = (s, r) => (r || document).querySelector(s);
   const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
   const esc = K.esc;
-  const DRAFT = 'date-constructor-draft';
+  /* Черновик формы. Версия в ключе: при смене версии старые черновики сбрасываются один раз
+     (в них могли остаться шаблоны чужого режима — «девичник» в свидании и т.п.). */
+  const DRAFT = 'kuda-draft-v2';
+  const OLD_DRAFTS = ['date-constructor-draft'];
   const HIST = 'date-constructor-history';
   const OWNER = 'kuda-owner-key';
   const MODE_ORDER = ['date', 'guys', 'girls'];
@@ -426,6 +429,7 @@
     $('#weekdays').innerHTML = WEEK.map(([n, t]) => `<label class="chip"><input type="checkbox" value="${n}"><span>${t}</span></label>`).join('');
 
     let draft = null;
+    try { OLD_DRAFTS.forEach(k => localStorage.removeItem(k)); } catch (e) { /* ок */ }
     try { draft = JSON.parse(ls.get(DRAFT) || 'null'); } catch (e) { /* пусто */ }
     fillForm(draft || DEF);
     tgStatus();
