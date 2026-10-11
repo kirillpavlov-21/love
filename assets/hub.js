@@ -20,7 +20,7 @@
     guys: {
       eyebrow: 'Сбор компании',
       title: 'Собери пацанов без споров в чате',
-      text: 'Скинь ссылку — каждый отметит, куда и в какие дни может. Сразу видно, что побеждает.',
+      text: 'Компы, бани, тиры и бары. Скинь ссылку — каждый отметит, куда и в какие дни может. Сразу видно, что побеждает.',
       cta: 'Собрать пацанов',
       call: 'Позвать пацанов сюда',
     },
@@ -85,6 +85,8 @@
   const FILTERS = [
     ['all', 'Все', () => true],
     ...HFILTERS,
+    ['pc', '🎮 Компы', p => hasTag(p, 'pc')],
+    ['lb', '🌊 Левобережный', p => hasTag(p, 'lb')],
     ['first', '💘 Первое свидание', p => hasHint(p, 'first')],
     ['rain', '☔ Если дождь', p => hasHint(p, 'rain')],
     ['day', 'Днём', p => ['утро', 'день'].includes(p.when)],
@@ -97,15 +99,16 @@
   let flt = 'all';
 
   /* ---------- каталог «Все места» ---------- */
-  const PCATS = [['all', 'Все'], ['autumn', '🍂 Осень'], ['halloween', '🎃 Хэллоуин'], ['first', '💘 Для первого свидания'], ['walk', 'Прогулки'], ['culture', 'Культура'], ['food', 'Рестораны'], ['michelin', 'Michelin'],
+  const PCATS = [['all', 'Все'], ['pc', '🎮 Компы'], ['autumn', '🍂 Осень'], ['halloween', '🎃 Хэллоуин'], ['first', '💘 Для первого свидания'], ['walk', 'Прогулки'], ['culture', 'Культура'], ['food', 'Рестораны'], ['michelin', 'Michelin'],
     ['coffee', 'Кофе'], ['bar', 'Бары'], ['fun', 'Развлечения'], ['spa', 'Бани и спа'], ['books', 'Книжные']];
   /* Округа Москвы (поле okr у места) */
   const OKRS = [['all', 'Вся Москва'], ['center', 'Центр'], ['north', 'Север'], ['ne', 'Северо-Восток'], ['east', 'Восток'],
     ['se', 'Юго-Восток'], ['south', 'Юг'], ['sw', 'Юго-Запад'], ['west', 'Запад'], ['nw', 'Северо-Запад'],
-    ['zel', 'Зеленоград'], ['new', 'Новая Москва'], ['mo', 'Подмосковье']];
+    ['khimki', 'Химки · Левобережный'], ['zel', 'Зеленоград'], ['new', 'Новая Москва'], ['mo', 'Подмосковье']];
   const OKR_NAME = Object.fromEntries(OKRS);
   const MICH = { 2: 'Две звезды Michelin 2021', 1: 'Звезда Michelin 2021', bib: 'Bib Gourmand Michelin 2021', rec: 'В гиде Michelin 2021' };
   const CAT_BY_KIND = [
+    ['pc', /компьютерн|кибер/i],
     ['books', /книж/i], ['spa', /бан|спа|хамам|аквапарк|терм/i], ['coffee', /коф|пекар|кондитер|булоч|чайн/i],
     ['fun', /тир|боулинг|картинг|vr|квест|скалодром|падел|стендап|бильярд|караоке|аттракц|развлеч|теплоход|студи|мастер|арт-вечер|танц|стадион|петанк/i],
     ['culture', /музе|театр|кино|галере|планетар|концерт|дом культуры|культурн|центр|искусств|лекторий|архитектур/i],
@@ -117,6 +120,9 @@
     .sort((a, b) => (!!b.ph - !!a.ph) || a.name.replace(/^[^A-Za-zА-Яа-яЁё0-9]+/, '').localeCompare(b.name.replace(/^[^A-Za-zА-Яа-яЁё0-9]+/, ''), 'ru'));
   const PSTEP = 24;
   let pcat = 'all', pokr = 'all', pq = '', plimit = PSTEP, pview = 'list';
+  /* «Рядом со мной»: координаты берём из браузера только по нажатию и никуда не отправляем */
+  let near = null;
+  const distText = m => m < 950 ? `${Math.max(100, Math.round(m / 50) * 50)} м` : `${(m / 1000).toFixed(m < 9950 ? 1 : 0).replace('.', ',')} км`;
   const norm = t => String(t || '').toLowerCase().replace(/ё/g, 'е');
 
   function renderModes() {
@@ -151,9 +157,17 @@
   const SEASON_TILES = {
     autumn: ['🍂', 'Куда пойти осенью', 'Парки, усадьбы и бульвары в листьях'],
     halloween: ['🎃', 'Тематично на Хэллоуин', 'Готика, бункеры, Булгаков и квесты'],
+    pc: ['🎮', 'Компы для пацанов', 'Компьютерные клубы по всей Москве и еда рядом'],
+    lb: ['🌊', 'Левобережный, Химки', 'Набережная канала, пицца из печи, компы и караоке'],
   };
+  /* Постоянные плашки: компы — у пацанов (и у всех, если такие планы есть), Левобережный — во всех режимах */
+  const PROMO = { guys: ['pc', 'lb'], girls: ['lb'], date: ['lb', 'pc'] };
   function renderSeason(all) {
-    const tiles = SEASON.filter(h => SEASON_TILES[h]).map(h => [h, all.filter(p => hasHint(p, h)).length]).filter(x => x[1]);
+    const fnOf = id => (FILTERS.find(f => f[0] === id) || [])[2] || (p => hasHint(p, id));
+    // у пацанов компы — первой плашкой
+    const promo = PROMO[mode] || [], first = mode === 'guys' ? promo.slice(0, 1) : [];
+    const ids = first.concat(SEASON.filter(h => SEASON_TILES[h]), promo.slice(first.length));
+    const tiles = ids.map(h => [h, all.filter(fnOf(h)).length]).filter(x => x[1]);
     $('#season').innerHTML = tiles.map(([h, n]) => { const [e, t, d] = SEASON_TILES[h];
       return `<button type="button" class="season-tile s-${h}${flt === h ? ' on' : ''}" data-f="${h}"><span class="e">${e}</span><span><b>${t}</b><small>${d} · ${n} ${plural(n, 'план', 'плана', 'планов')}</small></span></button>`; }).join('');
     $('#season').classList.toggle('hidden', !tiles.length);
@@ -224,7 +238,7 @@
   }
   /* ---------- карта мест: Leaflet + OpenStreetMap, грузится при первом открытии ---------- */
   let PLIST = [], MAP = null, MLAYER = null, leafletP = null;
-  const CAT_COLOR = { walk: '#6EE7B7', culture: '#B9A1FF', food: '#FF6F91', coffee: '#FFA463', bar: '#F4C95D', fun: '#D7F25C', spa: '#7CC6FE', books: '#E8A3D8' };
+  const CAT_COLOR = { walk: '#6EE7B7', culture: '#B9A1FF', food: '#FF6F91', coffee: '#FFA463', bar: '#F4C95D', fun: '#D7F25C', pc: '#5CE1E6', spa: '#7CC6FE', books: '#E8A3D8' };
   function loadLeaflet() {
     if (window.L) return Promise.resolve();
     if (leafletP) return leafletP;
@@ -260,7 +274,7 @@
     }).catch(() => { $('#pmap').innerHTML = '<p class="pl-empty">Карта не загрузилась. Проверьте интернет и попробуйте ещё раз.</p>'; });
   }
 
-  const listHints = p => { const e = K.placeHints(p).filter(h => ['halloween', 'autumn', 'first'].includes(h)).map(h => K.HINTS[h][0]).join(''); return e ? e + ' ' : ''; };
+  const listHints = p => { const e = K.placeHints(p).filter(h => ['halloween', 'autumn', 'first', 'night'].includes(h)).map(h => K.HINTS[h][0]).join(''); return e ? e + ' ' : ''; };
   /* Пост о месте в Telegram-канале: встраиваем только по нажатию (Telegram в России — через VPN) */
   const tgBlock = p => p && K.tgOk(p.tg) ? `<div class="tg-post">
       <button type="button" class="btn ghost wide tg-load" data-tg="${esc(p.tg)}">${I('eye')}Фото из поста</button>
@@ -271,12 +285,13 @@
     const inCat = p => pcat === 'all' || (pcat === 'michelin' ? !!p.mich : K.HINTS[pcat] ? K.placeHints(p).includes(pcat) : p.c === pcat);
     const inQ = p => !q || norm(p.name + ' ' + p.kind + ' ' + p.metro + ' ' + p.addr + ' ' + (OKR_NAME[p.okr] || '')).includes(q);
     const base = PLACES.filter(p => inCat(p) && inQ(p));
-    const list = base.filter(p => pokr === 'all' || p.okr === pokr);
+    let list = base.filter(p => pokr === 'all' || p.okr === pokr);
+    if (near) list = list.map(p => [p, K.distM(near, p)]).sort((a, b) => a[1] - b[1]).map(([p, d]) => Object.assign({}, p, { dist: d }));
     $('#pfilters').innerHTML = PCATS.map(([id, label]) =>
       `<button type="button" data-pc="${id}" class="${id === pcat ? 'on' : ''}" aria-pressed="${id === pcat}">${label}</button>`).join('');
     const cnt = {};
     base.forEach(p => { cnt[p.okr] = (cnt[p.okr] || 0) + 1; });
-    $('#pokrs').innerHTML = OKRS.filter(([id]) => id === 'all' || cnt[id] || id === pokr).map(([id, label]) =>
+    $('#pokrs').innerHTML = `<button type="button" data-near class="near${near ? ' on' : ''}" aria-pressed="${!!near}">📍 Рядом со мной</button>` + OKRS.filter(([id]) => id === 'all' || cnt[id] || id === pokr).map(([id, label]) =>
       `<button type="button" data-po="${id}" class="${id === pokr ? 'on' : ''}" aria-pressed="${id === pokr}">${label}<span class="n">${id === 'all' ? base.length : (cnt[id] || 0)}</span></button>`).join('');
     PLIST = list;
     if (pview === 'map') { renderMap(); }
@@ -284,7 +299,7 @@
     $('#plist').innerHTML = list.length ? list.slice(0, plimit).map(p => `
       <button type="button" class="pl-item" data-pid="${p.id}">
         ${emoTile(p)}
-        <span class="pl-main"><span class="pl-name">${esc(p.name)}${p.mich ? ' <span class="mich" title="' + MICH[p.mich] + '">M</span>' : ''}</span><span class="pl-sub">${listHints(p)}${esc(p.kind)} · м. ${esc(p.metro)}</span></span>
+        <span class="pl-main"><span class="pl-name">${esc(p.name)}${p.mich ? ' <span class="mich" title="' + MICH[p.mich] + '">M</span>' : ''}</span><span class="pl-sub">${p.dist != null ? `<b class="dist">${distText(p.dist)}</b> · ` : ''}${listHints(p)}${esc(p.kind)} · м. ${esc(p.metro)}</span></span>
         <span class="price">${K.priceText(p.price)}</span>
       </button>`).join('') : '<p class="pl-empty">Ничего не нашлось. Попробуйте другое слово или категорию.</p>';
     const rest = list.length - Math.min(plimit, list.length);
@@ -313,6 +328,7 @@
       <div class="sheet-actions">
         <a class="btn ${p.adult ? 'primary' : 'ghost'} wide" href="${K.mapUrl(p)}" target="_blank" rel="noopener">${I('pin')}Открыть в Яндекс Картах</a>
         ${p.adult ? '' : `<a class="btn primary wide" href="${createUrl(mode, 'p-' + id)}">${HERO[mode].call}${I('arrow')}</a>`}
+        ${p.adult ? '' : `<button type="button" class="btn ghost wide" data-share="place=${encodeURIComponent(id)}" data-title="${esc(p.name)}">${I('share')}Поделиться местом</button>`}
       </div>`;
     $('#sheetBg').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
@@ -354,6 +370,7 @@
       <div class="sheet-actions">
         ${st.length > 1 ? `<a class="btn ghost wide" href="${K.routeUrl(st)}" target="_blank" rel="noopener">${I('route')}Маршрут через все точки</a>` : `<a class="btn ghost wide" href="${K.mapUrl(st[0])}" target="_blank" rel="noopener">${I('pin')}Открыть в Яндекс Картах</a>`}
         <a class="btn primary wide" href="${createUrl(mode, plan.id)}">${HERO[mode].call}${I('arrow')}</a>
+        <button type="button" class="btn ghost wide" data-share="plan=${encodeURIComponent(plan.id)}" data-title="${esc(plan.title)}">${I('share')}Поделиться планом</button>
       </div>`;
     $('#sheetBg').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
@@ -387,11 +404,32 @@
   $('#pmore').onclick = () => { plimit += PSTEP; renderPlaces(); };
   $('#cmore').onclick = () => { climit += CSTEP; renderCards(); };
   $('#pokrs').addEventListener('click', e => {
+    if (e.target.closest('button[data-near]')) { toggleNear(); return; }
     const b = e.target.closest('button[data-po]');
     if (!b || b.dataset.po === pokr) return;
     pokr = b.dataset.po; plimit = PSTEP;
     renderPlaces();
   });
+  function toggleNear() {
+    if (near) { near = null; renderPlaces(); return; }
+    if (!navigator.geolocation) { toast('Браузер не умеет определять место'); return; }
+    toast('Определяем, где ты…');
+    navigator.geolocation.getCurrentPosition(pos => {
+      near = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+      pokr = 'all'; plimit = PSTEP;
+      renderPlaces();
+      toast('Сначала — ближайшие места');
+    }, () => toast('Не получилось: разреши доступ к геопозиции'), { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 });
+  }
+  /* Ссылка на место или план: start.html?m=guys&place=roku — открывается сразу с карточкой */
+  const shareUrl = q => location.origin + location.pathname + '?m=' + mode + '&' + q;
+  async function share(title, url) {
+    try {
+      if (navigator.share) { await navigator.share({ title, url }); return; }
+    } catch (e) { if (e && e.name === 'AbortError') return; }
+    try { await navigator.clipboard.writeText(url); toast('Ссылка скопирована'); }
+    catch (e) { prompt('Скопируй ссылку', url); }
+  }
   $('#pview').addEventListener('click', e => {
     const b = e.target.closest('button[data-v]');
     if (!b || b.dataset.v === pview) return;
@@ -417,6 +455,8 @@
     if (b) openPlace(b.dataset.pid);
   });
   $('#sheet').addEventListener('click', e => {
+    const sh = e.target.closest('[data-share]');
+    if (sh) { share(sh.dataset.title, shareUrl(sh.dataset.share)); return; }
     const tg = e.target.closest('.tg-load');
     if (tg) { tg.classList.add('hidden'); K.tgEmbed($('.tg-box', tg.parentNode), tg.dataset.tg); return; }
     const b = e.target.closest('[data-open-plan]');
@@ -470,6 +510,13 @@
   };
   $('#ageNo').onclick = () => { closeSheets(); toast('Тогда подберём что-нибудь другое'); };
 
+  /* Параметры ссылки: f — фильтр планов, cat/okr — раздел каталога, plan/place — сразу открыть карточку */
+  const QS = new URLSearchParams(location.search);
+  if (FILTERS.some(f => f[0] === QS.get('f'))) flt = QS.get('f');
+  if (PCATS.some(c => c[0] === QS.get('cat'))) pcat = QS.get('cat');
+  if (OKRS.some(o => o[0] === QS.get('okr'))) pokr = QS.get('okr');
   apply();
   renderPlaces();
+  if (QS.get('plan') && K.planById(QS.get('plan'))) openPlan(QS.get('plan'));
+  else if (QS.get('place') && K.placeById(QS.get('place')) && !K.placeById(QS.get('place')).adult) openPlace(QS.get('place'));
 })();

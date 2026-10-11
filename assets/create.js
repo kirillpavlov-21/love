@@ -120,7 +120,7 @@
   const pk = { tab: 'plans', q: '', hint: '', limit: PK_STEP };
   const norm = s => String(s || '').toLowerCase().replace(/ё/g, 'е');
   const SEASON = K.seasonHints();
-  const PK_HINTS = ['autumn', 'halloween', 'first', 'scenic', 'view', 'rain', 'budget', 'company', 'michelin'];
+  const PK_HINTS = ['autumn', 'halloween', 'first', 'scenic', 'view', 'rain', 'budget', 'company', 'night', 'michelin'];
   const pkSelected = () => isGroup() ? state.gsel : new Set($$('#places .li[data-plan]').map(r => r.dataset.plan));
   const pkHints = it => it.single ? K.placeHints(K.placeById(it.stops[0])) : K.planHints(it);
   const PK_TEXT = new Map();
