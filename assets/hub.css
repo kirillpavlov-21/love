@@ -231,3 +231,31 @@ html[data-acc="shades"] .cat .acc-shades, html[data-acc="bow"] .cat .acc-bow { d
 .map-open { margin-top: 8px; padding: 6px 12px; border: 0; border-radius: 9px; background: var(--accent); color: #0F0E13; font: 700 13px var(--body); cursor: pointer; }
 .pmap .leaflet-control-attribution { background: rgba(15, 14, 19, .7); color: #A39EAE; }
 .pmap .leaflet-control-attribution a { color: #CFCAD8; }
+
+/* подсказки: «🍂 Красиво осенью», «💘 Для первого свидания»… */
+.hchip { display: inline-flex; align-items: center; gap: 4px; padding: 5px 9px; border-radius: 99px; background: var(--surface-2); font: 600 12px var(--body); line-height: 1.1; color: #CFCAD8; white-space: nowrap; }
+.hchip.h-autumn { background: rgba(255, 159, 67, .14); color: #FFB870; }
+.hchip.h-halloween { background: rgba(255, 122, 40, .16); color: #FF9A55; }
+.hchip.h-first { background: rgba(255, 111, 145, .14); color: #FF8FA9; }
+.hchip.h-michelin { background: rgba(230, 57, 70, .16); color: #FF7A84; }
+.chips .hchip { padding: 6px 10px; font-size: 13px; }
+.hints-line { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px; }
+.season { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin: 0 0 14px; }
+.season.hidden { display: none; }
+.season-tile { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 20px; border: 1px solid rgba(255, 159, 67, .28); background: linear-gradient(135deg, rgba(255, 159, 67, .16), rgba(255, 159, 67, .04)); color: var(--text); font: inherit; text-align: left; cursor: pointer; transition: transform .15s, border-color .2s; }
+.season-tile.s-halloween { border-color: rgba(185, 120, 255, .3); background: linear-gradient(135deg, rgba(255, 122, 40, .18), rgba(120, 60, 200, .14)); }
+.season-tile:active { transform: scale(.98); }
+.season-tile.on { border-color: var(--text); box-shadow: inset 0 0 0 1px var(--text); }
+.season-tile .e { font-size: 30px; line-height: 1; }
+.season-tile b { display: block; font: 700 16px var(--display, inherit); }
+.season-tile small { display: block; margin-top: 3px; color: var(--muted-2); font-size: 13px; }
+
+/* пост из Telegram-канала */
+.tg-post { display: grid; gap: 8px; margin: 12px 0; }
+.stop .tg-post { margin: 10px 0 2px; }
+.tg-post .btn { min-height: 44px; }
+.tg-link { font-size: 13px; color: var(--muted-2); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
+.tg-link .ic { width: 13px; height: 13px; }
+.tg-box:empty { display: none; }
+.tg-fail { margin: 0; padding: 12px 14px; border-radius: 14px; background: var(--surface-2); color: var(--muted-2); font-size: 14px; line-height: 1.45; }
+.tg-fail a { color: var(--accent); }

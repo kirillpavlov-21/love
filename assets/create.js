@@ -41,7 +41,7 @@
   const EMOJIS = '☕ 🎬 🌳 🍝 ⛸️ 🎡 🎳 🎤 🖼️ 🌊 🍷 🎭 🏛️ 🚲 🌅 🎨 📚 🎮 🧗 🛶 🏖️ 🍕 🍣 🍔 🥐 🍜 🥩 🥗 🍰 🍦 🧋 🍫 🌮 🥟 🍤 🍓 🍿 🎱 🎯 🧖 ⚽ 💅 💃'.split(' ');
 
   const DEF = K.defaults();
-  let state = { mode: 'date', cat: 'line', theme: 'pink', texts: {} };
+  let state = { mode: 'date', cat: 'line', theme: 'pink', texts: {}, gsel: new Set() };
   let code = '';
   let pvStep = 0;
   let pvCounter = 0;
@@ -88,7 +88,7 @@
       <div class="li-main">
         <input class="ti" value="${esc(it.title || (pl && pl.title) || '')}" maxlength="40" placeholder="${kind === 'food' ? 'Блюдо' : 'Название места'}">
         <input class="no" value="${esc(it.note || (pl && pl.why) || '')}" maxlength="90" placeholder="Подпись (необязательно)">
-        ${pl ? `<span class="plan-tag">📋 Готовый план: ${esc(K.planStops(pl).map(p => p.name).join(' → '))}</span>` : ''}
+        ${pl ? `<span class="plan-tag">${pl.single ? '📍 Место из каталога: ' + esc([K.planStops(pl)[0].kind, K.planStops(pl)[0].metro && 'м. ' + K.planStops(pl)[0].metro].filter(Boolean).join(' · ')) : '📋 Готовый план: ' + esc(K.planStops(pl).map(p => p.name).join(' → '))}</span>` : ''}
       </div>
       <button class="del" type="button" title="Удалить" aria-label="Удалить">${K.icon('x')}</button>
     </div>`;
@@ -113,26 +113,98 @@
     }).filter(o => o.title || o.plan);
   }
 
-  /* ---------- готовые планы ---------- */
-  /* Длинный список планов сворачиваем: первые 8 и все отмеченные */
-  const PICK_LIMIT = 8;
-  let pickAll = false;
-  function pickList(plans, isOn, attr) {
-    const shown = pickAll ? plans : plans.filter((p, i) => i < PICK_LIMIT || isOn(p));
-    return shown.map(p =>
-      `<button type="button" ${attr}="${p.id}" class="${isOn(p) ? 'on' : ''}">${p.emoji} ${esc(p.title)}<small>${esc(K.planStops(p).map(x => x.name).join(' → '))}</small></button>`).join('') +
-      (plans.length > PICK_LIMIT ? `<button type="button" class="more" data-more>${pickAll ? 'Свернуть' : `Показать все (${plans.length})`}</button>` : '');
+  /* ---------- выбор из каталога: подборки и все места, поиск, подсказки ---------- */
+  /* Один и тот же выбор в двух режимах: в свидании пункт становится шариком (#places),
+     в компании — вариантом для голосования (state.gsel). Места каталога идут как «p-<id>». */
+  const PK_STEP = 24;
+  const pk = { tab: 'plans', q: '', hint: '', limit: PK_STEP };
+  const norm = s => String(s || '').toLowerCase().replace(/ё/g, 'е');
+  const SEASON = K.seasonHints();
+  const PK_HINTS = ['autumn', 'halloween', 'first', 'scenic', 'view', 'rain', 'budget', 'company', 'michelin'];
+  const pkSelected = () => isGroup() ? state.gsel : new Set($$('#places .li[data-plan]').map(r => r.dataset.plan));
+  const pkHints = it => it.single ? K.placeHints(K.placeById(it.stops[0])) : K.planHints(it);
+  const PK_TEXT = new Map();
+  function pkText(it) {
+    if (!PK_TEXT.has(it.id)) {
+      const st = K.planStops(it);
+      PK_TEXT.set(it.id, norm([it.title, it.when].concat(st.map(p => [p.name, p.kind, p.metro, p.addr].join(' '))).join(' ')));
+    }
+    return PK_TEXT.get(it.id);
+  }
+  const lead = s => s.replace(/^[^0-9A-Za-zА-Яа-яЁё]+/, '');
+  let PK_PLACES = null;
+  function pkPlaces() {
+    if (!PK_PLACES) {
+      PK_PLACES = Object.keys(K.kuda().places).map(id => K.planById('p-' + id)).filter(Boolean)
+        .sort((a, b) => (!!K.photo(K.placeById(b.stops[0])) - !!K.photo(K.placeById(a.stops[0]))) || lead(a.title).localeCompare(lead(b.title), 'ru'));
+    }
+    return PK_PLACES;
+  }
+  function pkPlans() {
+    const list = K.kuda().scenarios.filter(s => s.mode === state.mode);
+    // в сезон подборки про осень и Хэллоуин — первыми
+    const season = s => (s.tags || []).some(t => SEASON.includes(t)) ? 0 : 1;
+    return list.map((s, i) => [s, i]).sort((a, b) => season(a[0]) - season(b[0]) || a[1] - b[1]).map(x => x[0]);
+  }
+  function pkItem(it, on) {
+    const st = K.planStops(it), ph = it.single ? K.photo(st[0]) : K.planPhoto(it);
+    const sub = it.single ? [st[0].kind, st[0].metro && 'м. ' + st[0].metro].filter(Boolean).join(' · ') : st.map(x => x.name).join(' → ');
+    const hints = pkHints(it).filter(h => !(h === 'first' && isGroup())).slice(0, 3);
+    return `<button type="button" class="pk-it${on ? ' on' : ''}" data-pk="${esc(it.id)}">
+      <span class="pk-im">${ph ? `<img src="${esc(ph.t)}" alt="" loading="lazy">` : esc(it.emoji)}</span>
+      <span class="pk-tx"><b>${ph ? esc(it.emoji) + ' ' : ''}${esc(it.title)}</b><small>${esc(sub)}</small>${hints.length ? `<span class="hints">${hints.map(h => K.hintChip(h, 'short')).join('')}</span>` : ''}</span>
+      <span class="pk-ck" aria-hidden="true">${on ? '✓' : '+'}</span>
+    </button>`;
+  }
+  function renderPicker() {
+    const box = $(isGroup() ? '#planPick' : '#datePlans');
+    const other = $(isGroup() ? '#datePlans' : '#planPick');
+    if (other.firstChild) other.innerHTML = '';
+    if (!$('.pk-list', box)) {
+      box.innerHTML = `<div class="pk-tabs seg"><button type="button" data-pktab="plans"></button><button type="button" data-pktab="places"></button></div>
+        <input class="pk-q" type="search" placeholder="Поиск: парк, бар, Арбат, Хэллоуин…" aria-label="Поиск по местам и подборкам" autocomplete="off">
+        <div class="pk-hints"></div><div class="pk-list"></div><div class="pk-foot"></div>`;
+    }
+    const q = $('.pk-q', box);
+    if (q.value !== pk.q) q.value = pk.q;
+    const sel = pkSelected();
+    const plans = pkPlans(), places = pkPlaces();
+    const tabs = { plans: ['Подборки', plans.length], places: ['Все места', places.length] };
+    $$('[data-pktab]', box).forEach(b => {
+      b.classList.toggle('on', b.dataset.pktab === pk.tab);
+      b.textContent = `${tabs[b.dataset.pktab][0]} · ${tabs[b.dataset.pktab][1]}`;
+    });
+    const all = pk.tab === 'places' ? places : plans;
+    const words = norm(pk.q).split(/\s+/).filter(Boolean);
+    const byQ = words.length ? all.filter(it => words.every(w => pkText(it).includes(w) || pkHints(it).some(h => norm(K.HINTS[h][1]).includes(w)))) : all;
+    const counts = {};
+    byQ.forEach(it => pkHints(it).forEach(h => { counts[h] = (counts[h] || 0) + 1; }));
+    const chips = PK_HINTS.filter(h => counts[h] && !(h === 'first' && isGroup()));
+    if (pk.hint && !chips.includes(pk.hint)) chips.unshift(pk.hint);
+    $('.pk-hints', box).innerHTML = `<button type="button" data-pkh="" class="${pk.hint ? '' : 'on'}">Все</button>` +
+      chips.map(h => `<button type="button" data-pkh="${h}" class="${pk.hint === h ? 'on' : ''}">${K.HINTS[h][0]} ${K.HINTS[h][2]}<i>${counts[h] || 0}</i></button>`).join('');
+    const found = pk.hint ? byQ.filter(it => pkHints(it).includes(pk.hint)) : byQ;
+    const list = found.filter(it => !sel.has(it.id));
+    // отмеченные (и подборки, и отдельные места) всегда наверху — их видно и легко снять
+    const picked = Array.from(sel).map(K.planById).filter(Boolean);
+    $('.pk-list', box).innerHTML = picked.map(it => pkItem(it, true)).join('') + (list.length
+      ? list.slice(0, pk.limit).map(it => pkItem(it, false)).join('')
+      : found.length ? '' : `<p class="pk-empty">Ничего не нашлось. Попробуй другое слово${pk.tab === 'plans' ? ' или вкладку «Все места»' : ''}.</p>`);
+    const more = list.length - pk.limit;
+    const n = sel.size;
+    $('.pk-foot', box).innerHTML = (more > 0 ? `<button type="button" class="more" data-pkmore>Показать ещё ${Math.min(PK_STEP, more)} из ${more}</button>` : '') +
+      (n ? `<span class="pk-sel">Выбрано: ${n}</span>` : '');
   }
   function renderPlanPickers(selectedGroup) {
-    const datePlans = K.kuda().scenarios.filter(s => s.mode === 'date');
-    const inPlaces = new Set($$('#places .li[data-plan]').map(r => r.dataset.plan));
-    $('#datePlans').innerHTML = pickList(datePlans, p => inPlaces.has(p.id), 'data-dplan');
+    if (selectedGroup) state.gsel = selectedGroup;
+    renderPicker();
+  }
+  function togglePick(id) {
     if (isGroup()) {
-      const sel = selectedGroup || new Set($$('#planPick button.on').map(b => b.dataset.gplan));
-      const base = K.kuda().scenarios.filter(s => s.mode === state.mode);
-      // места из каталога («p-…») показываем первыми, если их выбрали
-      const extra = Array.from(sel).filter(id => !base.some(s => s.id === id)).map(K.planById).filter(Boolean);
-      $('#planPick').innerHTML = pickList(extra.concat(base), p => sel.has(p.id), 'data-gplan');
+      if (state.gsel.has(id)) state.gsel.delete(id); else state.gsel.add(id);
+    } else {
+      const row = $(`#places .li[data-plan="${id}"]`);
+      if (row) row.remove(); else $('#places').insertAdjacentHTML('beforeend', itemRow({ plan: id }, 'places'));
     }
   }
 
@@ -163,12 +235,13 @@
     if (state.theme === themeDefault(prev)) state.theme = themeDefault(next);
     if ($('#noButton').value === noDefault(prev)) $('#noButton').value = noDefault(next);
     state.mode = next;
+    if (pk.hint === 'first') pk.hint = '';
     const levels = {};
     $$('#levels input').forEach(i => { levels[i.id.slice(3)] = i.checked; });
     renderLevels(levels);
     renderSwatches();
     applyModeUi();
-    const sel = new Set($$('#planPick button.on').map(b => b.dataset.gplan).filter(id => { const pl = K.planById(id); return pl && (pl.mode === next || pl.single); }));
+    const sel = new Set(Array.from(state.gsel).filter(id => { const pl = K.planById(id); return pl && (pl.mode === next || pl.single); }));
     if (!sel.size && !readList('opts').length) K.kuda().scenarios.filter(s => s.mode === next).slice(0, 3).forEach(p => sel.add(p.id));
     renderPlanPickers(sel);
     update();
@@ -251,7 +324,7 @@
       Object.assign(inv, {
         mode: state.mode,
         title: v('title') || MC().title,
-        opts: $$('#planPick button.on').map(b => ({ plan: b.dataset.gplan })).concat(readList('opts')),
+        opts: Array.from(state.gsel).filter(id => K.planById(id)).map(plan => ({ plan })).concat(readList('opts')),
       });
     } else {
       Object.assign(inv, dateFields());
@@ -416,7 +489,7 @@
       if (!$(`#places .li[data-plan="${pl.id}"]`)) $('#places').insertAdjacentHTML('afterbegin', itemRow({ plan: pl.id }, 'places'));
       $('#lv-place').checked = true;
     } else {
-      const sel = new Set([pl.id].concat($$('#planPick button.on').map(b => b.dataset.gplan)));
+      const sel = new Set([pl.id].concat(Array.from(state.gsel)));
       K.kuda().scenarios.filter(s => s.mode === state.mode && !sel.has(s.id)).slice(0, Math.max(0, 3 - sel.size)).forEach(s => sel.add(s.id));
       renderPlanPickers(sel);
     }
@@ -438,10 +511,12 @@
 
     const form = $('#form');
     form.addEventListener('input', e => {
+      if (e.target.classList.contains('pk-q')) { pk.q = e.target.value; pk.limit = PK_STEP; renderPicker(); return; }
       if (e.target.id === 'ownerKey') return;
       if (!e.target.closest('#tg')) update();
     });
     form.addEventListener('change', e => {
+      if (e.target.classList.contains('pk-q')) return;
       if (e.target.id === 'ownerKey') {
         ls.set(OWNER, e.target.value.trim());
         tgStatus();
@@ -460,15 +535,13 @@
         if (sw.dataset.theme) state.theme = sw.dataset.theme;
         renderSwatches(); update(); return;
       }
-      if (t.closest('[data-more]')) { pickAll = !pickAll; renderPlanPickers(); return; }
-      const dp = t.closest('[data-dplan]');
-      if (dp) {
-        const row = $(`#places .li[data-plan="${dp.dataset.dplan}"]`);
-        if (row) row.remove(); else $('#places').insertAdjacentHTML('beforeend', itemRow({ plan: dp.dataset.dplan }, 'places'));
-        update(); return;
-      }
-      const gp = t.closest('[data-gplan]');
-      if (gp) { gp.classList.toggle('on'); update(); return; }
+      const tab = t.closest('[data-pktab]');
+      if (tab) { pk.tab = tab.dataset.pktab; pk.limit = PK_STEP; renderPicker(); return; }
+      const ph = t.closest('[data-pkh]');
+      if (ph) { pk.hint = ph.dataset.pkh === pk.hint ? '' : ph.dataset.pkh; pk.limit = PK_STEP; renderPicker(); return; }
+      if (t.closest('[data-pkmore]')) { pk.limit += PK_STEP; renderPicker(); return; }
+      const it = t.closest('[data-pk]');
+      if (it) { togglePick(it.dataset.pk); renderPicker(); update(); return; }
       if (t.closest('.del')) { t.closest('.li').remove(); update(); return; }
       const add = t.closest('.btn-add');
       if (add) {

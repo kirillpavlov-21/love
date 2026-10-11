@@ -75,8 +75,18 @@
   }
   const kindLow = s => String(s || '').split(' · ')[0].toLowerCase();
   const hasTag = (p, t) => (p.tags || []).includes(t);
+  /* Подсказки к планам и местам («🍂 Красиво осенью», «💘 Для первого свидания»…) — в shared.js */
+  const SEASON = K.seasonHints();
+  const hasHint = (p, h) => K.planHints(p).includes(h);
+  const HFILTERS = [
+    ['autumn', '🍂 Осень', p => hasHint(p, 'autumn')],
+    ['halloween', '🎃 Хэллоуин', p => hasHint(p, 'halloween')],
+  ];
   const FILTERS = [
     ['all', 'Все', () => true],
+    ...HFILTERS,
+    ['first', '💘 Первое свидание', p => hasHint(p, 'first')],
+    ['rain', '☔ Если дождь', p => hasHint(p, 'rain')],
     ['day', 'Днём', p => ['утро', 'день'].includes(p.when)],
     ['eve', 'Вечером', p => ['закат', 'вечер', 'ночь'].includes(p.when)],
     ['cheap', 'Недорого', p => planMeta(p).price <= 1],
@@ -87,7 +97,7 @@
   let flt = 'all';
 
   /* ---------- каталог «Все места» ---------- */
-  const PCATS = [['all', 'Все'], ['walk', 'Прогулки'], ['culture', 'Культура'], ['food', 'Рестораны'], ['michelin', 'Michelin'],
+  const PCATS = [['all', 'Все'], ['autumn', '🍂 Осень'], ['halloween', '🎃 Хэллоуин'], ['first', '💘 Для первого свидания'], ['walk', 'Прогулки'], ['culture', 'Культура'], ['food', 'Рестораны'], ['michelin', 'Michelin'],
     ['coffee', 'Кофе'], ['bar', 'Бары'], ['fun', 'Развлечения'], ['spa', 'Бани и спа'], ['books', 'Книжные']];
   /* Округа Москвы (поле okr у места) */
   const OKRS = [['all', 'Вся Москва'], ['center', 'Центр'], ['north', 'Север'], ['ne', 'Северо-Восток'], ['east', 'Восток'],
@@ -134,7 +144,22 @@
     return st.map((p, i) => (i ? `<span class="dash"></span><span class="walk">${legs[i - 1]} мин пешком</span>` : '') +
       `<span class="dot${i ? ' o' : ''}"></span><span class="stop-name">${esc(p.name)} <span>· ${esc(kindLow(p.kind))}</span></span>`).join('');
   }
+  /* на карточке — до трёх подсказок; «недорого» и так видно по цене */
+  const cardHints = p => K.planHints(p).filter(h => h !== 'budget').slice(0, 3).map(h => K.hintChip(h, 'short')).join('');
+  const sheetHints = hs => hs.length ? `<p class="hints-line">${hs.map(h => K.hintChip(h)).join('')}</p>` : '';
+  /* Сезонная плашка над планами: осенью — «где красиво», в октябре — ещё и Хэллоуин */
+  const SEASON_TILES = {
+    autumn: ['🍂', 'Куда пойти осенью', 'Парки, усадьбы и бульвары в листьях'],
+    halloween: ['🎃', 'Тематично на Хэллоуин', 'Готика, бункеры, Булгаков и квесты'],
+  };
+  function renderSeason(all) {
+    const tiles = SEASON.filter(h => SEASON_TILES[h]).map(h => [h, all.filter(p => hasHint(p, h)).length]).filter(x => x[1]);
+    $('#season').innerHTML = tiles.map(([h, n]) => { const [e, t, d] = SEASON_TILES[h];
+      return `<button type="button" class="season-tile s-${h}${flt === h ? ' on' : ''}" data-f="${h}"><span class="e">${e}</span><span><b>${t}</b><small>${d} · ${n} ${plural(n, 'план', 'плана', 'планов')}</small></span></button>`; }).join('');
+    $('#season').classList.toggle('hidden', !tiles.length);
+  }
   function renderFilters(all) {
+    renderSeason(all);
     const avail = FILTERS.filter(([id, , fn]) => id === 'all' || all.some(fn));
     if (!avail.some(([id]) => id === flt)) flt = 'all';
     $('#filters').innerHTML = avail.map(([id, label]) =>
@@ -146,8 +171,9 @@
     const all = D.scenarios.filter(s => s.mode === mode);
     renderFilters(all);
     const fn = (FILTERS.find(f => f[0] === flt) || FILTERS[0])[2];
-    // сначала планы с фото, порядок внутри групп — как в подборке
-    const plans = all.filter(fn).map((p, i) => [p, i]).sort((a, b) => (!!K.planPhoto(b[0]) - !!K.planPhoto(a[0])) || a[1] - b[1]).map(x => x[0]);
+    // в сезон — подборки про осень и Хэллоуин, потом планы с фото, порядок внутри групп — как в подборке
+    const inSeason = p => (p.tags || []).some(t => SEASON.includes(t));
+    const plans = all.filter(fn).map((p, i) => [p, i]).sort((a, b) => (inSeason(b[0]) - inSeason(a[0])) || (!!K.planPhoto(b[0]) - !!K.planPhoto(a[0])) || a[1] - b[1]).map(x => x[0]);
     $('#count').textContent = `${plans.length} ${plural(plans.length, 'план', 'плана', 'планов')}`;
     const rest = plans.length - Math.min(climit, plans.length);
     $('#cmore').classList.toggle('hidden', rest <= 0);
@@ -160,6 +186,7 @@
         <span class="chips">
           <span class="chip">${I('clock')}${esc(p.when)}</span>
           <span class="chip"><span class="metro">М</span>${esc(st[0] ? st[0].metro : '')}</span>
+          ${cardHints(p)}
         </span>
       </button>`;
     }).join('');
@@ -233,9 +260,15 @@
     }).catch(() => { $('#pmap').innerHTML = '<p class="pl-empty">Карта не загрузилась. Проверьте интернет и попробуйте ещё раз.</p>'; });
   }
 
+  const listHints = p => { const e = K.placeHints(p).filter(h => ['halloween', 'autumn', 'first'].includes(h)).map(h => K.HINTS[h][0]).join(''); return e ? e + ' ' : ''; };
+  /* Пост о месте в Telegram-канале: встраиваем только по нажатию (Telegram в России — через VPN) */
+  const tgBlock = p => p && K.tgOk(p.tg) ? `<div class="tg-post">
+      <button type="button" class="btn ghost wide tg-load" data-tg="${esc(p.tg)}">${I('eye')}Фото из поста</button>
+      <a class="tg-link" href="${K.tgUrl(p.tg)}" target="_blank" rel="noopener">Пост в канале «${esc(K.tgName(p.tg))}» в Telegram${I('ext')}</a>
+      <div class="tg-box"></div></div>` : '';
   function renderPlaces() {
     const q = norm(pq).trim();
-    const inCat = p => pcat === 'all' || (pcat === 'michelin' ? !!p.mich : p.c === pcat);
+    const inCat = p => pcat === 'all' || (pcat === 'michelin' ? !!p.mich : K.HINTS[pcat] ? K.placeHints(p).includes(pcat) : p.c === pcat);
     const inQ = p => !q || norm(p.name + ' ' + p.kind + ' ' + p.metro + ' ' + p.addr + ' ' + (OKR_NAME[p.okr] || '')).includes(q);
     const base = PLACES.filter(p => inCat(p) && inQ(p));
     const list = base.filter(p => pokr === 'all' || p.okr === pokr);
@@ -251,7 +284,7 @@
     $('#plist').innerHTML = list.length ? list.slice(0, plimit).map(p => `
       <button type="button" class="pl-item" data-pid="${p.id}">
         ${emoTile(p)}
-        <span class="pl-main"><span class="pl-name">${esc(p.name)}${p.mich ? ' <span class="mich" title="' + MICH[p.mich] + '">M</span>' : ''}</span><span class="pl-sub">${esc(p.kind)} · м. ${esc(p.metro)}</span></span>
+        <span class="pl-main"><span class="pl-name">${esc(p.name)}${p.mich ? ' <span class="mich" title="' + MICH[p.mich] + '">M</span>' : ''}</span><span class="pl-sub">${listHints(p)}${esc(p.kind)} · м. ${esc(p.metro)}</span></span>
         <span class="price">${K.priceText(p.price)}</span>
       </button>`).join('') : '<p class="pl-empty">Ничего не нашлось. Попробуйте другое слово или категорию.</p>';
     const rest = list.length - Math.min(plimit, list.length);
@@ -268,7 +301,9 @@
       <p class="eyebrow">${esc(p.kind)} · ${K.priceText(p.price)}${p.okr && OKR_NAME[p.okr] && p.okr !== 'all' ? ' · ' + esc(OKR_NAME[p.okr]) : ''}</p>
       <h3>${esc(p.name)}</h3>
       ${p.mich ? `<p class="mich-line"><span class="mich">M</span>${MICH[p.mich]}</p>` : ''}
+      ${sheetHints(K.placeHints(p).filter(h => h !== 'michelin'))}
       <p class="why">${esc(p.note)}</p>
+      ${tgBlock(p)}
       <div class="stop solo">
         <span class="k">м. ${esc(p.metro)}</span>
         <a href="${K.mapUrl(p)}" target="_blank" rel="noopener">${esc(p.addr)} — в Яндекс Картах${I('ext')}</a>
@@ -307,11 +342,13 @@
         <span class="k">${esc(p.kind)} · м. ${esc(p.metro)} · ${K.priceText(p.price)}</span>
         <p>${esc(p.note)}</p>
         <a href="${K.mapUrl(p)}" target="_blank" rel="noopener">${esc(p.addr)} — в Яндекс Картах${I('ext')}</a>
+        ${tgBlock(p)}
       </div>`).join('');
     $('#sheet').innerHTML = `
       <span class="grab"></span>
       <p class="eyebrow">${esc(plan.when)} · ${K.priceText(price)}</p>
       <h3>${esc(plan.title)}</h3>
+      ${sheetHints(K.planHints(plan).filter(h => !(h === 'first' && mode !== 'date')))}
       <p class="why">${esc(plan.why)}</p>
       <div class="itin">${parts}</div>
       <div class="sheet-actions">
@@ -380,6 +417,8 @@
     if (b) openPlace(b.dataset.pid);
   });
   $('#sheet').addEventListener('click', e => {
+    const tg = e.target.closest('.tg-load');
+    if (tg) { tg.classList.add('hidden'); K.tgEmbed($('.tg-box', tg.parentNode), tg.dataset.tg); return; }
     const b = e.target.closest('[data-open-plan]');
     if (b) openPlan(b.dataset.openPlan);
   });
@@ -387,6 +426,12 @@
     const b = e.target.closest('button[data-f]');
     if (!b || b.dataset.f === flt) return;
     flt = b.dataset.f; climit = CSTEP;
+    renderCards();
+  });
+  $('#season').addEventListener('click', e => {
+    const b = e.target.closest('button[data-f]');
+    if (!b) return;
+    flt = b.dataset.f === flt ? 'all' : b.dataset.f; climit = CSTEP;
     renderCards();
   });
   $('#random').onclick = () => {

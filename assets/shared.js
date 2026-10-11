@@ -267,6 +267,108 @@
     return p && !p.adult ? { id, mode: '', emoji: p.emoji, title: p.name, stops: [id.slice(2)], when: '', why: p.note, single: true } : null;
   };
   const planStops = plan => (plan ? plan.stops.map(placeById).filter(Boolean) : []);
+  /* ---------- подсказки к местам и планам: «красиво осенью», «для первого свидания»… ----------
+     Часть подсказок выводится из данных (тип места, цена, Michelin), часть задана руками в поле hint. */
+  const HINTS = {
+    halloween: ['🎃', 'Тематично на Хэллоуин', 'Хэллоуин'],
+    autumn: ['🍂', 'Красиво осенью', 'Осень'],
+    first: ['💘', 'Для первого свидания', 'Первое свидание'],
+    michelin: ['⭐', 'Гид Michelin 2021', 'Michelin'],
+    view: ['🏙️', 'С видом', 'С видом'],
+    scenic: ['🌅', 'Живописно', 'Живописно'],
+    rain: ['☔', 'Если дождь', 'Если дождь'],
+    company: ['👯', 'Для компании', 'Компанией'],
+    budget: ['💸', 'Недорого', 'Недорого'],
+  };
+  const HINT_ORDER = Object.keys(HINTS);
+  const HRX = {
+    nature: /парк|сад|усадьб|лес|заповедник|заказник|ботаническ|дендр|пруд|бульвар|бор\b|пойм|овраг|холм|чаша|долин|роща/i,
+    view: /панорам|смотров|этаж|на крыше|крыш|высот|с видом|вид на /i,
+    indoor: /музе|театр|галере|кино|выстав|аквапарк|бан[ия]|спа\b|хамам|боулинг|квест|бильярд|планетар|цирк|библиотек|книжн|лекторий|концерт|караоке|тир|vr|скалодром|мастерск|студи|бункер|дворец|культурн|ужин-спектакль|ужин-шоу|оранжере|стендап/i,
+    company: /караоке|бар\b|бар |паб|бильярд|квест|картинг|боулинг|тир|стендап|клуб|бани|баня|vr|раки|фудхолл|фудмолл|кластер|теплоход|гастробар/i,
+    walk: /парк|сад|набереж|улица|бульвар|мост|площадь|квартал|пруд|усадьб|лес|заказник|заповедник|некрополь|ансамбль|монастыр|озеро|акведук|бор\b/i,
+  };
+  const HINT_CACHE = new WeakMap();
+  function placeHints(p) {
+    if (!p) return [];
+    if (HINT_CACHE.has(p)) return HINT_CACHE.get(p);
+    const h = new Set(p.hint || []);
+    const txt = p.kind + ' ' + (p.note || '');
+    if (p.mich) h.add('michelin');
+    if (HRX.view.test(txt)) h.add('view');
+    const walk = p.cat === 'walk' || HRX.walk.test(p.kind);
+    if (walk) h.add('scenic');
+    if (HRX.nature.test(p.kind) || (walk && HRX.nature.test(p.name))) h.add('autumn');
+    if (!walk && HRX.indoor.test(p.kind)) h.add('rain');
+    if (HRX.company.test(p.kind)) h.add('company');
+    if ((p.price || 1) <= 1) h.add('budget');
+    const out = HINT_ORDER.filter(k => h.has(k));
+    HINT_CACHE.set(p, out);
+    return out;
+  }
+  function planHints(plan) {
+    if (!plan) return [];
+    const st = planStops(plan);
+    if (!st.length) return [];
+    const per = st.map(placeHints), h = new Set();
+    (plan.tags || []).concat(plan.hint || []).forEach(t => { if (HINTS[t]) h.add(t); });
+    per.forEach(a => a.forEach(x => { if (['halloween', 'michelin', 'view', 'autumn', 'first', 'scenic', 'company'].includes(x)) h.add(x); }));
+    if (per.every(a => a.includes('rain'))) h.add('rain');
+    const top = Math.max(...st.map(p => p.price || 1));
+    if (top <= 1) h.add('budget');
+    if (plan.mode && plan.mode !== 'date') h.delete('first');
+    return HINT_ORDER.filter(k => h.has(k));
+  }
+  /* Сезонные подсказки, которые поднимаем наверх: осень — сентябрь–ноябрь, Хэллоуин — до 1 ноября */
+  function seasonHints(d) {
+    d = d || new Date();
+    const m = d.getMonth() + 1, out = [];
+    if (m >= 9 && m <= 11) out.push('autumn');
+    if (m === 10 || (m === 11 && d.getDate() === 1)) out.push('halloween');
+    return out;
+  }
+  /* form: 'icon' — только эмодзи, 'short' — короткая подпись, по умолчанию — полная */
+  const hintChip = (k, form) => HINTS[k] ? `<span class="hchip h-${k}" title="${HINTS[k][1]}">${HINTS[k][0]}${form === 'icon' ? '' : ' ' + HINTS[k][form === 'short' ? 2 : 1]}</span>` : '';
+
+  /* ---------- пост о месте в Telegram-канале (поле tg: 'канал/номер') ----------
+     Фото из постов не копируем к себе: показываем сам пост официальным встраиванием Telegram
+     по нажатию. В России Telegram открывается только через VPN — тогда остаётся ссылка. */
+  const TG_CH = {
+    localshere: 'ЛОКАЛС', takayamoskva: 'такая Москва', shozhu_msk: 'Схожу, пожалуй', mcktime: 'календарь: афиша Москвы',
+    poidem_moscow: 'ПОЙДЕМ! МОСКВА', idemmsk: 'Идем Москва', vmestemoscow: 'Вместе по Москве', smotri_msk: 'Ешь, гуляй, смотри в Москве',
+  };
+  const tgOk = post => /^[A-Za-z0-9_]{4,40}\/\d{1,7}$/.test(post || '');
+  const tgUrl = post => 'https://t.me/' + post;
+  const tgName = post => TG_CH[String(post).split('/')[0]] || String(post).split('/')[0];
+  function tgEmbed(box, post) {
+    if (!box || !tgOk(post) || box._tg) return;
+    box._tg = true;
+    const f = document.createElement('iframe');
+    f.src = tgUrl(post) + '?embed=1&dark=1&userpic=false';
+    f.title = 'Пост в Telegram-канале «' + tgName(post) + '»';
+    f.loading = 'lazy';
+    f.referrerPolicy = 'no-referrer';
+    f.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox');
+    f.style.cssText = 'width:100%;min-width:0;height:420px;border:0;border-radius:14px;display:block;background:transparent';
+    let ready = false;
+    const say = (ev, data) => { try { f.contentWindow.postMessage(JSON.stringify(Object.assign({ event: ev }, data || {})), 'https://t.me'); } catch (e) { /* ок */ } };
+    const onMsg = e => {
+      if (e.source !== f.contentWindow || e.origin !== 'https://t.me') return;
+      let d = {};
+      try { d = JSON.parse(e.data); } catch (err) { /* не наш формат */ }
+      if (d.event === 'resize' && d.height) f.style.height = d.height + 'px';
+      if (d.event === 'ready') { ready = true; say('visible', { frame: 'tg-' + post.replace(/\W/g, '-') }); say('focus', { has_focus: true }); }
+    };
+    window.addEventListener('message', onMsg);
+    box.innerHTML = '';
+    box.appendChild(f);
+    setTimeout(() => {
+      if (ready || !f.isConnected) return;
+      window.removeEventListener('message', onMsg);
+      box.innerHTML = `<p class="tg-fail">Telegram не открылся — в России он работает только через VPN. <a href="${tgUrl(post)}" target="_blank" rel="noopener">Открыть пост в Telegram</a></p>`;
+    }, 9000);
+  }
+
   /* Фото места из assets/photos.js (Wikimedia Commons): { s: большое, t: превью, a: автор, l: лицензия, u: страница файла } */
   const photo = p => (p && p.ph) || null;
   const planPhoto = plan => planStops(plan).map(photo).find(Boolean) || null;
@@ -437,7 +539,7 @@
     BASE, merge, defaults, diffInvite, encodeInvite, decodeInvite, encodeData, decodeData, readHash, esc, fill, hash,
     ymd, parseYmd, addDays, listDates, fmtDay, dayNum, numDay, toMin, fromMin, relaySend, relayRegister,
     CATS, catVars, catSVG, HEART_D, ICONS, icon, MODE_ICON, tgUser, tgLink, calendarLinks,
-    MODES, modeOf, kuda, placeById, planById, planStops, photo, planPhoto, photoCredit, distM, walkMin, priceText, mapUrl, routeUrl,
+    MODES, modeOf, kuda, placeById, planById, planStops, photo, planPhoto, photoCredit, HINTS, placeHints, planHints, hintChip, seasonHints, tgOk, tgUrl, tgName, tgEmbed, distM, walkMin, priceText, mapUrl, routeUrl,
     THEMES: ['pink', 'lavender', 'peach', 'mint', 'sport'],
   };
 })();
