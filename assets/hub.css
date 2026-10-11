@@ -215,6 +215,8 @@ html[data-acc="shades"] .cat .acc-shades, html[data-acc="bow"] .cat .acc-bow { d
 /* ---------- округа, Michelin, карта ---------- */
 .filters.okrs { margin-top: -6px; }
 .filters.okrs button { min-height: 34px; padding: 0 12px; font-size: 13px; }
+.filters.okrs button.near:not(.on) { border-color: var(--accent); color: var(--text); }
+.pl-sub .dist { color: var(--accent); font-weight: 600; }
 .filters button .n { margin-left: 6px; font-weight: 500; opacity: .6; }
 .mich { display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding: 0 4px; margin-left: 4px; border-radius: 5px; background: #C8102E; color: #fff; font: 700 11px var(--body); vertical-align: 2px; }
 .mich-line { margin: -6px 0 0; display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #F2B8C2; }
@@ -240,10 +242,12 @@ html[data-acc="shades"] .cat .acc-shades, html[data-acc="bow"] .cat .acc-bow { d
 .hchip.h-michelin { background: rgba(230, 57, 70, .16); color: #FF7A84; }
 .chips .hchip { padding: 6px 10px; font-size: 13px; }
 .hints-line { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px; }
-.season { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin: 0 0 14px; }
+.season { display: grid; grid-template-columns: repeat(auto-fit, minmax(165px, 1fr)); gap: 10px; margin: 0 0 14px; }
 .season.hidden { display: none; }
 .season-tile { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 20px; border: 1px solid rgba(255, 159, 67, .28); background: linear-gradient(135deg, rgba(255, 159, 67, .16), rgba(255, 159, 67, .04)); color: var(--text); font: inherit; text-align: left; cursor: pointer; transition: transform .15s, border-color .2s; }
 .season-tile.s-halloween { border-color: rgba(185, 120, 255, .3); background: linear-gradient(135deg, rgba(255, 122, 40, .18), rgba(120, 60, 200, .14)); }
+.season-tile.s-pc { border-color: rgba(92, 225, 230, .32); background: linear-gradient(135deg, rgba(92, 225, 230, .16), rgba(120, 90, 255, .12)); }
+.season-tile.s-lb { border-color: rgba(124, 198, 254, .32); background: linear-gradient(135deg, rgba(124, 198, 254, .16), rgba(110, 231, 183, .08)); }
 .season-tile:active { transform: scale(.98); }
 .season-tile.on { border-color: var(--text); box-shadow: inset 0 0 0 1px var(--text); }
 .season-tile .e { font-size: 30px; line-height: 1; }
@@ -259,3 +263,9 @@ html[data-acc="shades"] .cat .acc-shades, html[data-acc="bow"] .cat .acc-bow { d
 .tg-box:empty { display: none; }
 .tg-fail { margin: 0; padding: 12px 14px; border-radius: 14px; background: var(--surface-2); color: var(--muted-2); font-size: 14px; line-height: 1.45; }
 .tg-fail a { color: var(--accent); }
+@media (max-width: 420px) {
+  .season-tile { padding: 12px; gap: 10px; border-radius: 18px; }
+  .season-tile .e { font-size: 24px; }
+  .season-tile b { font-size: 14px; }
+  .season-tile small { font-size: 12px; }
+}
