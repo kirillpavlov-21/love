@@ -211,3 +211,23 @@ html[data-acc="shades"] .cat .acc-shades, html[data-acc="bow"] .cat .acc-bow { d
 .hero-ph figcaption, .stop-ph figcaption { margin-top: 6px; font-size: 11px; line-height: 1.35; color: var(--muted); }
 .stop-ph figcaption { padding: 0 16px; }
 .hero-ph figcaption a, .stop-ph figcaption a { color: inherit; text-decoration: underline; text-decoration-color: rgba(163, 158, 174, .4); font-size: 11px; font-weight: 400; display: inline; }
+
+/* ---------- округа, Michelin, карта ---------- */
+.filters.okrs { margin-top: -6px; }
+.filters.okrs button { min-height: 34px; padding: 0 12px; font-size: 13px; }
+.filters button .n { margin-left: 6px; font-weight: 500; opacity: .6; }
+.mich { display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding: 0 4px; margin-left: 4px; border-radius: 5px; background: #C8102E; color: #fff; font: 700 11px var(--body); vertical-align: 2px; }
+.mich-line { margin: -6px 0 0; display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #F2B8C2; }
+.mich-line .mich { margin: 0; }
+.seg { display: inline-flex; padding: 3px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); }
+.seg button { min-height: 32px; padding: 0 12px; border: 0; border-radius: 9px; background: transparent; color: var(--muted-2); font: 600 13px var(--body); cursor: pointer; }
+.seg button.on { background: var(--text); color: var(--bg); }
+.pmap { height: 70vh; min-height: 360px; max-height: 620px; margin-bottom: 12px; border-radius: 20px; overflow: hidden; border: 1px solid var(--line); background: var(--surface); }
+.pmap .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(.85) contrast(.9) saturate(.6); }
+.pmap .leaflet-container { background: #1A1920; font: 13px var(--body); }
+.pmap .leaflet-popup-content-wrapper, .pmap .leaflet-popup-tip { background: #22212A; color: #F4F1EA; }
+.pmap .leaflet-popup-content { margin: 12px 14px; line-height: 1.4; }
+.pmap .leaflet-popup-content span { color: #A39EAE; }
+.map-open { margin-top: 8px; padding: 6px 12px; border: 0; border-radius: 9px; background: var(--accent); color: #0F0E13; font: 700 13px var(--body); cursor: pointer; }
+.pmap .leaflet-control-attribution { background: rgba(15, 14, 19, .7); color: #A39EAE; }
+.pmap .leaflet-control-attribution a { color: #CFCAD8; }

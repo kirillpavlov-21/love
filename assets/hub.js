@@ -5,6 +5,7 @@
   const K = window.DateKit;
   const D = K.kuda();
   const $ = (s, r) => (r || document).querySelector(s);
+  const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
   const esc = K.esc;
   const I = K.icon;
   const ORDER = ['date', 'guys', 'girls'];
@@ -86,8 +87,14 @@
   let flt = 'all';
 
   /* ---------- каталог «Все места» ---------- */
-  const PCATS = [['all', 'Все'], ['coffee', 'Кофе'], ['food', 'Рестораны'], ['bar', 'Бары'], ['culture', 'Культура'],
-    ['walk', 'Прогулки'], ['spa', 'Бани и спа'], ['fun', 'Развлечения'], ['books', 'Книжные']];
+  const PCATS = [['all', 'Все'], ['walk', 'Прогулки'], ['culture', 'Культура'], ['food', 'Рестораны'], ['michelin', 'Michelin'],
+    ['coffee', 'Кофе'], ['bar', 'Бары'], ['fun', 'Развлечения'], ['spa', 'Бани и спа'], ['books', 'Книжные']];
+  /* Округа Москвы (поле okr у места) */
+  const OKRS = [['all', 'Вся Москва'], ['center', 'Центр'], ['north', 'Север'], ['ne', 'Северо-Восток'], ['east', 'Восток'],
+    ['se', 'Юго-Восток'], ['south', 'Юг'], ['sw', 'Юго-Запад'], ['west', 'Запад'], ['nw', 'Северо-Запад'],
+    ['zel', 'Зеленоград'], ['new', 'Новая Москва'], ['mo', 'Подмосковье']];
+  const OKR_NAME = Object.fromEntries(OKRS);
+  const MICH = { 2: 'Две звезды Michelin 2021', 1: 'Звезда Michelin 2021', bib: 'Bib Gourmand Michelin 2021', rec: 'В гиде Michelin 2021' };
   const CAT_BY_KIND = [
     ['books', /книж/i], ['spa', /бан|спа|хамам|аквапарк|терм/i], ['coffee', /коф|пекар|кондитер|булоч|чайн/i],
     ['fun', /тир|боулинг|картинг|vr|квест|скалодром|падел|стендап|бильярд|караоке|аттракц|развлеч|теплоход|студи|мастер|арт-вечер|танц|стадион|петанк/i],
@@ -97,9 +104,9 @@
   ];
   const catOf = p => p.cat || (CAT_BY_KIND.find(([, rx]) => rx.test(p.kind)) || ['food'])[0];
   const PLACES = Object.entries(D.places).filter(([, p]) => !p.adult).map(([id, p]) => Object.assign({ id, c: catOf(p) }, p))
-    .sort((a, b) => a.name.localeCompare(b.name, 'ru'));
+    .sort((a, b) => (!!b.ph - !!a.ph) || a.name.replace(/^[^A-Za-zА-Яа-яЁё0-9]+/, '').localeCompare(b.name.replace(/^[^A-Za-zА-Яа-яЁё0-9]+/, ''), 'ru'));
   const PSTEP = 24;
-  let pcat = 'all', pq = '', plimit = PSTEP;
+  let pcat = 'all', pokr = 'all', pq = '', plimit = PSTEP, pview = 'list';
   const norm = t => String(t || '').toLowerCase().replace(/ё/g, 'е');
 
   function renderModes() {
@@ -133,13 +140,19 @@
     $('#filters').innerHTML = avail.map(([id, label]) =>
       `<button type="button" data-f="${id}" class="${id === flt ? 'on' : ''}" aria-pressed="${id === flt}">${label}</button>`).join('');
   }
+  const CSTEP = 24;
+  let climit = CSTEP;
   function renderCards() {
     const all = D.scenarios.filter(s => s.mode === mode);
     renderFilters(all);
     const fn = (FILTERS.find(f => f[0] === flt) || FILTERS[0])[2];
-    const plans = all.filter(fn);
+    // сначала планы с фото, порядок внутри групп — как в подборке
+    const plans = all.filter(fn).map((p, i) => [p, i]).sort((a, b) => (!!K.planPhoto(b[0]) - !!K.planPhoto(a[0])) || a[1] - b[1]).map(x => x[0]);
     $('#count').textContent = `${plans.length} ${plural(plans.length, 'план', 'плана', 'планов')}`;
-    $('#cards').innerHTML = plans.map((p, i) => {
+    const rest = plans.length - Math.min(climit, plans.length);
+    $('#cmore').classList.toggle('hidden', rest <= 0);
+    $('#cmore').textContent = `Показать ещё ${Math.min(rest, CSTEP)} из ${rest}`;
+    $('#cards').innerHTML = plans.slice(0, climit).map((p, i) => {
       const { st, legs, price } = planMeta(p);
       return `<button type="button" class="card" data-plan="${p.id}" style="animation-delay:${(Math.min(i, 8) * 0.05).toFixed(2)}s">
         ${phStrip(st)}<span class="card-head"><span class="ttl">${esc(p.title)}</span><span class="price">${K.priceText(price)}</span></span>
@@ -182,21 +195,67 @@
     if (r.right > fr.right - 20) f.scrollLeft += r.right - fr.right + 20;
     else if (r.left < fr.left + 20) f.scrollLeft -= fr.left + 20 - r.left;
   }
+  /* ---------- карта мест: Leaflet + OpenStreetMap, грузится при первом открытии ---------- */
+  let PLIST = [], MAP = null, MLAYER = null, leafletP = null;
+  const CAT_COLOR = { walk: '#6EE7B7', culture: '#B9A1FF', food: '#FF6F91', coffee: '#FFA463', bar: '#F4C95D', fun: '#D7F25C', spa: '#7CC6FE', books: '#E8A3D8' };
+  function loadLeaflet() {
+    if (window.L) return Promise.resolve();
+    if (leafletP) return leafletP;
+    leafletP = new Promise((res, rej) => {
+      const css = document.createElement('link');
+      css.rel = 'stylesheet'; css.href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
+      document.head.appendChild(css);
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
+      s.onload = res; s.onerror = rej;
+      document.head.appendChild(s);
+    });
+    return leafletP;
+  }
+  function renderMap() {
+    loadLeaflet().then(() => {
+      if (!MAP) {
+        MAP = L.map('pmap', { zoomControl: true, attributionControl: true, scrollWheelZoom: false }).setView([55.751, 37.618], 10);
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© участники OpenStreetMap' }).addTo(MAP);
+        MAP.on('popupopen', e => {
+          const b = e.popup.getElement().querySelector('[data-open-place]');
+          if (b) b.onclick = () => openPlace(b.dataset.openPlace);
+        });
+      }
+      if (MLAYER) MLAYER.remove();
+      MLAYER = L.layerGroup(PLIST.map(p => L.circleMarker([p.lat, p.lon], {
+        radius: 7, weight: 2, color: '#0F0E13', fillColor: CAT_COLOR[p.c] || '#FF6F91', fillOpacity: 0.95,
+      }).bindPopup(`<b>${esc(p.name)}</b><br><span>${esc(p.kind)} · м. ${esc(p.metro)}</span><br><button type="button" class="map-open" data-open-place="${p.id}">Подробнее</button>`))).addTo(MAP);
+      setTimeout(() => {
+        MAP.invalidateSize();
+        if (PLIST.length) MAP.fitBounds(L.latLngBounds(PLIST.map(p => [p.lat, p.lon])), { padding: [24, 24], maxZoom: 15 });
+      }, 30);
+    }).catch(() => { $('#pmap').innerHTML = '<p class="pl-empty">Карта не загрузилась. Проверьте интернет и попробуйте ещё раз.</p>'; });
+  }
+
   function renderPlaces() {
     const q = norm(pq).trim();
-    const list = PLACES.filter(p => (pcat === 'all' || p.c === pcat) &&
-      (!q || norm(p.name + ' ' + p.kind + ' ' + p.metro + ' ' + p.addr).includes(q)));
+    const inCat = p => pcat === 'all' || (pcat === 'michelin' ? !!p.mich : p.c === pcat);
+    const inQ = p => !q || norm(p.name + ' ' + p.kind + ' ' + p.metro + ' ' + p.addr + ' ' + (OKR_NAME[p.okr] || '')).includes(q);
+    const base = PLACES.filter(p => inCat(p) && inQ(p));
+    const list = base.filter(p => pokr === 'all' || p.okr === pokr);
     $('#pfilters').innerHTML = PCATS.map(([id, label]) =>
       `<button type="button" data-pc="${id}" class="${id === pcat ? 'on' : ''}" aria-pressed="${id === pcat}">${label}</button>`).join('');
+    const cnt = {};
+    base.forEach(p => { cnt[p.okr] = (cnt[p.okr] || 0) + 1; });
+    $('#pokrs').innerHTML = OKRS.filter(([id]) => id === 'all' || cnt[id] || id === pokr).map(([id, label]) =>
+      `<button type="button" data-po="${id}" class="${id === pokr ? 'on' : ''}" aria-pressed="${id === pokr}">${label}<span class="n">${id === 'all' ? base.length : (cnt[id] || 0)}</span></button>`).join('');
+    PLIST = list;
+    if (pview === 'map') { renderMap(); }
     $('#pcount').textContent = `${list.length} ${plural(list.length, 'место', 'места', 'мест')}`;
     $('#plist').innerHTML = list.length ? list.slice(0, plimit).map(p => `
       <button type="button" class="pl-item" data-pid="${p.id}">
         ${emoTile(p)}
-        <span class="pl-main"><span class="pl-name">${esc(p.name)}</span><span class="pl-sub">${esc(p.kind)} · м. ${esc(p.metro)}</span></span>
+        <span class="pl-main"><span class="pl-name">${esc(p.name)}${p.mich ? ' <span class="mich" title="' + MICH[p.mich] + '">M</span>' : ''}</span><span class="pl-sub">${esc(p.kind)} · м. ${esc(p.metro)}</span></span>
         <span class="price">${K.priceText(p.price)}</span>
       </button>`).join('') : '<p class="pl-empty">Ничего не нашлось. Попробуйте другое слово или категорию.</p>';
     const rest = list.length - Math.min(plimit, list.length);
-    $('#pmore').classList.toggle('hidden', rest <= 0);
+    $('#pmore').classList.toggle('hidden', rest <= 0 || pview === 'map');
     $('#pmore').textContent = `Показать ещё ${Math.min(rest, PSTEP)} из ${rest}`;
   }
   function openPlace(id) {
@@ -206,8 +265,9 @@
     $('#sheet').innerHTML = `
       <span class="grab"></span>
       ${heroPh(K.photo(p), p.name)}
-      <p class="eyebrow">${esc(p.kind)} · ${K.priceText(p.price)}</p>
+      <p class="eyebrow">${esc(p.kind)} · ${K.priceText(p.price)}${p.okr && OKR_NAME[p.okr] && p.okr !== 'all' ? ' · ' + esc(OKR_NAME[p.okr]) : ''}</p>
       <h3>${esc(p.name)}</h3>
+      ${p.mich ? `<p class="mich-line"><span class="mich">M</span>${MICH[p.mich]}</p>` : ''}
       <p class="why">${esc(p.note)}</p>
       <div class="stop solo">
         <span class="k">м. ${esc(p.metro)}</span>
@@ -271,7 +331,7 @@
     const b = e.target.closest('button[data-m]');
     if (!b || b.dataset.m === mode) return;
     mode = b.dataset.m;
-    flt = 'all';
+    flt = 'all'; climit = CSTEP;
     try { localStorage.setItem('kuda-mode', mode); } catch (err) { /* ок */ }
     history.replaceState(null, '', '?m=' + mode);
     apply();
@@ -288,6 +348,23 @@
     pqTimer = setTimeout(() => { pq = e.target.value; plimit = PSTEP; renderPlaces(); }, 150);
   });
   $('#pmore').onclick = () => { plimit += PSTEP; renderPlaces(); };
+  $('#cmore').onclick = () => { climit += CSTEP; renderCards(); };
+  $('#pokrs').addEventListener('click', e => {
+    const b = e.target.closest('button[data-po]');
+    if (!b || b.dataset.po === pokr) return;
+    pokr = b.dataset.po; plimit = PSTEP;
+    renderPlaces();
+  });
+  $('#pview').addEventListener('click', e => {
+    const b = e.target.closest('button[data-v]');
+    if (!b || b.dataset.v === pview) return;
+    pview = b.dataset.v;
+    $$('#pview button').forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', x === b); });
+    $('#pmap').classList.toggle('hidden', pview !== 'map');
+    $('#plist').classList.toggle('hidden', pview === 'map');
+    $('#pmore').classList.toggle('hidden', pview === 'map' || PLIST.length <= plimit);
+    if (pview === 'map') renderMap();
+  });
   $('#afilters').addEventListener('click', e => {
     const b = e.target.closest('[data-ac]');
     if (!b) return;
@@ -309,7 +386,7 @@
   $('#filters').addEventListener('click', e => {
     const b = e.target.closest('button[data-f]');
     if (!b || b.dataset.f === flt) return;
-    flt = b.dataset.f;
+    flt = b.dataset.f; climit = CSTEP;
     renderCards();
   });
   $('#random').onclick = () => {
