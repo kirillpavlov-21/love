@@ -383,11 +383,21 @@
   const walkMin = (a, b) => Math.max(1, Math.round(distM(a, b) * 1.3 / 75));
   const priceText = n => '₽'.repeat(Math.max(1, Math.min(3, n || 1)));
   const mapUrl = p => 'https://yandex.ru/maps/213/moscow/?text=' + encodeURIComponent(p.name + ', ' + p.addr);
+  /* Точка маршрута: адрес с номером дома — текстом (Яндекс находит тот же дом, что и ссылка на место),
+     парки, набережные и адреса без номера — координатами */
+  function routePt(p) {
+    const a = String(p.addr || '').replace(/\s*\([^)]*\)/g, '').trim();
+    if (/\d/.test(a) && !/^(у|рядом|напротив)\s/i.test(a) && !/(^|, )Москва(,|$)/.test(a)) {
+      const city = /^(Химки|Красногорск|Мытищи|Королёв|Балашиха),/.test(a) ? 'Московская область, ' : 'Москва, ';
+      return encodeURIComponent(city + a);
+    }
+    return p.lat.toFixed(6) + ',' + p.lon.toFixed(6);
+  }
   function routeUrl(stops) {
-    const pts = stops.map(p => p.lat.toFixed(6) + ',' + p.lon.toFixed(6));
+    const pts = stops.map(routePt);
     let far = 0;
     for (let i = 1; i < stops.length; i++) far = Math.max(far, distM(stops[i - 1], stops[i]));
-    return 'https://yandex.ru/maps/?rtext=~' + pts.join('~') + '&rtt=' + (far > 1500 ? 'mt' : 'pd');
+    return 'https://yandex.ru/maps/213/moscow/?rtext=' + pts.join('~') + '&rtt=' + (far > 1500 ? 'mt' : 'pd');
   }
 
   /* ---------- Telegram-ник владельца и календарь ---------- */
