@@ -232,7 +232,7 @@
     t.className = 'toast';
     t.textContent = text;
     document.body.appendChild(t);
-    setTimeout(() => t.remove(), 2700);
+    setTimeout(() => t.remove(), Math.max(2700, String(text).length * 55));   // длинное сообщение — дольше на экране
   }
   function typeInto(node, text, speed) {
     if (!node) return;
@@ -397,9 +397,10 @@
     if (kind === 'note') return `✉️ ${her} пишет:\n${esc(S.a.note)}`;
     return summary(true);
   }
+  /* c — отпечаток секрета создателя из ссылки (tg): без него посредник ответ не перешлёт */
   function notify(kind) {
     if (!canNotify()) return Promise.resolve(false);
-    return K.relaySend(TG.relayUrl, tgText(kind), INV_ID);
+    return K.relaySend(TG.relayUrl, tgText(kind), INV_ID, typeof INV.tg === 'string' ? INV.tg : '');
   }
   async function answerLink() {
     const a = S.a;
@@ -408,18 +409,35 @@
   }
   /* Ник владельца в Telegram: из приглашения или из config.js */
   const hostTg = () => K.tgUser(INV.tgu) || K.tgUser(CFG.myTelegram);
-  async function shareAnswer() {
-    const text = summary(false) + (CODE ? '\n\nМой билет: ' + await K.shortLink(await answerLink()) : '');
+  /* Ссылку-билет сокращаем заранее, при показе финала и после записки: на iPhone «Поделиться» не открывается,
+     если перед ним ждали ответа сети. Не успела сократиться — отправляем полную ссылку, не ждём. */
+  const ticket = { sig: '', url: '', busy: null };
+  function prepareTicket(onReady) {
+    if (!CODE) return;
+    const sig = JSON.stringify(S.a);
+    if (ticket.sig === sig && (ticket.url || ticket.busy)) { if (onReady && ticket.url) onReady(); return; }
+    ticket.sig = sig; ticket.url = '';
+    const p = ticket.busy = answerLink().then(long => { if (ticket.sig === sig && !ticket.url) ticket.url = long; return K.shortLink(long); })
+      .then(short => { if (ticket.sig !== sig) return; ticket.url = short; ticket.busy = null; if (onReady) onReady(); })
+      .catch(() => { if (ticket.busy === p) ticket.busy = null; });
+  }
+  function shareAnswer() {
+    prepareTicket();
+    const text = summary(false) + (CODE && ticket.url ? '\n\nМой билет: ' + ticket.url : '');
     const u = hostTg();
     if (u) {
-      await copyText(text);   // запасной путь, если Telegram не подставит текст сам
+      copyText(text);   // запасной путь, если Telegram не подставит текст сам
       toast('Открываю Telegram — ответ уже в поле сообщения');
       setTimeout(() => { location.href = K.tgLink(u, text); }, 700);
       return;
     }
     if (navigator.share) {
-      try { await navigator.share({ text }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
+      navigator.share({ text }).catch(e => { if (!e || e.name !== 'AbortError') copyAnswer(text); });
+      return;
     }
+    copyAnswer(text);
+  }
+  async function copyAnswer(text) {
     const ok = await copyText(text);
     toast(ok ? 'Ответ скопирован! Отправь его в личку 💌' : 'Сделай скриншот билета и отправь его 📸');
   }
@@ -428,7 +446,7 @@
   function stopsLine(plan) {
     const st = K.planStops(plan);
     if (!st.length) return '';
-    if (st.length === 1) return (st[0].name === plan.title ? '' : st[0].name + ' · ') + 'м. ' + st[0].metro;
+    if (st.length === 1) return (st[0].name === plan.title ? '' : st[0].name + ' · ') + K.metroText(st[0].metro);
     let walk = 0;
     for (let i = 1; i < st.length; i++) walk += K.walkMin(st[i - 1], st[i]);
     return st.map(p => p.name).join(' → ') + (st.length > 1 ? ` · ${walk} мин пешком` : '');
@@ -834,7 +852,7 @@
       const pl = p.plan ? K.planById(p.plan) : null;
       return { emoji: p.emoji || (pl && pl.emoji) || '📍', title: p.title || pl.title, note: p.note || (pl && pl.why) || '', plan: pl ? pl.id : '', ph: pl ? K.planPhoto(pl) : null };
     });
-    if (INV.placeSurprise) opts.push({ emoji: '🎁', title: 'Сюрприз', note: `Пусть ${INV.me} выберет сам — и не скажет куда 🤫`, kind: 'surprise' });
+    if (INV.placeSurprise) opts.push({ emoji: '🎁', title: 'Сюрприз', note: `Место выберет ${INV.me} — и не скажет куда 🤫`, kind: 'surprise' });
     if (INV.placeCustom) opts.push({ emoji: '✍️', title: 'Свой вариант', note: 'Напиши, куда тебе хочется', kind: 'custom' });
     const cols = opts.length <= 4 ? 2 : 3;
     el.innerHTML = `
@@ -1238,7 +1256,7 @@
       ${plan || calEv ? `<div class="tally"><h3>${plan ? esc(plan.title) : 'Не забудь'}</h3>${plan ? planBlock(plan) : ''}${calEv ? calBlock(calEv) : ''}</div>` : ''}
       <div class="send-state"></div>
       <div class="final-cat"><div class="cat-slot">${K.catSVG(LOVE())}</div><div class="bubble b-left">${esc(view ? 'Осталось только встретиться 😉' : T(INV.finale))}</div></div>
-      ${view ? `<div class="actions"><a class="btn btn-primary btn-wide" href="start.html">Все планы «Куда идём?»${I('arrow')}</a></div>` : ''}
+      ${view ? `<div class="actions"><a class="btn btn-primary btn-wide" href="start.html">Все планы «${esc((CFG.site && CFG.site.name) || 'Куда идём?')}»${I('arrow')}</a></div>` : ''}
       <div class="actions${view ? ' hidden' : ''}">
         <button class="btn btn-primary btn-wide share">${I('share')}${tgUser ? 'Отправить ответ в Telegram' : 'Отправить ответ'}</button>
         <button class="btn btn-soft btn-wide note-open">${I('pen')}Написать пару слов</button>
@@ -1264,14 +1282,17 @@
     const sig = JSON.stringify(Object.assign({}, S.a, { note: '' }));
     const setState = (txt, ok) => { state.innerHTML = (ok ? I('check') : '') + esc(txt); state.classList.toggle('ok', !!ok); };
 
+    // ссылку-билет готовим сразу; пока сокращается — на кнопке точка-индикатор, ждать её не обязательно
+    const ticketReady = () => { shareBtn.classList.remove('busy'); shareBtn.removeAttribute('aria-busy'); };
+    if (CODE) { shareBtn.classList.add('busy'); shareBtn.setAttribute('aria-busy', 'true'); prepareTicket(ticketReady); }
     if (PREVIEW) setState('Это превью — в Telegram ничего не отправляется');
     else if (canNotify()) {
       shareBtn.classList.add('hidden');
-      if (S.sent.final === sig) setState(`${INV.me} уже получил твой ответ`, true);
+      if (S.sent.final === sig) setState(`${INV.me} уже видит твой ответ`, true);
       else {
         setState('Отправляю ответ…');
         notify('final').then(ok => {
-          if (ok) { S.sent.final = sig; save(); setState(`${INV.me} уже получил твой ответ`, true); }
+          if (ok) { S.sent.final = sig; save(); setState(`${INV.me} уже видит твой ответ`, true); }
           else { setState('Не получилось отправить автоматически — нажми кнопку ниже'); shareBtn.classList.remove('hidden'); }
         });
       }
@@ -1290,6 +1311,7 @@
       if (!txt) { noteArea.focus(); return; }
       S.a.note = txt; save();
       Sfx.click();
+      prepareTicket(ticketReady);   // в билете теперь и записка
       if (canNotify()) {
         const ok = await notify('note');
         if (ok) {
@@ -1300,6 +1322,10 @@
           FX.burst({ n: 40, power: 0.7, shapes: ['heart'] });
           return;
         }
+        // после ожидания сети «Поделиться» на iPhone может не открыться — просим нажать кнопку ещё раз
+        shareBtn.classList.remove('hidden');
+        toast('Не отправилось автоматически — нажми «Отправить ответ»');
+        return;
       }
       shareAnswer();
     };
@@ -1495,13 +1521,19 @@
       $('.merge-open', el).onclick = () => { $('.merge', el).classList.toggle('hidden'); };
       $('.merge-go', el).onclick = async () => {
         let text = $('.merge textarea', el).value;
-        // короткие ссылки своего сокращателя (go.html#s=…) раскрываем через посредника
+        // короткие ссылки своего сокращателя (go.html#s=…) раскрываем через посредника;
+        // clck.ru и другие сокращатели браузер раскрыть не может — о них говорим прямо, а не теряем молча
         const relay = TG.relayUrl;
+        let lost = 0;
         for (const m of text.match(/go\.html#s=[A-Za-z0-9_-]{1,16}/g) || []) {
-          if (!relay) break;
-          try { const j = await (await fetch(relay + (relay.includes('?') ? '&' : '?') + 's=' + m.split('=')[1])).json(); if (j.ok && j.url) text += '\n' + j.url; } catch (e) { /* пропускаем */ }
+          let got = false;
+          if (relay) {
+            try { const j = await (await fetch(relay + (relay.includes('?') ? '&' : '?') + 's=' + m.split('=')[1])).json(); if (j.ok && j.url) { text += '\n' + j.url; got = true; } } catch (e) { /* ниже — посчитаем как нераскрытую */ }
+          }
+          if (!got) lost++;
         }
-        if (/clck\.ru\//.test(text) && !/&v=/.test(text)) { toast('Открой короткую ссылку и вставь сюда полный адрес из браузера'); return; }
+        lost += (text.match(/https?:\/\/(clck\.ru|is\.gd|vk\.cc|bit\.ly)\/[A-Za-z0-9_-]+/g) || []).length;
+        const lostMsg = lost ? ` ${lost} ${plural(lost, 'короткую ссылку', 'короткие ссылки', 'коротких ссылок')} не получилось раскрыть — открой ${lost > 1 ? 'их' : 'её'} и вставь сюда полный адрес из браузера.` : '';
         const re = /#([A-Za-z0-9_-]+)&v=([A-Za-z0-9_-]+)/g;
         let m, added = 0, foreign = 0;
         const lists = [];
@@ -1509,29 +1541,39 @@
           if (m[1] !== CODE) { foreign++; continue; }
           try { lists.push(await K.decodeData(m[2])); added++; } catch (e) { /* битая ссылка */ }
         }
-        if (!added) { toast(foreign ? 'Это ссылки от другого сбора' : 'Не нашёл ссылок с голосами'); return; }
+        if (!added) { toast(lostMsg ? lostMsg.trim() : foreign ? 'Это ссылки от другого сбора' : 'Не нашёл ссылок с голосами'); return; }
         cur = mergeVotes(cur, ...lists);
         PRIOR = cur; forced = null;
         $('.merge textarea', el).value = '';
         render();
+        warm();
         Sfx.success();
-        toast(`Готово! Голосов теперь: ${cur.length}`);
+        toast(`Готово! Голосов теперь: ${cur.length}.` + lostMsg);
       };
       $('.revote', el).onclick = () => { Sfx.click(); S.a = freshAnswers(); go(1); };
     });
   }
+  /* Колесо при ничьей: не больше 8 секторов (при большой ничьей — 8 случайных лидеров) и не дольше ~5 секунд */
+  const WHEEL_MAX = 8;
   function spin(wrap, btn, onWin) {
-    const items = $$('.t-item.lead[data-i]', wrap);
-    if (items.length < 2) return;
+    const all = $$('.t-item.lead[data-i]', wrap);
+    if (all.length < 2) return;
+    let items = all;
+    if (all.length > WHEEL_MAX) {
+      const pick = new Set(all.map(x => [Math.random(), x]).sort((a, b) => a[0] - b[0]).slice(0, WHEEL_MAX).map(x => x[1]));
+      items = all.filter(x => pick.has(x));
+      toast(`В колесе ${WHEEL_MAX} случайных вариантов из ${all.length} с равными голосами`);
+    }
     btn.disabled = true;
     const winner = (Math.random() * items.length) | 0;
-    const total = items.length * 3 + winner;
+    const total = items.length * Math.max(3, Math.ceil(18 / items.length)) + winner;
     let k = 0;
     const tick = () => {
       items.forEach(x => x.classList.remove('spin'));
       items[k % items.length].classList.add('spin');
       Sfx.tick();
-      if (k++ < total) setTimeout(tick, 70 + k * k * 1.6);
+      // замедление к концу: первые шаги быстрые, последние ~0,5 с
+      if (k++ < total) { const f = k / total; setTimeout(tick, 55 + 420 * f * f * f); }
       else {
         Sfx.fanfare();
         FX.burst({ n: 100, power: 1 });

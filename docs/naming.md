@@ -20,4 +20,9 @@
 2. Товарные знаки: поиск ФИПС https://www1.fips.ru/ по классам 35, 38, 41, 42.
 3. Ники @pozovi в Telegram, VK и Instagram.
 
-Как переименовать на сайте: `config.js` → `site.name` (шапка и служебные страницы), затем `<title>`/`og:title` в `start.html`, `create.html`, `index.html`, `manifest.webmanifest` и README.
+Как переименовать на сайте:
+1. `config.js` → `site.name` — шапка главной, кнопка «назад» в конструкторе, служебные страницы (`privacy.html`, `key.html`, `partners.html`) и кнопка «Все планы …» на билете.
+2. Вручную — `<title>` и `og:title` в `start.html`, `create.html`, `privacy.html`, `key.html`, `partners.html`, `404.html` (в `index.html` названия нет), `name`/`short_name` в `manifest.webmanifest`.
+3. Картинки для превью ссылок `assets/og-hub.png` и `assets/og-invite.png` — на них нарисовано название, их нужно перерисовать (и поднять `?v=` у `og:image`).
+4. Новый домен — в `robots.txt`, `sitemap.xml`, `og:image`, свойстве `SITE_URL` посредника, Redirect URI приложения Яндекс ID и ограничении ключа Яндекс Карт.
+5. README и `docs/*.md`; по желанию — `PRODID` календаря в `assets/shared.js`.

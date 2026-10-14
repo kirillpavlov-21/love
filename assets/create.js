@@ -13,6 +13,10 @@
   const OLD_DRAFTS = ['date-constructor-draft'];
   const HIST = 'date-constructor-history';
   const OWNER = 'kuda-owner-key';
+  /* Секрет создателя: случайная строка этого браузера. В приглашение кладём только её отпечаток (tg),
+     а сам секрет показываем боту при регистрации — так бот знает, что приглашение создали здесь. */
+  const CREATOR = 'kuda-creator';
+  const RENEW = 'kuda-owner-renew';
   const MODE_ORDER = ['date', 'guys', 'girls'];
 
   const LEVELS = {
@@ -88,7 +92,7 @@
       <div class="li-main">
         <input class="ti" value="${esc(it.title || (pl && pl.title) || '')}" maxlength="40" placeholder="${kind === 'food' ? 'Блюдо' : 'Название места'}">
         <input class="no" value="${esc(it.note || (pl && pl.why) || '')}" maxlength="90" placeholder="Подпись (необязательно)">
-        ${pl ? `<span class="plan-tag">${pl.single ? '📍 Место из каталога: ' + esc([K.planStops(pl)[0].kind, K.planStops(pl)[0].metro && 'м. ' + K.planStops(pl)[0].metro].filter(Boolean).join(' · ')) : '📋 Готовый план: ' + esc(K.planStops(pl).map(p => p.name).join(' → '))}</span>` : ''}
+        ${pl ? `<span class="plan-tag">${pl.single ? '📍 Место из каталога: ' + esc([K.planStops(pl)[0].kind, K.metroText(K.planStops(pl)[0].metro)].filter(Boolean).join(' · ')) : '📋 Готовый план: ' + esc(K.planStops(pl).map(p => p.name).join(' → '))}</span>` : ''}
       </div>
       <button class="del" type="button" title="Удалить" aria-label="Удалить">${K.icon('x')}</button>
     </div>`;
@@ -148,7 +152,7 @@
   }
   function pkItem(it, on) {
     const st = K.planStops(it), ph = it.single ? K.photo(st[0]) : K.planPhoto(it);
-    const sub = it.single ? [st[0].kind, st[0].metro && 'м. ' + st[0].metro].filter(Boolean).join(' · ') : st.map(x => x.name).join(' → ');
+    const sub = it.single ? [st[0].kind, K.metroText(st[0].metro)].filter(Boolean).join(' · ') : st.map(x => x.name).join(' → ');
     const hints = pkHints(it).filter(h => !(h === 'first' && isGroup())).slice(0, 3);
     return `<button type="button" class="pk-it${on ? ' on' : ''}" data-pk="${esc(it.id)}">
       <span class="pk-im">${ph ? `<img src="${esc(ph.t)}" alt="" loading="lazy">` : esc(it.emoji)}</span>
@@ -328,13 +332,15 @@
         title: v('title') || MC().title,
         opts: Array.from(state.gsel).filter(id => K.planById(id)).map(plan => ({ plan })).concat(readList('opts')),
       });
-    } else {
-      Object.assign(inv, dateFields());
+    }
+    // «к нему» и ник — поля свидания; в черновик кладём и в режиме компании, иначе после перезагрузки сбросятся
+    if (!isGroup() || all) {
+      if (!isGroup()) Object.assign(inv, dateFields());
       if (state.who === 'm') inv.who = 'm';
       const tgu = K.tgUser(v('tgu'));
       if (tgu) inv.tgu = tgu;
     }
-    if (ownerKey() && relayUrl()) inv.tg = 1;
+    if (ownerKey() && relayUrl() && TG.c) inv.tg = TG.c;
     return inv;
   }
 
@@ -404,20 +410,44 @@
     renderPlanPickers();
     code = await K.encodeInvite(K.diffInvite(inv, DEF));
     const long = realLink();
-    $('#link').value = long;
-    $('#linkLen').textContent = 'Сокращаем ссылку…';
+    $('#link').value = shortOf[long] || long;
+    linkInfo();
     reloadPreview();
-    K.shortLink(long).then(short => {
-      if (realLink() !== long) return;
-      shortOf[long] = short;
-      $('#link').value = short;
-      $('#linkLen').textContent = short !== long ? 'Короткая ссылка готова — её удобно кинуть в чат'
-        : long.length > 100 ? `Длина ссылки: ${long.length} символов — сервис коротких ссылок сейчас недоступен` : `Длина ссылки: ${long.length} символов`;
-    });
+    if (resultSeen) prepareShort();
   }, 450);
-  /* Короткая ссылка, если уже готова (на iPhone «Поделиться» нельзя вызывать после долгого ожидания) */
-  const shortOf = {};
+  /* Короткие ссылки. Сокращаем не после каждой паузы в наборе (иначе в сервисе копятся сотни черновиков),
+     а когда блок со ссылкой на экране или нажаты «Скопировать»/«Поделиться». Готовая короткая ссылка
+     нужна заранее: на iPhone «Поделиться» не открывается, если перед ним ждали ответа сети. */
+  const shortOf = {}, shortP = {};
+  let resultSeen = false;
+  function prepareShort() {
+    const long = realLink();
+    if (!code || shortP[long]) return shortP[long] || Promise.resolve(long);
+    shortP[long] = K.shortLink(long).then(short => { shortOf[long] = short; if (realLink() === long) { $('#link').value = short; linkInfo(); } return short; });
+    linkInfo();
+    return shortP[long];
+  }
+  function linkInfo() {
+    const long = realLink(), short = shortOf[long];
+    $('#linkLen').textContent = short ? (short !== long ? 'Короткая ссылка готова — её удобно кинуть в чат'
+      : long.length > 100 ? `Длина ссылки: ${long.length} символов — сервис коротких ссылок сейчас недоступен` : `Длина ссылки: ${long.length} символов`)
+      : shortP[long] ? 'Сокращаем ссылку…' : 'Ссылку сократим, когда нажмёшь «Скопировать» или «Поделиться»';
+  }
   const sendLink = () => shortOf[realLink()] || realLink();
+  /* Копируем короткую ссылку. Если она ещё готовится — через ClipboardItem с обещанием: Safari и Chrome
+     дождутся ответа, не теряя разрешения на запись, а без него — после ожидания обычным способом. */
+  async function copyLink() {
+    const long = realLink();
+    if (shortOf[long]) return copyText(shortOf[long]);
+    const p = prepareShort();
+    if (navigator.clipboard && window.ClipboardItem && navigator.clipboard.write) {
+      try {
+        await navigator.clipboard.write([new ClipboardItem({ 'text/plain': p.then(s => new Blob([s], { type: 'text/plain' })) })]);
+        return true;
+      } catch (e) { /* ниже — запасной путь */ }
+    }
+    return copyText(await p);
+  }
 
   /* ---------- история ---------- */
   function histList() { try { return JSON.parse(ls.get(HIST) || '[]'); } catch (e) { return []; } }
@@ -429,7 +459,12 @@
     list.unshift({ label, link, at: Date.now() });
     ls.set(HIST, JSON.stringify(list.slice(0, 30)));
     renderHist();
-    registerIds([K.hash(code)]);
+    if (ownerKey() && relayUrl() && TG.s) registerIds([K.hash(code)]);
+  }
+  /* Модель «Для тебя» учится на том, куда зовут: передаём выбранные планы и места (только при отправке) */
+  function trackInvite() {
+    const picked = isGroup() ? Array.from(state.gsel) : $$('#places .li[data-plan]').map(r => r.dataset.plan);
+    if (window.KudaTrack) window.KudaTrack.invited(picked.filter(id => K.planById(id)), state.mode);
   }
   function renderHist() {
     const list = histList();
@@ -446,22 +481,48 @@
   /* ---------- Telegram (через посредника, только для владельца) ---------- */
   const relayUrl = () => (CFG.telegram || {}).relayUrl || '';
   const ownerKey = () => ls.get(OWNER) || '';
+  /* Секрет создателя (s) и его отпечаток (c = SHA-256, 12 символов) — считаем один раз при запуске.
+     Без crypto.subtle (страница открыта не по https) ответы в Telegram не подключаются. */
+  const TG = { s: '', c: '' };
+  async function creatorProof() {
+    try {
+      let s = ls.get(CREATOR) || '';
+      if (!/^[A-Za-z0-9_-]{22,64}$/.test(s)) {
+        const b = new Uint8Array(18);
+        crypto.getRandomValues(b);
+        s = K.toB64url(b);
+        ls.set(CREATOR, s);
+      }
+      const d = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode('kuda-tg|' + s)));
+      TG.s = s; TG.c = K.toB64url(d).slice(0, 12);
+    } catch (e) { TG.s = TG.c = ''; }
+  }
+  /* Ответ посредника: { ok, error } — 'key' ключ не подошёл, 'rate' слишком часто, 'net' нет связи */
   function registerIds(ids) {
-    if (!relayUrl() || !ownerKey() || !ids.length) return Promise.resolve(false);
-    return K.relayRegister(relayUrl(), ownerKey(), ids);
+    if (!relayUrl() || !ownerKey()) return Promise.resolve({ ok: false, error: 'off' });
+    return K.relayRegister(relayUrl(), ownerKey(), TG.s ? ids : [], TG.s);
   }
-  function registerHistory() {
-    const ids = histList().map(x => K.readHash('#' + (x.link.split('#')[1] || '')).code).filter(Boolean).map(K.hash);
-    return registerIds(ids);
+  const histIds = () => histList().map(x => K.readHash('#' + (x.link.split('#')[1] || '')).code).filter(Boolean).map(K.hash);
+  const registerHistory = () => registerIds(histIds());
+  /* Раз в день продлеваем срок хранения своих приглашений у бота (иначе через 90 дней без ответов их забудут) */
+  function renewHistory() {
+    const day = String(Math.floor(Date.now() / 864e5));
+    if (!relayUrl() || !ownerKey() || !TG.s || ls.get(RENEW) === day || !histIds().length) return;
+    registerHistory().then(j => { if (j.ok) ls.set(RENEW, day); });
   }
+  const relayError = j => j.error === 'net' ? 'Не удалось связаться с ботом — проверь интернет'
+    : j.error === 'rate' ? 'Слишком часто — попробуй через несколько минут'
+      : j.error === 'busy' ? 'Бот сейчас занят — попробуй ещё раз через минуту' : 'Ключ не подошёл — проверь его';
   function tgStatus() {
     const el = $('#tgStatus');
     const url = relayUrl(), key = ownerKey();
     el.className = url && key ? 'status ok' : 'status';
     el.textContent = !url
       ? 'Ответы в Telegram скоро появятся. А пока ответ придёт ссылкой-билетом: человек сам отправит её тебе.'
-      : key ? '✓ Ключ сохранён — ответы на твои приглашения будут приходить в Telegram.'
+      : key ? '✓ Ключ сохранён. Ответы будут приходить в Telegram на приглашения, которые ты скопируешь или отправишь отсюда с этим ключом.'
         : 'Получи ключ у нашего бота — и ответы на твои приглашения будут приходить тебе в Telegram.';
+    // без бота кнопка теста не нужна вовсе, без ключа — видна, но неактивна
+    $('#tgTest').classList.toggle('hidden', !url);
     $('#tgTest').disabled = !url || !key;
     $('#ownerKey').value = key;
     const bot = K.tgUser((CFG.telegram || {}).bot);
@@ -470,11 +531,8 @@
     $('#ownerKey').closest('label').classList.toggle('hidden', !url);
   }
   async function tgTest() {
-    try {
-      const r = await fetch(relayUrl(), { method: 'POST', body: JSON.stringify({ action: 'test', key: ownerKey() }) });
-      const j = await r.json();
-      toast(j.ok ? 'Отправлено — проверь Telegram ✓' : 'Ключ не подошёл — проверь его');
-    } catch (e) { toast('Не удалось связаться с посредником'); }
+    const j = await K.relayTest(relayUrl(), ownerKey());
+    toast(j.ok ? 'Отправлено — проверь Telegram ✓' : relayError(j));
   }
 
   /* ---------- эмодзи-панель ---------- */
@@ -521,6 +579,8 @@
 
   /* ---------- запуск ---------- */
   function init() {
+    // название сайта — из config.js (site.name), как на главной
+    if (CFG.site && CFG.site.name) { const b = $('.back'); if (b && b.lastChild) b.lastChild.textContent = CFG.site.name; }
     $('#weekdays').innerHTML = WEEK.map(([n, t]) => `<label class="chip"><input type="checkbox" value="${n}"><span>${t}</span></label>`).join('');
 
     let draft = null;
@@ -545,7 +605,8 @@
       if (e.target.id === 'ownerKey') {
         ls.set(OWNER, e.target.value.trim());
         tgStatus();
-        if (ownerKey()) registerHistory().then(ok => toast(ok ? 'Ключ подошёл ✓ Старые приглашения тоже подключены' : 'Ключ не подошёл — проверь его'));
+        // пустая история — посредник просто проверит ключ
+        if (ownerKey()) registerHistory().then(j => toast(j.ok ? 'Ключ подошёл ✓ Ответы будут приходить на приглашения, которые ты отправишь с ним' : relayError(j)));
         update();
         return;
       }
@@ -592,16 +653,25 @@
 
     $('#copy').onclick = async () => {
       remember();
-      toast(await copyText(sendLink()) ? (isGroup() ? 'Ссылка скопирована — кидай в общий чат 💬' : 'Ссылка скопирована 💌 Отправь её!') : 'Скопируй ссылку вручную');
-      if (window.KudaTrack) window.KudaTrack.ev('invite', { v: state.mode });
+      trackInvite();
+      const ready = !!shortOf[realLink()];
+      if (!ready) toast('Сокращаем ссылку…');
+      toast(await copyLink() ? (isGroup() ? 'Ссылка скопирована — кидай в общий чат 💬' : 'Ссылка скопирована 💌 Отправь её!') : 'Скопируй ссылку вручную');
     };
     $('#share').onclick = async () => {
       remember();
+      trackInvite();
       const text = isGroup() ? `${MC().emoji} ${$('#title').value || MC().title} — голосуем, куда и когда идём!` : 'У меня для тебя кое-что есть 💌';
-      if (window.KudaTrack) window.KudaTrack.ev('invite', { v: state.mode });
-      if (navigator.share) { try { await navigator.share({ title: text, text, url: sendLink() }); return; } catch (e) { if (e.name === 'AbortError') return; } }
-      toast(await copyText(sendLink()) ? 'Ссылка скопирована' : 'Скопируй ссылку вручную');
+      // «Поделиться» открываем сразу, без ожидания сети: короткая ссылка уже готова, если блок был на экране
+      const url = sendLink();
+      if (navigator.share) { try { await navigator.share({ title: text, text, url }); return; } catch (e) { if (e.name === 'AbortError') return; } }
+      toast(await copyLink() ? 'Ссылка скопирована' : 'Скопируй ссылку вручную');
     };
+    // блок со ссылкой показался на экране — заранее просим короткую ссылку (и при касании кнопок внизу экрана)
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(es => { resultSeen = es.some(e => e.isIntersecting); if (resultSeen) prepareShort(); }, { threshold: 0.3 }).observe($('#result'));
+    }
+    ['#copy', '#share', '#mbCopy'].forEach(s => $(s).addEventListener('pointerdown', () => prepareShort()));
     $('#open').onclick = () => { remember(); window.open(realLink(), '_blank'); };
     $('#openPv').onclick = () => window.open(previewLink(pvStep), '_blank');
     $('#mbPv').onclick = () => window.open(previewLink(0), '_blank');
@@ -617,7 +687,7 @@
       else if (u) $('#tgu').value = '@' + u;
     });
     $('#reset').onclick = () => {
-      if (!confirm('Сбросить форму к настройкам из config.js?')) return;
+      if (!confirm('Сбросить форму? Имена, тексты, места и даты вернутся к начальным.')) return;
       try { localStorage.removeItem(DRAFT); } catch (e) { /* ок */ }
       state.texts = {};
       fillForm(DEF); $('#her').value = ''; $('#me').value = ''; update();
@@ -660,7 +730,8 @@
 
     addEventListener('resize', debounce(reloadPreview, 400));
     applyUrlParams();
-    update();
+    // ссылку собираем, когда отпечаток секрета создателя готов (он входит в приглашение, если есть ключ)
+    creatorProof().then(() => { update(); renewHistory(); });
   }
 
   init();

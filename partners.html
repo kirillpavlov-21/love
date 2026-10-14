@@ -11,9 +11,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="assets/hub.css?v=26">
+  <link rel="stylesheet" href="assets/hub.css?v=27">
   <style>
-    .doc h1 { margin: 22px 0 6px; font: 700 28px/1.15 var(--display); letter-spacing: -.02em; }
+    .doc h1 { margin: 22px 0 6px; font: 700 clamp(20px, 6.4vw, 28px)/1.15 var(--display); letter-spacing: -.02em; overflow-wrap: break-word; hyphens: auto; }
     .doc h2 { margin: 26px 0 8px; font: 600 18px var(--display); }
     .doc p, .doc li { color: var(--muted-2); font-size: 15px; line-height: 1.55; }
     .doc ul, .doc ol { padding-left: 20px; }
@@ -39,13 +39,13 @@
     <ol>
       <li>Напишите нам: название, адрес, чем вы интересны для свидания или компании.</li>
       <li>Мы проверим, что место работает, и включим его в подходящие планы рядом.</li>
-      <li>Пришлите фото с правом публикации — в карточке появится галерея.</li>
+      <li>Фото в карточках сейчас берём только с Wikimedia Commons — там, где у снимков свободная лицензия и указан автор. Хотите, чтобы появились фото вашего заведения, — загрузите их на <a href="https://commons.wikimedia.org/wiki/Special:UploadWizard" target="_blank" rel="noopener">Commons</a> под лицензией CC BY или CC BY-SA и пришлите нам ссылку.</li>
     </ol>
     <p>Компьютерные клубы, бары, бани, квесты, рестораны и кофейни особенно нужны в спальных районах и ближнем Подмосковье.</p>
     <div class="cta" id="cta"></div>
   </main>
   <footer class="foot"><a href="start.html">← На главную</a></footer>
-  <script src="config.js?v=26"></script>
+  <script src="config.js?v=27"></script>
   <script>
   (function () {
     var C = window.DATE_CONFIG || {}, sup = C.support || {}, box = document.getElementById('cta');

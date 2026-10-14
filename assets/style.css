@@ -137,6 +137,9 @@ h1, h2, h3 { margin: 0; line-height: 1.12; font-family: var(--display); font-wei
 .btn-xl { min-height: 58px; padding: 0 34px; border-radius: 18px; font-size: 17px; }
 .btn-wide { width: 100%; max-width: 420px; }
 .btn.sq { width: 54px; padding: 0; flex: 0 0 54px; }
+/* ссылка-билет ещё сокращается: точка на кнопке (нажимать можно и сейчас) */
+.btn.busy::after { content: ""; width: 7px; height: 7px; margin-left: 2px; border-radius: 50%; background: currentColor; opacity: .55; animation: busyDot .9s ease-in-out infinite alternate; }
+@keyframes busyDot { to { opacity: .1; transform: scale(.6); } }
 .pulse { animation: pulse 2s ease-in-out infinite; }
 @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(var(--rgb), .45); } 60% { box-shadow: 0 0 0 14px rgba(var(--rgb), 0); } }
 .link-btn {

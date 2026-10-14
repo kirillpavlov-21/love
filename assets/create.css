@@ -65,6 +65,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); }
 .btn:hover { background: var(--surface-3); }
 .btn:active { transform: scale(.97); }
 .btn.primary { background: var(--accent); color: var(--on-accent); border-color: transparent; font-weight: 700; }
+.btn:disabled { opacity: .45; cursor: not-allowed; transform: none; background: var(--surface-2); }
 .btn-add { border: 1px dashed rgba(244, 241, 234, .3); background: transparent; color: var(--text); border-radius: 14px; min-height: 46px; width: 100%; font: inherit; font-weight: 600; cursor: pointer; margin: 2px 0 12px; }
 .btn-add:hover { border-color: var(--accent); color: var(--accent); }
 .row { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
@@ -196,10 +197,12 @@ body[data-mode="date"] .only-group, body:not([data-mode="date"]) .only-date { di
 .li .plan-tag { grid-column: 2; font-size: 12px; font-weight: 600; color: var(--accent); }
 
 @media (max-width: 420px) {
-  .modeseg { display: grid; width: 100%; }
-  .modeseg button { justify-content: center; padding: 10px 6px; font-size: 14px; }
+  .modeseg { display: grid; width: 100%; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .modeseg button { justify-content: center; gap: 6px; min-width: 0; padding: 10px 4px; font-size: 14px; }
   .top h1 { font-size: 24px; }
 }
+/* на самых узких экранах режимы — без значков, иначе «Подружки» не влезают */
+@media (max-width: 350px) { .modeseg button .ic { display: none; } }
 
 /* липкая панель на телефоне */
 .quick { margin: -6px 0 14px; color: var(--muted-2); }

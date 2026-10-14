@@ -221,19 +221,23 @@
   /* ---------- отправка ответов ----------
      Токена на сайте нет: текст уходит посреднику (Google Apps Script),
      он пересылает его в Telegram. text/plain — чтобы браузер не делал preflight. */
-  async function relayPost(url, body) {
-    if (!url) return false;
+  /* Ответ посредника как есть: { ok, error? }; error: 'net' — нет связи, 'rate' — слишком часто, 'key' — ключ не подошёл */
+  async function relayCall(url, body) {
+    if (!url) return { ok: false, error: 'off' };
     try {
       const r = await fetch(url, { method: 'POST', body: JSON.stringify(body) });
       const j = await r.json();
-      return !!j.ok;
+      return j && typeof j === 'object' ? j : { ok: false };
     } catch (e) {
-      return false;
+      return { ok: false, error: 'net' };
     }
   }
-  /* id — хэш приглашения: посредник пересылает только приглашения, которые зарегистрировал владелец */
-  const relaySend = (url, text, id) => relayPost(url, { text, id: id || '' });
-  const relayRegister = (url, key, ids) => relayPost(url, { action: 'register', key, ids });
+  /* id — хэш приглашения, c — отпечаток секрета создателя из ссылки: посредник пересылает ответ,
+     только если приглашение зарегистрировал его создатель (знает секрет s, у которого этот отпечаток) */
+  const relaySend = (url, text, id, c) => relayCall(url, { text, id: id || '', c: c || '' }).then(j => !!j.ok);
+  /* Пустой ids — просто проверка ключа */
+  const relayRegister = (url, key, ids, s) => relayCall(url, { action: 'register', key, s: s || '', ids });
+  const relayTest = (url, key) => relayCall(url, { action: 'test', key });
 
   /* ---------- короткие ссылки ----------
      В чат не должны уходить километровые ссылки. По очереди пробуем:
@@ -309,6 +313,16 @@
     return p && !p.adult ? { id, mode: '', emoji: p.emoji, title: p.name, stops: [id.slice(2)], when: '', why: p.note, single: true } : null;
   };
   const planStops = plan => (plan ? plan.stops.map(placeById).filter(Boolean) : []);
+  /* Раздел каталога: поле cat, а у старых мест — по типу места */
+  const CAT_BY_KIND = [
+    ['pc', /компьютерн|кибер/i],
+    ['books', /книж/i], ['spa', /бан|спа|хамам|аквапарк|терм/i], ['coffee', /коф|пекар|кондитер|булоч|чайн/i],
+    ['fun', /тир|боулинг|картинг|vr|квест|скалодром|падел|стендап|бильярд|караоке|аттракц|развлеч|теплоход|студи|мастер|арт-вечер|танц|стадион|петанк/i],
+    ['culture', /музе|театр|кино|галере|планетар|концерт|дом культуры|культурн|центр|искусств|лекторий|архитектур/i],
+    ['walk', /парк|сад|набереж|усадьб|заповедник|смотров|квартал|дизайн-завод|креатив/i],
+    ['bar', /бар|паб|лаунж|винотек|крафт/i],
+  ];
+  const catOf = p => (p && (p.cat || p.c)) || ((CAT_BY_KIND.find(([, rx]) => rx.test((p && p.kind) || '')) || ['food'])[0]);
   /* ---------- подсказки к местам и планам: «красиво осенью», «для первого свидания»… ----------
      Часть подсказок выводится из данных (тип места, цена, Michelin), часть задана руками в поле hint. */
   const HINTS = {
@@ -424,6 +438,10 @@
   }
   const walkMin = (a, b) => Math.max(1, Math.round(distM(a, b) * 1.3 / 75));
   const priceText = n => '₽'.repeat(Math.max(1, Math.min(3, n || 1)));
+  /* Подпись станции: «м. Арбатская»; у мест в Подмосковье, где метро далеко, — МЦД или электричка:
+     «Переделкино (МЦД-4)», «Мытищи (ж/д)» → «ж/д Мытищи» */
+  const isMetro = m => !!m && !/\((ж\/д|МЦД[^)]*)\)$/.test(m);
+  const metroText = m => !m ? '' : /\(ж\/д\)$/.test(m) ? 'ж/д ' + m.replace(/\s*\(ж\/д\)$/, '') : isMetro(m) ? 'м. ' + m : m;
   const mapUrl = p => 'https://yandex.ru/maps/213/moscow/?text=' + encodeURIComponent(p.name + ', ' + p.addr);
   /* Точка маршрута: адрес с номером дома — текстом (Яндекс находит тот же дом, что и ссылка на место),
      парки, набережные и адреса без номера — координатами */
@@ -599,9 +617,9 @@
 
   window.DateKit = {
     BASE, merge, defaults, diffInvite, encodeInvite, decodeInvite, encodeData, decodeData, readHash, esc, fill, hash,
-    ymd, parseYmd, addDays, listDates, fmtDay, dayNum, numDay, toMin, fromMin, relaySend, relayRegister, shortLink, goRoute, sitePath,
+    ymd, parseYmd, addDays, listDates, fmtDay, dayNum, numDay, toMin, fromMin, relaySend, relayRegister, relayTest, shortLink, goRoute, sitePath, toB64url,
     CATS, catVars, catSVG, HEART_D, STAR_D, markD, ICONS, icon, MODE_ICON, tgUser, tgLink, calendarLinks,
-    MODES, modeOf, kuda, placeById, planById, planStops, photo, planPhoto, photoCredit, HINTS, placeHints, planHints, hintChip, seasonHints, tgOk, tgUrl, tgName, tgEmbed, distM, walkMin, priceText, mapUrl, routeUrl,
+    MODES, modeOf, kuda, placeById, planById, planStops, catOf, photo, planPhoto, photoCredit, HINTS, placeHints, planHints, hintChip, seasonHints, tgOk, tgUrl, tgName, tgEmbed, distM, walkMin, priceText, isMetro, metroText, mapUrl, routeUrl,
     THEMES: ['pink', 'lavender', 'peach', 'mint', 'sport'],
   };
 })();
