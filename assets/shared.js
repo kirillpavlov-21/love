@@ -5,9 +5,9 @@
   /* Запасные значения, если в config.js чего-то не хватает */
   const BASE = {
     her: 'Солнышко', me: 'Я', catName: 'Мурчик', cat: 'line', theme: 'pink',
-    greeting: 'Я {cat} — почтовый котик 🐾 {me} попросил передать тебе кое-что очень важное… Но сначала пройди маленькую игру!',
+    greeting: 'Я {cat} — почтовый котик 🐾 {me} просит передать тебе кое-что очень важное… Но сначала пройди маленькую игру!',
     question: 'Пойдёшь со мной на свидание?',
-    signature: 'Твой {me}',
+    signature: '{me}',
     finale: 'Жду нашей встречи! 💕',
     levels: { hearts: true, letter: true, place: true, date: true, time: true, food: true },
     heartsGoal: 12,
@@ -235,6 +235,48 @@
   const relaySend = (url, text, id) => relayPost(url, { text, id: id || '' });
   const relayRegister = (url, key, ids) => relayPost(url, { action: 'register', key, ids });
 
+  /* ---------- короткие ссылки ----------
+     В чат не должны уходить километровые ссылки. По очереди пробуем:
+     1) свой сокращатель в посреднике (config.js → telegram.relayUrl, action 'short'): ссылка вида …/go.html#s=Ab3;
+     2) clck.ru (сокращатель Яндекса), если он отвечает браузеру;
+     3) если ничего не вышло — исходная ссылка. Результат запоминается на время сессии. */
+  const SHORT_CACHE = 'kuda-short';
+  const sitePath = file => new URL(file, location.href).href.split('#')[0].split('?')[0];
+  function withTimeout(p, ms) { return Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]); }
+  async function shortLink(url) {
+    if (!url || url.length < 60) return url;
+    let cache = {};
+    try { cache = JSON.parse(sessionStorage.getItem(SHORT_CACHE) || '{}'); } catch (e) { /* ок */ }
+    if (cache[url]) return cache[url];
+    const cfg = (window.DATE_CONFIG || {}).telegram || {};
+    const tries = [];
+    if (cfg.relayUrl) tries.push(async () => {
+      const r = await fetch(cfg.relayUrl, { method: 'POST', body: JSON.stringify({ action: 'short', url }) });
+      const j = await r.json();
+      if (!j.ok || !/^[A-Za-z0-9_-]{1,16}$/.test(j.id || '')) throw new Error('relay');
+      return sitePath('go.html') + '#s=' + j.id;
+    });
+    tries.push(async () => {
+      const r = await fetch('https://clck.ru/--?url=' + encodeURIComponent(url));
+      const t = (await r.text()).trim();
+      if (!/^https:\/\/clck\.ru\/[A-Za-z0-9_-]+$/.test(t)) throw new Error('clck');
+      return t;
+    });
+    for (const f of tries) {
+      try {
+        const short = await withTimeout(f(), 3500);
+        cache[url] = short;
+        try { sessionStorage.setItem(SHORT_CACHE, JSON.stringify(cache)); } catch (e) { /* ок */ }
+        return short;
+      } catch (e) { /* следующий способ */ }
+    }
+    cache[url] = url;   // не получилось — не ждём сервисы повторно в этой сессии
+    try { sessionStorage.setItem(SHORT_CACHE, JSON.stringify(cache)); } catch (e) { /* ок */ }
+    return url;
+  }
+  /* Короткая ссылка на маршрут плана из подборки: go.html#r=<id плана> сама откроет Яндекс Карты */
+  const goRoute = planId => sitePath('go.html') + '#r=' + encodeURIComponent(planId);
+
   /* ---------- режимы ---------- */
   const MODES = {
     date: { label: 'Свидание', emoji: '💕', theme: 'pink', acc: '', group: false },
@@ -393,11 +435,10 @@
     }
     return p.lat.toFixed(6) + ',' + p.lon.toFixed(6);
   }
+  /* Маршрут: первая точка пустая — откуда ехать, человек укажет сам в Яндекс Картах,
+     дальше — места плана по порядку. Общественный транспорт: короткие отрезки Яндекс сам проложит пешком */
   function routeUrl(stops) {
-    const pts = stops.map(routePt);
-    let far = 0;
-    for (let i = 1; i < stops.length; i++) far = Math.max(far, distM(stops[i - 1], stops[i]));
-    return 'https://yandex.ru/maps/213/moscow/?rtext=' + pts.join('~') + '&rtt=' + (far > 1500 ? 'mt' : 'pd');
+    return 'https://yandex.ru/maps/213/moscow/?rtext=~' + stops.map(routePt).join('~') + '&rtt=mt';
   }
 
   /* ---------- Telegram-ник владельца и календарь ---------- */
@@ -470,11 +511,21 @@
     eye: '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
     send: '<path d="M21 3L10 14"/><path d="M21 3l-7 18-4-7-7-4z"/>',
     copy: '<rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>',
+    bookmark: '<path d="M6 3h12v18l-6-4.5L6 21z"/>',
+    gift: '<rect x="3" y="8" width="18" height="5" rx="1.5"/><path d="M5 13v7h14v-7"/><path d="M12 8v12"/><path d="M12 8C10.5 4.5 7 4.5 7 6.5S10 8 12 8z"/><path d="M12 8c1.5-3.5 5-3.5 5-1.5S14 8 12 8z"/>',
+    user: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+    map: '<path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14"/><path d="M15 6v14"/>',
+    locate: '<circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5"/><path d="M12 2v3"/><path d="M12 19v3"/><path d="M2 12h3"/><path d="M19 12h3"/>',
+    flag: '<path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/>',
+    photo: '<rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="12" cy="12" r="3.5"/><path d="M8 5l1.5-2h5L16 5"/>',
     users: '<circle cx="9" cy="8" r="3.5"/><path d="M3 20a6 6 0 0 1 12 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7"/><path d="M21 20a6 6 0 0 0-4-5.6"/>',
   };
   const icon = (name, cls) => `<svg class="ic${cls ? ' ' + cls : ''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name] || ''}</svg>`;
   const MODE_ICON = { date: 'heart', guys: 'mug', girls: 'sparkle' };
 
+  /* Значок режима: у пацанов вместо сердечек — звезда */
+  const STAR_D = 'M12 2.4l2.95 6.2 6.8.85-5 4.7 1.3 6.75L12 17.6l-6.05 3.3 1.3-6.75-5-4.7 6.8-.85z';
+  const markD = mode => (mode === 'guys' ? STAR_D : HEART_D);
   const HEART_D = 'M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z';
 
   function catSVG(mood, extra) {
@@ -548,8 +599,8 @@
 
   window.DateKit = {
     BASE, merge, defaults, diffInvite, encodeInvite, decodeInvite, encodeData, decodeData, readHash, esc, fill, hash,
-    ymd, parseYmd, addDays, listDates, fmtDay, dayNum, numDay, toMin, fromMin, relaySend, relayRegister,
-    CATS, catVars, catSVG, HEART_D, ICONS, icon, MODE_ICON, tgUser, tgLink, calendarLinks,
+    ymd, parseYmd, addDays, listDates, fmtDay, dayNum, numDay, toMin, fromMin, relaySend, relayRegister, shortLink, goRoute, sitePath,
+    CATS, catVars, catSVG, HEART_D, STAR_D, markD, ICONS, icon, MODE_ICON, tgUser, tgLink, calendarLinks,
     MODES, modeOf, kuda, placeById, planById, planStops, photo, planPhoto, photoCredit, HINTS, placeHints, planHints, hintChip, seasonHints, tgOk, tgUrl, tgName, tgEmbed, distM, walkMin, priceText, mapUrl, routeUrl,
     THEMES: ['pink', 'lavender', 'peach', 'mint', 'sport'],
   };

@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Переходим…</title>
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#0F0E13">
+  <style>
+    html, body { height: 100%; margin: 0; background: #0F0E13; color: #F4F1EA; font: 500 16px/1.45 system-ui, -apple-system, 'Segoe UI', sans-serif; }
+    main { display: grid; place-items: center; height: 100%; padding: 24px; box-sizing: border-box; text-align: center; }
+    a { color: #FF6F91; }
+    .dot { width: 14px; height: 14px; margin: 0 auto 14px; border-radius: 50%; background: #FF6F91; animation: p 1s infinite alternate; }
+    @keyframes p { to { opacity: .2; transform: scale(.7); } }
+  </style>
+</head>
+<body>
+  <main><div><div class="dot"></div><p id="msg">Открываем ссылку…</p></div></main>
+  <!-- Короткие ссылки сайта:
+       #r=<id плана или p-<id места>> — маршрут в Яндекс Картах;
+       #s=<код> — длинная ссылка из сокращателя посредника (config.js → telegram.relayUrl). -->
+  <script src="config.js?v=26"></script>
+  <script src="assets/shared.js?v=26"></script>
+  <script src="assets/places.js?v=26"></script>
+  <script>
+  (async function () {
+    const K = window.DateKit, h = new URLSearchParams(location.hash.slice(1));
+    const msg = t => { document.getElementById('msg').innerHTML = t; };
+    const home = K.sitePath('start.html');
+    /* Переходить можно только на наш сайт и в Яндекс Карты — сокращатель не должен становиться открытым редиректом */
+    const site = K.sitePath('./');
+    const safe = u => { try { const h = new URL(u).href; return h.startsWith(site) || h.startsWith('https://yandex.ru/maps/'); } catch (e) { return false; } };
+    try {
+      if (h.get('r')) {
+        const plan = K.planById(h.get('r'));
+        const st = K.planStops(plan);
+        if (st.length) { location.replace(K.routeUrl(st)); return; }
+      }
+      if (h.get('s') && /^[A-Za-z0-9_-]{1,16}$/.test(h.get('s'))) {
+        const relay = ((window.DATE_CONFIG || {}).telegram || {}).relayUrl;
+        if (relay) {
+          const r = await fetch(relay + (relay.includes('?') ? '&' : '?') + 's=' + encodeURIComponent(h.get('s')));
+          const j = await r.json();
+          if (j.ok && safe(j.url)) { location.replace(j.url); return; }
+        }
+      }
+      msg(`Ссылка устарела или скопирована не целиком. <a href="${home}">На главную</a>`);
+    } catch (e) {
+      msg(`Не получилось открыть ссылку — проверь интернет. <a href="${home}">На главную</a>`);
+    }
+  })();
+  </script>
+</body>
+</html>

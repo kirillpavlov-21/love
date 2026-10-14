@@ -2,6 +2,10 @@
   "timeZone": "Europe/Moscow",
   "runtimeVersion": "V8",
   "exceptionLogging": "STACKDRIVER",
-  "oauthScopes": ["https://www.googleapis.com/auth/script.external_request"],
+  "oauthScopes": [
+    "https://www.googleapis.com/auth/script.external_request",
+    "https://www.googleapis.com/auth/script.scriptapp",
+    "https://www.googleapis.com/auth/spreadsheets"
+  ],
   "webapp": { "executeAs": "USER_DEPLOYING", "access": "ANYONE_ANONYMOUS" }
 }

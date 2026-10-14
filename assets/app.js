@@ -154,7 +154,8 @@
     cv.id = 'fx';
     document.body.appendChild(cv);
     const ctx = cv.getContext('2d');
-    const heart = new Path2D(K.HEART_D);
+    const paths = {};
+    const heartPath = () => paths[MODE] || (paths[MODE] = new Path2D(K.markD(MODE)));
     let parts = [], raf = 0, last = 0, dpr = 1, W = 0, H = 0;
     function size() {
       dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -213,7 +214,7 @@
         ctx.translate(p.x, p.y);
         ctx.rotate(p.r);
         ctx.fillStyle = p.c;
-        if (p.sh === 'heart') { const sc = p.s / 22; ctx.scale(sc, sc); ctx.translate(-12, -12); ctx.fill(heart); }
+        if (p.sh === 'heart') { const sc = p.s / 22; ctx.scale(sc, sc); ctx.translate(-12, -12); ctx.fill(heartPath()); }
         else if (p.sh === 'rect') ctx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2);
         else { ctx.beginPath(); ctx.arc(0, 0, p.s / 3, 0, 6.2832); ctx.fill(); }
         ctx.restore();
@@ -255,7 +256,9 @@
     void node.offsetWidth;
     node.classList.add('pop');
   }
+  const LOVE = () => (MODE === 'guys' ? 'happy' : 'love');
   function mood(scope, m, ms) {
+    if (m === 'love') m = LOVE();
     const svg = $('.cat', scope);
     if (!svg) return;
     clearTimeout(svg._mt);
@@ -285,12 +288,12 @@
     if (type === 'gold') extra = '<path d="M18.6 1.6 l.8 1.9 1.9.8 -1.9.8 -.8 1.9 -.8-1.9 -1.9-.8 1.9-.8z" fill="#FFF7DA"/><ellipse cx="7.2" cy="7.6" rx="2.2" ry="1.3" fill="#FFF7DA" opacity=".7" transform="rotate(-35 7.2 7.6)"/>';
     return `<svg viewBox="0 0 24 24"><path d="${K.HEART_D}" fill="${fill}"${alpha ? ` opacity="${alpha}"` : ''}/>${extra}</svg>`;
   }
-  const BASKET = `<svg viewBox="0 0 100 50" aria-hidden="true">
+  const BASKET = () => `<svg viewBox="0 0 100 50" aria-hidden="true">
     <path d="M8 14 H92 L83 45 Q82 49 78 49 H22 Q18 49 17 45 Z" fill="#1A1920" stroke="#F4F1EA" stroke-width="3" stroke-linejoin="round"/>
     <path d="M13 27 H87 M17 38 H83" stroke="rgba(244,241,234,.28)" stroke-width="2" stroke-linecap="round"/>
     <path d="M31 17 V47 M50 17 V48 M69 17 V47" stroke="rgba(244,241,234,.18)" stroke-width="2" stroke-linecap="round"/>
     <rect x="3" y="7" width="94" height="12" rx="6" fill="#22212A" stroke="#F4F1EA" stroke-width="3"/>
-    <path d="${K.HEART_D}" transform="translate(41.5 24) scale(.7)" fill="var(--accent)"/>
+    <path d="${K.markD(MODE)}" transform="translate(41.5 24) scale(.7)" fill="var(--accent)"/>
   </svg>`;
   const BCOL = ['#FF6F91', '#B9A1FF', '#D7F25C', '#FFA463', '#6EE7B7', '#7CC4FF', '#F5C451', '#FF9ED2'];
   function balloonSVG(color) {
@@ -362,18 +365,20 @@
     if (!rows.length) rows.push(['💕', 'heart', 'Ответ', 'Да!']);
     return rows;
   }
+  /* Род того, кого зовут: who = 'm' — «он», иначе «она» (по умолчанию, как в старых ссылках) */
+  const GF = (f, m) => (INV.who === 'm' ? m : f);
   function summary(html) {
     const e = s => (html ? esc(s) : s);
     const b = s => (html ? '<b>' + s + '</b>' : s);
     const L = [];
     if (html) {
-      L.push(`💌 ${b(e(INV.her))} прошла приглашение!`);
-      if (has('letter')) L.push(`✅ Ответ: ${b('ДА')}` + (S.a.noTries ? ` (пыталась нажать «Нет»: ${S.a.noTries})` : ''));
+      L.push(`💌 ${b(e(INV.her))} ${GF('прошла', 'прошёл')} приглашение!`);
+      if (has('letter')) L.push(`✅ Ответ: ${b('ДА')}` + (S.a.noTries ? ` (${GF('пыталась', 'пытался')} нажать «Нет»: ${S.a.noTries})` : ''));
     } else {
-      L.push(`Привет, ${INV.me}! Я прошла твою игру 😊`, 'Мой ответ — да! 💕');
+      L.push(`Привет, ${INV.me}! Я ${GF('прошла', 'прошёл')} твою игру 😊`, 'Мой ответ — да! 💕');
     }
     for (const [i, , l, v] of answerRows()) L.push(`${i} ${l}: ${b(e(v))}`);
-    if (html && has('hearts')) L.push(`❤️ Поймала сердечек: ${S.a.hearts}`);
+    if (html && has('hearts')) L.push(`❤️ ${GF('Поймала', 'Поймал')} сердечек: ${S.a.hearts}`);
     if (S.a.note) L.push(html ? `✉️ ${e(S.a.note)}` : `P.S. ${S.a.note}`);
     return L.join('\n');
   }
@@ -386,9 +391,9 @@
       return S.a.coming === false ? `${MC.emoji} ${who} не сможет` : `${MC.emoji} ${who} в деле!\n📍 За: ${esc(opts)}\n📅 Может: ${esc(days)}`;
     }
     const her = '<b>' + esc(INV.her) + '</b>';
-    if (kind === 'open') return `👀 ${her} открыла приглашение`;
-    if (kind === 'yes') return `💕 ${her} сказала «Да»!\n` + (S.a.noTries ? `Пыталась нажать «Нет»: ${S.a.noTries} ${plural(S.a.noTries, 'раз', 'раза', 'раз')} 😅` : 'С первой попытки 😍');
-    if (kind === 'no') return `😢 ${her} нажала «Нет»`;
+    if (kind === 'open') return `👀 ${her} ${GF('открыла', 'открыл')} приглашение`;
+    if (kind === 'yes') return `💕 ${her} ${GF('сказала', 'сказал')} «Да»!\n` + (S.a.noTries ? `${GF('Пыталась', 'Пытался')} нажать «Нет»: ${S.a.noTries} ${plural(S.a.noTries, 'раз', 'раза', 'раз')} 😅` : 'С первой попытки 😍');
+    if (kind === 'no') return `😢 ${her} ${GF('нажала', 'нажал')} «Нет»`;
     if (kind === 'note') return `✉️ ${her} пишет:\n${esc(S.a.note)}`;
     return summary(true);
   }
@@ -404,7 +409,7 @@
   /* Ник владельца в Telegram: из приглашения или из config.js */
   const hostTg = () => K.tgUser(INV.tgu) || K.tgUser(CFG.myTelegram);
   async function shareAnswer() {
-    const text = summary(false) + (CODE ? '\n\nМой билет: ' + await answerLink() : '');
+    const text = summary(false) + (CODE ? '\n\nМой билет: ' + await K.shortLink(await answerLink()) : '');
     const u = hostTg();
     if (u) {
       await copyText(text);   // запасной путь, если Telegram не подставит текст сам
@@ -433,14 +438,14 @@
     if (!st.length) return '';
     return `<div class="plan-links">
       ${st.map(p => `<a class="chip-link" href="${K.mapUrl(p)}" target="_blank" rel="noopener">${I('pin')}${esc(p.name)}</a>`).join('')}
-      ${st.length > 1 ? `<a class="chip-link" href="${K.routeUrl(st)}" target="_blank" rel="noopener">${I('route')}Маршрут</a>` : ''}
+      <a class="chip-link" href="${K.routeUrl(st)}" target="_blank" rel="noopener">${I('route')}Маршрут</a>
     </div>`;
   }
 
   const placeLoc = plan => { const p = K.planStops(plan)[0]; return p ? p.name + ', ' + p.addr : ''; };
   const planDetails = plan => {
     const st = K.planStops(plan);
-    return st.length ? stopsLine(plan) + (st.length > 1 ? '\nМаршрут: ' + K.routeUrl(st) : '\n' + K.mapUrl(st[0])) : '';
+    return st.length ? stopsLine(plan) + '\nМаршрут: ' + K.goRoute(plan.id) : '';
   };
   function calBlock(ev) {
     let c;
@@ -550,7 +555,7 @@
       ${head(step, GROUP ? MC.catchTitle : 'Поймай сердечки', GROUP ? `Води котика пальцем и собери <b>${goal}</b> штук` : `Води котика пальцем и собери <b>${goal}</b> ${plural(goal, 'сердечко', 'сердечка', 'сердечек')}`)}
       <div class="meter"><div class="meter-bar"><i></i></div><b class="meter-num">0 / ${goal}</b></div>
       <div class="pf">
-        <div class="catcher"><div class="cat-slot">${K.catSVG('normal')}</div><div class="basket">${BASKET}</div></div>
+        <div class="catcher"><div class="cat-slot">${K.catSVG('normal')}</div><div class="basket">${BASKET()}</div></div>
         <div class="pf-hand hidden"></div>
         <div class="pf-overlay"><div class="pf-card">
           <div class="legend">${legend}</div>
@@ -672,7 +677,7 @@
       ov.innerHTML = `<div class="pf-card">
           <span class="win-ic">${I('check')}</span>
           <h3>Уровень пройден!</h3>
-          <p class="sub">${GROUP ? `Собрано ${score} — можно открывать приглашение` : `Ты собрала ${score} — этого хватит, чтобы открыть секретное письмо`}</p>
+          <p class="sub">${GROUP ? `Собрано ${score} — можно открывать приглашение` : `Ты ${GF('собрала', 'собрал')} ${score} — этого хватит, чтобы открыть секретное письмо`}</p>
           <button class="btn btn-primary">Дальше${I('arrow')}</button></div>`;
       pf.appendChild(ov);
       $('button', ov).onclick = () => { Sfx.click(); next(); };
@@ -705,7 +710,7 @@
           <div class="env-paper">${esc(GROUP ? groupTitle() : INV.her)}</div>
           <div class="env-front"></div>
           <div class="env-flap"></div>
-          <button class="seal" aria-label="Открыть письмо"><svg viewBox="0 0 24 24"><path d="${K.HEART_D}" fill="currentColor"/></svg></button>
+          <button class="seal" aria-label="Открыть письмо"><svg viewBox="0 0 24 24"><path d="${K.markD(MODE)}" fill="currentColor"/></svg></button>
           <span class="tap-hint"></span>
         </div>
       </div>
@@ -725,7 +730,7 @@
       await sleep(430);
       $('.env-area', el).innerHTML = `
         <div class="letter">
-          <div class="letter-stamp"><svg viewBox="0 0 24 24"><path d="${K.HEART_D}"/></svg></div>
+          <div class="letter-stamp"><svg viewBox="0 0 24 24"><path d="${K.markD(MODE)}"/></svg></div>
           <p class="l-to">${GROUP ? 'Привет!' : esc(INV.her) + ','}</p>
           <p class="l-q">${esc(T(GROUP ? MT('question') : INV.question))}</p>
           <p class="l-sign">${esc(GROUP ? '— ' + INV.me : T(INV.signature))}</p>
@@ -739,8 +744,8 @@
 
     function wire() {
       const yes = $('.yes', el), no = $('.no', el);
-      const NO_TEXT = ['Нет', 'Точно нет?', 'Подумай ещё 🤔', 'Промахнулась 😜', 'Не-а 🙃', 'Я убегаю!', 'Ну пожааалуйста 🥺', 'Кнопка устала 🙈'];
-      const CAT_TEXT = ['Эй! 😳', 'Ты точно подумала?', 'У меня сейчас слёзки потекут…', 'Нажми «Да», тебе понравится 😊', 'Кнопка «Нет» явно против 😅', 'Ну пожалуйста-пожалуйста 🥹', 'Последний шанс нажать «Да»!', 'Ой, а «Нет» закончилось 😇'];
+      const NO_TEXT = ['Нет', 'Точно нет?', 'Подумай ещё 🤔', GF('Промахнулась 😜', 'Промахнулся 😜'), 'Не-а 🙃', 'Я убегаю!', 'Ну пожааалуйста 🥺', 'Кнопка устала 🙈'];
+      const CAT_TEXT = ['Эй! 😳', GF('Ты точно подумала?', 'Ты точно подумал?'), 'У меня сейчас слёзки потекут…', 'Нажми «Да», тебе понравится 😊', 'Кнопка «Нет» явно против 😅', 'Ну пожалуйста-пожалуйста 🥹', 'Последний шанс нажать «Да»!', 'Ой, а «Нет» закончилось 😇'];
       let tries = 0, lastDodge = 0;
       const real = INV.noButton === 'real';
 
@@ -811,10 +816,10 @@
         const ov = document.createElement('div');
         ov.className = 'celebrate';
         ov.innerHTML = `
-          <svg class="big-heart" viewBox="0 0 24 24"><path d="${K.HEART_D}"/></svg>
+          <svg class="big-heart" viewBox="0 0 24 24"><path d="${K.markD(MODE)}"/></svg>
           <h2>${GROUP ? 'Йееес!' : 'Ураааа!'}</h2>
           <p>${GROUP ? `${esc(INV.catName)} уже в предвкушении 🎉 Осталось решить, куда и когда!` : `${esc(INV.catName)} танцует от счастья 💃 Осталось выбрать детали!`}</p>
-          <div class="cat-slot">${K.catSVG('love')}</div>
+          <div class="cat-slot">${K.catSVG(LOVE())}</div>
           <button class="btn btn-primary btn-xl">Дальше${I('arrow')}</button>`;
         el.appendChild(ov);
         $('button', ov).onclick = () => { Sfx.click(); next(); };
@@ -944,7 +949,7 @@
       <div class="actions"><button class="btn btn-primary btn-wide next" disabled>Дальше${I('arrow')}</button></div>`;
     const nextBtn = $('.next', el), line = $('.pick-line', el), bub = $('.comment .bubble', el), inp = $('.other-box input', el);
     const upd = () => { nextBtn.disabled = multi ? false : !(S.a.date || (inp && inp.value.trim())); };
-    const stampHtml = `<svg class="stamp" viewBox="0 0 24 24"><path d="${K.HEART_D}"/></svg>`;
+    const stampHtml = `<svg class="stamp" viewBox="0 0 24 24"><path d="${K.markD(MODE)}"/></svg>`;
     function toggle(b, quiet) {
       const d = b.dataset.d, on = !b.classList.contains('picked');
       b.classList.toggle('picked', on);
@@ -957,7 +962,7 @@
       $$('.day.picked', el).forEach(x => { x.classList.remove('picked'); const s = $('.stamp', x); if (s) s.remove(); });
       if (!b) { line.textContent = ''; return; }
       b.classList.add('picked');
-      b.insertAdjacentHTML('afterbegin', `<svg class="stamp" viewBox="0 0 24 24"><path d="${K.HEART_D}"/></svg>`);
+      b.insertAdjacentHTML('afterbegin', `<svg class="stamp" viewBox="0 0 24 24"><path d="${K.markD(MODE)}"/></svg>`);
       line.textContent = K.fmtDay(b.dataset.d);
       say(bub, dayComment(K.parseYmd(b.dataset.d)));
       if (!quiet) { Sfx.stamp(); vibrate(15); mood(el, 'happy', 900); }
@@ -1080,7 +1085,7 @@
         <div class="fcard${f.ph ? ' has-ph' : ''}" data-i="${i}" style="--c:${FCOL[i % FCOL.length]};z-index:${items.length - i}">
           <span class="tag like">${cfg.likeTag}</span><span class="tag nope">${cfg.nopeTag}</span>
           ${f.ph ? `<div class="fph"><img src="${f.ph.s}" alt="" draggable="false" decoding="async"><span class="fcap">© ${esc(f.ph.a)}, ${esc(f.ph.l)}</span></div>` : ''}
-          <div class="fe">${esc(f.emoji)}</div><div class="ft">${esc(f.title)}</div>${f.note ? `<div class="fn">${esc(f.note)}</div>` : ''}
+          <div class="fe">${esc(f.emoji)}</div><div class="ft${f.title.length > 40 ? ' xs' : f.title.length > 24 ? ' s' : ''}">${esc(f.title)}</div>${f.note ? `<div class="fn${f.title.length > 24 ? ' s' : ''}">${esc(f.note)}</div>` : ''}
           ${f.stops ? `<div class="opt-stops">${esc(f.stops)}</div>` : ''}
         </div>`).join('');
       [deck, cnt, btns].forEach(x => x.classList.remove('hidden'));
@@ -1218,7 +1223,7 @@
     } : null;
     el.innerHTML = `
       <div class="res-head"><p class="eyebrow">${view ? 'Ответ получен' : 'Готово'}</p>
-        <h2 class="final-title">${view ? `${esc(INV.her)} ответила «да»` : 'Твой билет на свидание'}</h2></div>
+        <h2 class="final-title">${view ? `${esc(INV.her)} ${GF('ответила', 'ответил')} «да»` : 'Твой билет на свидание'}</h2></div>
       <div class="ticket-wrap"><div class="ticket">
         <div class="t-top"><small>BOARDING PASS</small><b>${esc(topInfo)}</b></div>
         <div class="t-names">
@@ -1232,7 +1237,7 @@
       </div></div>
       ${plan || calEv ? `<div class="tally"><h3>${plan ? esc(plan.title) : 'Не забудь'}</h3>${plan ? planBlock(plan) : ''}${calEv ? calBlock(calEv) : ''}</div>` : ''}
       <div class="send-state"></div>
-      <div class="final-cat"><div class="cat-slot">${K.catSVG('love')}</div><div class="bubble b-left">${esc(view ? 'Осталось только встретиться 😉' : T(INV.finale))}</div></div>
+      <div class="final-cat"><div class="cat-slot">${K.catSVG(LOVE())}</div><div class="bubble b-left">${esc(view ? 'Осталось только встретиться 😉' : T(INV.finale))}</div></div>
       ${view ? `<div class="actions"><a class="btn btn-primary btn-wide" href="start.html">Все планы «Куда идём?»${I('arrow')}</a></div>` : ''}
       <div class="actions${view ? ' hidden' : ''}">
         <button class="btn btn-primary btn-wide share">${I('share')}${tgUser ? 'Отправить ответ в Telegram' : 'Отправить ответ'}</button>
@@ -1288,7 +1293,7 @@
       if (canNotify()) {
         const ok = await notify('note');
         if (ok) {
-          toast(`Отправлено! ${INV.me} прочитает 💌`);
+          toast(`Отправлено! ${INV.me} прочитает ${MODE === 'guys' ? '📨' : '💌'}`);
           noteBox.classList.add('hidden');
           noteOpen.classList.remove('hidden');
           noteOpen.innerHTML = I('pen') + 'Написать ещё';
@@ -1352,12 +1357,23 @@
     const win = forced != null ? t.opt.find(x => x.i === forced) : leaders.length === 1 ? leaders[0] : null;
     return { t, win, leaders, plan: win && win.o.plan ? K.planById(win.o.plan) : null, day: t.days.length ? t.days[0] : null };
   }
-  function verdictText(votes, forced) {
+  /* «A, B, C и ещё 4» — чтобы ничья из десяти планов не превращалась в простыню */
+  const someTitles = (list, n) => list.slice(0, n).map(x => x.o.title).join(', ') + (list.length > n ? ` и ещё ${list.length - n}` : '');
+  /* Итог в общий чат: коротко, без минут пешком и длинных ссылок */
+  async function verdictText(votes, forced) {
     const v = verdict(votes, forced);
-    const L = [`${MC.emoji} ${groupTitle()} — итог голосования`];
-    if (v.win) L.push(`📍 ${v.win.o.title}` + (v.plan ? `\n${planDetails(v.plan)}` : ''));
-    if (v.day) L.push(`📅 ${K.fmtDay(K.numDay(v.day.d))} — могут ${v.day.who.join(', ')}`);
-    L.push(`Голосовали: ${v.t.inV.map(x => x.n).join(', ') || '—'}`);
+    const L = [`${MC.emoji} ${groupTitle()} — итог`];
+    if (v.win) {
+      L.push(`📍 ${v.win.o.title}`);
+      const st = v.plan ? K.planStops(v.plan) : [];
+      if (st.length > 1 || (st[0] && st[0].name !== v.win.o.title)) L.push('   ' + st.map(p => p.name).join(' → '));
+    } else if (v.leaders.length > 1) L.push(`📍 Пока ничья: ${someTitles(v.leaders, 3)}`);
+    if (v.day) {
+      const all = v.day.who.length === v.t.inV.length;
+      L.push(`📅 ${shortDay(v.day.d)} — ${all ? 'могут все' : 'могут ' + v.day.who.join(', ')}`);
+    }
+    if (v.plan) L.push(`🗺 Маршрут: ${await K.shortLink(K.goRoute(v.plan.id))}`);
+    if (!v.win) L.push(`🗳 Голосуем тут: ${await K.shortLink(await votesLink(votes))}`);
     return L.join('\n');
   }
   function verdictHtml(votes, forced) {
@@ -1367,8 +1383,10 @@
     const ev = v.day ? { title: groupTitle() + (v.win ? ' · ' + v.win.o.title : ''), day: K.numDay(v.day.d), location: v.plan ? placeLoc(v.plan) : '', details: v.plan ? planDetails(v.plan) : '' } : null;
     return `<div class="tally verdict">
       <p class="eyebrow">${forced != null ? 'Колесо решило' : tie ? 'Пока ничья' : 'Пока лидирует'}</p>
-      <h3 class="v-title">${v.win ? esc(v.win.o.title) : tie ? v.leaders.map(x => esc(x.o.title)).join(' или ') : 'Место пока не выбрано'}</h3>
-      ${tie ? '<p class="v-day">Крутани колесо ниже — оно решит</p>' : ''}
+      <h3 class="v-title">${v.win ? esc(v.win.o.title) : tie ? (v.leaders.length === 2 ? v.leaders.map(x => esc(x.o.title)).join(' или ')
+        : `${v.leaders.length} ${plural(v.leaders.length, 'вариант', 'варианта', 'вариантов')} с равными голосами`) : 'Место пока не выбрано'}</h3>
+      ${tie && v.leaders.length > 2 ? `<div class="v-tie">${v.leaders.slice(0, 4).map(x => `<span>${esc(x.o.emoji || '📍')} ${esc(x.o.title)}</span>`).join('')}${v.leaders.length > 4 ? `<span class="more">+${v.leaders.length - 4}</span>` : ''}</div>` : ''}
+      ${tie ? `<p class="v-day">${v.t.inV.length < 2 ? 'Подожди голоса остальных или крутани колесо ниже' : 'Крутани колесо ниже — оно решит'}</p>` : ''}
       ${v.day ? `<p class="v-day">${I('calendar')}${esc(shortDay(v.day.d))} · могут ${v.day.who.length} из ${v.t.inV.length}</p>` : ''}
       ${v.plan ? planBlock(v.plan) : ''}
       ${ev ? calBlock(ev) : ''}
@@ -1452,28 +1470,38 @@
       function render() {
         wrap.innerHTML = tallyHtml(cur, forced);
         const wheel = $('.wheel', wrap);
-        if (wheel) wheel.onclick = () => spin(wrap, wheel, i => { forced = i; render(); wrap.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+        if (wheel) wheel.onclick = () => spin(wrap, wheel, i => { forced = i; render(); warm(); wrap.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
         const vs = $('.verdict-share', wrap);
         if (vs) vs.onclick = async () => {
           Sfx.click();
-          const text = verdictText(cur, forced) + '\n👉 ' + await votesLink(cur);
+          const text = await verdictText(cur, forced);
           if (navigator.share) { try { await navigator.share({ text }); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
           toast(await copyText(text) ? 'Итог скопирован — вставь в общий чат' : 'Не получилось скопировать');
         };
       }
       render();
       if (justVoted) setTimeout(() => FX.burst({ n: 120, power: 1.1 }), 250);
-      const shareText = async () => `${MC.emoji} ${groupTitle()}\nГолосуем, куда и когда идём! Уже отметились: ${cur.map(v => v.n).join(', ') || '—'}\n👉 ${await votesLink(cur)}`;
+      const shareText = async () => `${MC.emoji} ${groupTitle()}\nГолосуем, куда и когда идём! Уже отметились: ${cur.map(v => v.n).join(', ') || '—'}\n👉 ${await K.shortLink(await votesLink(cur))}`;
       $('.share', el).onclick = async () => {
         Sfx.click();
         const text = await shareText();
         if (navigator.share) { try { await navigator.share({ text }); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
         toast(await copyText(text) ? 'Скопировано — вставь в общий чат 💬' : 'Не получилось скопировать');
       };
-      $('.copy', el).onclick = async () => { Sfx.click(); toast(await copyText(await votesLink(cur)) ? 'Ссылка скопирована 🔗' : 'Не получилось скопировать'); };
+      $('.copy', el).onclick = async () => { Sfx.click(); toast(await copyText(await K.shortLink(await votesLink(cur))) ? 'Ссылка скопирована 🔗' : 'Не получилось скопировать'); };
+      /* Короткие ссылки готовим заранее: на iPhone «Поделиться» работает только сразу после нажатия, без ожидания сети */
+      function warm() { verdictText(cur, forced).catch(() => {}); shareText().catch(() => {}); }
+      warm();
       $('.merge-open', el).onclick = () => { $('.merge', el).classList.toggle('hidden'); };
       $('.merge-go', el).onclick = async () => {
-        const text = $('.merge textarea', el).value;
+        let text = $('.merge textarea', el).value;
+        // короткие ссылки своего сокращателя (go.html#s=…) раскрываем через посредника
+        const relay = TG.relayUrl;
+        for (const m of text.match(/go\.html#s=[A-Za-z0-9_-]{1,16}/g) || []) {
+          if (!relay) break;
+          try { const j = await (await fetch(relay + (relay.includes('?') ? '&' : '?') + 's=' + m.split('=')[1])).json(); if (j.ok && j.url) text += '\n' + j.url; } catch (e) { /* пропускаем */ }
+        }
+        if (/clck\.ru\//.test(text) && !/&v=/.test(text)) { toast('Открой короткую ссылку и вставь сюда полный адрес из браузера'); return; }
         const re = /#([A-Za-z0-9_-]+)&v=([A-Za-z0-9_-]+)/g;
         let m, added = 0, foreign = 0;
         const lists = [];

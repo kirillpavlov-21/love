@@ -19,7 +19,7 @@
     date: [
       ['hearts', '❤️ Поймай сердечки', 'мини-игра: котик ловит сердечки в корзинку'],
       ['letter', '💌 Письмо с вопросом', '«Пойдёшь со мной на свидание?» и кнопки Да/Нет'],
-      ['place', '🎈 Шарики с местами', 'она лопает шарик с местом'],
+      ['place', '🎈 Шарики с местами', 'лопает шарик и выбирает место'],
       ['date', '📅 Календарь', 'ставит сердечко на удобный день'],
       ['time', '🌇 Время', 'слайдер с небом: утро → ночь'],
       ['food', '🍕 Свайпы еды', 'вправо — хочу, влево — нет'],
@@ -41,7 +41,7 @@
   const EMOJIS = '☕ 🎬 🌳 🍝 ⛸️ 🎡 🎳 🎤 🖼️ 🌊 🍷 🎭 🏛️ 🚲 🌅 🎨 📚 🎮 🧗 🛶 🏖️ 🍕 🍣 🍔 🥐 🍜 🥩 🥗 🍰 🍦 🧋 🍫 🌮 🥟 🍤 🍓 🍿 🎱 🎯 🧖 ⚽ 💅 💃'.split(' ');
 
   const DEF = K.defaults();
-  let state = { mode: 'date', cat: 'line', theme: 'pink', texts: {}, gsel: new Set() };
+  let state = { mode: 'date', cat: 'line', theme: 'pink', texts: {}, gsel: new Set(), who: 'f' };
   let code = '';
   let pvStep = 0;
   let pvCounter = 0;
@@ -221,8 +221,8 @@
   function applyModeUi() {
     document.body.dataset.mode = state.mode;
     renderModeSeg();
-    $('#resTitle').textContent = isGroup() ? 'Ссылка для общего чата' : 'Ссылка для неё';
-    $('#open').innerHTML = K.icon('ext') + (isGroup() ? 'Открыть как участник' : 'Открыть как она');
+    $('#resTitle').textContent = isGroup() ? 'Ссылка для общего чата' : 'Ссылка-приглашение';
+    $('#open').innerHTML = K.icon('ext') + (isGroup() ? 'Открыть как участник' : 'Открыть как получатель');
   }
   function switchMode(next) {
     if (next === state.mode || !K.MODES[next]) return;
@@ -258,6 +258,8 @@
     $('#question').value = ownText(state.mode, 'question', (inv.question || '').trim());
     $('#title').value = inv.title || MC().title || '';
     state.cat = K.CATS[inv.cat] ? inv.cat : 'line';
+    state.who = inv.who === 'm' ? 'm' : 'f';
+    renderWho();
     state.theme = K.THEMES.includes(inv.theme) ? inv.theme : themeDefault(state.mode);
     renderSwatches();
     renderLevels(inv.levels);
@@ -292,7 +294,7 @@
     $$('#levels input').forEach(i => { levels[i.id.slice(3)] = i.checked; });
     const dmode = ($('input[name="dmode"]:checked') || {}).value || 'next';
     const inv = {
-      me: v('me') || 'Я', catName: v('catName') || 'Мурчик',
+      me: v('me') || 'Твой друг', catName: v('catName') || 'Мурчик',
       cat: state.cat, theme: state.theme,
       greeting: v('greeting'), question: v('question'),
       levels,
@@ -328,6 +330,7 @@
       });
     } else {
       Object.assign(inv, dateFields());
+      if (state.who === 'm') inv.who = 'm';
       const tgu = K.tgUser(v('tgu'));
       if (tgu) inv.tgu = tgu;
     }
@@ -335,6 +338,10 @@
     return inv;
   }
 
+  /* Обращаться «к ней» или «к нему»: от этого зависят окончания в игре и уведомлениях */
+  function renderWho() {
+    $$('#who [data-who]').forEach(b => { const on = b.dataset.who === state.who; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
+  }
   function renderSwatches() {
     $('#cats').innerHTML = Object.keys(K.CATS).map(c =>
       `<button type="button" class="sw ${c === state.cat ? 'on' : ''}" data-cat="${c}" style="${K.catVars(c)}">${K.catSVG('normal')}${CAT_NAMES[c]}</button>`).join('');
@@ -370,7 +377,7 @@
     if (isGroup()) {
       lv = [];
       if (on.hearts !== false) lv.push('🎮');
-      lv.push('💌');
+      lv.push(state.mode === 'guys' ? '✉️' : '💌');
       if ((inv.opts || []).length) lv.push('🗳');
       if (on.date !== false) lv.push('📅');
     } else {
@@ -396,10 +403,21 @@
     pvSteps(inv);
     renderPlanPickers();
     code = await K.encodeInvite(K.diffInvite(inv, DEF));
-    $('#link').value = realLink();
-    $('#linkLen').textContent = `Длина ссылки: ${realLink().length} символов`;
+    const long = realLink();
+    $('#link').value = long;
+    $('#linkLen').textContent = 'Сокращаем ссылку…';
     reloadPreview();
+    K.shortLink(long).then(short => {
+      if (realLink() !== long) return;
+      shortOf[long] = short;
+      $('#link').value = short;
+      $('#linkLen').textContent = short !== long ? 'Короткая ссылка готова — её удобно кинуть в чат'
+        : long.length > 100 ? `Длина ссылки: ${long.length} символов — сервис коротких ссылок сейчас недоступен` : `Длина ссылки: ${long.length} символов`;
+    });
   }, 450);
+  /* Короткая ссылка, если уже готова (на iPhone «Поделиться» нельзя вызывать после долгого ожидания) */
+  const shortOf = {};
+  const sendLink = () => shortOf[realLink()] || realLink();
 
   /* ---------- история ---------- */
   function histList() { try { return JSON.parse(ls.get(HIST) || '[]'); } catch (e) { return []; } }
@@ -441,11 +459,15 @@
     const url = relayUrl(), key = ownerKey();
     el.className = url && key ? 'status ok' : 'status';
     el.textContent = !url
-      ? 'Посредник не настроен. Ответы всё равно придут: человек отправит тебе ссылку-билет.'
+      ? 'Ответы в Telegram скоро появятся. А пока ответ придёт ссылкой-билетом: человек сам отправит её тебе.'
       : key ? '✓ Ключ сохранён — ответы на твои приглашения будут приходить в Telegram.'
-        : 'Посредник подключён. Введи ключ владельца, чтобы ответы на твои приглашения приходили тебе в Telegram.';
+        : 'Получи ключ у нашего бота — и ответы на твои приглашения будут приходить тебе в Telegram.';
     $('#tgTest').disabled = !url || !key;
     $('#ownerKey').value = key;
+    const bot = K.tgUser((CFG.telegram || {}).bot);
+    $('#keyHow').classList.toggle('hidden', !url || !bot);
+    if (bot) { $('#botLink').href = 'https://t.me/' + bot + '?start=key'; $('#botLink').textContent = '@' + bot; }
+    $('#ownerKey').closest('label').classList.toggle('hidden', !url);
   }
   async function tgTest() {
     try {
@@ -505,6 +527,9 @@
     try { OLD_DRAFTS.forEach(k => localStorage.removeItem(k)); } catch (e) { /* ок */ }
     try { draft = JSON.parse(ls.get(DRAFT) || 'null'); } catch (e) { /* пусто */ }
     fillForm(draft || DEF);
+    if (!draft) { $('#her').value = ''; $('#me').value = ''; }   // имена из config.js — только пример, форма начинается пустой
+    const user = window.KudaAuth && window.KudaAuth.user();
+    if (user && user.name && user.name !== 'Ты' && !$('#me').value.trim()) $('#me').value = user.name;
     tgStatus();
     renderHist();
     initEmojiBar();
@@ -567,18 +592,25 @@
 
     $('#copy').onclick = async () => {
       remember();
-      toast(await copyText(realLink()) ? (isGroup() ? 'Ссылка скопирована — кидай в общий чат 💬' : 'Ссылка скопирована 💌 Отправь её ей!') : 'Скопируй ссылку вручную');
+      toast(await copyText(sendLink()) ? (isGroup() ? 'Ссылка скопирована — кидай в общий чат 💬' : 'Ссылка скопирована 💌 Отправь её!') : 'Скопируй ссылку вручную');
+      if (window.KudaTrack) window.KudaTrack.ev('invite', { v: state.mode });
     };
     $('#share').onclick = async () => {
       remember();
       const text = isGroup() ? `${MC().emoji} ${$('#title').value || MC().title} — голосуем, куда и когда идём!` : 'У меня для тебя кое-что есть 💌';
-      if (navigator.share) { try { await navigator.share({ title: text, text, url: realLink() }); return; } catch (e) { if (e.name === 'AbortError') return; } }
-      toast(await copyText(realLink()) ? 'Ссылка скопирована' : 'Скопируй ссылку вручную');
+      if (window.KudaTrack) window.KudaTrack.ev('invite', { v: state.mode });
+      if (navigator.share) { try { await navigator.share({ title: text, text, url: sendLink() }); return; } catch (e) { if (e.name === 'AbortError') return; } }
+      toast(await copyText(sendLink()) ? 'Ссылка скопирована' : 'Скопируй ссылку вручную');
     };
     $('#open').onclick = () => { remember(); window.open(realLink(), '_blank'); };
     $('#openPv').onclick = () => window.open(previewLink(pvStep), '_blank');
     $('#mbPv').onclick = () => window.open(previewLink(0), '_blank');
     $('#mbCopy').onclick = () => $('#copy').click();
+    $('#who').addEventListener('click', e => {
+      const b = e.target.closest('[data-who]');
+      if (!b || b.dataset.who === state.who) return;
+      state.who = b.dataset.who; renderWho(); update();
+    });
     $('#tgu').addEventListener('change', () => {
       const raw = $('#tgu').value.trim(), u = K.tgUser(raw);
       if (raw && !u) toast('Ник в Telegram: латиница, цифры и _, от 5 символов');
@@ -588,7 +620,7 @@
       if (!confirm('Сбросить форму к настройкам из config.js?')) return;
       try { localStorage.removeItem(DRAFT); } catch (e) { /* ок */ }
       state.texts = {};
-      fillForm(DEF); update();
+      fillForm(DEF); $('#her').value = ''; $('#me').value = ''; update();
     };
 
     $('#foodDefaults').onclick = () => {

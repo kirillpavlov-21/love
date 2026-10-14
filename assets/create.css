@@ -220,3 +220,13 @@ body[data-mode="date"] .only-group, body:not([data-mode="date"]) .only-date { di
 
 .btn-reset { display: block; margin: -4px auto 12px; padding: 8px 12px; border: 0; background: transparent; color: var(--muted, #A39EAE); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; border-radius: 10px; }
 .btn-reset:hover { color: var(--accent); }
+
+/* Обращаться «к ней / к нему» */
+.who-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 2px 0 10px; }
+.who-row .field-label { margin: 0; }
+.who-row .seg { margin: 0; }
+.seg button { padding: 9px 14px; border: 0; border-radius: 10px; background: transparent; font: 600 14px var(--body, inherit); color: var(--muted); cursor: pointer; }
+.seg button.on { background: var(--surface-3); color: var(--text); }
+.howto summary { cursor: pointer; font-weight: 600; font-size: 14px; color: var(--accent); }
+.howto ol { margin: 10px 0 6px; }
+.howto code { padding: 1px 5px; border-radius: 6px; background: var(--surface-3); }

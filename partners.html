@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Для заведений — Куда идём?</title>
+  <meta name="description" content="Как попасть в подборки «Куда идём?» и разместить промокод для гостей.">
+  <meta name="theme-color" content="#0F0E13">
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="assets/hub.css?v=26">
+  <style>
+    .doc h1 { margin: 22px 0 6px; font: 700 28px/1.15 var(--display); letter-spacing: -.02em; }
+    .doc h2 { margin: 26px 0 8px; font: 600 18px var(--display); }
+    .doc p, .doc li { color: var(--muted-2); font-size: 15px; line-height: 1.55; }
+    .doc ul, .doc ol { padding-left: 20px; }
+    .doc code { padding: 1px 5px; border-radius: 6px; background: var(--surface-2); font-size: 13px; }
+    .cta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+  </style>
+</head>
+<body>
+  <header class="top"><a class="logo" href="start.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/></svg><span class="brand">Куда идём?</span></a></header>
+  <main class="doc">
+    <h1>Для заведений</h1>
+    <p>«Куда идём?» помогает людям выбрать, куда пойти вечером: на свидание, с друзьями или на девичник. Сайт собирает готовые планы «занятие + еда рядом», а компания голосует за место прямо в чате.</p>
+
+    <h2>Промокоды <span class="soon big">скоро</span></h2>
+    <ul>
+      <li>Ваш промокод появится во вкладке «Промокоды» и в карточке заведения.</li>
+      <li>Заведение подсвечивается значком 🎁 в списке мест, на карте и в карточках планов, где оно есть.</li>
+      <li>Гость копирует код в одно касание и показывает его на кассе или вводит при бронировании.</li>
+      <li>Условия формулируете вы: размер скидки, дни и часы, срок действия.</li>
+    </ul>
+
+    <h2>Как попасть в подборки</h2>
+    <ol>
+      <li>Напишите нам: название, адрес, чем вы интересны для свидания или компании.</li>
+      <li>Мы проверим, что место работает, и включим его в подходящие планы рядом.</li>
+      <li>Пришлите фото с правом публикации — в карточке появится галерея.</li>
+    </ol>
+    <p>Компьютерные клубы, бары, бани, квесты, рестораны и кофейни особенно нужны в спальных районах и ближнем Подмосковье.</p>
+    <div class="cta" id="cta"></div>
+  </main>
+  <footer class="foot"><a href="start.html">← На главную</a></footer>
+  <script src="config.js?v=26"></script>
+  <script>
+  (function () {
+    var C = window.DATE_CONFIG || {}, sup = C.support || {}, box = document.getElementById('cta');
+    if (C.site && C.site.name) document.querySelector('.brand').textContent = C.site.name;
+    if (sup.email) box.insertAdjacentHTML('beforeend', '<a class="btn primary" href="mailto:' + sup.email + '?subject=' + encodeURIComponent('Заведение в подборках') + '">Написать на почту</a>');
+    if (sup.telegram) box.insertAdjacentHTML('beforeend', '<a class="btn ghost" href="https://t.me/' + sup.telegram + '" target="_blank" rel="noopener">Написать в Telegram</a>');
+    if (!box.children.length) box.innerHTML = '<p class="muted">Контакты для заведений появятся здесь совсем скоро.</p>';
+  })();
+  </script>
+</body>
+</html>
