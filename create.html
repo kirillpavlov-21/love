@@ -6,11 +6,13 @@
   <title>Конструктор — Куда идём?</title>
   <meta name="robots" content="noindex, nofollow">
   <meta name="theme-color" content="#0F0E13">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect width='24' height='24' rx='6' fill='%230F0E13'/><path d='M12 19s-5-4.6-5-9a5 5 0 0 1 10 0c0 4.4-5 9-5 9z' fill='none' stroke='%23FF6F91' stroke-width='2'/></svg>">
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/icon-180.png">
+  <link rel="manifest" href="manifest.webmanifest">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="assets/create.css?v=24">
+  <link rel="stylesheet" href="assets/create.css?v=25">
 </head>
 <body>
   <header class="top">
@@ -29,11 +31,12 @@
         <h2>1. Кого приглашаем</h2>
         <p class="hint quick">Хватит имён — остальное уже настроено, ссылка готова сразу.</p>
         <div class="grid2">
-          <label class="only-date">Её имя <input id="her" maxlength="40" placeholder="Маша"></label>
+          <label class="only-date">Кого зовёшь <input id="her" maxlength="40" placeholder="Имя"></label>
           <label class="only-group">Что за сбор <input id="title" maxlength="40" placeholder="Пятница с пацанами"></label>
-          <label>Твоё имя <input id="me" maxlength="40" placeholder="Саша"></label>
+          <label>Твоё имя <input id="me" maxlength="40" placeholder="Имя"></label>
         </div>
-        <label class="only-date">Твой ник в Telegram <input id="tgu" maxlength="40" placeholder="@username" autocomplete="off" autocapitalize="off" spellcheck="false"><small>Необязательно. С ником она отправит ответ тебе в личку в один тап.</small></label>
+        <div class="only-date who-row"><span class="field-label">Обращаться</span><div class="seg" id="who" role="group" aria-label="Обращаться"><button type="button" data-who="f">к ней</button><button type="button" data-who="m">к нему</button></div></div>
+        <label class="only-date">Твой ник в Telegram <input id="tgu" maxlength="40" placeholder="@username" autocomplete="off" autocapitalize="off" spellcheck="false"><small>Необязательно. С ником ответ придёт тебе в личку в один тап.</small></label>
         <label>Имя котика-почтальона <input id="catName" maxlength="30" placeholder="Мурчик"></label>
         <div class="field-label">Котик</div>
         <div class="swatches" id="cats"></div>
@@ -43,7 +46,7 @@
 
       <section class="card">
         <h2>2. Тексты</h2>
-        <p class="hint">Можно вставлять <code class="only-date">{her}</code><span class="only-date"> — её имя, </span><code class="only-group">{title}</code><span class="only-group"> — название сбора, </span><code>{me}</code> — твоё имя, <code>{cat}</code> — имя котика.</p>
+        <p class="hint">Можно вставлять <code class="only-date">{her}</code><span class="only-date"> — имя того, кого зовёшь, </span><code class="only-group">{title}</code><span class="only-group"> — название сбора, </span><code>{me}</code> — твоё имя, <code>{cat}</code> — имя котика.</p>
         <label>Приветствие котика <textarea id="greeting" rows="3" maxlength="300"></textarea></label>
         <label>Вопрос в письме <input id="question" maxlength="120"></label>
         <label class="only-date">Подпись в письме <input id="signature" maxlength="60"></label>
@@ -80,7 +83,7 @@
         <button class="btn-add" data-add="places">+ Добавить место</button>
         <div class="toggles compact">
           <label class="tg"><input type="checkbox" id="placeSurprise"><span></span><b>Шарик «🎁 Сюрприз»</b><i>выбираешь ты</i></label>
-          <label class="tg"><input type="checkbox" id="placeCustom"><span></span><b>Шарик «✍️ Свой вариант»</b><i>она пишет сама</i></label>
+          <label class="tg"><input type="checkbox" id="placeCustom"><span></span><b>Шарик «✍️ Свой вариант»</b><i>свой вариант текстом</i></label>
         </div>
       </section>
 
@@ -104,7 +107,7 @@
         </div>
         <p class="hint" id="dateInfo"></p>
         <div class="toggles compact only-date">
-          <label class="tg"><input type="checkbox" id="dateOther"><span></span><b>Кнопка «Ни один день не подходит»</b><i>она сможет написать свой вариант</i></label>
+          <label class="tg"><input type="checkbox" id="dateOther"><span></span><b>Кнопка «Ни один день не подходит»</b><i>можно будет написать свой вариант</i></label>
         </div>
       </section>
 
@@ -130,27 +133,36 @@
       <div class="emoji-bar hidden" id="emojiBar"></div>
 
       <section class="card result" id="result">
-        <h2 id="resTitle">Ссылка для неё</h2>
+        <h2 id="resTitle">Ссылка-приглашение</h2>
         <div class="linkbox">
           <input id="link" readonly>
           <button class="btn primary" id="copy">Скопировать</button>
         </div>
         <div class="row">
           <button class="btn" id="share"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>Поделиться</button>
-          <button class="btn" id="open">Открыть как она</button>
+          <button class="btn" id="open">Открыть как получатель</button>
           <button class="btn" id="openPv">Превью без отправки</button>
         </div>
         <p class="hint" id="linkLen"></p>
-        <p class="hint">«Открыть как она» — настоящая игра. Для проверки жми «Превью без отправки».</p>
+        <p class="hint">«Открыть как получатель» — настоящая игра. Для проверки жми «Превью без отправки».</p>
       </section>
 
       <section class="card" id="tg">
         <h2>Ответы в Telegram</h2>
         <div id="tgStatus" class="status"></div>
-        <label>Ключ владельца <input id="ownerKey" type="password" autocomplete="off" spellcheck="false" placeholder="только для тебя"></label>
-        <p class="hint">С ключом твои приглашения будут присылать ответы тебе в Telegram. Без ключа — ответ приходит ссылкой-билетом, которую тебе отправит сам человек. Ключ хранится только в этом браузере.</p>
+        <label>Ключ владельца <input id="ownerKey" type="password" autocomplete="off" spellcheck="false" placeholder="вставь ключ от бота"></label>
+        <details class="howto" id="keyHow">
+          <summary>Где взять ключ владельца?</summary>
+          <ol>
+            <li>Открой нашего бота в Telegram: <a id="botLink" href="#" target="_blank" rel="noopener">@бот</a>.</li>
+            <li>Нажми «Запустить» (или отправь <code>/start</code>) — в течение минуты бот пришлёт сообщение с твоим ключом.</li>
+            <li>Нажми на ключ в сообщении — он скопируется. Вставь его в поле выше.</li>
+            <li>Готово: ответы на приглашения, созданные в этом браузере, придут тебе в Telegram.</li>
+          </ol>
+          <p class="hint">Подробно — в <a href="key.html" target="_blank" rel="noopener">инструкции</a>. Потерял ключ — отправь боту <code>/key</code>. Хочешь новый (старый перестанет работать) — <code>/newkey</code>. Ключ хранится только в этом браузере и никому не показывается.</p>
+        </details>
+        <p class="hint">Без ключа ответ всё равно придёт: человек отправит тебе ссылку-билет.</p>
         <button class="btn" id="tgTest">Отправить тестовое сообщение</button>
-        <p class="hint">Токен бота на сайте не хранится: ответы уходят через твой Google Apps Script. Настройка описана в <code>relay/README.md</code>.</p>
       </section>
 
       <section class="card" id="histCard">
@@ -177,10 +189,12 @@
   </div>
   <div class="toast hidden" id="toast"></div>
 
-  <script src="config.js?v=24"></script>
-  <script src="assets/shared.js?v=24"></script>
-  <script src="assets/places.js?v=24"></script>
-  <script src="assets/photos.js?v=24"></script>
-  <script src="assets/create.js?v=24"></script>
+  <script src="config.js?v=25"></script>
+  <script src="assets/shared.js?v=25"></script>
+  <script src="assets/places.js?v=25"></script>
+  <script src="assets/photos.js?v=25"></script>
+  <script src="assets/track.js?v=25"></script>
+  <script src="assets/auth.js?v=25"></script>
+  <script src="assets/create.js?v=25"></script>
 </body>
 </html>

@@ -618,3 +618,38 @@ html[data-theme="sport"] .t-mid svg path { fill: var(--paper-ink); }
 .sheet-ph img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 18px; }
 .sheet-ph figcaption { margin-top: 5px; font-size: 11px; line-height: 1.35; color: var(--muted); text-align: left; }
 .sheet-ph figcaption a { color: inherit; }
+
+/* ---------- Ничья из многих вариантов: компактные чипы вместо длинного заголовка ---------- */
+.v-tie { display: flex; flex-wrap: wrap; gap: 6px; }
+.v-tie span { max-width: 100%; padding: 6px 10px; border-radius: 99px; background: rgba(var(--rgb), .12); border: 1px solid rgba(var(--rgb), .3); font-size: 13px; font-weight: 600; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.v-tie .more { background: transparent; color: var(--muted-2); }
+.verdict .v-title { overflow-wrap: break-word; }
+
+/* ---------- Карточка свайпа: картинка сверху фиксированной высоты, текст не выталкивает её за край ---------- */
+.fcard { justify-content: flex-start; gap: 8px; padding: 0 0 16px; }
+.fcard .fe { flex: none; margin: 0; padding-top: 13%; font-size: 76px; }
+.fcard::before { top: 25%; }
+.fcard .ft { flex: none; margin-top: 4px; font-size: 20px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: break-word; }
+.fcard .ft.s { font-size: 17px; }
+.fcard .ft.xs { font-size: 15px; -webkit-line-clamp: 4; }
+.fcard .fn { flex: none; font-size: 13.5px; line-height: 1.38; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+.fcard .fn.s { -webkit-line-clamp: 3; }
+.fcard .opt-stops { flex: none; margin-top: auto; font-size: 12.5px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.fcard.has-ph { justify-content: flex-start; padding-top: calc(52% + 6px); padding-bottom: 16px; }
+.fcard.has-ph .fph { height: auto; aspect-ratio: 300 / 156; }
+.fcard.has-ph .fn { -webkit-line-clamp: 3; }
+.fcard.has-ph .fn.s { -webkit-line-clamp: 2; }
+@media (max-width: 380px), (max-height: 700px) {
+  .fcard .fe { font-size: 62px; padding-top: 10%; }
+  .fcard .ft { font-size: 18px; }
+  .fcard .ft.s { font-size: 15.5px; }
+  .fcard .ft.xs { font-size: 14px; }
+  .fcard .fn { font-size: 12.5px; -webkit-line-clamp: 3; }
+  .fcard .fn.s, .fcard.has-ph .fn { -webkit-line-clamp: 2; }
+  .fcard.has-ph .fn.s { -webkit-line-clamp: 1; }
+}
+@media (max-width: 340px) {
+  .fcard .fn, .fcard .fn.s { -webkit-line-clamp: 2; }
+  .fcard.has-ph .fn, .fcard.has-ph .fn.s { -webkit-line-clamp: 1; }
+  .fcard .opt-stops { -webkit-line-clamp: 1; }
+}

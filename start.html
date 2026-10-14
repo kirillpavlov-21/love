@@ -13,23 +13,40 @@
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="theme-color" content="#0F0E13">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect width='24' height='24' rx='6' fill='%230F0E13'/><path d='M12 19s-5-4.6-5-9a5 5 0 0 1 10 0c0 4.4-5 9-5 9z' fill='none' stroke='%23FF6F91' stroke-width='2'/></svg>">
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/icon-180.png">
+  <link rel="manifest" href="manifest.webmanifest">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="assets/hub.css?v=24">
+  <link rel="stylesheet" href="assets/hub.css?v=25">
 </head>
 <body>
   <header class="top">
     <a class="logo" href="start.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/></svg>Куда идём?</a>
-    <span class="city">Москва</span>
+    <span class="top-r"><span class="city">Москва</span><button type="button" class="login" id="login"></button></span>
   </header>
+  <nav class="tabs" id="tabs" aria-label="Разделы">
+    <a href="#plansBlock" data-tab="plans">Планы</a>
+    <a href="#placesBlock" data-tab="places">Места</a>
+    <a href="#placesBlock" data-tab="map">Карта</a>
+    <a href="#promoBlock" data-tab="promo">Промокоды <span class="soon">скоро</span></a>
+  </nav>
 
   <nav class="modes" id="modes" aria-label="Повод"></nav>
 
   <section class="hero" id="hero"></section>
 
-  <section class="block">
+  <section class="block foryou hidden" id="foryouBlock">
+    <div class="block-head">
+      <h2>Для тебя</h2>
+      <button class="mini" id="fyReset" type="button" title="Забыть мои предпочтения">Сбросить</button>
+    </div>
+    <p class="block-note" id="fyNote"></p>
+    <div class="rail" id="foryou"></div>
+  </section>
+
+  <section class="block" id="plansBlock">
     <div class="block-head">
       <h2>Готовые планы <span class="count" id="count"></span></h2>
       <button class="mini" id="random" type="button"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3.5"/><circle cx="9" cy="9" r="1.3" fill="currentColor" stroke="none"/><circle cx="15" cy="15" r="1.3" fill="currentColor" stroke="none"/><circle cx="15" cy="9" r="1.3" fill="currentColor" stroke="none"/><circle cx="9" cy="15" r="1.3" fill="currentColor" stroke="none"/></svg>Случайный</button>
@@ -52,6 +69,13 @@
     <div class="pmap hidden" id="pmap" aria-label="Карта мест"></div>
     <div class="plist" id="plist"></div>
     <button class="btn ghost wide hidden" id="pmore" type="button"></button>
+  </section>
+
+  <section class="block promo" id="promoBlock">
+    <div class="block-head">
+      <h2>Промокоды <span class="soon big">скоро</span></h2>
+    </div>
+    <div id="promoList"></div>
   </section>
 
   <section class="block" id="adultBlock">
@@ -87,6 +111,7 @@
   </section>
 
   <footer class="foot">
+    <nav class="foot-links"><a href="privacy.html">Конфиденциальность</a><a href="partners.html">Для заведений</a><a href="#" id="feedback">Написать нам</a><button type="button" class="link" id="consentOpen">Настройки аналитики</button></nav>
     Описания мест — по открытым источникам на октябрь 2026. Перед походом проверь часы работы в Яндекс Картах.<br>
     Координаты © участники OpenStreetMap. Фото — Wikimedia Commons, автор и лицензия указаны под каждым снимком.
   </footer>
@@ -99,10 +124,21 @@
     <div class="row" style="width:100%"><button class="btn ghost" id="ageNo" type="button">Нет</button><button class="btn primary" id="ageYes" type="button">Да, мне 18+</button></div>
   </div></div>
   <div class="toast hidden" id="toast" role="status"></div>
+  <div class="consent hidden" id="consent" role="dialog" aria-label="Аналитика">
+    <p>Мы запоминаем, какие места и планы тебе нравятся, чтобы подсказывать похожие, — это хранится только в твоём браузере. С разрешения подключим Яндекс Метрику: она помогает понять, что людям интересно. <a href="privacy.html">Подробнее</a></p>
+    <div class="row"><button class="btn ghost" id="consentNo" type="button">Только нужное</button><button class="btn primary" id="consentYes" type="button">Разрешить</button></div>
+  </div>
 
-  <script src="assets/shared.js?v=24"></script>
-  <script src="assets/places.js?v=24"></script>
-  <script src="assets/photos.js?v=24"></script>
-  <script src="assets/hub.js?v=24"></script>
+  <script src="config.js?v=25"></script>
+  <script src="assets/shared.js?v=25"></script>
+  <script src="assets/places.js?v=25"></script>
+  <script src="assets/photos.js?v=25"></script>
+  <script src="assets/promos.js?v=25"></script>
+  <script src="assets/track.js?v=25"></script>
+  <script src="assets/geo.js?v=25"></script>
+  <script src="assets/maps.js?v=25"></script>
+  <script src="assets/gallery.js?v=25"></script>
+  <script src="assets/auth.js?v=25"></script>
+  <script src="assets/hub.js?v=25"></script>
 </body>
 </html>

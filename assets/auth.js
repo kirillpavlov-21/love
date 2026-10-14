@@ -1,0 +1,64 @@
+/* Вход через Яндекс ID без своего сервера (OAuth 2.0, response_type=token).
+   1) Кнопка «Войти» уводит на oauth.yandex.ru, Яндекс возвращает на start.html с #access_token=…
+   2) Берём имя и аватар из login.yandex.ru/info и храним их только в этом браузере.
+   Токен нужен один раз — для профиля, после этого он не хранится.
+   Настройка: config.js → auth.yandexClientId (как зарегистрировать приложение — docs/yandex-login.md). */
+(function () {
+  'use strict';
+
+  const CFG = window.DATE_CONFIG || {};
+  const CLIENT = (CFG.auth && CFG.auth.yandexClientId) || '';
+  const KEY = 'kuda-user', STATE = 'kuda-oauth-state', BACK = 'kuda-oauth-back';
+  const ls = {
+    get() { try { return JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { return null; } },
+    set(v) { try { v ? localStorage.setItem(KEY, JSON.stringify(v)) : localStorage.removeItem(KEY); } catch (e) { /* ок */ } },
+  };
+  /* Адрес возврата — всегда главная: там нет своего #-хэша (в игре хэш занят приглашением) */
+  const redirectUri = () => new URL('start.html', location.href).href.split('#')[0].split('?')[0];
+  const enabled = () => !!CLIENT;
+
+  function login() {
+    if (!CLIENT) return false;
+    const state = Math.random().toString(36).slice(2) + Date.now().toString(36);
+    try { sessionStorage.setItem(STATE, state); sessionStorage.setItem(BACK, location.href); } catch (e) { /* ок */ }
+    location.href = 'https://oauth.yandex.ru/authorize?' + new URLSearchParams({
+      response_type: 'token', client_id: CLIENT, redirect_uri: redirectUri(), state, force_confirm: 'no',
+    });
+    return true;
+  }
+  function logout() { ls.set(null); document.dispatchEvent(new CustomEvent('kuda-auth', { detail: null })); }
+
+  async function profile(token) {
+    try {
+      const r = await fetch('https://login.yandex.ru/info?format=json', { headers: { Authorization: 'OAuth ' + token } });
+      if (!r.ok) throw new Error(r.status);
+      const j = await r.json();
+      return {
+        id: j.psuid || j.id || '', name: j.first_name || j.display_name || j.real_name || j.login || 'Ты',
+        avatar: j.default_avatar_id && !j.is_avatar_empty ? `https://avatars.yandex.net/get-yapic/${j.default_avatar_id}/islands-68` : '',
+        ts: Date.now(),
+      };
+    } catch (e) {
+      // профиль не отдали (сеть, блокировщик) — всё равно считаем, что человек вошёл
+      return { id: '', name: 'Ты', avatar: '', ts: Date.now() };
+    }
+  }
+
+  /* Возврат с oauth.yandex.ru: #access_token=…&state=… */
+  async function handleReturn() {
+    const h = new URLSearchParams(location.hash.slice(1));
+    if (!h.get('access_token') && !h.get('error')) return null;
+    let want = '', back = '';
+    try { want = sessionStorage.getItem(STATE) || ''; back = sessionStorage.getItem(BACK) || ''; sessionStorage.removeItem(STATE); sessionStorage.removeItem(BACK); } catch (e) { /* ок */ }
+    history.replaceState(null, '', location.pathname + location.search);
+    if (h.get('error') || !want || h.get('state') !== want) return { error: h.get('error') || 'state' };
+    const user = await profile(h.get('access_token'));
+    ls.set(user);
+    if (window.KudaTrack) window.KudaTrack.ev('login', { v: 'yandex' });
+    document.dispatchEvent(new CustomEvent('kuda-auth', { detail: user }));
+    if (back && back.split('#')[0] !== location.href.split('#')[0]) location.replace(back);
+    return { user };
+  }
+
+  window.KudaAuth = { enabled, login, logout, user: ls.get, handleReturn };
+})();

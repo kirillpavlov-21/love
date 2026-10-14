@@ -231,6 +231,6 @@
     if (!p) return;
     const [file, a, l, img] = PH[id];
     const f = img || id;
-    p.ph = { s: 'assets/ph/' + f + '.webp', t: 'assets/ph/t/' + f + '.webp', a, l, u: 'https://commons.wikimedia.org/wiki/File:' + encodeURIComponent(file) };
+    p.ph = { s: 'assets/ph/' + f + '.webp', t: 'assets/ph/t/' + f + '.webp', a, l, file, u: 'https://commons.wikimedia.org/wiki/File:' + encodeURIComponent(file) };
   });
 })();

@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Конфиденциальность — Куда идём?</title>
+  <meta name="description" content="Какие данные хранит сайт «Куда идём?», куда они уходят и как их удалить.">
+  <meta name="theme-color" content="#0F0E13">
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="assets/hub.css?v=25">
+  <style>
+    .doc h1 { margin: 22px 0 6px; font: 700 28px/1.15 var(--display); letter-spacing: -.02em; }
+    .doc h2 { margin: 26px 0 8px; font: 600 18px var(--display); }
+    .doc p, .doc li { color: var(--muted-2); font-size: 15px; line-height: 1.55; }
+    .doc ul { padding-left: 20px; }
+    .doc code { padding: 1px 5px; border-radius: 6px; background: var(--surface-2); font-size: 13px; }
+    .doc .btn { margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <header class="top"><a class="logo" href="start.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/></svg><span class="brand">Куда идём?</span></a></header>
+  <main class="doc">
+    <h1>Конфиденциальность</h1>
+    <p>Коротко: у сайта нет своего сервера с данными пользователей. Приглашения и голоса живут в самих ссылках, а предпочтения — только в твоём браузере.</p>
+
+    <h2>Что хранится в твоём браузере</h2>
+    <ul>
+      <li><b>Подстройка под тебя.</b> Какие планы и места ты открываешь, сохраняешь и куда зовёшь — до 400 последних действий и модель предпочтений для блока «Для тебя». Это не уходит с устройства.</li>
+      <li><b>Сохранённые</b> планы и места, выбранный режим, черновик приглашения, история твоих приглашений.</li>
+      <li><b>Точка «Рядом со мной»</b> — если ты разрешил геолокацию или выбрал станцию метро. Координаты не отправляются никуда.</li>
+      <li><b>Профиль Яндекса</b> (имя и аватар), если ты вошёл через Яндекс ID. Токен доступа после входа не хранится.</li>
+      <li><b>Ключ владельца</b> для ответов в Telegram, если ты его ввёл в конструкторе.</li>
+    </ul>
+    <p>Всё это можно удалить кнопкой ниже или очисткой данных сайта в настройках браузера.</p>
+    <button class="btn ghost" id="wipe" type="button">Удалить мои данные на этом устройстве</button>
+
+    <h2>Что и куда отправляется</h2>
+    <ul>
+      <li><b>Яндекс Метрика</b> — только если ты нажал «Разрешить» в плашке про аналитику. Туда уходят обезличенные события (открыт план, скопирован промокод и т. п.) без имён и текстов приглашений. Метрика использует cookie. Передумал — «Настройки аналитики» внизу главной.</li>
+      <li><b>Сокращение ссылок.</b> Чтобы в чат не уходили длинные ссылки, адрес приглашения или голосования отправляется в сервис коротких ссылок: в наш посредник, а если он недоступен — в clck.ru (Яндекс) или is.gd. В самой ссылке закодированы имена и выбор участников — учитывай это.</li>
+      <li><b>Ответы в Telegram.</b> Если создатель приглашения подключил ключ владельца, ответ на его приглашение (имя, выбранные места и дни) пересылается ему в Telegram через посредника на Google Apps Script.</li>
+      <li><b>Вход через Яндекс ID.</b> Яндекс сообщает сайту имя и аватар; почту и телефон сайт не запрашивает.</li>
+      <li><b>Карты и фото.</b> Тайлы карты грузятся с серверов OpenStreetMap, библиотека карты — с cdnjs, шрифты — с Google Fonts, дополнительные фото мест — с Wikimedia Commons. Эти сервисы видят твой IP-адрес, как при любом заходе на сайт.</li>
+      <li><b>Яндекс Карты</b> открываются по ссылкам «Как добраться» и «Маршрут» — дальше действуют правила Яндекса.</li>
+    </ul>
+
+    <h2>Возраст</h2>
+    <p>Раздел 18+ открывается только после подтверждения возраста. Приглашения в такие места сайт не создаёт.</p>
+
+    <h2>Связаться</h2>
+    <p id="contact">Вопросы о данных и просьбы об удалении — через раздел «Написать нам» на главной.</p>
+    <p id="operator" class="hidden"></p>
+    <p class="muted">Обновлено: октябрь 2026.</p>
+  </main>
+  <footer class="foot"><a href="start.html">← На главную</a></footer>
+  <div class="toast hidden" id="toast" role="status"></div>
+  <script src="config.js?v=25"></script>
+  <script>
+  (function () {
+    var C = window.DATE_CONFIG || {}, sup = C.support || {};
+    if (C.site && C.site.name) document.querySelector('.brand').textContent = C.site.name;
+    var c = document.getElementById('contact');
+    if (C.site && C.site.operator) { var op = document.getElementById('operator'); op.textContent = 'Оператор персональных данных: ' + C.site.operator + '.'; op.classList.remove('hidden'); }
+    if (sup.email) c.innerHTML = 'Вопросы о данных и просьбы об удалении: <a href="mailto:' + sup.email + '">' + sup.email + '</a>.';
+    else if (sup.telegram) c.innerHTML = 'Вопросы о данных и просьбы об удалении: <a href="https://t.me/' + sup.telegram + '">@' + sup.telegram + '</a> в Telegram.';
+    document.getElementById('wipe').onclick = function () {
+      if (!confirm('Удалить сохранённое, историю, черновики и предпочтения на этом устройстве?')) return;
+      try {
+        Object.keys(localStorage).filter(function (k) { return /^(kuda|date-invite)/.test(k); }).forEach(function (k) { localStorage.removeItem(k); });
+        Object.keys(sessionStorage).filter(function (k) { return /^kuda/.test(k); }).forEach(function (k) { sessionStorage.removeItem(k); });
+      } catch (e) { /* хранилище недоступно */ }
+      var t = document.getElementById('toast'); t.textContent = 'Готово: данные на этом устройстве удалены'; t.classList.remove('hidden');
+      setTimeout(function () { t.classList.add('hidden'); }, 2600);
+    };
+  })();
+  </script>
+</body>
+</html>
