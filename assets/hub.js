@@ -279,7 +279,7 @@
     }).catch(() => { $('#pmap').innerHTML = '<p class="pl-empty">Карта не загрузилась. Проверьте интернет и попробуйте ещё раз.</p>'; });
   }
 
-  const listHints = p => { const e = K.placeHints(p).filter(h => ['halloween', 'autumn', 'first', 'night'].includes(h)).map(h => K.HINTS[h][0]).join(''); return e ? e + ' ' : ''; };
+  const listHints = p => { const e = K.placeHints(p).filter(h => ['halloween', 'autumn', 'night'].includes(h) || (h === 'first' && mode === 'date')).map(h => K.HINTS[h][0]).join(''); return e ? e + ' ' : ''; };
   /* Источник: пост о месте в Telegram-канале — просто ссылкой */
   const tgBlock = p => p && K.tgOk(p.tg) ? `<a class="tg-link" href="${K.tgUrl(p.tg)}" target="_blank" rel="noopener">Отзыв в канале «${esc(K.tgName(p.tg))}» в Telegram${I('ext')}</a>` : '';
   const favBtn = (key, title) => { const on = T.isFav(key);
@@ -302,7 +302,7 @@
     let list = base.filter(p => pokr === 'all' || p.okr === pokr);
     if (near) list = list.map(p => [p, K.distM(near, p)]).sort((a, b) => a[1] - b[1]).map(([p, d]) => Object.assign({}, p, { dist: d }));
     const hasSaved = PLACES.some(p => T.isFav('place:' + p.id));
-    $('#pfilters').innerHTML = PCATS.filter(([id]) => id === pcat || (id === 'saved' ? hasSaved : id === 'promo' ? PROMOS.length : true)).map(([id, label]) =>
+    $('#pfilters').innerHTML = PCATS.filter(([id]) => id === pcat || (id === 'saved' ? hasSaved : id === 'promo' ? PROMOS.length : id === 'first' ? mode === 'date' : true)).map(([id, label]) =>
       `<button type="button" data-pc="${id}" class="${id === pcat ? 'on' : ''}" aria-pressed="${id === pcat}">${label}</button>`).join('');
     const cnt = {};
     base.forEach(p => { cnt[p.okr] = (cnt[p.okr] || 0) + 1; });
@@ -484,7 +484,9 @@
     flt = 'all'; climit = CSTEP;
     try { localStorage.setItem('kuda-mode', mode); } catch (err) { /* ок */ }
     history.replaceState(null, '', '?m=' + mode);
+    if (pcat === 'first' && mode !== 'date') pcat = 'all';
     apply();
+    renderPlaces();
   });
   $('#pfilters').addEventListener('click', e => {
     const b = e.target.closest('button[data-pc]');

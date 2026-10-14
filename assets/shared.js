@@ -239,19 +239,7 @@
      В чат не должны уходить километровые ссылки. По очереди пробуем:
      1) свой сокращатель в посреднике (config.js → telegram.relayUrl, action 'short'): ссылка вида …/go.html#s=Ab3;
      2) clck.ru (сокращатель Яндекса), если он отвечает браузеру;
-     3) is.gd через JSONP (официальный API: format=json&callback=…);
-     4) если ничего не вышло — исходная ссылка. Результат запоминается на время сессии. */
-  let jsonpN = 0;
-  function jsonp(src) {
-    return new Promise((res, rej) => {
-      const cb = '__kudaJsonp' + (++jsonpN), s = document.createElement('script');
-      window[cb] = d => { res(d); cleanup(); };
-      function cleanup() { delete window[cb]; s.remove(); }
-      s.onerror = () => { cleanup(); rej(new Error('jsonp')); };
-      s.src = src + (src.includes('?') ? '&' : '?') + 'callback=' + cb;
-      document.head.appendChild(s);
-    });
-  }
+     3) если ничего не вышло — исходная ссылка. Результат запоминается на время сессии. */
   const SHORT_CACHE = 'kuda-short';
   const sitePath = file => new URL(file, location.href).href.split('#')[0].split('?')[0];
   function withTimeout(p, ms) { return Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]); }
@@ -274,11 +262,6 @@
       if (!/^https:\/\/clck\.ru\/[A-Za-z0-9_-]+$/.test(t)) throw new Error('clck');
       return t;
     });
-    tries.push(async () => {
-      const d = await jsonp('https://is.gd/create.php?format=json&url=' + encodeURIComponent(url));
-      if (!d || !/^https:\/\/is\.gd\/[A-Za-z0-9_]+$/.test(d.shorturl || '')) throw new Error('isgd');
-      return d.shorturl;
-    });
     for (const f of tries) {
       try {
         const short = await withTimeout(f(), 3500);
@@ -287,6 +270,8 @@
         return short;
       } catch (e) { /* следующий способ */ }
     }
+    cache[url] = url;   // не получилось — не ждём сервисы повторно в этой сессии
+    try { sessionStorage.setItem(SHORT_CACHE, JSON.stringify(cache)); } catch (e) { /* ок */ }
     return url;
   }
   /* Короткая ссылка на маршрут плана из подборки: go.html#r=<id плана> сама откроет Яндекс Карты */

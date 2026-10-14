@@ -23,7 +23,7 @@ const INVITE_TTL_DAYS = 90;       // через сколько дней забы
 const KEY_LEN = 24;
 const ID_RE = /^[a-z0-9]{1,13}$/;
 const KEY_RE = /^[A-Za-z0-9]{24,64}$/;
-const SHORT_RE = /^[A-Za-z0-9]{1,10}$/;
+const SHORT_RE = /^[A-Za-z0-9]{5,14}$/;
 const MAX_SHORT_10_MIN = 400;     // новых коротких ссылок за 10 минут — защита от спама
 const B62 = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
@@ -98,8 +98,11 @@ function short_(body) {
   if (!lock.tryLock(5000)) return { ok: false, error: 'busy' };
   try {
     const sh = sheet_();
-    sh.appendRow([url, day_()]);
-    const id = b62_(sh.getLastRow());
+    // к номеру строки добавляем 4 случайных символа: коды не перебрать подряд
+    let tag = '';
+    for (let i = 0; i < 4; i++) tag += B62[Math.floor(Math.random() * 62)];
+    sh.appendRow([url, day_(), tag]);
+    const id = b62_(sh.getLastRow()) + tag;
     cache.put('sh_' + h, id, 21600);
     return { ok: true, id: id };
   } finally {
@@ -107,16 +110,17 @@ function short_(body) {
   }
 }
 function expand_(code) {
-  if (!SHORT_RE.test(code)) return { ok: false };
-  const row = unb62_(code);
+  if (!SHORT_RE.test(code) || code.length < 5) return { ok: false };
+  const row = unb62_(code.slice(0, -4)), tag = code.slice(-4);
   if (row < 1) return { ok: false };
   const cache = CacheService.getScriptCache();
   const hit = cache.get('ex_' + code);
   if (hit) return { ok: true, url: hit };
   const sh = sheet_();
   if (row > sh.getLastRow()) return { ok: false };
-  const url = String(sh.getRange(row, 1).getValue() || '');
-  if (!url) return { ok: false };
+  const cells = sh.getRange(row, 1, 1, 3).getValues()[0];
+  const url = String(cells[0] || '');
+  if (!url || String(cells[2]) !== tag) return { ok: false };
   if (url.length < 90000) cache.put('ex_' + code, url, 21600);
   return { ok: true, url: url };
 }

@@ -123,7 +123,7 @@
   function topLikes(n) {
     return Object.entries(M.w).filter(([f, w]) => w > 0.15 && FEAT_NAME[f]).sort((a, b) => b[1] - a[1]).slice(0, n).map(([f]) => FEAT_NAME[f]);
   }
-  function reset() { [K_LOG, K_MODEL, K_FAV, 'kuda-neg'].forEach(LS.del); M = { v: 1, w: {}, b: 0, pos: 0, neg: 0 }; }
+  function reset() { [K_LOG, K_MODEL, 'kuda-neg'].forEach(LS.del); M = { v: 1, w: {}, b: 0, pos: 0, neg: 0 }; }
 
   if (consent() === 'all') loadMetrika();
   window.KudaTrack = { setCat, ev, skipped, score, ready, forYou, topLikes, favs, isFav, toggleFav, consent, setConsent, reset, featsOf };

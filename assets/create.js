@@ -294,7 +294,7 @@
     $$('#levels input').forEach(i => { levels[i.id.slice(3)] = i.checked; });
     const dmode = ($('input[name="dmode"]:checked') || {}).value || 'next';
     const inv = {
-      me: v('me') || 'Я', catName: v('catName') || 'Мурчик',
+      me: v('me') || 'Твой друг', catName: v('catName') || 'Мурчик',
       cat: state.cat, theme: state.theme,
       greeting: v('greeting'), question: v('question'),
       levels,

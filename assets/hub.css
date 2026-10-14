@@ -352,3 +352,4 @@ html[data-acc="shades"] .cat .acc-shades, html[data-acc="bow"] .cat .acc-bow { d
   .tabs a { padding: 0 11px; font-size: 13px; }
 }
 .block, #placesBlock, #promoBlock, #plansBlock { scroll-margin-top: 92px; }
+.pmap, .mm { position: relative; z-index: 0; isolation: isolate; }
