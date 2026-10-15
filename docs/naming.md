@@ -18,6 +18,11 @@
 Перед выбором проверь:
 1. Домен: https://www.nic.ru/ или https://www.reg.ru/ (pozovi.ru, .app, .me).
 2. Товарные знаки: поиск ФИПС https://www1.fips.ru/ по классам 35, 38, 41, 42.
-3. Ники @pozovi в Telegram, VK и Instagram.
+3. Свободны ли ники @pozovi в соцсетях и мессенджерах, где планируется продвижение (VK, MAX, YouTube, Дзен).
 
-Как переименовать на сайте: `config.js` → `site.name` (шапка и служебные страницы), затем `<title>`/`og:title` в `start.html`, `create.html`, `index.html`, `manifest.webmanifest` и README.
+Как переименовать на сайте:
+1. `config.js` → `site.name` — шапка главной, кнопка «назад» в конструкторе, служебные страницы (`privacy.html`, `rules.html`, `key.html`, `partners.html`), подсказка установки приложения на iPhone и кнопка «Все планы …» на билете.
+2. Вручную — `<title>` и `og:title` во всех страницах: `start.html`, `create.html`, `invites.html`, `adult.html`, `privacy.html`, `rules.html`, `key.html`, `partners.html`, `404.html` (в `index.html` и `go.html` названия нет); `name`, `short_name` и `description` в `manifest.webmanifest`; шаблоны SEO-страниц в `scripts/` — и пересобрать `moskva/`.
+3. Картинки для превью ссылок `assets/og-hub.png` и `assets/og-invite.png` — на них нарисовано название, их нужно перерисовать (и поднять `?v=` у `og:image`).
+4. Новый домен — файл `CNAME` и DNS для GitHub Pages; константа `SITE` в `scripts/build-seo.mjs` и запуск `node scripts/build-seo.mjs` (он перепишет `robots.txt`, `sitemap.xml` и `moskva/`); `og:image`; переменные бэкенда `ALLOWED_ORIGINS` и `SITE_ORIGINS` (server/README.md — перезапустить деплой); свойство `SITE_URL` посредника; Redirect URI приложения Яндекс ID; ограничение ключа Яндекс Карт. GitHub сам перенаправит старые адреса `github.io` на новый домен, так что отправленные ссылки продолжат открываться, а старые короткие ссылки `go.html#s=…` переведут на ту же страницу нового домена. Но всё, что хранится в браузере (история приглашений, «Сохранённые», «Для тебя», секрет создателя для «Мои приглашения»), привязано к адресу сайта — на новом домене оно начнётся с чистого листа, поэтому переезжать лучше до запуска.
+5. README и `docs/*.md`; по желанию — `PRODID` календаря в `assets/shared.js`.

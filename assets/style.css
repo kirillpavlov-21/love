@@ -101,10 +101,17 @@ input, textarea { font: inherit; -webkit-user-select: text; user-select: text; }
   overflow-x: hidden; overflow-y: auto; -webkit-overflow-scrolling: touch;
 }
 .screen > * { flex-shrink: 0; }
-.screen.enter { animation: screenIn .5s cubic-bezier(.2, .9, .25, 1) both; }
-.screen.leave { animation: screenOut .32s ease-in both; pointer-events: none; }
+/* Смена экранов: новый всегда над уходящим. Экраны прозрачные, поэтому уходящий успевает погаснуть (.16s)
+   до того, как начнёт проявляться новый (задержка .16s) — иначе кнопки прошлого экрана («Дальше» на оверлее)
+   просвечивают сквозь кнопки нового (✕/✓ голосования) */
+.screen { z-index: 1; }
+.screen.enter { animation: screenIn .42s cubic-bezier(.2, .9, .25, 1) .16s both; }
+.screen.leave { z-index: 0; animation: screenOut .16s ease-out both; pointer-events: none; }
+.screen.leave * { pointer-events: none !important; }
+/* Заголовки и итоги, на которые app.js ставит фокус при смене экрана (tabindex="-1"), — без рамки: это не кнопки */
+.screen [tabindex="-1"]:focus { outline: none; }
 @keyframes screenIn { from { opacity: 0; transform: translateY(22px); } }
-@keyframes screenOut { to { opacity: 0; transform: translateY(-14px); } }
+@keyframes screenOut { to { opacity: 0; visibility: hidden; transform: translateY(-14px); } }
 
 h1, h2, h3 { margin: 0; line-height: 1.12; font-family: var(--display); font-weight: 700; letter-spacing: -.02em; }
 .eyebrow, .lvl-tag, .badge {
@@ -137,6 +144,9 @@ h1, h2, h3 { margin: 0; line-height: 1.12; font-family: var(--display); font-wei
 .btn-xl { min-height: 58px; padding: 0 34px; border-radius: 18px; font-size: 17px; }
 .btn-wide { width: 100%; max-width: 420px; }
 .btn.sq { width: 54px; padding: 0; flex: 0 0 54px; }
+/* ссылка-билет ещё сокращается: точка на кнопке (нажимать можно и сейчас) */
+.btn.busy::after { content: ""; width: 7px; height: 7px; margin-left: 2px; border-radius: 50%; background: currentColor; opacity: .55; animation: busyDot .9s ease-in-out infinite alternate; }
+@keyframes busyDot { to { opacity: .1; transform: scale(.6); } }
 .pulse { animation: pulse 2s ease-in-out infinite; }
 @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(var(--rgb), .45); } 60% { box-shadow: 0 0 0 14px rgba(var(--rgb), 0); } }
 .link-btn {
@@ -447,6 +457,9 @@ html[data-theme="sport"] .letter-stamp path { fill: var(--paper-ink); }
   background: var(--accent); border: 5px solid var(--ground);
   box-shadow: 0 0 0 1px var(--line-2), 0 6px 16px rgba(0, 0, 0, .5);
 }
+/* Фокус с клавиатуры — светлое кольцо вокруг ползунка (у самой дорожки outline: none). Правила раздельно: общий список с чужим псевдоэлементом браузер выбросил бы целиком */
+.range:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px var(--text), 0 6px 16px rgba(0, 0, 0, .5); }
+.range:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 3px var(--text), 0 6px 16px rgba(0, 0, 0, .5); }
 .range-labels { display: flex; justify-content: space-between; font-weight: 600; font-size: 13px; color: var(--muted); }
 
 /* ================= Свайпы ================= */
@@ -591,6 +604,7 @@ html[data-theme="sport"] .t-mid svg path { fill: var(--paper-ink); }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  .screen.enter { animation-delay: 0s !important; }
 }
 
 /* ================= Итог голосования и календарь ================= */
@@ -613,7 +627,7 @@ html[data-theme="sport"] .t-mid svg path { fill: var(--paper-ink); }
 .fph img { display: block; width: 100%; height: 100%; object-fit: cover; -webkit-user-drag: none; user-select: none; }
 .fph::after { content: ''; position: absolute; inset: auto 0 0 0; height: 40%; background: linear-gradient(transparent, var(--card-bg)); }
 .fcard[data-depth="1"] .fph::after { background: linear-gradient(transparent, #1F1E26); }
-.fcap { position: absolute; right: 8px; top: 8px; z-index: 1; max-width: 70%; padding: 2px 6px; border-radius: 6px; background: rgba(15, 14, 19, .55); font-size: 9px; line-height: 1.3; color: rgba(244, 241, 234, .75); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fcap { position: absolute; right: 8px; top: 8px; z-index: 1; max-width: 70%; padding: 2px 6px; border-radius: 6px; background: rgba(15, 14, 19, .8); font-size: 11px; line-height: 1.3; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sheet-ph { margin: 0; width: 100%; }
 .sheet-ph img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 18px; }
 .sheet-ph figcaption { margin-top: 5px; font-size: 11px; line-height: 1.35; color: var(--muted); text-align: left; }
@@ -652,4 +666,83 @@ html[data-theme="sport"] .t-mid svg path { fill: var(--paper-ink); }
   .fcard .fn, .fcard .fn.s { -webkit-line-clamp: 2; }
   .fcard.has-ph .fn, .fcard.has-ph .fn.s { -webkit-line-clamp: 1; }
   .fcard .opt-stops { -webkit-line-clamp: 1; }
+}
+
+/* ================= Голос: дошёл ли он до остальных ================= */
+:root { --warn: #FFC56B; }
+.vh { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.vstate { width: 100%; display: flex; flex-direction: column; gap: 10px; text-align: left; }
+.vstate.warn, .vstate.ok, .vstate.busy, .vstate.muted { padding: 16px; border-radius: 22px; border: 1px solid var(--line-1); background: var(--surface); }
+.vstate.warn { border-color: rgba(255, 197, 107, .55); background: linear-gradient(160deg, rgba(255, 197, 107, .13), rgba(255, 197, 107, .03) 70%), var(--surface); animation: bubblePop .5s cubic-bezier(.3, 1.6, .5, 1); }
+.vstate.ok { border-color: rgba(155, 227, 180, .35); background: linear-gradient(160deg, rgba(155, 227, 180, .09), rgba(155, 227, 180, 0) 70%), var(--surface); }
+.vs-title { margin: 0; display: flex; align-items: center; gap: 8px; font-size: 17px; font-weight: 700; line-height: 1.3; }
+.vs-title .ic { width: 20px; height: 20px; stroke-width: 2.4; }
+.vstate.warn .vs-title { color: var(--warn); }
+.vstate.ok .vs-title { color: var(--ok); }
+.vstate.busy .vs-title::after { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; opacity: .55; animation: busyDot .9s ease-in-out infinite alternate; }
+.vs-text { margin: 0; font-size: 15px; font-weight: 500; line-height: 1.45; color: var(--muted-2); }
+.vstate .link-btn { align-self: center; }
+.vs-remind {
+  margin: 0; width: 100%; display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border-radius: 16px;
+  background: rgba(255, 197, 107, .1); border: 1px solid rgba(255, 197, 107, .45); color: var(--warn);
+  font-size: 14px; font-weight: 600; line-height: 1.4; text-align: left;
+}
+.vs-remind .ic { width: 18px; height: 18px; margin-top: 1px; }
+button.vs-remind { cursor: pointer; font-family: var(--body); }
+.vs-remind span { flex: 1; }
+.vs-remind .ic:last-child { align-self: center; margin-top: 0; }
+.vstate.twin .btn { width: 100%; }
+.manual-copy { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; color: var(--muted); }
+/* 16px: меньше — iPhone при фокусе приближает страницу (зум больше не запрещён в index.html) */
+.manual-copy .field { font-size: 16px; }
+.live-note { margin: -6px 0 0; display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--muted); }
+.live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 0 rgba(155, 227, 180, .6); animation: liveDot 2s ease-out infinite; }
+@keyframes liveDot { 70% { box-shadow: 0 0 0 7px rgba(155, 227, 180, 0); } 100% { box-shadow: 0 0 0 0 rgba(155, 227, 180, 0); } }
+.merge { display: flex; flex-direction: column; gap: 8px; }
+form.name-box { margin: 0; }
+
+/* «Подходит любой» и «Пока не знаю» под календарём компании */
+.day-acts { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 16px; width: 100%; }
+
+/* ================= Событие из афиши ================= */
+.ev-card {
+  width: 100%; display: flex; flex-direction: column; gap: 10px; text-align: left;
+  background: var(--surface); border: 1px solid var(--line-1); border-radius: 24px; padding: 14px 16px 16px;
+  animation: bubblePop .5s cubic-bezier(.3, 1.6, .5, 1);
+}
+.ev-card h3 { font-size: 22px; overflow-wrap: break-word; }
+.ev-card .sheet-ph img { aspect-ratio: 16 / 8; }
+.ev-card .chip-link { align-self: flex-start; }
+.ev-cover {
+  display: grid; place-items: center; height: 120px; border-radius: 18px;
+  background: radial-gradient(120% 120% at 20% 0%, rgba(var(--rgb), .45), rgba(var(--rgb), .08) 70%), var(--surface-2);
+}
+.ev-cover span { font-size: 58px; line-height: 1; filter: drop-shadow(0 8px 18px rgba(0, 0, 0, .35)); }
+.ev-cover.c-concert, .ev-cover.c-party { background: radial-gradient(120% 120% at 20% 0%, rgba(185, 161, 255, .5), rgba(255, 111, 145, .12) 70%), var(--surface-2); }
+.ev-cover.c-theatre, .ev-cover.c-show { background: radial-gradient(120% 120% at 20% 0%, rgba(255, 111, 145, .5), rgba(255, 164, 99, .1) 70%), var(--surface-2); }
+.ev-cover.c-exhibition, .ev-cover.c-lecture { background: radial-gradient(120% 120% at 20% 0%, rgba(124, 196, 255, .45), rgba(110, 231, 183, .1) 70%), var(--surface-2); }
+.ev-cover.c-standup, .ev-cover.c-festival, .ev-cover.c-sport, .ev-cover.c-kids { background: radial-gradient(120% 120% at 20% 0%, rgba(255, 196, 81, .45), rgba(215, 242, 92, .1) 70%), var(--surface-2); }
+.ev-facts { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.ev-facts li { display: flex; align-items: flex-start; gap: 10px; font-size: 15px; font-weight: 600; line-height: 1.35; color: var(--muted-2); }
+.ev-facts .ic { width: 18px; height: 18px; margin-top: 1px; color: var(--accent); }
+.ev-note { margin: 0; font-size: 14.5px; font-weight: 500; line-height: 1.45; color: var(--muted); }
+.s-place .actions { align-items: stretch; }
+.s-place .ev-back { align-self: center; }
+.s-place .ev-back .ic { transform: rotate(180deg); }
+/* дата события на карточке голосования */
+.fcard .fdate {
+  position: relative; flex: none; display: inline-flex; align-items: center; gap: 6px; max-width: calc(100% - 28px);
+  margin-top: 2px; padding: 4px 10px; border-radius: 99px; background: rgba(var(--rgb), .14); border: 1px solid rgba(var(--rgb), .35);
+  font-size: 12.5px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.fcard .fdate .ic { width: 14px; height: 14px; color: var(--accent); }
+
+/* «Оцени место после встречи» на билете */
+.rate-box { width: 100%; display: flex; flex-direction: column; gap: 8px; }
+.rate-box .hint { justify-content: flex-start; text-align: left; }
+.rate-box .chip-link .ic { color: var(--accent); }
+@media (prefers-reduced-motion: reduce) {
+  .live-dot { animation: none; }
+  /* общее правило укорачивает анимации до 0,01 мс — тост сразу доигрывал бы до прозрачности и не был виден */
+  .toast { animation: none !important; }
 }

@@ -2,19 +2,62 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Страница не найдена — Куда идём?</title>
   <meta name="robots" content="noindex">
   <meta name="theme-color" content="#0F0E13">
   <style>
-    html, body { height: 100%; margin: 0; background: #0F0E13; color: #F4F1EA; font: 500 16px/1.5 system-ui, -apple-system, 'Segoe UI', sans-serif; }
-    main { display: grid; place-items: center; height: 100%; padding: 24px; box-sizing: border-box; text-align: center; }
-    h1 { margin: 0 0 8px; font-size: 26px; }
-    p { margin: 0 0 18px; color: #A39EAE; }
-    a { display: inline-block; padding: 14px 22px; border-radius: 16px; background: #FF6F91; color: #1C0A10; font-weight: 700; text-decoration: none; }
+    html, body { min-height: 100%; margin: 0; background: #0F0E13; color: #F4F1EA; font: 500 16px/1.5 system-ui, -apple-system, 'Segoe UI', sans-serif; }
+    main { display: grid; place-items: center; min-height: 100vh; padding: 24px 16px calc(24px + env(safe-area-inset-bottom)); box-sizing: border-box; text-align: center; }
+    .box { width: 100%; max-width: 380px; }
+    .pin { width: 44px; height: 44px; margin: 0 auto 14px; color: #FF6F91; }
+    h1 { margin: 0 0 8px; font-size: 26px; line-height: 1.2; }
+    p { margin: 0 0 22px; color: #A39EAE; }
+    nav { display: grid; gap: 10px; }
+    nav a { display: flex; align-items: center; justify-content: center; min-height: 52px; padding: 0 18px; border-radius: 16px; border: 1px solid rgba(244, 241, 234, .16); color: #F4F1EA; font-weight: 600; text-decoration: none; }
+    nav a.primary { border-color: transparent; background: #FF6F91; color: #1C0A10; font-weight: 700; }
+    nav a:focus-visible { outline: 2px solid #FF6F91; outline-offset: 3px; }
   </style>
 </head>
 <body>
-  <main><div><h1>Тут ничего нет</h1><p>Похоже, ссылка устарела или скопирована не целиком.</p><a href="./start.html">Выбрать план на вечер</a></div></main>
+  <main>
+    <div class="box">
+      <svg class="pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/></svg>
+      <h1>Тут ничего нет</h1>
+      <p>Похоже, ссылка устарела или скопирована не целиком. Если это приглашение — попроси прислать его ещё раз. А пока можно выбрать вечер самому:</p>
+      <nav aria-label="Куда дальше">
+        <a class="primary" href="start.html" data-p="start.html">Готовые планы на вечер</a>
+        <a href="start.html?tab=events" data-p="start.html?tab=events">Афиша: что идёт в Москве</a>
+        <a href="moskva/" data-p="moskva/">Подборки по Москве</a>
+        <a href="create.html" data-p="create.html">Создать приглашение</a>
+      </nav>
+    </div>
+  </main>
+  <script>
+  (function () {
+    /* GitHub Pages отдаёт эту страницу по любому неизвестному адресу, в том числе во вложенных папках,
+       поэтому ссылки считаем от корня сайта: <ник>.github.io/<репозиторий>/ или / на своём домене */
+    var parts = location.pathname.split('/');
+    var root = /\.github\.io$/i.test(location.hostname) && parts.length > 2 && parts[1] ? '/' + parts[1] + '/' : '/';
+    /* Мессенджеры иногда приклеивают к адресу лишние символы или меняют регистр: «start.html)», «create.htm»,
+       «Moskva/svidanie/».», «moskva/svidanie)» — ведём на нужную страницу. Исправление не меняет уже исправленный
+       адрес, поэтому переход будет один: если и такой страницы нет, останемся здесь */
+    var rel = location.pathname.slice(root.length), dec = rel;
+    try { dec = decodeURIComponent(rel); } catch (e) { /* битая %-последовательность — как есть */ }
+    var fixed = dec.replace(/^(.*?\.htm)l?[^/]*$/i, '$1l')
+      .replace(/[\s)\]}>.,;:!?"'«»“”„‘’…]+$/, '')
+      .toLowerCase();
+    // только простой путь внутри сайта: «//чужой.сайт» после корня «/» стал бы переходом на чужой сайт
+    if (fixed !== dec && /^[a-z0-9][a-z0-9._\/-]*$/.test(fixed) && fixed.indexOf('//') < 0) {
+      location.replace(root + fixed + location.search + location.hash);
+      return;
+    }
+    var links = document.querySelectorAll('a[data-p]');
+    for (var i = 0; i < links.length; i++) links[i].href = root + links[i].getAttribute('data-p');
+    var ico = document.createElement('link');
+    ico.rel = 'icon'; ico.type = 'image/svg+xml'; ico.href = root + 'assets/icon.svg';
+    document.head.appendChild(ico);
+  })();
+  </script>
 </body>
 </html>

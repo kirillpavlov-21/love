@@ -2,3 +2,6 @@
 .DS_Store
 _import/
 .work/
+pipeline/node_modules/
+.pipeline-data/
+pipeline-report.md

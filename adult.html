@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="ru" data-mode="guys">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Места 18+ — Куда идём?</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Стриптиз-клубы, мужской стриптиз и бурлеск-шоу в Москве. Только для взрослых.">
+  <meta name="theme-color" content="#0F0E13">
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/icon-180.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="assets/hub.css?v=28">
+</head>
+<body>
+  <header class="top">
+    <a class="logo" href="start.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/></svg>Куда идём?</a>
+    <span class="top-r"><a class="mini" href="start.html" id="backHome">На главную</a></span>
+  </header>
+
+  <!-- Список показываем только после подтверждения возраста -->
+  <main class="block hidden" id="adultMain" aria-labelledby="adultTitle">
+    <div class="block-head">
+      <h1 class="page-h1" id="adultTitle">Места 18+ <span class="count" id="acount"></span></h1>
+    </div>
+    <p class="block-note">Стриптиз-клубы, мужской стриптиз и бурлеск-шоу в Москве. Только для взрослых: перед походом проверь условия входа и дресс-код.</p>
+    <div class="filters" id="afilters" role="group" aria-label="Разделы 18+"></div>
+    <div class="plist" id="alist"></div>
+  </main>
+
+  <footer class="foot">
+    <nav class="foot-links" aria-label="Ссылки"><a href="start.html">Главная</a><a href="privacy.html">Конфиденциальность</a></nav>
+    Часы работы и адреса лучше уточнить в Яндекс Картах перед выходом.
+  </footer>
+
+  <div class="sheet-bg hidden" id="sheetBg"><div class="psheet" id="sheet" role="dialog" aria-modal="true" aria-label="Карточка места"></div></div>
+  <div class="sheet-bg hidden" id="ageBg"><div class="psheet age" role="dialog" aria-modal="true" aria-labelledby="ageTitle" aria-describedby="ageText">
+    <div class="age-ic" aria-hidden="true">18+</div>
+    <h2 class="age-h" id="ageTitle" tabindex="-1">Тебе уже есть 18 лет?</h2>
+    <p class="muted" id="ageText">Дальше — места только для взрослых.</p>
+    <div class="row" style="width:100%"><button class="btn ghost" id="ageNo" type="button">Нет</button><button class="btn primary" id="ageYes" type="button">Да, мне 18+</button></div>
+  </div></div>
+  <noscript><p class="block-note" style="text-align:center">Для этой страницы нужен JavaScript.</p></noscript>
+
+  <script src="config.js?v=28"></script>
+  <script src="assets/shared.js?v=28"></script>
+  <script src="assets/places.js?v=28"></script>
+  <script src="assets/auto.js?v=28"></script>
+  <script src="assets/photos.js?v=28"></script>
+  <script>
+  /* Места 18+: отдельная страница (noindex), ссылка — только в подвале главной.
+     Сначала подтверждение возраста (запоминается до закрытия вкладки), потом список с разделами.
+     Ни в журнал действий, ни в Метрику эти места не попадают. */
+  (function () {
+    'use strict';
+    var K = window.DateKit, D = K.kuda();
+    var $ = function (s) { return document.querySelector(s); };
+    var esc = K.esc, I = K.icon;
+    var LABEL = { strip: 'Стриптиз', men: 'Мужской стриптиз', show: 'Бурлеск' };
+    var ORDER = ['strip', 'men', 'show'];
+    // раздел по умолчанию — по поводу, с которым пришли с главной: подружки — мужской стриптиз, свидание — бурлеск
+    var BY_MODE = { guys: 'strip', girls: 'men', date: 'show' };
+    var qs = new URLSearchParams(location.search);
+    var mode = Object.prototype.hasOwnProperty.call(BY_MODE, qs.get('m') || '') ? qs.get('m') : 'guys';   // только свои ключи: ?m=constructor — не режим
+    document.documentElement.dataset.mode = mode;
+    var ADULT = (D.adult || []).map(function (id) { var p = K.placeById(id); return p && p.adult ? Object.assign({ id: id }, p) : null; }).filter(Boolean);
+    var cats = ORDER.filter(function (c) { return ADULT.some(function (p) { return p.a18 === c; }); });
+    var cat = qs.get('cat') && cats.indexOf(qs.get('cat')) >= 0 ? qs.get('cat') : cats.indexOf(BY_MODE[mode]) >= 0 ? BY_MODE[mode] : cats[0];
+    var plural = function (n, one, few, many) { var a = Math.abs(n) % 100, b = a % 10; return a > 10 && a < 20 ? many : b === 1 ? one : b >= 2 && b <= 4 ? few : many; };
+    var CV = { strip: 'cv-bar', men: 'cv-books', show: 'cv-culture' };
+    var tile = function (p) {
+      var ph = K.photo(p);
+      return ph ? '<span class="pl-emo ph" aria-hidden="true"><img src="' + esc(ph.t) + '" alt="" loading="lazy" decoding="async"></span>'
+        : '<span class="pl-emo cover ' + (CV[p.a18] || 'cv-bar') + '" aria-hidden="true">' + esc(p.emoji) + '</span>';
+    };
+    var price = function (n) { return '<span class="price" title="' + esc(K.priceHint(n)) + '">' + K.priceText(n) + '</span>'; };
+
+    function render() {
+      var list = ADULT.filter(function (p) { return p.a18 === cat; });
+      $('#acount').textContent = ADULT.length + ' ' + plural(ADULT.length, 'место', 'места', 'мест');
+      $('#afilters').innerHTML = cats.map(function (c) {
+        var n = ADULT.filter(function (p) { return p.a18 === c; }).length;
+        return '<button type="button" data-ac="' + c + '" class="' + (c === cat ? 'on' : '') + '" aria-pressed="' + (c === cat) + '">' + LABEL[c] + ' · ' + n + '</button>';
+      }).join('');
+      $('#alist').innerHTML = list.map(function (p) {
+        return '<button type="button" class="pl-item" data-pid="' + esc(p.id) + '">' + tile(p) +
+          '<span class="pl-main"><span class="pl-name"><span class="nm">' + esc(p.name) + '</span></span><span class="pl-sub">' + esc(K.metroText(p.metro)) + ' · ' + esc(String(p.kind).replace(' · 18+', '')) + '</span></span>' +
+          price(p.price) + '</button>';
+      }).join('') || '<p class="pl-empty">В этом разделе пока пусто.</p>';
+    }
+
+    /* «Вперёд» на запись карточки, которую закрыли «Назад», — открываем её снова */
+    var SH = K.sheet($('#sheetBg'), $('#sheet'), { onForward: function () {
+      if ($('#adultMain').classList.contains('hidden')) return;
+      var id = new URLSearchParams(location.search).get('place');
+      if (!id || !openPlace(id, true)) { try { history.replaceState(null, '', listUrl()); } catch (e) { /* ок */ } }
+    } });
+    /* adopt — занять текущую запись истории (перезагрузка с открытой карточкой, «Вперёд»), а не добавлять новую */
+    function openPlace(id, adopt) {
+      var p = ADULT.filter(function (x) { return x.id === id; })[0];
+      if (!p) return false;
+      var ph = K.photo(p);
+      SH.open(
+        (ph ? '<figure class="hero-ph"><img src="' + esc(ph.s) + '" alt="' + esc(p.name) + '" decoding="async"><figcaption>' + K.photoCredit(ph) + '</figcaption></figure>'
+          : '<div class="hero-cv cover ' + (CV[p.a18] || 'cv-bar') + '" aria-hidden="true"><span class="cv-e">' + esc(p.emoji) + '</span><span class="cv-k">18+</span></div>') +
+        '<p class="eyebrow">' + esc(String(p.kind).replace(' · 18+', '')) + ' · 18+ · <span title="' + esc(K.priceHint(p.price)) + '">' + K.priceText(p.price) + '</span></p>' +
+        '<div class="ttl-row"><h3>' + esc(p.name) + '</h3></div>' +
+        '<p class="why">' + esc(p.note) + '</p>' +
+        '<div class="stop solo"><span class="k">' + esc(K.metroText(p.metro)) + '</span><span class="addr">' + esc(p.addr) + '</span>' +
+        '<a class="ya-link" href="' + K.mapUrl(p) + '" target="_blank" rel="noopener"><span class="ya-ic" aria-hidden="true">' + I('photo') + '</span><span><b>Фото, часы и отзывы</b><small>в Яндекс Картах</small></span>' + I('ext') + '</a></div>' +
+        '<div class="sheet-actions"><a class="btn primary wide" href="' + K.routeUrl([p]) + '" target="_blank" rel="noopener">' + I('route') + 'Как добраться</a></div>',
+        { url: '?m=' + mode + '&cat=' + cat + '&place=' + encodeURIComponent(p.id), adopt: !!adopt });
+      return true;
+    }
+    var listUrl = function () { return '?m=' + mode + '&cat=' + cat; };
+    var ownEntry = function () { return !!(history.state && history.state.kudaSheet); };
+
+    function start() {
+      $('#adultMain').classList.remove('hidden');
+      render();
+      var id = qs.get('place'), restoring = ownEntry();
+      // своя запись истории у списка — без place; у карточки — своя (при перезагрузке с открытой карточкой она уже есть)
+      if (!restoring) { try { history.replaceState(null, '', listUrl()); } catch (e) { /* ок */ } }
+      if (id && openPlace(id, restoring)) return;
+      if (restoring) { try { history.replaceState(null, '', listUrl()); } catch (e) { /* ок */ } }
+    }
+    $('#afilters').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-ac]');
+      if (!b || b.dataset.ac === cat) return;
+      cat = b.dataset.ac;
+      render();
+      try { history.replaceState(history.state, '', listUrl()); } catch (er) { /* ок */ }
+    });
+    $('#alist').addEventListener('click', function (e) {
+      var b = e.target.closest('.pl-item[data-pid]');
+      if (b) openPlace(b.dataset.pid);
+    });
+    $('#backHome').href = 'start.html?m=' + mode;
+
+    /* Подтверждение возраста: «Да» — до закрытия вкладки, «Нет» — обратно на главную */
+    var ok = false;
+    try { ok = sessionStorage.getItem('kuda-18') === '1'; } catch (e) { /* приватный режим */ }
+    if (ok) { start(); return; }
+    var gate = $('#ageBg');
+    gate.classList.remove('hidden');
+    document.documentElement.classList.add('sheet-lock');
+    $('#ageTitle').focus({ preventScroll: true });
+    gate.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') { e.preventDefault(); location.replace('start.html?m=' + mode); return; }
+      if (e.key !== 'Tab') return;
+      // в окне две кнопки: Tab и Shift+Tab переключают между ними
+      e.preventDefault();
+      (document.activeElement === $('#ageNo') ? $('#ageYes') : $('#ageNo')).focus();
+    });
+    $('#ageNo').onclick = function () { location.replace('start.html?m=' + mode); };
+    $('#ageYes').onclick = function () {
+      try { sessionStorage.setItem('kuda-18', '1'); } catch (e) { /* ок */ }
+      gate.classList.add('hidden');
+      document.documentElement.classList.remove('sheet-lock');
+      start();
+      var h = $('#adultTitle');
+      h.setAttribute('tabindex', '-1');
+      h.focus({ preventScroll: true });
+    };
+  })();
+  </script>
+</body>
+</html>

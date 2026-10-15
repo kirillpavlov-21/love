@@ -1,0 +1,18 @@
+{
+  "name": "kuda-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Бэкенд «Куда идём?»: голоса компании, ответы на приглашения, отзывы и рейтинги, короткие ссылки",
+  "engines": {
+    "node": ">=22.5"
+  },
+  "main": "server.mjs",
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning server.mjs",
+    "test": "node --disable-warning=ExperimentalWarning --test \"test/*.test.mjs\""
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "3.1144.0",
+    "@aws-sdk/lib-dynamodb": "3.1144.0"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "kuda-pipeline",
+  "private": true,
+  "type": "module",
+  "description": "Автообновление каталога: новые и закрывшиеся места, события и подборки из источников → Pull Request",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node run.mjs",
+    "test": "node --test \"test/*.test.mjs\""
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.134.0",
+    "node-html-parser": "^6.1.13",
+    "sharp": "^0.33.5"
+  }
+}

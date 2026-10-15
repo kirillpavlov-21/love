@@ -3,8 +3,11 @@
    ─ Модель — логистическая регрессия по признакам мест и планов (категория, подсказки, округ, цена,
      время дня, теги). Учится онлайн: открыл/сохранил/позвал — положительный пример, карточку видел
      и пролистал — слабый отрицательный. По весам ранжируем блок «Для тебя».
+     Сильные действия (сохранить, позвать, поделиться, маршрут) по одному месту или плану учитываются
+     один раз — повторное сохранение и снятие не «накачивают» модель; открытие — раз в день.
    ─ Яндекс Метрика (если задан счётчик в config.js) подключается только после согласия на аналитику:
-     туда уходят те же события без имён и текстов приглашений — для обучения моделей на сервере. */
+     туда уходят те же события без имён и текстов приглашений. Отзыв согласия выключает счётчик сразу,
+     в этой же вкладке, и стирает его cookie. */
 (function () {
   'use strict';
 
@@ -14,13 +17,14 @@
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* приватный режим */ } },
     del(k) { try { localStorage.removeItem(k); } catch (e) { /* ок */ } },
   };
-  const K_LOG = 'kuda-events', K_MODEL = 'kuda-model', K_FAV = 'kuda-fav', K_CONSENT = 'kuda-consent';
+  const K_LOG = 'kuda-events', K_MODEL = 'kuda-model', K_FAV = 'kuda-fav', K_CONSENT = 'kuda-consent', K_ONCE = 'kuda-learned';
   const MAX_LOG = 400;
+  const today = () => Math.floor(Date.now() / 864e5);
 
   /* ---------- признаки ---------- */
   const K = () => window.DateKit;
-  /* Категория места: у старых мест её нет в данных — главная передаёт свою функцию (по типу места) */
-  let catOf = p => p.cat || p.c || 'food';
+  /* Категория места: по умолчанию — из shared.js (поле cat или тип места) */
+  let catOf = p => K().catOf(p);
   const setCat = fn => { catOf = fn; };
   function placeFeats(p) {
     if (!p) return [];
@@ -58,22 +62,58 @@
 
   /* Сколько «весит» действие как положительный пример */
   const POS = { open_plan: 1, open_place: 0.8, fav: 2, route: 1.5, share: 1.5, create: 2.5, invite: 3 };
+  /* Учим один раз на место или план: сильные действия — навсегда, открытия — раз в день */
+  const DAILY = { open_plan: 1, open_place: 1 };
+  function firstTime(type, kind, id) {
+    const once = LS.get(K_ONCE, {}), k = type + ':' + kind + ':' + id, d = today();
+    if (once[k] != null && (!DAILY[type] || once[k] === d)) return false;
+    once[k] = d;
+    const keys = Object.keys(once);
+    if (keys.length > 800) keys.slice(0, keys.length - 800).forEach(x => delete once[x]);
+    LS.set(K_ONCE, once);
+    return true;
+  }
 
   /* ---------- аналитика ---------- */
   let ym = null;
+  const metrikaId = () => String((CFG.analytics && CFG.analytics.metrikaId) || '');
   function consent() { return LS.get(K_CONSENT, null); }
-  function setConsent(v) { LS.set(K_CONSENT, v); if (v === 'all') loadMetrika(); }
+  function setConsent(v) {
+    const was = consent();
+    LS.set(K_CONSENT, v);
+    if (v === 'all') loadMetrika();
+    else if (was === 'all' || ym) stopMetrika();
+  }
   function loadMetrika() {
-    const id = CFG.analytics && CFG.analytics.metrikaId;
+    const id = metrikaId();
     if (!id || ym || consent() !== 'all') return;
+    window['disableYaCounter' + id] = false;
     /* официальный код счётчика Яндекс Метрики */
-    (function (m, e, t, r, i, k, a) {
+    if (!window.ym) (function (m, e, t, r, i, k, a) {
       m[i] = m[i] || function () { (m[i].a = m[i].a || []).push(arguments); };
       m[i].l = 1 * new Date();
       k = e.createElement(t); a = e.getElementsByTagName(t)[0]; k.async = 1; k.src = r; a.parentNode.insertBefore(k, a);
     })(window, document, 'script', 'https://mc.yandex.ru/metrika/tag.js', 'ym');
-    window.ym(id, 'init', { clickmap: true, trackLinks: true, accurateTrackBounce: true, webvisor: false });
+    /* Без автоматического хита и без отслеживания ссылок: в #… приглашения зашиты имена и тексты,
+       а в ссылках календаря — имена. Хит отправляем сами, адрес — без # */
+    window.ym(id, 'init', { defer: true, clickmap: true, trackLinks: false, accurateTrackBounce: true, webvisor: false });
+    window.ym(id, 'hit', location.origin + location.pathname + location.search, { referer: document.referrer.split('#')[0] });
     ym = (...a) => window.ym(id, ...a);
+  }
+  /* Согласие отозвали: больше ничего не отправляем, отключаем уже загруженный счётчик
+     (официальный флаг disableYaCounter<номер>) и стираем его cookie и записи в хранилище */
+  function stopMetrika() {
+    ym = null;
+    const id = metrikaId();
+    if (id) window['disableYaCounter' + id] = true;
+    try {
+      document.cookie.split(';').map(c => c.split('=')[0].trim()).filter(n => /^_ym/.test(n)).forEach(n => {
+        [location.hostname, '.' + location.hostname.split('.').slice(-2).join('.'), ''].forEach(d => {
+          document.cookie = n + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/' + (d ? '; domain=' + d : '');
+        });
+      });
+      Object.keys(localStorage).filter(k => /^_ym/.test(k)).forEach(k => localStorage.removeItem(k));
+    } catch (e) { /* ок */ }
   }
 
   /* ---------- события ---------- */
@@ -83,13 +123,22 @@
     log.push(Object.assign({ t: type, ts: Date.now() }, data));
     if (log.length > MAX_LOG) log.splice(0, log.length - MAX_LOG);
     LS.set(K_LOG, log);
-    if (data.kind && data.id && POS[type]) learn(featsOf(data.kind, data.id), 1, POS[type]);
+    if (data.kind && data.id && POS[type] && firstTime(type, data.kind, data.id)) learn(featsOf(data.kind, data.id), 1, POS[type]);
     if (ym) ym('reachGoal', type, { kind: data.kind, id: data.id, mode: data.mode, v: data.v });
   }
+  /* Приглашение из конструктора: учим модель по каждому выбранному плану или месту (p-<id места>) */
+  function invited(planIds, mode) {
+    const ids = (planIds || []).slice(0, 12);
+    ids.forEach(pid => {
+      const place = /^p-/.test(pid);
+      ev('invite', { kind: place ? 'place' : 'plan', id: place ? pid.slice(2) : pid, mode });
+    });
+    if (!ids.length) ev('invite', { mode });
+  }
   /* Карточка была на экране ≥ 1,5 с, а её не открыли — слабый отрицательный пример (не чаще раза в сутки) */
-  const seenNeg = LS.get('kuda-neg', {});
+  let seenNeg = LS.get('kuda-neg', {});
   function skipped(kind, id) {
-    const k = kind + ':' + id, day = Math.floor(Date.now() / 864e5);
+    const k = kind + ':' + id, day = today();
     if (seenNeg[k] === day) return;
     seenNeg[k] = day; LS.set('kuda-neg', seenNeg);
     learn(featsOf(kind, id), 0, 0.3);
@@ -123,8 +172,9 @@
   function topLikes(n) {
     return Object.entries(M.w).filter(([f, w]) => w > 0.15 && FEAT_NAME[f]).sort((a, b) => b[1] - a[1]).slice(0, n).map(([f]) => FEAT_NAME[f]);
   }
-  function reset() { [K_LOG, K_MODEL, 'kuda-neg'].forEach(LS.del); M = { v: 1, w: {}, b: 0, pos: 0, neg: 0 }; }
+  /* «Сбросить»: стираем журнал, модель и память о пролистанных карточках — и в хранилище, и в памяти страницы */
+  function reset() { [K_LOG, K_MODEL, K_ONCE, 'kuda-neg'].forEach(LS.del); M = { v: 1, w: {}, b: 0, pos: 0, neg: 0 }; seenNeg = {}; }
 
   if (consent() === 'all') loadMetrika();
-  window.KudaTrack = { setCat, ev, skipped, score, ready, forYou, topLikes, favs, isFav, toggleFav, consent, setConsent, reset, featsOf };
+  window.KudaTrack = { setCat, ev, invited, skipped, score, ready, forYou, topLikes, favs, isFav, toggleFav, consent, setConsent, reset, featsOf };
 })();

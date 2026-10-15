@@ -20,10 +20,13 @@
   };
 
   const isObj = v => v && typeof v === 'object' && !Array.isArray(v);
+  /* Ключи, которые из чужой ссылки (JSON) могли бы подменить прототип объекта */
+  const BAD_KEYS = ['__proto__', 'constructor', 'prototype'];
   function merge(base, over) {
     const out = Array.isArray(base) ? base.slice() : Object.assign({}, base);
     if (!isObj(over)) return out;
     for (const k of Object.keys(over)) {
+      if (BAD_KEYS.includes(k)) continue;
       const v = over[k];
       if (v === undefined) continue;
       out[k] = isObj(v) && isObj(base[k]) ? merge(base[k], v) : v;
@@ -76,7 +79,8 @@
   /* Короткие имена полей (только для ссылки) */
   const KEYS = ('her:a me:b catName:c cat:d theme:e greeting:f question:g signature:h finale:i levels:j heartsGoal:k ' +
     'noButton:l places:m placeSurprise:n placeCustom:o dates:p dateOther:q time:r food:s emoji:t title:u note:v mode:w ' +
-    'start:x days:y skipWeekdays:z list:A from:B to:C step:D def:E hearts:F letter:G place:H date:I opts:J plan:K tg:L tgu:M').split(' ').map(x => x.split(':'));
+    'start:x days:y skipWeekdays:z list:A from:B to:C step:D def:E hearts:F letter:G place:H date:I opts:J plan:K tg:L tgu:M ' +
+    'event:N').split(' ').map(x => x.split(':'));   // новые ключи — только в конец, старые буквы не переиспользуем
   const SHORT = Object.fromEntries(KEYS), LONG = Object.fromEntries(KEYS.map(([l, sh]) => [sh, l]));
   function rekey(v, map) {
     if (Array.isArray(v)) return v.map(x => rekey(x, map));
@@ -188,8 +192,8 @@
   const addDays = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
   function listDates(cfg) {
     cfg = cfg || {};
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    // «сегодня» — по Москве: свидание в Москве, а телефон может жить в другом часовом поясе
+    const today = parseYmd(todayMsk());
     let out = [];
     if (cfg.mode === 'list') {
       out = (cfg.list || []).map(parseYmd).filter(Boolean);
@@ -221,50 +225,71 @@
   /* ---------- отправка ответов ----------
      Токена на сайте нет: текст уходит посреднику (Google Apps Script),
      он пересылает его в Telegram. text/plain — чтобы браузер не делал preflight. */
-  async function relayPost(url, body) {
-    if (!url) return false;
+  /* Ответ посредника как есть: { ok, error? }; error: 'net' — нет связи, 'rate' — слишком часто, 'key' — ключ не подошёл */
+  async function relayCall(url, body) {
+    if (!url) return { ok: false, error: 'off' };
+    let r;
+    try { r = await fetch(url, { method: 'POST', body: JSON.stringify(body) }); } catch (e) { return { ok: false, error: 'net' }; }
     try {
-      const r = await fetch(url, { method: 'POST', body: JSON.stringify(body) });
       const j = await r.json();
-      return !!j.ok;
+      return j && typeof j === 'object' ? j : { ok: false, error: 'busy' };
     } catch (e) {
-      return false;
+      // вместо JSON — страница ошибки (лимит Apps Script, сбой): связь есть, сервер перегружен
+      return { ok: false, error: 'busy' };
     }
   }
-  /* id — хэш приглашения: посредник пересылает только приглашения, которые зарегистрировал владелец */
-  const relaySend = (url, text, id) => relayPost(url, { text, id: id || '' });
-  const relayRegister = (url, key, ids) => relayPost(url, { action: 'register', key, ids });
+  /* id — хэш приглашения, c — отпечаток секрета создателя из ссылки: посредник пересылает ответ,
+     только если приглашение зарегистрировал его создатель (знает секрет s, у которого этот отпечаток) */
+  const relaySend = (url, text, id, c) => relayCall(url, { text, id: id || '', c: c || '' }).then(j => !!j.ok);
+  /* Пустой ids — просто проверка ключа */
+  const relayRegister = (url, key, ids, s) => relayCall(url, { action: 'register', key, s: s || '', ids });
+  const relayTest = (url, key) => relayCall(url, { action: 'test', key });
 
   /* ---------- короткие ссылки ----------
      В чат не должны уходить километровые ссылки. По очереди пробуем:
-     1) свой сокращатель в посреднике (config.js → telegram.relayUrl, action 'short'): ссылка вида …/go.html#s=Ab3;
-     2) clck.ru (сокращатель Яндекса), если он отвечает браузеру;
-     3) если ничего не вышло — исходная ссылка. Результат запоминается на время сессии. */
+     1) свой сервер (config.js → api.url, assets/api.js): ссылка вида …/go.html#s=Ab3cD9e — данные остаются у нас;
+     2) свой сокращатель в посреднике (config.js → telegram.relayUrl, action 'short'): тоже …/go.html#s=…;
+     3) clck.ru (сокращатель Яндекса), если он отвечает браузеру;
+     4) если ничего не вышло — исходная ссылка. Результат запоминается на время сессии.
+     Каждый способ ждём ограниченное время и обрываем запрос, чтобы он не досылался в фоне. */
   const SHORT_CACHE = 'kuda-short';
   const sitePath = file => new URL(file, location.href).href.split('#')[0].split('?')[0];
-  function withTimeout(p, ms) { return Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]); }
+  function timed(f, ms) {
+    const ctl = typeof AbortController === 'function' ? new AbortController() : null;
+    let t = 0;
+    const stop = new Promise((_, rej) => { t = setTimeout(() => { if (ctl) ctl.abort(); rej(new Error('timeout')); }, ms); });
+    return Promise.race([f(ctl ? ctl.signal : undefined), stop]).then(v => { clearTimeout(t); return v; }, e => { clearTimeout(t); throw e; });
+  }
   async function shortLink(url) {
     if (!url || url.length < 60) return url;
     let cache = {};
     try { cache = JSON.parse(sessionStorage.getItem(SHORT_CACHE) || '{}'); } catch (e) { /* ок */ }
     if (cache[url]) return cache[url];
     const cfg = (window.DATE_CONFIG || {}).telegram || {};
+    const api = window.KudaAPI;
     const tries = [];
-    if (cfg.relayUrl) tries.push(async () => {
-      const r = await fetch(cfg.relayUrl, { method: 'POST', body: JSON.stringify({ action: 'short', url }) });
+    // сервер только что не ответил (например, страница сама спросила его секунду назад) — не ждём его второй раз
+    if (api && api.on && typeof api.short === 'function' && !/^(net|timeout)$/.test(api.lastError || '')) tries.push([async () => {
+      const code = await api.short(url);   // свой таймаут у api.js; ошибка — null
+      if (typeof code !== 'string' || !/^[A-Za-z0-9]{4,16}$/.test(code)) throw new Error('api');
+      return sitePath('go.html') + '#s=' + code;
+    }, 6000]);
+    // Apps Script просыпается долго — ждём его дольше
+    if (cfg.relayUrl) tries.push([async signal => {
+      const r = await fetch(cfg.relayUrl, { method: 'POST', body: JSON.stringify({ action: 'short', url }), signal });
       const j = await r.json();
       if (!j.ok || !/^[A-Za-z0-9_-]{1,16}$/.test(j.id || '')) throw new Error('relay');
       return sitePath('go.html') + '#s=' + j.id;
-    });
-    tries.push(async () => {
-      const r = await fetch('https://clck.ru/--?url=' + encodeURIComponent(url));
+    }, 7000]);
+    tries.push([async signal => {
+      const r = await fetch('https://clck.ru/--?url=' + encodeURIComponent(url), { signal });
       const t = (await r.text()).trim();
       if (!/^https:\/\/clck\.ru\/[A-Za-z0-9_-]+$/.test(t)) throw new Error('clck');
       return t;
-    });
-    for (const f of tries) {
+    }, 3500]);
+    for (const [f, ms] of tries) {
       try {
-        const short = await withTimeout(f(), 3500);
+        const short = await timed(f, ms);
         cache[url] = short;
         try { sessionStorage.setItem(SHORT_CACHE, JSON.stringify(cache)); } catch (e) { /* ок */ }
         return short;
@@ -297,24 +322,42 @@
       done: 'Отправь ссылку девочкам в чат, чтобы все отметились.',
     },
   };
-  const modeOf = inv => (MODES[inv && inv.mode] ? inv.mode : 'date');
+  // только свои ключи: mode из ссылки вроде 'constructor' или '__proto__' — это не режим
+  const modeOf = inv => { const m = inv && inv.mode; return typeof m === 'string' && Object.prototype.hasOwnProperty.call(MODES, m) ? m : 'date'; };
 
   const kuda = () => window.KUDA || { places: {}, scenarios: [], adult: [] };
-  const placeById = id => kuda().places[id] || null;
+  /* Закрытые места (closed: true — ставит assets/auto.js) нигде не показываем.
+     Только свои ключи: ?place=constructor не должен находить Object.prototype.constructor */
+  const placeById = id => {
+    const P = kuda().places;
+    const p = typeof id === 'string' && P && Object.prototype.hasOwnProperty.call(P, id) ? P[id] : null;
+    return p && typeof p === 'object' && !p.closed ? p : null;
+  };
   /* Готовый план из подборки или «план» из одного места каталога: p-<id места> */
   const planById = id => {
     const s = kuda().scenarios.find(x => x.id === id);
-    if (s) return s;
-    const p = typeof id === 'string' && id.startsWith('p-') ? kuda().places[id.slice(2)] : null;
+    if (s) return s.stops.some(x => (kuda().places[x] || {}).closed) ? null : s;
+    const p = typeof id === 'string' && id.startsWith('p-') ? placeById(id.slice(2)) : null;
     return p && !p.adult ? { id, mode: '', emoji: p.emoji, title: p.name, stops: [id.slice(2)], when: '', why: p.note, single: true } : null;
   };
   const planStops = plan => (plan ? plan.stops.map(placeById).filter(Boolean) : []);
+  /* Раздел каталога: поле cat, а у старых мест — по типу места */
+  const CAT_BY_KIND = [
+    ['pc', /компьютерн|кибер/i],
+    ['books', /книж/i], ['spa', /бан|спа|хамам|аквапарк|терм/i], ['coffee', /коф|пекар|кондитер|булоч|чайн/i],
+    ['fun', /тир|боулинг|картинг|vr|квест|скалодром|падел|стендап|бильярд|караоке|аттракц|развлеч|теплоход|студи|мастер|арт-вечер|танц|стадион|петанк/i],
+    ['culture', /музе|театр|кино|галере|планетар|концерт|дом культуры|культурн|центр|искусств|лекторий|архитектур/i],
+    ['walk', /парк|сад|набереж|усадьб|заповедник|смотров|квартал|дизайн-завод|креатив/i],
+    ['bar', /бар|паб|лаунж|винотек|крафт/i],
+  ];
+  const catOf = p => (p && (p.cat || p.c)) || ((CAT_BY_KIND.find(([, rx]) => rx.test((p && p.kind) || '')) || ['food'])[0]);
   /* ---------- подсказки к местам и планам: «красиво осенью», «для первого свидания»… ----------
      Часть подсказок выводится из данных (тип места, цена, Michelin), часть задана руками в поле hint. */
   const HINTS = {
     halloween: ['🎃', 'Тематично на Хэллоуин', 'Хэллоуин'],
     autumn: ['🍂', 'Красиво осенью', 'Осень'],
-    first: ['💘', 'Для первого свидания', 'Первое свидание'],
+    newyear: ['🎄', 'Новогоднее настроение', 'Новый год'],
+    first:['💘', 'Для первого свидания', 'Первое свидание'],
     michelin: ['⭐', 'Гид Michelin 2021', 'Michelin'],
     view: ['🏙️', 'С видом', 'С видом'],
     scenic: ['🌅', 'Живописно', 'Живописно'],
@@ -331,8 +374,31 @@
     company: /караоке|бар\b|бар |паб|бильярд|квест|картинг|боулинг|тир|стендап|клуб|бани|баня|vr|раки|фудхолл|фудмолл|кластер|теплоход|гастробар/i,
     walk: /парк|сад|набереж|улица|бульвар|мост|площадь|квартал|пруд|усадьб|лес|заказник|заповедник|некрополь|ансамбль|монастыр|озеро|акведук|бор\b/i,
   };
+  /* ---------- московское время и сезоны ----------
+     Москва живёт по UTC+3 без перехода на летнее время, поэтому дату считаем сдвигом, без Intl:
+     поля getUTC*() у mskDate() — московские. */
+  const MSK_MS = 3 * 3600e3;
+  const mskDate = d => new Date((d == null ? Date.now() : +d) + MSK_MS);
+  /* Сегодня по Москве: 'YYYY-MM-DD' (d — необязательная дата, для проверок) */
+  const todayMsk = d => { const x = mskDate(d); return x.getUTCFullYear() + '-' + pad(x.getUTCMonth() + 1) + '-' + pad(x.getUTCDate()); };
+  const mskMD = d => { const x = mskDate(d); return [x.getUTCMonth() + 1, x.getUTCDate()]; };
+  /* Сезон: зима — декабрь–февраль, весна — март–май, лето — июнь–август, осень — сентябрь–ноябрь */
+  const SEASONS = ['winter', 'winter', 'spring', 'spring', 'spring', 'summer', 'summer', 'summer', 'autumn', 'autumn', 'autumn', 'winter'];
+  const seasonNow = d => SEASONS[mskMD(d)[0] - 1];
+  /* План (или место) с полем season: ['winter', …] показываем в каталоге только в свой сезон; без поля — круглый год.
+     По прямой ссылке и в приглашениях такой план всё равно открывается. */
+  const seasonOk = (x, d) => !x || !Array.isArray(x.season) || !x.season.length || x.season.includes(seasonNow(d));
+  /* Сезонные подсказки живут только в свой срок (по Москве): 🎃 — с 1 октября по 1 ноября,
+     🎄 — с 1 декабря по 10 января, 🍂 — с сентября по ноябрь. Вне срока их нет ни в фильтрах, ни на карточках. */
+  const HINT_WHEN = {
+    halloween: (m, day) => m === 10 || (m === 11 && day === 1),
+    newyear: (m, day) => m === 12 || (m === 1 && day <= 10),
+    autumn: m => m >= 9 && m <= 11,
+  };
+  const hintLive = (k, d) => !HINT_WHEN[k] || HINT_WHEN[k].apply(null, mskMD(d));
   const HINT_CACHE = new WeakMap();
-  function placeHints(p) {
+  const placeHints = p => placeHintsAll(p).filter(k => hintLive(k));
+  function placeHintsAll(p) {
     if (!p) return [];
     if (HINT_CACHE.has(p)) return HINT_CACHE.get(p);
     const h = new Set(p.hint || []);
@@ -355,67 +421,70 @@
     if (!st.length) return [];
     const per = st.map(placeHints), h = new Set();
     (plan.tags || []).concat(plan.hint || []).forEach(t => { if (HINTS[t]) h.add(t); });
-    per.forEach(a => a.forEach(x => { if (['halloween', 'michelin', 'view', 'autumn', 'first', 'scenic', 'company'].includes(x)) h.add(x); }));
+    per.forEach(a => a.forEach(x => { if (['halloween', 'newyear', 'michelin', 'view', 'autumn', 'first', 'scenic', 'company'].includes(x)) h.add(x); }));
     if (per.every(a => a.includes('rain'))) h.add('rain');
     const top = Math.max(...st.map(p => p.price || 1));
     if (top <= 1) h.add('budget');
     if (plan.mode && plan.mode !== 'date') h.delete('first');
-    return HINT_ORDER.filter(k => h.has(k));
+    return HINT_ORDER.filter(k => h.has(k) && hintLive(k));
   }
-  /* Сезонные подсказки, которые поднимаем наверх: осень — сентябрь–ноябрь, Хэллоуин — до 1 ноября */
-  function seasonHints(d) {
-    d = d || new Date();
-    const m = d.getMonth() + 1, out = [];
-    if (m >= 9 && m <= 11) out.push('autumn');
-    if (m === 10 || (m === 11 && d.getDate() === 1)) out.push('halloween');
-    return out;
-  }
+  /* Сезонные подсказки, которые сейчас в сроке (их поднимаем наверх): 'halloween', 'newyear', 'autumn' */
+  const seasonHints = d => Object.keys(HINT_WHEN).filter(k => hintLive(k, d));
   /* form: 'icon' — только эмодзи, 'short' — короткая подпись, по умолчанию — полная */
   const hintChip = (k, form) => HINTS[k] ? `<span class="hchip h-${k}" title="${HINTS[k][1]}">${HINTS[k][0]}${form === 'icon' ? '' : ' ' + HINTS[k][form === 'short' ? 2 : 1]}</span>` : '';
 
-  /* ---------- пост о месте в Telegram-канале (поле tg: 'канал/номер') ----------
-     Фото из постов не копируем к себе: показываем сам пост официальным встраиванием Telegram
-     по нажатию. В России Telegram открывается только через VPN — тогда остаётся ссылка. */
-  const TG_CH = {
-    localshere: 'ЛОКАЛС', takayamoskva: 'такая Москва', shozhu_msk: 'Схожу, пожалуй', mcktime: 'календарь: афиша Москвы',
-    poidem_moscow: 'ПОЙДЕМ! МОСКВА', idemmsk: 'Идем Москва', vmestemoscow: 'Вместе по Москве', smotri_msk: 'Ешь, гуляй, смотри в Москве',
-  };
-  const tgOk = post => /^[A-Za-z0-9_]{4,40}\/\d{1,7}$/.test(post || '');
-  const tgUrl = post => 'https://t.me/' + post;
-  const tgName = post => TG_CH[String(post).split('/')[0]] || String(post).split('/')[0];
-  function tgEmbed(box, post) {
-    if (!box || !tgOk(post) || box._tg) return;
-    box._tg = true;
-    const f = document.createElement('iframe');
-    f.src = tgUrl(post) + '?embed=1&dark=1&userpic=false';
-    f.title = 'Пост в Telegram-канале «' + tgName(post) + '»';
-    f.loading = 'lazy';
-    f.referrerPolicy = 'no-referrer';
-    f.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox');
-    f.style.cssText = 'width:100%;min-width:0;height:420px;border:0;border-radius:14px;display:block;background:transparent';
-    let ready = false;
-    const say = (ev, data) => { try { f.contentWindow.postMessage(JSON.stringify(Object.assign({ event: ev }, data || {})), 'https://t.me'); } catch (e) { /* ок */ } };
-    const onMsg = e => {
-      if (e.source !== f.contentWindow || e.origin !== 'https://t.me') return;
-      let d = {};
-      try { d = JSON.parse(e.data); } catch (err) { /* не наш формат */ }
-      if (d.event === 'resize' && d.height) f.style.height = d.height + 'px';
-      if (d.event === 'ready') { ready = true; say('visible', { frame: 'tg-' + post.replace(/\W/g, '-') }); say('focus', { has_focus: true }); }
-    };
-    window.addEventListener('message', onMsg);
-    box.innerHTML = '';
-    box.appendChild(f);
-    setTimeout(() => {
-      if (ready || !f.isConnected) return;
-      window.removeEventListener('message', onMsg);
-      box.innerHTML = `<p class="tg-fail">Telegram не открылся — в России он работает только через VPN. <a href="${tgUrl(post)}" target="_blank" rel="noopener">Открыть пост в Telegram</a></p>`;
-    }, 9000);
+  /* ---------- афиша: события из assets/events.js и assets/auto.js (window.KUDA_EVENTS) ----------
+     Даты — строки 'YYYY-MM-DD' по Москве. Прошедшие события (end раньше сегодняшнего дня) в списки не попадают,
+     но eventById находит и их — чтобы старые приглашения на событие открывались. */
+  const RX_YMD = /^\d{4}-\d{2}-\d{2}$/;
+  const evAll = () => (Array.isArray(window.KUDA_EVENTS) ? window.KUDA_EVENTS : []).filter(e => e && e.id && e.title && RX_YMD.test(e.start || ''));
+  const evEnd = ev => (RX_YMD.test(ev.end || '') && ev.end >= ev.start ? ev.end : ev.start);
+  const eventById = id => (id ? evAll().find(e => e.id === id) || null : null);
+  const EV_MAX_DAYS = 90;   // у долгих выставок — не больше 90 дней вперёд, как в listDates
+  /* Дни события начиная с сегодняшнего (или from): явные dates либо каждый день от start до end */
+  function eventDays(ev, from) {
+    if (!ev || !RX_YMD.test(ev.start || '')) return [];
+    const first = from && RX_YMD.test(from) && from > todayMsk() ? from : todayMsk(), end = evEnd(ev);
+    if (Array.isArray(ev.dates) && ev.dates.length) {
+      return Array.from(new Set(ev.dates.filter(d => RX_YMD.test(d) && d >= first && d >= ev.start && d <= end))).sort().slice(0, EV_MAX_DAYS);
+    }
+    const out = [];
+    for (let n = Math.max(dayNum(ev.start), dayNum(first)), last = dayNum(end); n <= last && out.length < EV_MAX_DAYS; n++) out.push(numDay(n));
+    return out;
+  }
+  /* Ближайшие события: { from, to: 'YYYY-MM-DD', mode: 'date'|'guys'|'girls' } → по ближайшей дате, затем по времени */
+  function events(o) {
+    o = o || {};
+    const to = RX_YMD.test(o.to || '') ? o.to : '';
+    const cmp = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+    return evAll().map(ev => {
+      if (o.mode && Array.isArray(ev.fit) && ev.fit.length && !ev.fit.includes(o.mode)) return null;
+      const day = eventDays(ev, o.from)[0];
+      return day && (!to || day <= to) ? [ev, day] : null;
+    }).filter(Boolean)
+      .sort((a, b) => cmp(a[1], b[1]) || cmp(a[0].time || '99', b[0].time || '99') || String(a[0].title).localeCompare(String(b[0].title), 'ru'))
+      .map(x => x[0]);
   }
 
-  /* Фото места из assets/photos.js (Wikimedia Commons): { s: большое, t: превью, a: автор, l: лицензия, u: страница файла } */
+  /* Фото места из assets/photos.js: { s: большое, t: превью, a: автор, l: лицензия, u: страница файла, src?: источник (без него — Wikimedia Commons) } */
   const photo = p => (p && p.ph) || null;
   const planPhoto = plan => planStops(plan).map(photo).find(Boolean) || null;
-  const photoCredit = ph => ph ? `Фото: <a href="${esc(ph.u)}" target="_blank" rel="noopener">${esc(ph.a)}</a>, ${esc(ph.l)} · Wikimedia Commons` : '';
+  /* Подпись автора без лишнего: ссылки на соцсети и каналы, просьбы «подписывайте так-то» и хвосты длиннее 60 знаков убираем */
+  const SOC = '(?:telegram|телеграм|t\\.me|tg:|instagram|инстаграм|vk\\.com|вконтакте|youtube)';
+  const RX_SOC_BOX = new RegExp('\\s*[([][^)\\]]*' + SOC + '[^)\\]]*[)\\]]', 'gi');   // «(Telegram: канал)» целиком
+  const RX_SOC_TAIL = new RegExp('(^|\\s)' + SOC + '(?![A-Za-zА-Яа-яЁё0-9_]).*$', 'i');      // «Telegram: …» до конца строки
+  function cleanAuthor(a) {
+    const t = String(a || '').replace(/\s+/g, ' ').trim().replace(RX_SOC_BOX, '').replace(RX_SOC_TAIL, '')
+      .replace(/\s*(?:Используя|Using|При использовании|Please credit|Credit:).*$/i, '').replace(/[\s,;:–—(-]+$/, '').trim();
+    return t.length > 60 ? t.slice(0, 57).replace(/\s+\S*$/, '') + '…' : t;
+  }
+  /* Ссылка на страницу файла — только https (данные приходят и из автоматического каталога) */
+  const photoCredit = ph => {
+    if (!ph) return '';
+    const src = ph.src === 'Flickr' ? 'Flickr' : 'Wikimedia Commons';
+    const who = esc(cleanAuthor(ph.a) || 'автор на ' + (src === 'Flickr' ? 'Flickr' : 'Commons'));
+    return `Фото: ${/^https:\/\//i.test(ph.u || '') ? `<a href="${esc(ph.u)}" target="_blank" rel="noopener">${who}</a>` : who}${ph.l ? ', ' + esc(ph.l) : ''} · ${src}`;
+  };
   function distM(a, b) {
     const R = 6371000, toR = x => x * Math.PI / 180;
     const dLat = toR(b.lat - a.lat), dLon = toR(b.lon - a.lon);
@@ -424,13 +493,22 @@
   }
   const walkMin = (a, b) => Math.max(1, Math.round(distM(a, b) * 1.3 / 75));
   const priceText = n => '₽'.repeat(Math.max(1, Math.min(3, n || 1)));
+  /* Что значат ₽ — подсказка к значку цены (как в places.js) */
+  const PRICE_HINT = ['', 'до ~1 500 ₽ на человека', '~1 500–3 000 ₽ на человека', 'от ~3 000 ₽ на человека'];
+  const priceHint = n => PRICE_HINT[Math.max(1, Math.min(3, n || 1))];
+  /* Подпись станции: «м. Арбатская»; у мест в Подмосковье, где метро далеко, — МЦД или электричка:
+     «Переделкино (МЦД-4)», «Мытищи (ж/д)» → «ж/д Мытищи» */
+  const isMetro = m => !!m && !/\((ж\/д|МЦД[^)]*)\)$/.test(m);
+  const metroText = m => !m ? '' : /\(ж\/д\)$/.test(m) ? 'ж/д ' + m.replace(/\s*\(ж\/д\)$/, '') : isMetro(m) ? 'м. ' + m : m;
   const mapUrl = p => 'https://yandex.ru/maps/213/moscow/?text=' + encodeURIComponent(p.name + ', ' + p.addr);
   /* Точка маршрута: адрес с номером дома — текстом (Яндекс находит тот же дом, что и ссылка на место),
      парки, набережные и адреса без номера — координатами */
+  const MO_CITY = /^(Химки|Красногорск|Мытищи|Королёв|Балашиха|Люберцы|Реутов|Одинцово|Долгопрудный|Котельники|Видное|Лобня|Дзержинский|Лыткарино|Подольск|Щёлково|Пушкино|Ивантеевка|Фрязино|Домодедово|Жуковский|Раменское|Истра|Дмитров|Звенигород|Апрелевка|Наро-Фоминск|Сергиев Посад|Электросталь|Ногинск|Солнечногорск|Ступино|Чехов|Серпухов|Коломна|Клин|Голицыно|Нахабино|Мытищинский|Красногорский)(?=[,\s])/;
   function routePt(p) {
     const a = String(p.addr || '').replace(/\s*\([^)]*\)/g, '').trim();
     if (/\d/.test(a) && !/^(у|рядом|напротив)\s/i.test(a) && !/(^|, )Москва(,|$)/.test(a)) {
-      const city = /^(Химки|Красногорск|Мытищи|Королёв|Балашиха),/.test(a) ? 'Московская область, ' : 'Москва, ';
+      // города области: иначе Яндекс найдёт одноимённую улицу в Москве (Комсомольский просп. в Люберцах и в Хамовниках)
+      const city = /^Московская обл/.test(a) ? '' : MO_CITY.test(a) ? 'Московская область, ' : 'Москва, ';
       return encodeURIComponent(city + a);
     }
     return p.lat.toFixed(6) + ',' + p.lon.toFixed(6);
@@ -471,6 +549,194 @@
       .concat(ev.location ? ['LOCATION:' + esc1(ev.location)] : [], ev.details ? ['DESCRIPTION:' + esc1(ev.details)] : [],
         ['BEGIN:VALARM', 'TRIGGER:-PT2H', 'ACTION:DISPLAY', 'DESCRIPTION:' + esc1(ev.title), 'END:VALARM', 'END:VEVENT', 'END:VCALENDAR']).join('\r\n');
     return { google, ics: URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' })) };
+  }
+
+  /* ---------- шторка: нижний лист поверх страницы ----------
+     K.sheet(bg, box, opts) → { open(html, o) → { el, close }, close(then), isOpen() }
+     ─ «Назад» в браузере и жест «назад» на телефоне закрывают шторку, а не уводят со страницы:
+       при открытии — history.pushState, на popstate — закрыть;
+     ─ кнопка × (aria-label «Закрыть»), Esc, нажатие на фон и жест «смахнуть вниз» тоже закрывают;
+     ─ фокус уходит в шторку (на заголовок), Tab не выходит наружу, после закрытия фокус возвращается туда, откуда открыли.
+     o.url — адрес открытой шторки в строке браузера (им можно поделиться), o.onClose(how) — вызов при закрытии
+     ('close' | 'back') или когда содержимое заменили новым open ('replace'), o.label — подпись, если в html нет заголовка,
+     o.adopt — не добавлять запись в историю, а занять текущую (она уже от шторки: «Вперёд» или перезагрузка с открытой карточкой).
+     opts.onClose(how) — общий обработчик закрытия для страницы: вызывается, когда история уже вернулась назад.
+     opts.onForward() — «Вперёд» (или «Назад») привёл на запись шторки, а шторка закрыта: страница может открыть её снова.
+     Наши собственные шаги назад (закрытие крестиком, Esc, фоном) сюда не попадают.
+     close(then): then вызовется тогда же — после этого можно прокручивать страницу и менять адрес
+     (иначе браузер вернёт прокрутку, сохранённую в истории, а адрес достанется записи шторки). */
+  function sheet(bg, box, opts) {
+    opts = opts || {};
+    const FOC = 'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), summary, [tabindex]:not([tabindex="-1"])';
+    // skip — сколько наших history.back() ещё не вернулись; pend — шторку открыли, пока история возвращалась:
+    // её запись добавим, когда возврат закончится (иначе она встанет не на своё место и «Назад» уведёт со страницы)
+    let open = false, pushed = false, skip = 0, pend = null, back = null, own = null, waits = [], waitT = 0, drag = null, outT = 0;
+    const html = document.documentElement;
+    const isOurs = st => !!(st && st.kudaSheet);
+    function push(url) {
+      try {
+        if (url) history.pushState({ kudaSheet: 1 }, '', url);
+        else history.pushState({ kudaSheet: 1 }, '');
+        pushed = true;
+      } catch (e) { pushed = false; }
+    }
+    function flush() {
+      clearTimeout(waitT);
+      waitT = 0;
+      const w = waits;
+      waits = [];
+      w.forEach(f => { try { f(); } catch (e) { /* ок */ } });
+    }
+    const call = (f, how) => { if (f) try { f(how); } catch (e) { /* ок */ } };
+    const unslide = () => { clearTimeout(outT); box.style.transition = ''; box.style.transform = ''; };
+    function show(content, o) {
+      o = o || {};
+      const prev = own;
+      own = typeof o.onClose === 'function' ? o.onClose : null;
+      if (open) call(prev, 'replace');
+      drag = null;
+      unslide();
+      box.innerHTML = `<div class="sheet-bar"><span class="grab" aria-hidden="true"></span><button type="button" class="sheet-x" data-sheet-close aria-label="Закрыть">${icon('x')}</button></div>` + content;
+      if (!open) {
+        back = document.activeElement;
+        open = true;
+        pushed = false;
+        pend = null;
+        // сначала запись в истории (браузер запомнит прокрутку страницы), потом блокировка прокрутки
+        if (skip) pend = { url: o.url || '' };
+        else if (o.adopt && isOurs(history.state)) {
+          try { if (o.url) history.replaceState(history.state, '', o.url); pushed = true; } catch (e) { pushed = false; }
+        } else push(o.url);
+        html.classList.add('sheet-lock');
+        document.body.classList.add('sheet-open');
+        bg.classList.remove('hidden');
+      } else if (o.url) {
+        if (pend) pend.url = o.url;
+        else if (pushed) { try { history.replaceState({ kudaSheet: 1 }, '', o.url); } catch (e) { /* ок */ } }
+      }
+      box.scrollTop = 0;
+      const h = box.querySelector('h1, h2, h3');
+      if (h) {
+        if (!h.id) h.id = (box.id || 'sheet') + '-title';
+        box.setAttribute('aria-labelledby', h.id);
+        box.removeAttribute('aria-label');
+      } else {
+        box.removeAttribute('aria-labelledby');
+        box.setAttribute('aria-label', o.label || 'Карточка');
+      }
+      if (o.focus !== false) {
+        const f = h || box.querySelector('[data-sheet-close]');
+        if (f === h && !h.hasAttribute('tabindex')) h.setAttribute('tabindex', '-1');
+        try { f.focus({ preventScroll: true }); } catch (e) { /* ок */ }
+      }
+      return { el: box, close: hide };
+    }
+    function finish(how) {
+      if (!open) return;
+      open = false;
+      drag = null;
+      bg.classList.add('hidden');
+      unslide();
+      html.classList.remove('sheet-lock');
+      document.body.classList.remove('sheet-open');
+      const cb = own;
+      own = null;
+      call(cb, how);
+      // обработчик страницы — первым из ожидающих: когда история вернулась (или сразу, если записи не было)
+      if (opts.onClose) waits.unshift(() => opts.onClose(how));
+      const b = back;
+      back = null;
+      if (b && b !== document.body && b.isConnected && typeof b.focus === 'function') { try { b.focus({ preventScroll: true }); } catch (e) { /* ок */ } }
+    }
+    // браузер восстанавливает прокрутку записи уже после popstate: ждущих зовём следующей задачей,
+    // иначе их прокрутку (к местам, к подборке, к афише) он тут же перебьёт
+    const later = () => { clearTimeout(waitT); waitT = setTimeout(flush, 0); };
+    // наши шаги назад закончились: шторке, открытой за это время, — своя запись; потом ждущие
+    function settle() {
+      skip = 0;
+      if (pend && open) push(pend.url);
+      pend = null;
+      later();
+    }
+    function hide(then) {
+      if (typeof then === 'function') waits.push(then);
+      // шторку уже закрыли, а история ещё возвращается назад — then дождётся её вместе с остальными
+      if (!open) { if (!skip) flush(); return; }
+      const viaHistory = pushed && isOurs(history.state);
+      pushed = false;
+      pend = null;
+      finish('close');
+      if (viaHistory) {
+        skip++;
+        history.back();
+        // popstate почти всегда приходит раньше; это страховка (и счётчик не залипает — иначе пропустим настоящий «Назад»)
+        clearTimeout(waitT);
+        waitT = setTimeout(settle, 700);
+      } else if (!skip) flush();
+      // иначе история ещё возвращается после прошлой шторки — ждущие дождутся её (settle)
+    }
+    addEventListener('popstate', () => {
+      if (skip) { if (--skip === 0) settle(); return; }
+      if (open) { pushed = false; pend = null; finish('back'); later(); return; }
+      if (isOurs(history.state) && typeof opts.onForward === 'function') { try { opts.onForward(); } catch (e) { /* ок */ } }
+    });
+    bg.addEventListener('click', e => { if (e.target === bg) hide(); });
+    box.addEventListener('click', e => { if (e.target.closest('[data-sheet-close]')) hide(); });
+    document.addEventListener('keydown', e => {
+      if (!open || e.defaultPrevented) return;
+      // поверх шторки открыт другой диалог (например, фото) — он сам разбирается с клавишами
+      const top = e.target && e.target.closest ? e.target.closest('[aria-modal="true"]') : null;
+      if (top && top !== box) return;
+      if (e.key === 'Escape' && opts.esc !== false) { e.preventDefault(); hide(); return; }
+      if (e.key !== 'Tab') return;
+      const f = Array.from(box.querySelectorAll(FOC)).filter(x => !x.closest('[hidden], .hidden') && x.getClientRects().length);
+      if (!f.length) return;
+      const a = document.activeElement, first = f[0], last = f[f.length - 1];
+      if (!box.contains(a)) { e.preventDefault(); first.focus(); }
+      else if (e.shiftKey && a === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && a === last) { e.preventDefault(); first.focus(); }
+    });
+    /* Смахнуть вниз: шторка прокручена к самому верху — тянем её пальцем; отпустили ниже порога или быстрым
+       движением — закрываем, иначе она возвращается на место. Горизонтальные ленты и поля ввода не трогаем. */
+    box.addEventListener('touchstart', e => {
+      drag = null;
+      if (!open || e.touches.length !== 1 || box.scrollTop > 0) return;
+      if (e.target.closest && e.target.closest('input, textarea, select, [contenteditable="true"]')) return;
+      // палец во внутреннем списке, который прокручен вниз (станции метро и т. п.), — тянем список, а не шторку
+      for (let n = e.target; n && n !== box && n.nodeType === 1; n = n.parentNode) if (n.scrollTop > 0) return;
+      const t = e.touches[0];
+      drag = { x: t.clientX, y: t.clientY, dy: 0, t: Date.now(), on: false };
+    }, { passive: true });
+    box.addEventListener('touchmove', e => {
+      if (!drag) return;
+      const t = e.touches[0], dx = t.clientX - drag.x, dy = t.clientY - drag.y;
+      if (!drag.on) {
+        if (Math.abs(dx) < 4 && Math.abs(dy) < 4) return;
+        if (dy <= 0 || Math.abs(dx) > dy || box.scrollTop > 0) { drag = null; return; }   // вверх или вбок — обычная прокрутка
+        drag.on = true;
+        box.style.transition = 'none';
+      }
+      drag.dy = Math.max(0, dy);
+      box.style.transform = 'translateY(' + drag.dy + 'px)';
+      if (e.cancelable) e.preventDefault();
+    }, { passive: false });
+    const endDrag = () => {
+      const d = drag;
+      drag = null;
+      if (!d || !d.on || !open) return;
+      const fast = d.dy > 40 && d.dy / Math.max(1, Date.now() - d.t) > 0.6;
+      box.style.transition = 'transform .2s ease';
+      if (fast || d.dy > Math.min(150, box.offsetHeight * 0.3)) {
+        box.style.transform = 'translateY(100%)';
+        outT = setTimeout(() => hide(), 170);
+      } else {
+        box.style.transform = '';
+        outT = setTimeout(() => { box.style.transition = ''; }, 220);
+      }
+    };
+    box.addEventListener('touchend', endDrag);
+    box.addEventListener('touchcancel', endDrag);
+    return { open: show, close: hide, isOpen: () => open, el: box };
   }
 
   /* ---------- котик ---------- */
@@ -519,6 +785,9 @@
     flag: '<path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/>',
     photo: '<rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="12" cy="12" r="3.5"/><path d="M8 5l1.5-2h5L16 5"/>',
     users: '<circle cx="9" cy="8" r="3.5"/><path d="M3 20a6 6 0 0 1 12 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7"/><path d="M21 20a6 6 0 0 0-4-5.6"/>',
+    inbox: '<path d="M3 13l2.6-7.2A2 2 0 0 1 7.5 4.5h9a2 2 0 0 1 1.9 1.3L21 13"/><path d="M3 13v5a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5h-5l-1.5 2.5h-5L8 13z"/>',
+    wallet: '<path d="M4 7.5V7a3 3 0 0 1 3-3h10"/><rect x="3" y="7.5" width="18" height="12.5" rx="3"/><path d="M16 13.75h2"/>',
+    bolt: '<path d="M13 2.5L4.5 13.5H11l-1 8 8.5-11H12z"/>',
   };
   const icon = (name, cls) => `<svg class="ic${cls ? ' ' + cls : ''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name] || ''}</svg>`;
   const MODE_ICON = { date: 'heart', guys: 'mug', girls: 'sparkle' };
@@ -599,9 +868,11 @@
 
   window.DateKit = {
     BASE, merge, defaults, diffInvite, encodeInvite, decodeInvite, encodeData, decodeData, readHash, esc, fill, hash,
-    ymd, parseYmd, addDays, listDates, fmtDay, dayNum, numDay, toMin, fromMin, relaySend, relayRegister, shortLink, goRoute, sitePath,
+    ymd, parseYmd, addDays, listDates, fmtDay, dayNum, numDay, toMin, fromMin, relaySend, relayRegister, relayTest, shortLink, goRoute, sitePath, toB64url,
     CATS, catVars, catSVG, HEART_D, STAR_D, markD, ICONS, icon, MODE_ICON, tgUser, tgLink, calendarLinks,
-    MODES, modeOf, kuda, placeById, planById, planStops, photo, planPhoto, photoCredit, HINTS, placeHints, planHints, hintChip, seasonHints, tgOk, tgUrl, tgName, tgEmbed, distM, walkMin, priceText, mapUrl, routeUrl,
+    MODES, modeOf, kuda, placeById, planById, planStops, catOf, photo, planPhoto, photoCredit, cleanAuthor, HINTS, placeHints, planHints, hintChip, seasonHints,
+    todayMsk, seasonNow, seasonOk, eventById, events, eventDays, sheet,
+    distM, walkMin, priceText, priceHint, isMetro, metroText, mapUrl, routeUrl,
     THEMES: ['pink', 'lavender', 'peach', 'mint', 'sport'],
   };
 })();

@@ -1,0 +1,194 @@
+/* Афиша: вкладка, лента «Ближайшие события», карточка события.
+   Цвета и шрифты — токены «Ночного города» из hub.css; запасные значения — для страниц без них. */
+.af {
+  --af-s1: var(--surface, #1A1920); --af-s2: var(--surface-2, #22212A); --af-s3: var(--surface-3, #2A2932);
+  --af-l1: var(--line-1, rgba(244, 241, 234, .08)); --af-l2: var(--line-2, rgba(244, 241, 234, .16));
+  --af-tx: var(--text, #F4F1EA); --af-mu: var(--muted, #A39EAE); --af-mu2: var(--muted-2, #C9C5D2);
+  --af-ac: var(--accent, #FF6F91); --af-on: var(--on-accent, #1C0A10);
+  --af-disp: var(--display, 'Unbounded', 'Arial Black', system-ui, sans-serif); --af-body: var(--body, 'Onest', system-ui, -apple-system, 'Segoe UI', sans-serif);
+  color: var(--af-tx); font-family: var(--af-body);
+}
+.af-host[hidden], .af [hidden] { display: none !important; }
+.af .ic { width: 18px; height: 18px; flex: none; }
+.af-item, .af-card, .af-btn, .af-chip { position: relative; }
+.af-vh { position: absolute !important; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.af-dim { display: block; margin-top: 3px; color: var(--af-mu); font-size: 13px; font-weight: 400; line-height: 1.45; }
+.af ul { margin: 0; padding: 0; list-style: none; }
+
+/* обложка: эмодзи на подложке цвета жанра (картинок у событий нет) */
+.afc-concert { background: linear-gradient(135deg, #4B2479, #D9416B); }
+.afc-theatre { background: linear-gradient(135deg, #5E1624, #C4543C); }
+.afc-exhibition { background: linear-gradient(135deg, #17505B, #3FA197); }
+.afc-standup { background: linear-gradient(135deg, #6E4500, #E39A1B); }
+.afc-festival { background: linear-gradient(135deg, #9A3550, #EE8A3A); }
+.afc-sport { background: linear-gradient(135deg, #17552F, #4CB36A); }
+.afc-show { background: linear-gradient(135deg, #30237A, #9566E8); }
+.afc-party { background: linear-gradient(135deg, #34196C, #E2449A); }
+.afc-lecture { background: linear-gradient(135deg, #1B3779, #4A85E8); }
+.afc-kids { background: linear-gradient(135deg, #7A5A12, #E6BD45); }
+.afc-other { background: linear-gradient(135deg, #2A2932, #45434F); }
+
+/* метки: цена, возраст, «скоро закроется» */
+.af-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.af-tags:empty { display: none; }
+.af-tag { display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 99px; background: var(--af-s2); color: #DCD8E3; font: 600 12px/1 var(--af-body); white-space: nowrap; }
+.af-tag.af-free { background: rgba(155, 227, 180, .14); color: #9BE3B4; }
+.af-tag.af-age { background: transparent; border: 1px solid var(--af-l2); color: var(--af-mu2); }
+.af-tag.af-a18 { background: #3A1420; border-color: transparent; color: #FFB3C4; }
+.af-tag.af-soon { background: rgba(245, 196, 81, .16); color: #F5C451; }
+
+.af-mini { display: inline-flex; align-items: center; gap: 6px; flex: none; min-height: 36px; padding: 0 12px; border-radius: 99px; border: 1px solid var(--af-l2); background: transparent; color: var(--af-tx); font: 600 13px var(--af-body); cursor: pointer; white-space: nowrap; }
+.af-mini .ic { width: 16px; height: 16px; color: var(--af-ac); }
+.af-mini:active { transform: scale(.96); }
+.af-link { padding: 0; margin-top: 6px; border: 0; background: none; color: var(--af-ac); font: 600 13px var(--af-body); text-align: left; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+
+/* кнопки карточки */
+.af-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 0; min-height: 52px; padding: 0 18px; border-radius: 16px; border: 0; font: 700 16px var(--af-body); text-decoration: none; cursor: pointer; transition: transform .15s; }
+.af-btn > span:not(.af-vh) { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.af-btn:active { transform: scale(.97); }
+.af-btn.af-primary { background: var(--af-ac); color: var(--af-on); }
+.af-btn.af-ghost { background: transparent; color: var(--af-tx); border: 1px solid var(--af-l2); font-weight: 600; }
+.af-btn.af-sm { min-height: 44px; font-size: 14px; }
+
+.af-chip, .af-item, .af-card, .af-btn, .af-mini, .af-more, .af-link, .af-x, .af-np-name, .af-np-go, .af-venue { -webkit-tap-highlight-color: transparent; }
+.af-chip:focus-visible, .af-item:focus-visible, .af-card:focus-visible, .af-btn:focus-visible, .af-mini:focus-visible, .af-more:focus-visible,
+.af-link:focus-visible, .af-x:focus-visible, .af-np-name:focus-visible, .af-np-go:focus-visible, .af-venue:focus-visible, .af-pick input:focus-visible {
+  outline: 2px solid var(--af-ac); outline-offset: 2px;
+}
+.af-title:focus { outline: none; }
+
+/* ---------- вкладка «Афиша» ---------- */
+.af-tab { display: flex; flex-direction: column; }
+.af-chips { display: flex; gap: 8px; height: 42px; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; margin: 0 -20px 8px; padding: 2px 20px; -webkit-overflow-scrolling: touch; scroll-padding: 0 20px; }
+.af-chips::-webkit-scrollbar { display: none; }
+.af-chips::after { content: ''; flex: 0 0 4px; }
+.af-chip { flex: 0 0 auto; display: inline-flex; align-items: center; height: 38px; padding: 0 14px; border-radius: 99px; border: 1px solid var(--af-l2); background: transparent; color: var(--af-mu2); font: 600 14px var(--af-body); white-space: nowrap; cursor: pointer; transition: background .2s, color .2s; }
+.af-chip .af-n { margin-left: 6px; font-weight: 500; opacity: .6; }
+.af-chip[aria-pressed="true"] { background: var(--af-tx); color: var(--bg, #0F0E13); border-color: transparent; }
+.af-chip.af-free:not([aria-pressed="true"]) { border-color: rgba(155, 227, 180, .45); color: #C8F0D5; }
+.af-chip.af-sm { height: 34px; padding: 0 12px; font-size: 13px; }
+/* «Для пацанов 21 · Все 42»: две половины, выбранная — число в списке и в заголовке */
+.af-seg { display: inline-flex; align-self: flex-start; max-width: 100%; gap: 2px; margin: 2px 0 14px; padding: 3px; border-radius: 99px; background: var(--af-s1); border: 1px solid var(--af-l1); }
+.af-sg { display: inline-flex; align-items: center; min-width: 0; height: 34px; padding: 0 14px; border-radius: 99px; border: 0; background: transparent; color: var(--af-mu2); font: 600 13px var(--af-body); white-space: nowrap; cursor: pointer; transition: background .2s, color .2s; -webkit-tap-highlight-color: transparent; }
+.af-sg .af-n { margin-left: 6px; font-weight: 500; opacity: .6; }
+.af-sg[aria-pressed="true"] { background: var(--af-s3); color: var(--af-tx); }
+.af-sg[aria-pressed="true"] .af-n { opacity: .75; }
+.af-sg:focus-visible { outline: 2px solid var(--af-ac); outline-offset: 1px; }
+.af-none .af-chips, .af-none .af-seg { display: none; }
+.af-list { display: flex; flex-direction: column; gap: 18px; }
+.af-day-h { display: flex; align-items: baseline; gap: 8px; margin: 0 0 10px; font: 500 16px/1.25 var(--af-disp); letter-spacing: -.01em; }
+.af-day-h small { color: var(--af-mu); font: 500 13px var(--af-body); letter-spacing: 0; }
+.af-items { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+@media (min-width: 620px) { .af-tab .af-items { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.af-item { display: flex; align-items: flex-start; gap: 12px; width: 100%; height: 100%; min-width: 0; padding: 12px; border-radius: 16px; border: 1px solid var(--af-l1); background: var(--af-s1); color: var(--af-tx); font: inherit; text-align: left; cursor: pointer; transition: border-color .2s, transform .15s; }
+.af-item:hover { border-color: var(--af-l2); }
+.af-item:active { transform: scale(.99); }
+.af-cov { display: grid; place-items: center; flex: 0 0 56px; width: 56px; height: 56px; border-radius: 14px; overflow: hidden; font-size: 26px; line-height: 1; }
+.af-cov.af-phc, .af-ccov.af-phc, .af-np-e.af-phc { background: var(--af-s3); }
+.af-cov img, .af-ccov img, .af-np-e img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.af-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.af-name { font-weight: 600; font-size: 15px; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
+.af-sub { font-size: 13px; line-height: 1.35; color: var(--af-mu); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.af-more { width: 100%; min-height: 52px; margin-top: 14px; border-radius: 16px; border: 1px solid var(--af-l2); background: transparent; color: var(--af-tx); font: 600 16px var(--af-body); cursor: pointer; }
+
+/* пусто: объяснение и одна понятная кнопка */
+.af-empty { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 22px 18px; border-radius: 20px; border: 1px dashed var(--af-l2); text-align: center; }
+.af-empty-e { font-size: 30px; line-height: 1; }
+.af-empty b { font: 600 16px var(--af-disp); }
+.af-empty p { margin: 0; max-width: 420px; color: var(--af-mu2); font-size: 14px; line-height: 1.5; }
+.af-empty-act { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 6px; }
+.af-empty-act .af-btn { min-height: 46px; font-size: 15px; }
+
+/* ---------- лента «Ближайшие события» ---------- */
+.af-shelf { margin: 0 0 14px; }
+.af-shelf-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.af-shelf-h { min-width: 0; margin: 0; font: 500 15px/1.25 var(--af-disp); letter-spacing: -.02em; }
+/* .af .af-rail — сильнее, чем «.af ul»: лента выходит к краям экрана */
+.af .af-rail { display: grid; grid-auto-flow: column; grid-auto-columns: 196px; gap: 10px; overflow-x: auto; margin: 0 -20px; padding: 0 20px 6px; scroll-padding: 0 20px; scroll-snap-type: x mandatory; scrollbar-width: none; }
+.af-rail::-webkit-scrollbar { display: none; }
+.af-cell { scroll-snap-align: start; min-width: 0; }
+.af-card { display: flex; flex-direction: column; gap: 6px; width: 100%; height: 100%; min-width: 0; padding: 8px 8px 12px; border-radius: 18px; border: 1px solid var(--af-l1); background: var(--af-s1); color: var(--af-tx); font: inherit; text-align: left; cursor: pointer; }
+.af-card:hover { border-color: var(--af-l2); }
+.af-card:active { transform: scale(.98); }
+.af-ccov { display: grid; place-items: center; height: 92px; margin-bottom: 4px; border-radius: 12px; overflow: hidden; font-size: 36px; line-height: 1; }
+.af-cwhen { padding: 0 4px; color: var(--af-ac); font: 700 12px/1.3 var(--af-body); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.af-ct { padding: 0 4px; height: 2.6em; font: 600 14px/1.3 var(--af-body); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
+.af-cv { padding: 0 4px; color: var(--af-mu); font-size: 12px; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.af-card .af-tags { min-height: 22px; padding: 0 4px; margin-top: auto; }
+.af-card .af-tags:empty { display: flex; }
+
+/* ---------- карточка события ---------- */
+.af-sheet { position: relative; display: flex; flex-direction: column; gap: 16px; }
+.af-sheet > .af-x { position: absolute; top: 8px; right: 8px; z-index: 1; }
+.af-hero { display: grid; place-items: center; height: 132px; border-radius: 20px; font-size: 60px; line-height: 1; }
+.af-ph { margin: 0; }
+.af-ph img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 20px; background: var(--af-s2); }
+.af-ph figcaption { margin-top: 6px; font-size: 11px; line-height: 1.35; color: var(--af-mu); }
+.af-ph figcaption a { color: inherit; text-decoration: underline; text-decoration-color: rgba(163, 158, 174, .4); }
+.af-eyebrow { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--af-ac); font: 700 12px var(--af-body); letter-spacing: .14em; text-transform: uppercase; }
+.af-eyebrow .af-tag { letter-spacing: 0; }
+/* .af .af-title — сильнее, чем «.psheet h3» шторки главной */
+.af .af-title { margin: -6px 0 0; font: 700 clamp(21px, 6.4vw, 26px)/1.15 var(--af-disp); letter-spacing: -.02em; overflow-wrap: anywhere; }
+.af .af-facts { display: grid; gap: 12px; padding: 14px 16px; border-radius: 18px; background: var(--af-s2); }
+.af-facts li { display: flex; align-items: flex-start; gap: 12px; min-width: 0; font-size: 15px; line-height: 1.4; }
+.af-facts li > .ic { margin-top: 1px; color: var(--af-ac); }
+.af-facts li > span { min-width: 0; flex: 1; }
+.af-facts b { font-weight: 600; }
+.af-venue { color: var(--af-tx); text-decoration: underline; text-decoration-color: var(--af-l2); text-underline-offset: 3px; }
+/* дни показа — одной прокручиваемой строкой: кнопка «Позвать» не уезжает за экран */
+.af-days { display: flex; align-items: center; gap: 6px; margin: 8px -2px 0; padding: 2px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.af-days::-webkit-scrollbar { display: none; }
+.af-days .af-chip { flex: none; }
+.af-days .af-dim { flex: none; margin: 0 0 0 4px; white-space: nowrap; }
+.af-pick { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 10px; color: var(--af-mu2); font-size: 13px; }
+.af-pick input { min-height: 38px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--af-l2); background: var(--af-s1); color: var(--af-tx); font: 500 14px var(--af-body); color-scheme: dark; }
+.af-note { margin: 0; font-size: 15px; line-height: 1.5; color: #B3AEBE; }
+.af-actions { display: grid; gap: 10px; }
+.af-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.af-row.af-one { grid-template-columns: 1fr; }
+.af-row .af-btn { gap: 7px; padding: 0 10px; font-size: 15px; }
+/* «Билеты» + где продают: «Яндекс Афиша», «сайт организатора» */
+.af-btn > .af-bl { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.15; text-align: left; }
+.af-bl > * { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.af-bl small { margin-top: 2px; color: var(--af-mu); font: 500 12px var(--af-body); }
+.af-cal { display: grid; gap: 8px; padding: 10px; border-radius: 16px; background: var(--af-s2); }
+.af-live { margin: 0; min-height: 1em; color: var(--af-mu2); font-size: 13px; text-align: center; }
+.af-live:empty { min-height: 0; margin-top: -10px; }
+.af-near { display: flex; flex-direction: column; gap: 4px; }
+.af-near h4 { margin: 0; font: 600 17px var(--af-disp); letter-spacing: -.01em; }
+.af-near > .af-dim { margin: 0 0 8px; }
+.af-near .af-dim a { color: var(--af-ac); }
+.af-near-list { display: grid; gap: 8px; }
+.af-np { display: flex; align-items: center; gap: 12px; min-width: 0; padding: 10px 10px 10px 12px; border-radius: 16px; background: var(--af-s2); }
+.af-np-e { display: grid; place-items: center; flex: 0 0 44px; width: 44px; height: 44px; border-radius: 12px; overflow: hidden; background: var(--af-s3); font-size: 22px; line-height: 1; }
+.af-np-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.af-np-name { display: block; max-width: 100%; padding: 0; border: 0; background: none; color: var(--af-tx); font: 600 15px/1.3 var(--af-body); text-align: left; text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+.af-np-sub { color: var(--af-mu); font-size: 13px; line-height: 1.35; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.af-np-go { display: grid; place-items: center; flex: 0 0 44px; width: 44px; height: 44px; border-radius: 12px; border: 1px solid var(--af-l2); color: var(--af-ac); }
+.af-disc { margin: 0; color: var(--af-mu); font-size: 12px; line-height: 1.45; text-align: center; }
+.af-gone { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+.af-sheet .af-items { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.af-x { display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border-radius: 50%; border: 0; background: rgba(23, 22, 29, .78); color: var(--af-tx); cursor: pointer; }
+.af-x .ic { width: 18px; height: 18px; }
+
+/* своё окно — на страницах без шторки главной */
+.af-ov { position: fixed; inset: 0; z-index: 45; display: flex; align-items: flex-end; justify-content: center; background: rgba(8, 7, 11, .62); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); animation: af-fade .25s; }
+.af-dlg { width: 100%; max-width: 560px; max-height: 90vh; max-height: 90dvh; overflow-y: auto; overscroll-behavior: contain; padding: 10px 20px calc(22px + env(safe-area-inset-bottom)); border-radius: 28px 28px 0 0; background: #17161D; border-top: 1px solid var(--af-l1); animation: af-up .45s cubic-bezier(.2, 1, .3, 1); }
+.af-dlg-top { position: sticky; top: -10px; z-index: 2; display: flex; align-items: center; justify-content: center; height: 44px; margin: -10px -20px 4px; padding: 0 10px; background: linear-gradient(#17161D 70%, rgba(23, 22, 29, 0)); }
+.af-dlg-top .af-x { position: absolute; right: 10px; top: 4px; background: var(--af-s2); }
+.af-grab { width: 44px; height: 5px; border-radius: 9px; background: rgba(244, 241, 234, .2); }
+@keyframes af-fade { from { opacity: 0; } }
+@keyframes af-up { from { transform: translateY(100%); } }
+@media (min-width: 620px) {
+  .af-ov { align-items: center; padding: 24px; }
+  .af-dlg { border-radius: 28px; border: 1px solid var(--af-l1); }
+}
+@media (max-width: 360px) {
+  .af-row .af-btn .ic { display: none; }
+  .af-row .af-btn { font-size: 14px; padding: 0 8px; }
+  .af .af-rail { grid-auto-columns: 180px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .af-ov, .af-dlg { animation: none; }
+  .af-item, .af-card, .af-btn, .af-chip, .af-sg { transition: none; }
+}

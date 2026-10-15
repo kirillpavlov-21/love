@@ -1,0 +1,211 @@
+# Автообновление каталога «Куда идём?»: источники → модель → проверки → Pull Request с assets/auto.js.
+# Список источников, состояние и отчёты живут в отдельной ветке pipeline-data — на сайт она не публикуется,
+# но в публичном репозитории видна на GitHub всем.
+# Подробности и настройка: pipeline/README.md
+name: Каталог — автообновление
+
+on:
+  schedule:
+    - cron: '17 3 * * *'          # каждый день в 06:17 по Москве
+  workflow_dispatch:
+    inputs:
+      max_posts:
+        description: 'Сколько постов брать с каждого источника'
+        required: false
+        default: '40'
+        type: string
+      dry:
+        description: 'Пробный запуск: только отчёт, без PR и без отметок «прочитано»'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+# два запуска одновременно перепишут друг другу состояние — ждём предыдущий
+concurrency:
+  group: places-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      STATE_BRANCH: pipeline-data
+    steps:
+      - name: Проверить ключ модели
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "::error title=Нет секрета ANTHROPIC_API_KEY::Добавьте его: Settings → Secrets and variables → Actions → New repository secret. Подробно — pipeline/README.md."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0          # история нужна, чтобы перенести в свежий main только изменения открытого PR
+
+      - name: Git от имени бота
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+      - name: Состояние из ветки pipeline-data → .pipeline-data
+        run: |
+          if git ls-remote --exit-code --heads origin "$STATE_BRANCH" >/dev/null 2>&1; then
+            git fetch --depth=1 origin "+refs/heads/$STATE_BRANCH:refs/remotes/origin/$STATE_BRANCH"
+            git worktree add -B "$STATE_BRANCH" .pipeline-data "origin/$STATE_BRANCH"
+          else
+            echo "Ветки $STATE_BRANCH нет — создаю пустую (впишите источники в sources.json)"
+            git worktree add --detach .pipeline-data
+            cd .pipeline-data
+            git checkout -q --orphan "$STATE_BRANCH"
+            git rm -rfq .
+            cp ../pipeline/sources.example.json sources.json
+            echo '{"tg":{},"ig":{},"seen":{},"geocache":{}}' > state.json
+            cat > README.md <<'EOF'
+          # Состояние конвейера каталога
+
+          Служебная ветка: на сайт не публикуется. Здесь sources.json (какие каналы и аккаунты читать),
+          state.json (что уже прочитано, кеш геокодера) и reports/ (отчёты запусков). Как настроить — pipeline/README.md в main.
+          EOF
+            git add -A
+            git commit -qm 'Состояние конвейера: начало'
+          fi
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: pipeline/package-lock.json
+
+      - name: Зависимости
+        run: npm ci --prefix pipeline
+
+      - name: Открытый PR конвейера — продолжаем его
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # только PR самого бота из этого репозитория: ветку auto/catalog-* в форке может назвать кто угодно
+          PR=$(gh pr list --state open --base main --json number,headRefName,isCrossRepository,author \
+            --jq '[.[] | select((.isCrossRepository | not) and (.headRefName | startswith("auto/catalog-")) and (.author.login | test("github-actions")))][0] // empty | "\(.number) \(.headRefName)"' 2>/dev/null || true)
+          NUM=''; BR=''; SHA=''; HUMAN=0
+          if [ -n "$PR" ] && git fetch origin "+refs/heads/${PR#* }:refs/remotes/origin/${PR#* }"; then
+            NUM=${PR%% *}; BR=${PR#* }
+            SHA=$(git rev-parse "origin/$BR")
+            BASE=$(git merge-base HEAD "origin/$BR")
+            HUMAN=$(git log --format='%ae' "$BASE..origin/$BR" | grep -vc 'github-actions\[bot\]' || true)
+            # в свежий main переносим только то, что PR поменял от своей базы: находки, фото и правки ревьюера.
+            # Файлы, которые main поменял после открытия PR, не откатываются; ?v= в страницах робот поднимет заново
+            if git diff --binary "$BASE" "origin/$BR" -- . ':(exclude)*.html' | git apply --3way --index --allow-empty --whitespace=nowarn; then
+              echo "Открыт PR #$NUM из $BR — новые находки добавятся в него"
+            else
+              echo "::warning title=PR конвейера::изменения PR #$NUM не накладываются на свежий main — сегодняшние находки пойдут в новый PR, старый проверьте вручную"
+              git reset -q --hard HEAD
+              NUM=''; BR=''; SHA=''; HUMAN=0
+            fi
+          fi
+          { echo "branch=$BR"; echo "number=$NUM"; echo "sha=$SHA"; echo "human=${HUMAN:-0}"; } >> "$GITHUB_OUTPUT"
+
+      - name: Запуск конвейера
+        id: run
+        shell: bash
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          YANDEX_GEOCODER_KEY: ${{ secrets.YANDEX_GEOCODER_KEY }}
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          PIPELINE_SOURCES: ${{ secrets.PIPELINE_SOURCES }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          MAX_POSTS: ${{ inputs.max_posts || '40' }}
+          DRY: ${{ inputs.dry && '1' || '' }}
+        run: |
+          # отчёт с именами источников в лог и в сводку не выводим: логи публичного репозитория видны всем.
+          # Код 1 (модель не ответила, все источники недоступны) — шаги ниже не идут, состояние не сохраняется
+          node pipeline/run.mjs --state .pipeline-data --max-posts "$MAX_POSTS" --inbox-out pipeline-inbox.json ${DRY:+--dry} | tee run.log
+          CHANGES=$(tail -n 1 run.log | sed -n 's/^CHANGES=//p')
+          echo "changes=${CHANGES:-0}" >> "$GITHUB_OUTPUT"
+
+      - name: Pull Request с изменениями каталога
+        if: ${{ steps.run.outputs.changes == '1' && !inputs.dry }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXISTING: ${{ steps.pr.outputs.branch }}
+          NUM: ${{ steps.pr.outputs.number }}
+          LEASE: ${{ steps.pr.outputs.sha }}
+          HUMAN: ${{ steps.pr.outputs.human }}
+        run: |
+          DATE=$(TZ=Europe/Moscow date +%F)
+          # версия скриптов и стилей во всех страницах: +1, чтобы браузеры взяли свежий auto.js
+          FILES=$(grep -l -E '\.(js|css)\?v=[0-9]+' *.html || true)
+          if [ -n "$FILES" ]; then
+            V=$(grep -hoE '\.(js|css)\?v=[0-9]+' $FILES | sed -E 's/.*\?v=//' | sort -n | tail -n 1)
+            NEXT=$((V + 1))
+            sed -i -E "s/(\.(js|css))\?v=[0-9]+/\1?v=${NEXT}/g" $FILES
+          fi
+          # SEO-страницы moskva/ и sitemap.xml — из обновлённых данных (без зависимостей, только node)
+          node scripts/build-seo.mjs
+          BR=${EXISTING:-auto/catalog-$DATE}
+          git checkout -q -B "$BR"
+          git add assets $FILES moskva sitemap.xml robots.txt
+          git commit -qm "Каталог: обновление $DATE"
+          if [ -n "$EXISTING" ]; then
+            # ветка PR = свежий main + один коммит с её же изменениями (см. шаг выше);
+            # lease: если за время запуска в ветку кто-то запушил — не затираем, шаг упадёт
+            git push --force-with-lease="refs/heads/$BR:$LEASE" origin "HEAD:refs/heads/$BR"
+          else
+            git push --force origin "HEAD:refs/heads/$BR"
+          fi
+          # описание PR не длиннее лимита GitHub
+          node -e "const fs=require('fs');let s=fs.readFileSync('pipeline-report.md','utf8');if(s.length>60000)s=s.slice(0,60000)+'\n\n…отчёт обрезан, полный — в ветке pipeline-data, папка reports/';fs.writeFileSync('pr-body.md',s)"
+          if [ -n "$EXISTING" ] && [ "${HUMAN:-0}" != "0" ]; then
+            printf '\n\n_Правки из ветки PR (коммитов не от робота: %s) перенесены в коммит поверх свежего main._\n' "$HUMAN" >> pr-body.md
+          fi
+          gh label create auto --color 0E8A16 --description 'Автоматическое обновление каталога' 2>/dev/null || true
+          if [ -n "$EXISTING" ]; then
+            gh pr edit "$NUM" --title "Каталог: обновление $DATE" --add-label auto
+            gh pr comment "$NUM" --body-file pr-body.md
+          else
+            gh pr create --base main --head "$BR" --title "Каталог: обновление $DATE" --body-file pr-body.md --label auto
+          fi
+
+      # после PR: если PR не создался, посты останутся непрочитанными и разберутся в следующий раз
+      - name: Сохранить состояние в pipeline-data
+        run: |
+          cd .pipeline-data
+          git add -A
+          if git diff --cached --quiet; then
+            echo 'Состояние не изменилось'
+          else
+            git commit -qm "Состояние конвейера $(TZ=Europe/Moscow date +%F)"
+          fi
+          # пока шёл запуск, владелец мог поправить sources.json в этой ветке: подтягиваем и пробуем снова
+          # (человек правит sources.json, робот — state.json и reports/, так что конфликтов почти не бывает)
+          for i in 1 2 3; do
+            if git push origin "HEAD:refs/heads/$STATE_BRANCH"; then exit 0; fi
+            git fetch origin "+refs/heads/$STATE_BRANCH:refs/remotes/origin/$STATE_BRANCH"
+            if ! git rebase "origin/$STATE_BRANCH"; then
+              git rebase --abort
+              echo "::error title=Состояние не сохранено::в ветке $STATE_BRANCH конфликт с ручной правкой — посты разберутся заново в следующий запуск"
+              exit 1
+            fi
+          done
+          exit 1
+
+      # ящик закрываем последним — когда PR уже создан и состояние сохранено.
+      # Если шаг не дойдёт сюда, issues останутся открытыми и разберутся в следующий раз
+      - name: Ответить в issues ящика и закрыть их
+        if: ${{ !inputs.dry }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          if [ -s pipeline-inbox.json ]; then node pipeline/close-inbox.mjs pipeline-inbox.json; else echo 'Ящик: закрывать нечего'; fi
