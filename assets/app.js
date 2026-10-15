@@ -2067,17 +2067,17 @@
     SH.sig = sig;
     SH.link = linkWith(votes.length ? encSync(votes) : '', w);
     clearTimeout(SH.timer);
-    if (!votes.length) return;
     SH.timer = setTimeout(async () => {
       try {
-        const long = linkWith(await K.encodeData(votes), w);
+        const long = votes.length ? linkWith(await K.encodeData(votes), w) : SH.link;
         if (SH.sig !== sig) return;
         SH.link = long;
-        // только своя короткая ссылка: clck.ru и другие сокращатели «Объединить» раскрыть не может
-        const short = await ownShort(long);
-        if (SH.sig === sig && short) SH.link = short;
+        // сначала своя короткая ссылка; без своего сервера — любой сокращатель (clck.ru):
+        // человек откроет её как обычно, а «Объединить» про такие ссылки честно предупреждает
+        const short = await shortAny(long);
+        if (SH.sig === sig && short && short.length < long.length) SH.link = short;
       } catch (e) { /* остаётся длинная ссылка */ }
-    }, 400);
+    }, votes.length ? 400 : 0);
   }
   const shareLink = () => { prepareShare(); return SH.link || baseUrl() + '#' + CODE; };
   const shareText = () => `${MC.emoji} ${groupTitle()}\nГолосуем, куда и когда идём! Уже отметились: ${PRIOR.map(v => v.n).join(', ') || '—'}\n👉 ${shareLink()}`;
