@@ -120,7 +120,7 @@ docker cp kuda-api:/data/backup.db ./kuda-$(date +%F).db
 | `ALLOWED_ORIGINS` | Сайты, которым браузер разрешит читать ответы API (CORS), через пробел или запятую. Запросы с других сайтов получают `403 origin` | пусто — только запросы без `Origin` (curl) |
 | `SITE_ORIGINS` | Адреса сайта для коротких ссылок: origin или origin + путь (`https://user.github.io/date-invite/`). Сокращаются только ссылки внутри них | пусто — сокращатель выключен |
 | `ADMIN_TOKEN` | Пароль страницы модерации, не короче 16 символов | пусто — `/admin` выключена |
-| `HASH_SALT` | Соль для хэшей IP, устройств и Яндекс ID | `kuda-v1` (в бою задай свою) |
+| `HASH_SALT` | Соль для хэшей IP, устройств и Яндекс ID — **обязательна**: без неё `server.mjs` не стартует (для локальной проверки `ALLOW_DEFAULT_SALT=1`). Задай один раз и не меняй | — |
 | `STORE` | `sqlite` или `ydb` | `sqlite` |
 | `SQLITE_PATH` | Файл базы SQLite | `./data/kuda.db` |
 | `YDB_DOCAPI_ENDPOINT` | Document API endpoint базы YDB (`https://docapi.serverless.yandexcloud.net/ru-central1/…`) | — |

@@ -97,6 +97,13 @@ export async function start(o = {}) {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  /* Без своей соли хэши IP и устройств подбираются перебором (соль по умолчанию публичная) — в бою не стартуем.
+     Для локальной проверки: ALLOW_DEFAULT_SALT=1 */
+  const salt = String(process.env.HASH_SALT || '');
+  if ((salt.length < 16 || salt === 'kuda-v1') && process.env.ALLOW_DEFAULT_SALT !== '1') {
+    console.error('Задай HASH_SALT — случайную строку от 16 символов (например: openssl rand -hex 24) и не меняй её потом. Для локальной проверки: ALLOW_DEFAULT_SALT=1');
+    process.exit(1);
+  }
   start().then(({ url, store, close }) => {
     console.log(`«Куда идём?» API: ${url} (хранилище: ${store.kind})`);
     const stop = () => close().then(() => process.exit(0), () => process.exit(1));
