@@ -3,142 +3,196 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Куда идём? — планы на вечер и приглашения-игры</title>
-  <meta name="description" content="Готовые планы на вечер в Москве для свидания, пацанов и подружек. Позови игрой и выберите место всей компанией.">
-  <meta property="og:title" content="Куда идём?">
-  <meta property="og:description" content="Готовые планы на вечер в Москве и приглашения-игры для свидания, пацанов и подружек.">
+  <title>Куда сходить в Москве: готовые планы на вечер, свидание, с друзьями | Куда идём?</title>
+  <meta name="description" content="Готовые планы на вечер в Москве: место, ужин рядом и маршрут. Для свидания, друзей и девичника. Скинь ссылку — решите голосованием за пару минут.">
+  <meta property="og:title" content="Куда идём? Решим за пару минут">
+  <meta property="og:description" content="Готовые планы на вечер в Москве: место, ужин рядом и маршрут. Для свидания, друзей и девичника. Скинь ссылку — решите голосованием за пару минут.">
   <meta property="og:type" content="website">
+  <meta property="og:locale" content="ru_RU">
   <meta property="og:image" content="https://kirillpavlov-21.github.io/love/assets/og-hub.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="theme-color" content="#0F0E13">
+  <meta name="apple-mobile-web-app-title" content="Куда идём?">
   <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="assets/icon-180.png">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="assets/hub.css?v=26">
+  <link rel="stylesheet" href="assets/hub.css?v=28">
+  <link rel="stylesheet" href="assets/afisha.css?v=28">
+  <link rel="stylesheet" href="assets/reviews.css?v=28">
+  <!-- без JavaScript карточек планов не будет — место под них и под их число (hub.css) не держим -->
+  <noscript><style>.cards:empty { min-height: 0; } #count:empty::before { content: none; }</style></noscript>
 </head>
 <body>
+  <a class="skip" href="#plansBlock">К готовым планам</a>
   <header class="top">
     <a class="logo" href="start.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/></svg>Куда идём?</a>
-    <span class="top-r"><span class="city">Москва</span><button type="button" class="login" id="login"></button></span>
+    <span class="top-r">
+      <span class="city">Москва</span>
+      <a class="icon-btn" href="invites.html" aria-label="Мои приглашения" title="Мои приглашения"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 13l2.6-7.2A2 2 0 0 1 7.5 4.5h9a2 2 0 0 1 1.9 1.3L21 13"/><path d="M3 13v5a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5h-5l-1.5 2.5h-5L8 13z"/></svg></a>
+      <!-- «Войти» показываем, только когда в config.js задан auth.yandexClientId -->
+      <button type="button" class="login hidden" id="login"></button>
+    </span>
   </header>
   <nav class="tabs" id="tabs" aria-label="Разделы">
     <a href="#plansBlock" data-tab="plans">Планы</a>
+    <a href="#eventsBlock" data-tab="events" class="hidden" id="tabEvents">Афиша</a>
     <a href="#placesBlock" data-tab="places">Места</a>
     <a href="#placesBlock" data-tab="map">Карта</a>
-    <a href="#promoBlock" data-tab="promo">Промокоды <span class="soon">скоро</span></a>
+    <a href="#promoBlock" data-tab="promo" class="hidden" id="tabPromo">Промокоды</a>
   </nav>
 
-  <nav class="modes" id="modes" aria-label="Повод"></nav>
+  <!-- Режимы и блок героя «Свидание» — та же разметка, что рисует hub.js (renderModes, renderHero): страница не прыгает, когда он загрузится -->
+  <nav class="modes" id="modes" aria-label="Повод">
+    <button type="button" data-m="date" class="on" aria-pressed="true"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.35-7-10a4 4 0 0 1 7-2.65A4 4 0 0 1 19 10c0 5.65-7 10-7 10z"/></svg>Свидание</button>
+    <button type="button" data-m="guys" class="" aria-pressed="false"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 5h10v13a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z"/><path d="M16 9h2a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-2"/><path d="M6 9h10"/></svg>Пацаны</button>
+    <button type="button" data-m="girls" class="" aria-pressed="false"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 3v4"/><path d="M17 5h4"/></svg>Подружки</button>
+  </nav>
 
-  <section class="hero" id="hero"></section>
+  <main id="main">
+  <section class="hero" id="hero" aria-labelledby="heroTitle">
+    <div class="cat-slot" id="heroCat" aria-hidden="true"></div>
+    <h1 id="heroTitle">Куда идём? Решим за&nbsp;пару минут</h1>
+    <!-- Тексты здесь — для сайта без своего сервера (config.js → api.url пустой); с сервером hub.js (applyLiveCopy) меняет их на «живые» -->
+    <p class="hero-sub" id="heroSub"><span id="planCount">450+ готовых планов</span> на вечер в Москве: место, ужин рядом и маршрут. <span id="heroSubEnd">Кинь ссылку в чат — каждый отметит, что ему подходит.</span></p>
+    <div class="hero-mode" id="heroMode">
+      <p class="hero-hook"><b>Не пиши «го?». Позови игрой</b>Ссылка-игра: сердечки, письмо, выбор места, дня и времени из твоих вариантов. Ответ вернётся к тебе с готовым маршрутом.</p>
+      <div class="hero-actions">
+        <a class="btn primary" href="create.html?mode=date">Создать приглашение<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></a>
+        <a class="btn ghost demo" aria-disabled="true" target="_blank" rel="noopener"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><span class="l-long">Посмотреть пример</span><span class="l-short">Пример</span></a>
+      </div>
+    </div>
+    <p class="usp"><span><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>Бесплатно</span><span><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>Без регистрации</span><span id="uspPlaces"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>960+ мест по Москве</span></p>
+  </section>
 
-  <section class="block foryou hidden" id="foryouBlock">
+  <section class="block foryou hidden" id="foryouBlock" aria-labelledby="fyTitle">
     <div class="block-head">
-      <h2>Для тебя</h2>
+      <h2 id="fyTitle">Для тебя</h2>
       <button class="mini" id="fyReset" type="button" title="Забыть мои предпочтения">Сбросить</button>
     </div>
-    <p class="block-note" id="fyNote"></p>
+    <p class="block-note"><span id="fyNote"></span> <a href="rules.html">Как работают рекомендации</a></p>
     <div class="rail" id="foryou"></div>
   </section>
 
-  <section class="block" id="plansBlock">
+  <section class="block" id="plansBlock" aria-labelledby="plansTitle">
     <div class="block-head">
-      <h2>Готовые планы <span class="count" id="count"></span></h2>
-      <button class="mini" id="random" type="button"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3.5"/><circle cx="9" cy="9" r="1.3" fill="currentColor" stroke="none"/><circle cx="15" cy="15" r="1.3" fill="currentColor" stroke="none"/><circle cx="15" cy="9" r="1.3" fill="currentColor" stroke="none"/><circle cx="9" cy="15" r="1.3" fill="currentColor" stroke="none"/></svg>Случайный</button>
+      <h2 id="plansTitle">Готовые планы <span class="count" id="count"></span></h2>
+      <div class="head-actions" id="plansActions">
+        <button class="mini accent" id="quiz" type="button"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2.5L4.5 13.5H11l-1 8 8.5-11H12z"/></svg>Подобрать за 10 секунд</button>
+        <button class="mini" id="random" type="button"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3.5"/><circle cx="9" cy="9" r="1.3" fill="currentColor" stroke="none"/><circle cx="15" cy="15" r="1.3" fill="currentColor" stroke="none"/><circle cx="15" cy="9" r="1.3" fill="currentColor" stroke="none"/><circle cx="9" cy="15" r="1.3" fill="currentColor" stroke="none"/></svg>Удиви меня</button>
+      </div>
     </div>
+    <!-- результат «Подобрать за 10 секунд» -->
+    <div class="qres hidden" id="quizRes" role="region" aria-labelledby="qrTitle"></div>
+    <!-- погода: «Сегодня +3° и дождь — вот планы под крышей» -->
+    <div class="wx hidden" id="wx"></div>
+    <!-- полка над планами: ближайшие события -->
+    <div class="shelf hidden" id="shelf"></div>
     <div class="season hidden" id="season" role="group" aria-label="Сезонные подборки"></div>
     <div class="filters" id="filters" role="group" aria-label="Фильтр планов"></div>
+    <div class="tools" id="budget"></div>
     <div class="cards" id="cards"></div>
+    <noscript><p class="pl-empty">Планы, места и карта работают на JavaScript — включи его в настройках браузера.</p></noscript>
     <button class="btn ghost wide hidden" id="cmore" type="button"></button>
   </section>
 
-  <section class="block" id="placesBlock">
+  <!-- Афиша: вкладка и раздел включаются, когда на странице подключена афиша -->
+  <section class="block hidden" id="eventsBlock" aria-labelledby="eventsTitle">
     <div class="block-head">
-      <h2>Все места <span class="count" id="pcount"></span></h2>
+      <h2 id="eventsTitle">Афиша <span class="count" id="ecount"></span></h2>
+    </div>
+    <div id="afisha"></div>
+  </section>
+
+  <section class="block" id="placesBlock" aria-labelledby="placesTitle">
+    <div class="block-head">
+      <h2 id="placesTitle">Все места <span class="count" id="pcount"></span></h2>
       <div class="seg" id="pview" role="group" aria-label="Вид"><button type="button" data-v="list" class="on" aria-pressed="true">Список</button><button type="button" data-v="map" aria-pressed="false">Карта</button></div>
     </div>
-    <p class="block-note">Парки, музеи, кофейни, рестораны из гида Michelin, бары, бани и 🎮 компьютерные клубы — по всем округам Москвы и в Левобережном (Химки). Жми «📍 Рядом со мной» — покажем ближайшие. Подсказки помогут выбрать: 🍂 красиво осенью, 🎃 на Хэллоуин, 💘 для первого свидания. Работу каждого места проверяли в октябре 2026 года.</p>
+    <p class="block-note" id="placesNote">Места по всей Москве и ближнему Подмосковью — от парков до ресторанов из гида Michelin (2021). Часы работы и адреса лучше уточнить перед выходом.</p>
     <label class="psearch"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="psearch" type="search" placeholder="Название, метро или тип места" aria-label="Поиск по местам" autocomplete="off"></label>
     <div class="filters" id="pfilters" role="group" aria-label="Категории мест"></div>
     <div class="filters okrs" id="pokrs" role="group" aria-label="Округа"></div>
+    <div class="tools" id="ptools"></div>
+    <div class="map-bar pick hidden" id="mapPick" role="status"><span>Нажми на карте, откуда искать</span><button type="button" class="mini" data-pick-cancel>Отмена</button></div>
     <div class="pmap hidden" id="pmap" aria-label="Карта мест"></div>
+    <div class="map-legend hidden" id="mapLegend" aria-label="Цвета точек на карте"></div>
     <div class="plist" id="plist"></div>
     <button class="btn ghost wide hidden" id="pmore" type="button"></button>
   </section>
 
-  <section class="block promo" id="promoBlock">
+  <!-- Промокоды: раздел и вкладка появляются, когда партнёров 5 и больше -->
+  <section class="block promo hidden" id="promoBlock" aria-labelledby="promoTitle">
     <div class="block-head">
-      <h2>Промокоды <span class="soon big">скоро</span></h2>
+      <h2 id="promoTitle">Промокоды <span class="count" id="promoCount"></span></h2>
     </div>
     <div id="promoList"></div>
   </section>
 
-  <section class="block" id="adultBlock">
-    <button class="btn ghost wide" id="adultBtn" type="button">Места 18+: стриптиз и бурлеск</button>
-    <div class="hidden" id="adultWrap">
-      <div class="block-head">
-        <h2>Места 18+ <span class="count" id="acount"></span></h2>
-      </div>
-      <p class="block-note" id="anote"></p>
-      <div class="filters" id="afilters" role="group" aria-label="Разделы 18+"></div>
-      <div class="plist" id="alist"></div>
-    </div>
-  </section>
-
-  <section class="block how">
-    <h2>Как это работает</h2>
+  <section class="block how" aria-labelledby="howTitle">
+    <h2 id="howTitle">Как это работает</h2>
     <ol>
       <li><span><b>Выбери план</b> или собери свои варианты в конструкторе.</span></li>
       <li><span><b>Отправь ссылку</b> — откроется мини-игра с голосованием.</span></li>
-      <li><span><b>Смотри итоги</b> — кто идёт, куда и в какой день удобнее всем.</span></li>
+      <li><span id="how3"><b>Смотри итоги</b> — кто идёт, куда и в какой день удобнее всем.</span></li>
     </ol>
   </section>
 
-  <section class="block faq">
-    <h2>Вопросы</h2>
-    <details><summary>Это бесплатно?</summary><p>Да. Пока сервис в бете, всё бесплатно: приглашения, голосования и готовые планы.</p></details>
+  <section class="block faq" aria-labelledby="faqTitle">
+    <h2 id="faqTitle">Вопросы</h2>
+    <details><summary>Это бесплатно?</summary><p>Да, и так останется. Мы зарабатываем на партнёрских предложениях заведений, а не на тебе.</p></details>
     <details><summary>Нужна регистрация или приложение?</summary><p>Нет. Собираешь приглашение в конструкторе и отправляешь ссылку в любой мессенджер. Получатель открывает её в обычном браузере.</p></details>
-    <details><summary>Как я узнаю ответ?</summary><p>В конце игры получатель нажимает «Отправить ответ» — тебе приходит сообщение с местом, днём и временем и ссылка-билет. Укажи в конструкторе свой ник в Telegram — тогда ответ сразу откроется в вашем чате.</p></details>
-    <details><summary>Как собрать компанию?</summary><p>Выбери «Пацаны» или «Подружки», отметь подходящие планы и кинь ссылку в общий чат. Каждый отметит, куда и в какие дни может. Победитель виден сразу, а при ничьей поможет колесо.</p></details>
-    <details><summary>Где найти комп рядом?</summary><p>В «Все места» выбери «🎮 Компы» и нажми «📍 Рядом со мной» — клубы встанут по расстоянию. Цены и свободные места лучше уточнить у клуба: у сетей бывают ночные пакеты и скидки по будням.</p></details>
-    <details><summary>Где хранятся имена и ответы?</summary><p>В самой ссылке — аккаунтов и базы с приглашениями нет. Чтобы ссылка была короткой, она проходит через сервис коротких ссылок. Подробнее — в <a href="privacy.html">политике конфиденциальности</a>.</p></details>
-    <details><summary>Места только в Москве?</summary><p>Москва и ближнее Подмосковье — больше 650 мест во всех округах: от парков и усадеб до ресторанов из гида Michelin, баров, бань и компьютерных клубов. Отдельная подборка — Левобережный в Химках: набережная канала, кафе и компы. В конструкторе можно добавить любые свои варианты, в том числе в другом городе.</p></details>
+    <details><summary>Как я узнаю ответ?</summary><p id="faqAnswer">В конце игры получатель нажимает «Отправить ответ» — тебе придёт ссылка-билет с местом, днём и временем в любом мессенджере. Свои приглашения ищи в <a href="invites.html">«Моих приглашениях»</a> (значок в шапке).</p></details>
+    <details><summary>Как собрать компанию?</summary><p id="faqGroup">Выбери «Пацаны» или «Подружки», отметь подходящие планы и кинь ссылку в общий чат. Каждый отметит, куда и в какие дни может, и перешлёт обновлённую ссылку в чат — так голоса складываются. При ничьей поможет колесо.</p></details>
+    <details><summary>Где найти комп рядом?</summary><p>В разделе «Все места» выбери «🎮 Компы» и нажми «📍 Рядом со мной» — клубы встанут по расстоянию. Цены и свободные места лучше уточнить у клуба: у сетей бывают ночные пакеты и скидки по будням.</p></details>
+    <details><summary>Где хранятся имена и ответы?</summary><p id="faqStore">В самой ссылке и в твоём браузере — аккаунтов и базы с приглашениями нет. Чтобы ссылка была короткой, она может пройти через сервис коротких ссылок. Подробнее — в <a href="privacy.html">политике конфиденциальности</a>.</p></details>
+    <details><summary>Места только в Москве?</summary><p>Москва и ближнее Подмосковье — <span id="faqPlaces">960+</span> мест во всех округах: от парков и усадеб до ресторанов из гида Michelin, баров, бань и компьютерных клубов. В конструкторе можно добавить любые свои варианты, в том числе в другом городе.</p></details>
   </section>
+  </main>
 
   <footer class="foot">
-    <nav class="foot-links"><a href="privacy.html">Конфиденциальность</a><a href="partners.html">Для заведений</a><a href="#" id="feedback">Написать нам</a><button type="button" class="link" id="consentOpen">Настройки аналитики</button></nav>
-    Описания мест — по открытым источникам на октябрь 2026. Перед походом проверь часы работы в Яндекс Картах.<br>
+    <nav class="foot-links" aria-label="Ссылки">
+      <a href="invites.html">Мои приглашения</a>
+      <a href="moskva/">Подборки по Москве</a>
+      <a href="rules.html">Как работают рекомендации</a>
+      <a href="privacy.html">Конфиденциальность</a>
+      <a href="partners.html">Для заведений</a>
+      <a href="#" id="feedback">Написать нам</a>
+      <button type="button" class="link" id="consentOpen">Настройки аналитики</button>
+      <a href="adult.html" id="adultLink" rel="nofollow">18+</a>
+    </nav>
+    <p class="foot-app" id="pwaSlot"></p>
+    Часы работы и адреса лучше уточнить в Яндекс Картах перед выходом.<br>
     Координаты © участники OpenStreetMap. Фото — Wikimedia Commons, автор и лицензия указаны под каждым снимком.
   </footer>
 
-  <div class="sheet-bg hidden" id="sheetBg"><div class="psheet" id="sheet" role="dialog" aria-modal="true"></div></div>
-  <div class="sheet-bg hidden" id="ageBg"><div class="psheet age" role="dialog" aria-modal="true" aria-labelledby="ageTitle">
-    <div class="age-ic">18+</div>
-    <h3 id="ageTitle">Тебе уже есть 18 лет?</h3>
-    <p class="muted">Дальше — места только для взрослых.</p>
-    <div class="row" style="width:100%"><button class="btn ghost" id="ageNo" type="button">Нет</button><button class="btn primary" id="ageYes" type="button">Да, мне 18+</button></div>
-  </div></div>
-  <div class="toast hidden" id="toast" role="status"></div>
+  <div class="sheet-bg hidden" id="sheetBg"><div class="psheet" id="sheet" role="dialog" aria-modal="true" aria-label="Карточка"></div></div>
+  <div class="toast hidden" id="toast" role="status" aria-live="polite"></div>
   <div class="consent hidden" id="consent" role="dialog" aria-label="Аналитика">
     <p>Мы запоминаем, какие места и планы тебе нравятся, чтобы подсказывать похожие, — это хранится только в твоём браузере. С разрешения подключим Яндекс Метрику: она помогает понять, что людям интересно. <a href="privacy.html">Подробнее</a></p>
     <div class="row"><button class="btn ghost" id="consentNo" type="button">Только нужное</button><button class="btn primary" id="consentYes" type="button">Разрешить</button></div>
   </div>
 
-  <script src="config.js?v=26"></script>
-  <script src="assets/shared.js?v=26"></script>
-  <script src="assets/places.js?v=26"></script>
-  <script src="assets/photos.js?v=26"></script>
-  <script src="assets/promos.js?v=26"></script>
-  <script src="assets/track.js?v=26"></script>
-  <script src="assets/geo.js?v=26"></script>
-  <script src="assets/maps.js?v=26"></script>
-  <script src="assets/gallery.js?v=26"></script>
-  <script src="assets/auth.js?v=26"></script>
-  <script src="assets/hub.js?v=26"></script>
+  <script src="config.js?v=28"></script>
+  <script src="assets/shared.js?v=28"></script>
+  <script src="assets/places.js?v=28"></script>
+  <script src="assets/events.js?v=28"></script>
+  <script src="assets/auto.js?v=28"></script>
+  <script src="assets/photos.js?v=28"></script>
+  <script src="assets/api.js?v=28"></script>
+  <script src="assets/reviews.js?v=28"></script>
+  <script src="assets/afisha.js?v=28"></script>
+  <script src="assets/promos.js?v=28"></script>
+  <script src="assets/track.js?v=28"></script>
+  <script src="assets/geo.js?v=28"></script>
+  <script src="assets/maps.js?v=28"></script>
+  <script src="assets/gallery.js?v=28"></script>
+  <script src="assets/auth.js?v=28"></script>
+  <script src="assets/hub.js?v=28"></script>
+  <script src="assets/pwa.js?v=28"></script>
 </body>
 </html>

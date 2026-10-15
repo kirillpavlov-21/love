@@ -1,0 +1,564 @@
+{
+ "note": "Список файлов, которые создаёт scripts/build-seo.mjs (для удаления устаревших и <lastmod> в sitemap.xml). Не править руками.",
+ "site": "https://kirillpavlov-21.github.io/love/",
+ "files": {
+  "moskva/seo.css": {
+   "sha": "7b8a27e2fd82f403",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/svidanie/index.html": {
+   "sha": "8693e070635c83e6",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/pervoe-svidanie/index.html": {
+   "sha": "21ebacb3f4c6e46e",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/nedorogoe-svidanie/index.html": {
+   "sha": "d7bd92f50c1baf29",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/s-druzyami/index.html": {
+   "sha": "c464f7a79076e2d8",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/devichnik/index.html": {
+   "sha": "65567e2e232b1e5d",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/segodnya/index.html": {
+   "sha": "6f25a1505be3e87d",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/vyhodnye/index.html": {
+   "sha": "f07ff36494479178",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/vecherom-posle-raboty/index.html": {
+   "sha": "8c6e6a01aacc0faf",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/pozdno-vecherom/index.html": {
+   "sha": "3b3db10a382f2dbd",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/halloween/index.html": {
+   "sha": "a074c3f09abbec82",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/novyj-god/index.html": {
+   "sha": "2b5e08da5878ef66",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/katki/index.html": {
+   "sha": "8235999397f13294",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/osen/index.html": {
+   "sha": "8d87b95082d1f0ec",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/zima/index.html": {
+   "sha": "ea378453c5868cba",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/restorany/index.html": {
+   "sha": "749aed8eb9624354",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kofejni/index.html": {
+   "sha": "83d86b5f256b4ce7",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/bary/index.html": {
+   "sha": "e4bee7dd453b6485",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/parki/index.html": {
+   "sha": "bd55c12b57c637e0",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/muzei/index.html": {
+   "sha": "1faf6046fa7f0ad9",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/teatry/index.html": {
+   "sha": "f3b0134861c8b38f",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kvesty/index.html": {
+   "sha": "eebdbb07fb5573bd",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/bani/index.html": {
+   "sha": "e36c85d8e221e363",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/karaoke/index.html": {
+   "sha": "824b924d1e10456b",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/krishi-i-panoramy/index.html": {
+   "sha": "640c753be306ffa3",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kompyuternye-kluby/index.html": {
+   "sha": "f1f8b60b3efa7b99",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/koncerty/index.html": {
+   "sha": "b41205024752e163",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/spektakli/index.html": {
+   "sha": "9a9e809f47164299",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/vystavki/index.html": {
+   "sha": "ced2463e51d580e8",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/stendap/index.html": {
+   "sha": "da44b9f2babd3e91",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-cao/index.html": {
+   "sha": "cf1f5c20a2a8a24d",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-sao/index.html": {
+   "sha": "3ba7d7f48423691c",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-svao/index.html": {
+   "sha": "8cb4b9e8cce04f7b",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-vao/index.html": {
+   "sha": "461c0251f8ff9175",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-yuvao/index.html": {
+   "sha": "e0324743439500fa",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-yuao/index.html": {
+   "sha": "9bdecff6e47247a5",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-yuzao/index.html": {
+   "sha": "085c643c37e090a2",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-zao/index.html": {
+   "sha": "60b678851ba152e4",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-szao/index.html": {
+   "sha": "b962fd76b67929dd",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-zelenograd/index.html": {
+   "sha": "01bda12b9f2f5835",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-novaya-moskva/index.html": {
+   "sha": "c4c4802be2416c5b",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-himki/index.html": {
+   "sha": "4be1acc33a855812",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-aleksandrovskij-sad/index.html": {
+   "sha": "49b2b72b17dc7238",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-alekseevskaya/index.html": {
+   "sha": "74b9f6221424bc40",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-arbatskaya/index.html": {
+   "sha": "cfc30df58376f05b",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-barrikadnaya/index.html": {
+   "sha": "f34f2cd14e583128",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-baumanskaya/index.html": {
+   "sha": "f4c250ee3551fe6f",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-belomorskaya/index.html": {
+   "sha": "e1c3d7b316263f23",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-belorusskaya/index.html": {
+   "sha": "5dc785e29d76e8bc",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-botanicheskij-sad/index.html": {
+   "sha": "07f45b06589baa0b",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-vdnh/index.html": {
+   "sha": "cf3f92bc86e6ea86",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-vojkovskaya/index.html": {
+   "sha": "70087473da40b217",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-volzhskaya/index.html": {
+   "sha": "3a186246bf614f2e",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-vorobyovy-gory/index.html": {
+   "sha": "f298ae21d9c4a317",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-vystavochnaya/index.html": {
+   "sha": "ccb1c6aa7d5cc688",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-dinamo/index.html": {
+   "sha": "c1a7040359b534b7",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-dmitrovskaya/index.html": {
+   "sha": "7278220306650b0c",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-dobryninskaya/index.html": {
+   "sha": "4f891090490ad171",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-dostoevskaya/index.html": {
+   "sha": "cfa45d5ac914ef25",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-kievskaya/index.html": {
+   "sha": "98cd1e335070c33f",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-kitaj-gorod/index.html": {
+   "sha": "f2bbb3818b3312b2",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-kolomenskaya/index.html": {
+   "sha": "235ada39844e8c26",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-krasnye-vorota/index.html": {
+   "sha": "d653be400e064fcd",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-kropotkinskaya/index.html": {
+   "sha": "9003c6b89874ffc5",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-krylatskoe/index.html": {
+   "sha": "45748ae04387905d",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-kuznetskij-most/index.html": {
+   "sha": "c0325ea1346b7dba",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-kurskaya/index.html": {
+   "sha": "3550722c3c8beafa",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-lubyanka/index.html": {
+   "sha": "2e42477074c8ef70",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-marksistskaya/index.html": {
+   "sha": "8c228a0c8624f6ad",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-marina-roscha/index.html": {
+   "sha": "454256c57edeea7f",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-mayakovskaya/index.html": {
+   "sha": "e4f2f5e0a2f05f9d",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-medvedkovo/index.html": {
+   "sha": "27335d394a563b40",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-mendeleevskaya/index.html": {
+   "sha": "0c562cf8db1e5318",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-novokuznetskaya/index.html": {
+   "sha": "90f2fb3796f5a5d3",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-oktyabrskaya/index.html": {
+   "sha": "c7d69bcc00054bd8",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-oktyabrskoe-pole/index.html": {
+   "sha": "a2e7d5375d828b3f",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-ohotnyj-ryad/index.html": {
+   "sha": "a6589b9c639b8d45",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-paveletskaya/index.html": {
+   "sha": "836814c9cdbc6cac",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-park-kultury/index.html": {
+   "sha": "335f7c897b160582",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-park-pobedy/index.html": {
+   "sha": "b22435408f82ab58",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-ploschad-ilicha/index.html": {
+   "sha": "bf06dfba7cb15960",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-ploschad-revolyutsii/index.html": {
+   "sha": "0ad426c86ac10494",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-polyanka/index.html": {
+   "sha": "e72c1698fd173467",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-potapovo/index.html": {
+   "sha": "ef3adc4abf844eee",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-proletarskaya/index.html": {
+   "sha": "67255a0216e2c404",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-prospekt-mira/index.html": {
+   "sha": "82b45085ce585b30",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-pushkinskaya/index.html": {
+   "sha": "8e142b1029aeb0f5",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-rechnoj-vokzal/index.html": {
+   "sha": "ce35504757cda1f5",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-smolenskaya/index.html": {
+   "sha": "3f84faccf86cee39",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-sokolniki/index.html": {
+   "sha": "cf00a9c320cb71dc",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-sportivnaya/index.html": {
+   "sha": "d6e2e4c2097aef7f",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-suharevskaya/index.html": {
+   "sha": "12fab234c16f371c",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-shodnenskaya/index.html": {
+   "sha": "4ce8544578a8093f",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-taganskaya/index.html": {
+   "sha": "1febc0493bb632df",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-tverskaya/index.html": {
+   "sha": "232c860927806d4e",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-tretyakovskaya/index.html": {
+   "sha": "432321d7cca42a17",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-trubnaya/index.html": {
+   "sha": "2d1c771a591982fd",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-turgenevskaya/index.html": {
+   "sha": "deda0f85d228df8e",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-ulitsa-1905-goda/index.html": {
+   "sha": "0c97f42588497355",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-frunzenskaya/index.html": {
+   "sha": "c982837b252854db",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-hovrino/index.html": {
+   "sha": "05dd6626426b75d3",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-tsvetnoj-bulvar/index.html": {
+   "sha": "079c53a3e6ee5d26",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-tsska/index.html": {
+   "sha": "f670aafcf2fea966",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-chehovskaya/index.html": {
+   "sha": "5f5f25ca610ea17e",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-chistye-prudy/index.html": {
+   "sha": "47f5779df3cb8145",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-chkalovskaya/index.html": {
+   "sha": "1682e246d767f63a",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-shabolovskaya/index.html": {
+   "sha": "c1c7c0751d046da7",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kuda-shodit-u-metro-schyolkovskaya/index.html": {
+   "sha": "952ab8bb70ce0d20",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kompyuternye-kluby-cao/index.html": {
+   "sha": "e5dfb90d3427c4ca",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kompyuternye-kluby-sao/index.html": {
+   "sha": "0e3c9d1ad94cd9b1",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kompyuternye-kluby-svao/index.html": {
+   "sha": "033b4c2e294f7a22",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kompyuternye-kluby-vao/index.html": {
+   "sha": "781bd34296c9727c",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kompyuternye-kluby-yuvao/index.html": {
+   "sha": "f1f2eb8bb5b48fae",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kompyuternye-kluby-yuao/index.html": {
+   "sha": "34c1652b3713b245",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kompyuternye-kluby-yuzao/index.html": {
+   "sha": "01f0e87b511d616b",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kompyuternye-kluby-zao/index.html": {
+   "sha": "d50230c32c0f24e1",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kompyuternye-kluby-szao/index.html": {
+   "sha": "ac90e9a4b8eb14b9",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kompyuternye-kluby-himki/index.html": {
+   "sha": "55f0fd0a0cff52ef",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kompyuternye-kluby-podmoskove/index.html": {
+   "sha": "34003d17dfd871bf",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kompyuternye-kluby-u-metro-alekseevskaya/index.html": {
+   "sha": "a7e789b89f092a60",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kompyuternye-kluby-u-metro-aeroport/index.html": {
+   "sha": "be4ddb5a35840f30",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kompyuternye-kluby-u-metro-barrikadnaya/index.html": {
+   "sha": "31aeac05c40a627a",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kompyuternye-kluby-u-metro-baumanskaya/index.html": {
+   "sha": "0165e367b0583a2b",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kompyuternye-kluby-u-metro-belomorskaya/index.html": {
+   "sha": "103f0baf1101406c",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kompyuternye-kluby-u-metro-belorusskaya/index.html": {
+   "sha": "1d51629cc82ac4b6",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kompyuternye-kluby-u-metro-kurskaya/index.html": {
+   "sha": "4a1ce269ebee3c83",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kompyuternye-kluby-u-metro-marksistskaya/index.html": {
+   "sha": "0c95d801f57e6020",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kompyuternye-kluby-u-metro-mayakovskaya/index.html": {
+   "sha": "755a84acbdf39dd2",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kompyuternye-kluby-u-metro-narodnoe-opolchenie/index.html": {
+   "sha": "1b9fcffd78792b88",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kompyuternye-kluby-u-metro-novoslobodskaya/index.html": {
+   "sha": "c7828df38ef7bafb",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kompyuternye-kluby-u-metro-proletarskaya/index.html": {
+   "sha": "1a51c1ef617ff5ae",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/kompyuternye-kluby-u-metro-taganskaya/index.html": {
+   "sha": "831c6b5fb17260aa",
+   "lastmod": "2026-10-15"
+  },
+  "moskva/index.html": {
+   "sha": "3b54c02052c4235e",
+   "lastmod": "2026-10-15"
+  }
+ },
+ "static": {
+  "start.html": {
+   "sha": "def0f830af807454",
+   "lastmod": "2026-10-15"
+  },
+  "start.html?m=guys": {
+   "sha": "d8447698d1dc3a69",
+   "lastmod": "2026-10-15"
+  },
+  "start.html?m=girls": {
+   "sha": "d8447698d1dc3a69",
+   "lastmod": "2026-10-15"
+  },
+  "partners.html": {
+   "sha": "3c66dae5327569f2",
+   "lastmod": "2026-10-15"
+  },
+  "rules.html": {
+   "sha": "9ffa06d1618e55ce",
+   "lastmod": "2026-10-15"
+  },
+  "privacy.html": {
+   "sha": "f4bf61e4ff2f08ab",
+   "lastmod": "2026-10-15"
+  }
+ }
+}

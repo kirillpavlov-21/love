@@ -1,0 +1,6 @@
+{
+  "_help": "Замените заглушки на настоящие имена (без @ и без ссылок): в именах Telegram и Instagram не бывает дефиса, поэтому заглушки с дефисом конвейер пропускает. Instagram читается только с IG_ACCESS_TOKEN и IG_USER_ID. inbox — читать issues с меткой «источник». Подробно — pipeline/README.md.",
+  "telegram": ["channel-one", "channel-two"],
+  "instagram": ["account-one"],
+  "inbox": true
+}

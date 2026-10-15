@@ -1,17 +1,50 @@
 {
-  "name": "Куда идём? — планы на вечер и приглашения-игры",
+  "name": "Куда идём? — планы на вечер в Москве",
   "short_name": "Куда идём?",
-  "description": "Готовые планы на вечер в Москве: свидание, пацаны, подружки. Позови игрой и выберите место всей компанией.",
+  "description": "Готовые планы на вечер в Москве: место, ужин рядом и маршрут. Афиша, приглашения-игры и голосование компании за пару минут.",
   "lang": "ru",
+  "dir": "ltr",
   "start_url": "start.html?src=pwa",
   "scope": "./",
   "display": "standalone",
   "background_color": "#0F0E13",
   "theme_color": "#0F0E13",
+  "categories": ["lifestyle", "entertainment", "travel"],
+  "prefer_related_applications": false,
   "icons": [
-    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
     { "src": "assets/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
-    { "src": "assets/icon.svg", "sizes": "any", "type": "image/svg+xml" }
+    { "src": "assets/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Подобрать за 10 секунд",
+      "short_name": "Подобрать",
+      "description": "Четыре вопроса — и три плана на вечер под твой бюджет",
+      "url": "start.html?quiz=1&src=pwa",
+      "icons": [{ "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Создать приглашение",
+      "short_name": "Позвать",
+      "description": "Собрать приглашение-игру на свидание или голосование для компании",
+      "url": "create.html?src=pwa",
+      "icons": [{ "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Афиша",
+      "short_name": "Афиша",
+      "description": "Концерты, спектакли, выставки и стендап на ближайшие дни",
+      "url": "start.html?tab=events&src=pwa",
+      "icons": [{ "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Мои приглашения",
+      "short_name": "Приглашения",
+      "description": "Все твои приглашения и ссылки на них",
+      "url": "invites.html?src=pwa",
+      "icons": [{ "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
   ]
 }

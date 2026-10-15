@@ -1,0 +1,37 @@
+# «Куда идём?» на своём сервере: API (Node + SQLite) и Caddy (HTTPS, зеркало сайта).
+# Запускается из setup.sh; вручную: cd /opt/kuda/deploy/vps && docker compose up -d --build
+services:
+  api:
+    build: ../../server
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      STORE: sqlite
+      SQLITE_PATH: /data/kuda.db
+      HOST: 0.0.0.0
+      PORT: "8787"
+      TRUST_PROXY: "1"        # адрес клиента — из X-Forwarded-For, его ставит Caddy
+    volumes:
+      - api-data:/data
+    expose:
+      - "8787"
+
+  caddy:
+    image: caddy:2.8
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ../..:/srv/site:ro      # зеркало сайта — сам репозиторий; лишнее закрыто в Caddyfile
+      - caddy-data:/data
+      - caddy-config:/config
+
+volumes:
+  api-data:
+  caddy-data:
+  caddy-config:

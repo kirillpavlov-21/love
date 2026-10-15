@@ -6,47 +6,165 @@
   <title>Переходим…</title>
   <meta name="robots" content="noindex">
   <meta name="theme-color" content="#0F0E13">
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
   <style>
     html, body { height: 100%; margin: 0; background: #0F0E13; color: #F4F1EA; font: 500 16px/1.45 system-ui, -apple-system, 'Segoe UI', sans-serif; }
-    main { display: grid; place-items: center; height: 100%; padding: 24px; box-sizing: border-box; text-align: center; }
+    main { display: grid; place-items: center; min-height: 100%; padding: 24px 16px; box-sizing: border-box; text-align: center; }
+    .box { max-width: 360px; }
+    p { margin: 0 0 16px; }
     a { color: #FF6F91; }
     .dot { width: 14px; height: 14px; margin: 0 auto 14px; border-radius: 50%; background: #FF6F91; animation: p 1s infinite alternate; }
     @keyframes p { to { opacity: .2; transform: scale(.7); } }
+    @media (prefers-reduced-motion: reduce) { .dot { animation: none; } }
+    .acts { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+    .acts a, .acts button { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 20px; border-radius: 14px; font: 700 15px system-ui, -apple-system, 'Segoe UI', sans-serif; text-decoration: none; cursor: pointer; }
+    .acts button { border: 0; background: #FF6F91; color: #1C0A10; }
+    .acts a { border: 1px solid rgba(244, 241, 234, .16); color: #F4F1EA; }
+    .acts a.main { border-color: transparent; background: #FF6F91; color: #1C0A10; }
+    .acts :focus-visible { outline: 2px solid #FF6F91; outline-offset: 3px; }
+    [hidden] { display: none !important; }
   </style>
 </head>
 <body>
-  <main><div><div class="dot"></div><p id="msg">Открываем ссылку…</p></div></main>
+  <main>
+    <div class="box">
+      <div class="dot" id="dot" aria-hidden="true"></div>
+      <p id="msg" role="status" aria-live="polite">Открываем ссылку…</p>
+      <div class="acts" id="acts" hidden><a class="main" id="open" href="start.html" hidden>Открыть</a><button type="button" id="retry" hidden>Попробовать ещё раз</button><a href="start.html" id="home">На главную</a></div>
+    </div>
+  </main>
+  <noscript><p style="text-align:center">Чтобы открыть ссылку, включи JavaScript. <a href="start.html">На главную</a></p></noscript>
   <!-- Короткие ссылки сайта:
-       #r=<id плана или p-<id места>> — маршрут в Яндекс Картах;
-       #s=<код> — длинная ссылка из сокращателя посредника (config.js → telegram.relayUrl). -->
-  <script src="config.js?v=26"></script>
-  <script src="assets/shared.js?v=26"></script>
-  <script src="assets/places.js?v=26"></script>
+       #r=<id плана, p-<id места> или ev-<id события>> — маршрут в Яндекс Картах;
+       #s=<код> — длинная ссылка: сначала спрашиваем свой сервер (config.js → api.url, GET ?s=),
+       потом посредника (config.js → telegram.relayUrl) — там лежат коды, выданные до сервера.
+       Данные грузятся только для маршрутов и только нужные (каталог places.js — больше 600 КБ — для плана или места,
+       афиша events.js — для события), с тем же ?v=, что у config.js. -->
+  <script src="config.js?v=28"></script>
   <script>
   (async function () {
-    const K = window.DateKit, h = new URLSearchParams(location.hash.slice(1));
-    const msg = t => { document.getElementById('msg').innerHTML = t; };
-    const home = K.sitePath('start.html');
-    /* Переходить можно только на наш сайт и в Яндекс Карты — сокращатель не должен становиться открытым редиректом */
-    const site = K.sitePath('./');
-    const safe = u => { try { const h = new URL(u).href; return h.startsWith(site) || h.startsWith('https://yandex.ru/maps/'); } catch (e) { return false; } };
+    'use strict';
+    const C = window.DATE_CONFIG || {};
+    const h = new URLSearchParams(location.hash.slice(1));
+    const $ = id => document.getElementById(id);
+    const page = f => new URL(f, location.href).href.split('#')[0].split('?')[0];
+    const home = page('start.html');
+    const site = page('./');
+    $('home').href = home;
+
+    /* Итог: текст, «Попробовать ещё раз» (если повтор может помочь) и «На главную» */
+    function show(text, retry) {
+      document.title = 'Ссылка не открылась';
+      $('dot').hidden = true;
+      $('msg').textContent = text;
+      $('acts').hidden = false;
+      $('retry').hidden = !retry;
+      if (retry) $('retry').focus();
+    }
+    $('retry').onclick = () => location.reload();
+    window.addEventListener('hashchange', () => location.reload());   // другая ссылка в той же вкладке
+    /* Переход без записи в истории. Если ссылку перехватило приложение (например, Яндекс Карты), вкладка
+       останется здесь — через несколько секунд вместо вечной «загрузки» покажем кнопку «Открыть» */
+    const go = url => {
+      location.replace(url);
+      setTimeout(() => {
+        $('dot').hidden = true;
+        $('msg').textContent = 'Если ничего не открылось, нажми «Открыть».';
+        $('open').href = url;
+        $('open').hidden = false;
+        $('acts').hidden = false;
+      }, 4000);
+    };
+
+    /* Куда можно перейти: только наш сайт и Яндекс Карты — сокращатель не должен становиться открытым редиректом.
+       Ссылки, выданные до переезда с github.io на свой домен, ведут на ту же страницу этого сайта. Нельзя — ''. */
+    const PAGE_RE = /^(?:index|start|create|invites)\.html$/;
+    function target(u) {
+      let x;
+      try { x = new URL(u); } catch (e) { return ''; }
+      if (x.href.startsWith(site) || x.href.startsWith('https://yandex.ru/maps/')) return x.href;
+      const file = x.pathname.split('/').pop();
+      const moved = x.protocol === 'https:' && /\.github\.io$/i.test(x.hostname) && !/\.github\.io$/i.test(location.hostname);
+      return moved && PAGE_RE.test(file) ? site + file + x.search + x.hash : '';
+    }
+
+    /* Версия скриптов — как у config.js выше: номер ?v= поднимают в одном месте */
+    const V = (() => {
+      const s = document.querySelector('script[src*="config.js"]');
+      const m = s && /[?&]v=([\w.-]+)/.exec(s.getAttribute('src') || '');
+      return m ? '?v=' + m[1] : '';
+    })();
+    /* Качаются параллельно, выполняются по порядку (async = false) */
+    const load = files => Promise.all(files.map(f => new Promise((ok, fail) => {
+      const s = document.createElement('script');
+      s.src = f + V;
+      s.async = false;
+      s.onload = ok;
+      s.onerror = () => fail(new Error(f));
+      document.head.appendChild(s);
+    })));
+
+    /* GET с таймаутом; ответ всегда объект {ok, …}, сеть — {ok:false, error:'net'} */
+    function getJson(url, ms) {
+      const ctl = typeof AbortController === 'function' ? new AbortController() : null;
+      let timer = 0;
+      const limit = new Promise(ok => { timer = setTimeout(() => { if (ctl) ctl.abort(); ok({ ok: false, error: 'net' }); }, ms); });
+      const req = fetch(url, { credentials: 'omit', signal: ctl ? ctl.signal : undefined })
+        .then(r => r.json().then(j => (j && typeof j === 'object' ? j : { ok: false, error: 'bad' }), () => ({ ok: false, error: r.status >= 500 ? 'busy' : 'bad' })),
+          () => ({ ok: false, error: 'net' }));
+      return Promise.race([req, limit]).then(j => { clearTimeout(timer); return j; });
+    }
+    const withParam = (base, k, v) => base + (base.indexOf('?') >= 0 ? '&' : '?') + k + '=' + encodeURIComponent(v);
+
+    /* Маршрут: план из подборки, место (p-<id>) или площадка события (ev-<id>) */
+    async function route(id) {
+      const isEvent = /^ev-/.test(id);
+      try {
+        await load(isEvent ? ['assets/shared.js', 'assets/events.js', 'assets/auto.js'] : ['assets/shared.js', 'assets/places.js', 'assets/auto.js']);
+      } catch (e) {
+        return show('Не получилось загрузить маршрут — проверь интернет.', true);
+      }
+      const K = window.DateKit;
+      if (!K || !K.routeUrl) return show('Не получилось загрузить маршрут — попробуй ещё раз.', true);
+      let stops = [];
+      if (isEvent) {
+        const ev = K.eventById ? K.eventById(id) : (window.KUDA_EVENTS || []).find(x => x && x.id === id);
+        if (ev && typeof ev.lat === 'number' && typeof ev.lon === 'number') stops = [ev];
+      } else {
+        stops = K.planStops(K.planById(id));
+      }
+      if (stops.length) return go(K.routeUrl(stops));
+      show(isEvent ? 'Этого события больше нет в афише. Загляни на главную — там есть и другие.' : 'Этого плана больше нет в каталоге — возможно, место закрылось. На главной найдутся другие.');
+    }
+
+    /* Короткий код: свой сервер, затем посредник. Ошибки: net (сеть), busy (лимит/занято), nf (нет такой ссылки) */
+    async function expand(code) {
+      const api = String((C.api || {}).url || '').trim();
+      const relay = String((C.telegram || {}).relayUrl || '').trim();
+      const tries = [];
+      if (/^https:\/\/|^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?\//.test(api + '/') && /^[A-Za-z0-9]{4,16}$/.test(code)) tries.push(() => getJson(withParam(api, 's', code), 5000));
+      if (/^https:\/\//.test(relay)) tries.push(() => getJson(withParam(relay, 's', code), 10000));   // Apps Script просыпается долго
+      const errs = [];
+      for (const t of tries) {
+        const j = await t();
+        const to = j.ok && typeof j.url === 'string' ? target(j.url) : '';
+        if (to) return go(to);
+        errs.push(j.ok ? 'nf' : /^(?:rate|busy|server)$/.test(j.error) ? 'busy' : j.error === 'net' ? 'net' : 'nf');
+      }
+      if (errs.indexOf('net') >= 0) return show('Не получилось открыть ссылку — проверь интернет и попробуй ещё раз.', true);
+      if (errs.indexOf('busy') >= 0) return show('Сервер ссылок сейчас занят. Подожди минуту и попробуй ещё раз.', true);
+      show('Ссылка устарела или скопирована не целиком. Попроси прислать её ещё раз.');
+    }
+
     try {
-      if (h.get('r')) {
-        const plan = K.planById(h.get('r'));
-        const st = K.planStops(plan);
-        if (st.length) { location.replace(K.routeUrl(st)); return; }
-      }
-      if (h.get('s') && /^[A-Za-z0-9_-]{1,16}$/.test(h.get('s'))) {
-        const relay = ((window.DATE_CONFIG || {}).telegram || {}).relayUrl;
-        if (relay) {
-          const r = await fetch(relay + (relay.includes('?') ? '&' : '?') + 's=' + encodeURIComponent(h.get('s')));
-          const j = await r.json();
-          if (j.ok && safe(j.url)) { location.replace(j.url); return; }
-        }
-      }
-      msg(`Ссылка устарела или скопирована не целиком. <a href="${home}">На главную</a>`);
+      const r = h.get('r'), s = h.get('s');
+      // config.js не загрузился — значит, нет сети, а не «ссылка устарела»
+      if (!window.DATE_CONFIG) return show('Не получилось открыть ссылку — проверь интернет и попробуй ещё раз.', true);
+      if (r) return await route(r);
+      if (s && /^[A-Za-z0-9_-]{1,16}$/.test(s)) return await expand(s);
+      show('Ссылка скопирована не целиком. Попроси прислать её ещё раз.');
     } catch (e) {
-      msg(`Не получилось открыть ссылку — проверь интернет. <a href="${home}">На главную</a>`);
+      show('Не получилось открыть ссылку — попробуй ещё раз.', true);
     }
   })();
   </script>

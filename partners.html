@@ -4,56 +4,83 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Для заведений — Куда идём?</title>
-  <meta name="description" content="Как попасть в подборки «Куда идём?» и разместить промокод для гостей.">
+  <meta name="description" content="Как заведению попасть в готовые планы на вечер «Куда идём?»: бесплатно, с описанием, маршрутом и событиями в афише.">
   <meta name="theme-color" content="#0F0E13">
   <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/icon-180.png">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="assets/hub.css?v=26">
+  <link rel="stylesheet" href="assets/hub.css?v=28">
   <style>
-    .doc h1 { margin: 22px 0 6px; font: 700 28px/1.15 var(--display); letter-spacing: -.02em; }
-    .doc h2 { margin: 26px 0 8px; font: 600 18px var(--display); }
+    .doc h1 { margin: 22px 0 6px; font: 700 clamp(20px, 6.4vw, 28px)/1.15 var(--display); letter-spacing: -.02em; overflow-wrap: break-word; hyphens: auto; }
+    .doc h2 { margin: 30px 0 8px; font: 600 18px/1.3 var(--display); }
     .doc p, .doc li { color: var(--muted-2); font-size: 15px; line-height: 1.55; }
     .doc ul, .doc ol { padding-left: 20px; }
-    .doc code { padding: 1px 5px; border-radius: 6px; background: var(--surface-2); font-size: 13px; }
-    .cta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+    .doc li + li { margin-top: 6px; }
+    .doc b { color: var(--text); }
+    .doc .lead { font-size: 16px; color: var(--text); }
+    .doc .perks { display: grid; gap: 10px; margin: 16px 0 0; padding: 0; list-style: none; }
+    .doc .perks li { margin: 0; padding: 14px; border-radius: 16px; border: 1px solid var(--line); background: var(--surface); }
+    .doc .perks li + li { margin: 0; }
+    .doc .perks b { display: block; margin-bottom: 2px; font-size: 15px; }
+    @media (min-width: 620px) { .doc .perks { grid-template-columns: 1fr 1fr; } }
+    .cta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+    .cta .btn { flex: 1 1 220px; }
   </style>
 </head>
 <body>
   <header class="top"><a class="logo" href="start.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/></svg><span class="brand">Куда идём?</span></a></header>
   <main class="doc">
     <h1>Для заведений</h1>
-    <p>«Куда идём?» помогает людям выбрать, куда пойти вечером: на свидание, с друзьями или на девичник. Сайт собирает готовые планы «занятие + еда рядом», а компания голосует за место прямо в чате.</p>
+    <p class="lead">Люди приходят к нам с вопросом «куда идём?» и уходят с готовым решением: место, еда рядом и маршрут. Пара выбирает свидание, компания голосует по ссылке — и к вам приходят уже договорившись.</p>
 
-    <h2>Промокоды <span class="soon big">скоро</span></h2>
-    <ul>
-      <li>Ваш промокод появится во вкладке «Промокоды» и в карточке заведения.</li>
-      <li>Заведение подсвечивается значком 🎁 в списке мест, на карте и в карточках планов, где оно есть.</li>
-      <li>Гость копирует код в одно касание и показывает его на кассе или вводит при бронировании.</li>
-      <li>Условия формулируете вы: размер скидки, дни и часы, срок действия.</li>
+    <ul class="perks">
+      <li><b>В готовых планах</b>Вас выбирают не из длинного списка, а как часть вечера: «прогулка + ужин рядом», «концерт + бар в 10 минутах».</li>
+      <li><b>Карточка с вашими фото</b>Описание, адрес и маршрут в Яндекс Картах<span data-srv>, а ещё отзывы гостей с оценками «для свидания» и «для компании»</span>.</li>
+      <li><b>Ваши события в афише</b>Концерты, вечеринки, мастер-классы — с датами, ссылкой на билеты и планом вокруг события.</li>
+      <li><b>Бесплатно</b>Место в каталоге не продаётся: берём заведения, куда сами бы позвали друзей.</li>
     </ul>
 
-    <h2>Как попасть в подборки</h2>
+    <h2>Как попасть в планы и каталог</h2>
     <ol>
-      <li>Напишите нам: название, адрес, чем вы интересны для свидания или компании.</li>
-      <li>Мы проверим, что место работает, и включим его в подходящие планы рядом.</li>
-      <li>Пришлите фото с правом публикации — в карточке появится галерея.</li>
+      <li><b>Напишите нам</b>: название, адрес, часы работы и чем вы хороши для свидания или компании.</li>
+      <li><b>Хотите фото в карточке</b> — загрузите 3–5 снимков (зал, блюда, атмосфера) на <a href="https://commons.wikimedia.org/wiki/Special:UploadWizard" target="_blank" rel="noopener">Wikimedia Commons</a> под лицензией CC BY или CC BY-SA и пришлите нам ссылку. Подпишем их автором и лицензией. Фото с сайтов, из соцсетей и вложения в письмах не публикуем — только снимки со свободной лицензией.</li>
+      <li><b>Мы проверим</b>, что место работает, напишем описание своими словами и добавим вас в планы рядом. Обычно это занимает несколько дней.</li>
     </ol>
-    <p>Компьютерные клубы, бары, бани, квесты, рестораны и кофейни особенно нужны в спальных районах и ближнем Подмосковье.</p>
+    <p>Особенно ждём компьютерные клубы, бани, квесты, караоке, бары и кофейни в спальных районах и ближнем Подмосковье. Нашли ошибку в своей карточке — напишите, поправим.</p>
+
+    <h2>Промокоды для гостей</h2>
+    <ul>
+      <li>Код появится в карточке заведения и в планах, где вы есть, с отметкой 🎁. Гость копирует его в одно касание.</li>
+      <li>Условия задаёте вы: размер скидки, дни и часы, срок действия.</li>
+      <li>Промокод — это реклама, поэтому публикуем его с пометкой «Реклама», названием рекламодателя и идентификатором erid из ОРД (оператора рекламных данных), как требует закон о рекламе. Для этого понадобятся ваши ИНН и наименование.</li>
+    </ul>
+
     <div class="cta" id="cta"></div>
   </main>
-  <footer class="foot"><a href="start.html">← На главную</a></footer>
-  <script src="config.js?v=26"></script>
+  <footer class="foot"><nav class="foot-links"><a href="start.html">← На главную</a><a href="privacy.html">Конфиденциальность</a><a href="rules.html">Правила рекомендаций</a></nav></footer>
+  <script src="config.js?v=28"></script>
   <script>
   (function () {
     var C = window.DATE_CONFIG || {}, sup = C.support || {}, box = document.getElementById('cta');
     if (C.site && C.site.name) document.querySelector('.brand').textContent = C.site.name;
-    if (sup.email) box.insertAdjacentHTML('beforeend', '<a class="btn primary" href="mailto:' + sup.email + '?subject=' + encodeURIComponent('Заведение в подборках') + '">Написать на почту</a>');
-    if (sup.telegram) box.insertAdjacentHTML('beforeend', '<a class="btn ghost" href="https://t.me/' + sup.telegram + '" target="_blank" rel="noopener">Написать в Telegram</a>');
-    if (!box.children.length) box.innerHTML = '<p class="muted">Контакты для заведений появятся здесь совсем скоро.</p>';
+    var add = function (cls, href, text, blank) {
+      var a = document.createElement('a');
+      a.className = 'btn ' + cls; a.href = href; a.textContent = text;
+      if (blank) { a.target = '_blank'; a.rel = 'noopener'; }
+      box.appendChild(a);
+    };
+    /* Без своего сервера отзывов и оценок гостей нет — не обещаем их */
+    if (!String((C.api || {}).url || '').trim()) [].forEach.call(document.querySelectorAll('[data-srv]'), function (el) { el.remove(); });
+    /* Письмо с готовой анкетой — заведению остаётся заполнить строки. Фото — только ссылкой на Commons, вложения не публикуем */
+    var form = ['Название:', 'Адрес:', 'Часы работы:', 'Чем вы хороши для свидания или компании:', 'Сайт или страница заведения:', 'Ссылка на фото на Wikimedia Commons (если есть):'].join('\r\n');
+    if (sup.email) add('primary', 'mailto:' + sup.email + '?subject=' + encodeURIComponent('Заведение в каталоге') + '&body=' + encodeURIComponent(form), 'Написать на почту');
+    if (sup.telegram) add(sup.email ? 'ghost' : 'primary', 'https://t.me/' + encodeURIComponent(String(sup.telegram).replace(/^@/, '')), 'Написать в Telegram', true);
+    if (!box.children.length) box.innerHTML = '<p class="muted">Адрес для заявок появится здесь в ближайшее время.</p>';
   })();
   </script>
+  <script src="assets/pwa.js?v=28"></script>
 </body>
 </html>

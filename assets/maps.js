@@ -1,57 +1,45 @@
-/* Карты на сайте: Leaflet + OpenStreetMap. Библиотека грузится только при первом показе карты.
-   miniMap — маленькая карта маршрута в карточке плана или места: пронумерованные точки и пунктир между ними. */
+/* Карта мест на сайте — Яндекс Карты (JavaScript API 2.1). Одна большая карта каталога (вкладка «Карта»);
+   в карточках мест и планов карты нет — там «Как добраться» / «Маршрут» и «Фото, часы и отзывы» в Яндекс Картах.
+   Библиотека грузится только при первом показе карты. Ключ API — config.js → maps.yandexKey
+   (бесплатный ключ «JavaScript API и HTTP Геокодер» в кабинете разработчика Яндекса, см. README).
+   Если API не загрузился (нет сети, блокировщик), тег скрипта убираем — следующая попытка начнётся с чистого листа. */
 (function () {
   'use strict';
 
-  let leafletP = null;
+  const CFG = window.DATE_CONFIG || {};
+  const KEY = String((CFG.maps && CFG.maps.yandexKey) || '').trim();
+  const SRC = 'https://api-maps.yandex.ru/2.1/?lang=ru_RU' + (KEY ? '&apikey=' + encodeURIComponent(KEY) : '');
+  let apiP = null;
+
   function load() {
-    if (window.L) return Promise.resolve(window.L);
-    if (leafletP) return leafletP;
-    leafletP = new Promise((res, rej) => {
-      const css = document.createElement('link');
-      css.rel = 'stylesheet'; css.href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
-      document.head.appendChild(css);
+    if (window.ymaps && window.ymaps.Map) return Promise.resolve(window.ymaps);
+    if (apiP) return apiP;
+    apiP = new Promise((res, rej) => {
+      const old = document.getElementById('ymaps-api');
+      if (old) old.remove();
       const s = document.createElement('script');
-      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
-      s.onload = () => res(window.L);
-      s.onerror = () => { leafletP = null; rej(new Error('leaflet')); };
+      s.id = 'ymaps-api';
+      s.src = SRC;
+      s.async = true;
+      let done = false;
+      const fail = () => { if (done) return; done = true; clearTimeout(t); s.remove(); apiP = null; rej(new Error('ymaps')); };
+      const t = setTimeout(fail, 15000);
+      s.onload = () => {
+        if (!window.ymaps || !window.ymaps.ready) { fail(); return; }
+        window.ymaps.ready(() => { if (done) return; done = true; clearTimeout(t); res(window.ymaps); }, fail);
+      };
+      s.onerror = fail;
       document.head.appendChild(s);
     });
-    return leafletP;
+    return apiP;
   }
 
-  const TILES = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
-  const ATTR = '© участники OpenStreetMap';
-  function tiles(L) { return L.tileLayer(TILES, { maxZoom: 18, attribution: ATTR }); }
+  /* Цвет точки по разделу каталога — насыщенные, чтобы читались на светлой карте */
+  const CAT_COLOR = { walk: '#1E9E57', culture: '#7B5CD6', food: '#E0446B', coffee: '#D9731A', bar: '#B88A00', fun: '#6C9A0F', pc: '#0E9AA7', spa: '#2F80ED', books: '#C1489C' };
+  const PROMO_COLOR = '#F5B000';
 
-  /* Пронумерованная точка: divIcon, цвет — акцент режима */
-  function numIcon(L, n, opts) {
-    const cls = 'mm-pin' + (opts && opts.promo ? ' promo' : '') + (opts && opts.me ? ' me' : '');
-    return L.divIcon({ className: '', html: `<span class="${cls}">${n}</span>`, iconSize: [28, 28], iconAnchor: [14, 14] });
-  }
+  /* Центр Москвы и масштаб, с которых карта открывается, когда мест под фильтром много */
+  const CENTER = [55.751, 37.618], ZOOM = 11;
 
-  /* el — контейнер; stops — [{lat, lon, name}]; возвращает объект карты (или null, если не загрузилась) */
-  async function miniMap(el, stops, opts) {
-    opts = opts || {};
-    if (!el || !stops.length) return null;
-    let L;
-    try { L = await load(); } catch (e) { el.innerHTML = '<p class="mm-off">Карта не загрузилась — маршрут откроется в Яндекс Картах.</p>'; return null; }
-    if (!el.isConnected) return null;
-    const map = L.map(el, { zoomControl: false, attributionControl: true, scrollWheelZoom: false, dragging: !L.Browser.mobile, tap: false });
-    tiles(L).addTo(map);
-    const pts = stops.map(p => [p.lat, p.lon]);
-    if (pts.length > 1) L.polyline(pts, { color: '#ffffff', weight: 3, opacity: 0.9, dashArray: '6 8', className: 'mm-line' }).addTo(map);
-    stops.forEach((p, i) => L.marker([p.lat, p.lon], { icon: numIcon(L, stops.length > 1 ? i + 1 : '•', { promo: p.promo }), title: p.name, keyboard: false }).addTo(map));
-    if (opts.me) L.marker([opts.me.lat, opts.me.lon], { icon: numIcon(L, '', { me: true }), keyboard: false }).addTo(map);
-    const fit = () => {
-      map.invalidateSize();
-      if (pts.length > 1) map.fitBounds(L.latLngBounds(pts), { padding: [28, 28], maxZoom: 16 });
-      else map.setView(pts[0], 15);
-    };
-    fit();
-    setTimeout(fit, 60);
-    return map;
-  }
-
-  window.KudaMap = { load, tiles, numIcon, miniMap };
+  window.KudaMap = { load, CAT_COLOR, PROMO_COLOR, CENTER, ZOOM, hasKey: !!KEY };
 })();

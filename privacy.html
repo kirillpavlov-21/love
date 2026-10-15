@@ -4,79 +4,187 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Конфиденциальность — Куда идём?</title>
-  <meta name="description" content="Какие данные хранит сайт «Куда идём?», куда они уходят и как их удалить.">
+  <meta name="description" content="Какие данные хранит «Куда идём?»: что лежит в ссылке и в браузере, что и сколько хранится на сервере в России, как всё удалить.">
   <meta name="theme-color" content="#0F0E13">
   <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/icon-180.png">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="assets/hub.css?v=26">
+  <link rel="stylesheet" href="assets/hub.css?v=28">
   <style>
-    .doc h1 { margin: 22px 0 6px; font: 700 28px/1.15 var(--display); letter-spacing: -.02em; }
-    .doc h2 { margin: 26px 0 8px; font: 600 18px var(--display); }
+    .doc h1 { margin: 22px 0 6px; font: 700 clamp(20px, 6.4vw, 28px)/1.15 var(--display); letter-spacing: -.02em; overflow-wrap: break-word; hyphens: auto; }
+    .doc h2 { margin: 30px 0 8px; font: 600 18px/1.3 var(--display); scroll-margin-top: 16px; }
     .doc p, .doc li { color: var(--muted-2); font-size: 15px; line-height: 1.55; }
-    .doc ul { padding-left: 20px; }
+    .doc ul, .doc ol { padding-left: 20px; }
+    .doc li + li { margin-top: 6px; }
+    .doc b { color: var(--text); }
     .doc code { padding: 1px 5px; border-radius: 6px; background: var(--surface-2); font-size: 13px; }
     .doc .btn { margin-top: 8px; }
+    .doc .lead { font-size: 16px; color: var(--text); }
+    .doc .note { padding: 12px 14px; border-radius: 14px; border: 1px solid var(--line-2); background: var(--surface); font-size: 14px; }
+    .doc .toc { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0 0; padding: 0; list-style: none; }
+    .doc .toc li + li { margin: 0; }
+    .doc .toc a { display: inline-flex; align-items: center; min-height: 36px; padding: 0 12px; border-radius: 99px; border: 1px solid var(--line-2); color: var(--text); font-size: 13px; font-weight: 600; text-decoration: none; }
+    .doc .facts { display: grid; gap: 10px; margin: 14px 0; padding: 0; list-style: none; }
+    .doc .facts li { margin: 0; padding: 14px; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); }
+    .doc .facts li + li { margin: 0; }
+    .doc .facts b { display: block; margin-bottom: 4px; font-size: 15px; }
+    .doc .facts .term { display: block; margin-top: 6px; color: var(--accent); font-size: 13px; font-weight: 600; }
   </style>
 </head>
 <body>
   <header class="top"><a class="logo" href="start.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/></svg><span class="brand">Куда идём?</span></a></header>
   <main class="doc">
     <h1>Конфиденциальность</h1>
-    <p>Коротко: у сайта нет своего сервера с данными пользователей. Приглашения и голоса живут в самих ссылках, а предпочтения — только в твоём браузере.</p>
+    <p class="lead">Коротко: аккаунт не нужен. Приглашение живёт в самой ссылке, подстройка под тебя — только в твоём браузере. Голоса компании, ответы на приглашения и отзывы хранятся на нашем сервере в России: голоса и ответы удаляются сами через 90 дней, отзывы — по твоей просьбе.</p>
+    <p class="note hidden" id="apiOff">Сейчас сервер не подключён: голоса и ответы живут только в ссылках, а отзывов на сайте нет. Раздел о сервере начнёт действовать, когда мы его включим.</p>
+    <nav aria-label="Разделы страницы"><ul class="toc">
+      <li><a href="#link">В ссылке</a></li>
+      <li><a href="#browser">В браузере</a></li>
+      <li><a href="#server">На сервере</a></li>
+      <li><a href="#services">Другие сервисы</a></li>
+      <li><a href="#delete">Как удалить</a></li>
+      <li><a href="#contacts">Контакты</a></li>
+    </ul></nav>
 
-    <h2>Что хранится в твоём браузере</h2>
+    <h2 id="link">Что лежит в ссылке</h2>
     <ul>
-      <li><b>Подстройка под тебя.</b> Какие планы и места ты открываешь, сохраняешь и куда зовёшь — до 400 последних действий и модель предпочтений для блока «Для тебя». Это не уходит с устройства.</li>
-      <li><b>Сохранённые</b> планы и места, выбранный режим, черновик приглашения, история твоих приглашений.</li>
-      <li><b>Точка «Рядом со мной»</b> — если ты разрешил геолокацию или выбрал станцию метро. Координаты не отправляются никуда.</li>
-      <li><b>Профиль Яндекса</b> (имя и аватар), если ты вошёл через Яндекс ID. Токен доступа после входа не хранится.</li>
-      <li><b>Ключ владельца</b> для ответов в Telegram, если ты его ввёл в конструкторе.</li>
+      <li><b>Приглашение</b> — имена, тексты, варианты мест, дни и время, а также ник для ответа в мессенджере, если ты его указал, — зашито в саму ссылку, в часть после знака <code>#</code>. Браузер не отправляет эту часть на сервер, когда открывает страницу, но её видит каждый, у кого есть ссылка.</li>
+      <li><b>Ссылка-билет</b> с ответом на свидание содержит выбранное место, день, время, еду и записку. Ссылки голосований, которые пересылали без сервера, содержат имена и выбор проголосовавших.</li>
+      <li>Поэтому отправляй ссылку только тем, кого зовёшь.</li>
     </ul>
-    <p>Всё это можно удалить кнопкой ниже или очисткой данных сайта в настройках браузера.</p>
+
+    <h2 id="browser">Что хранится в твоём браузере</h2>
+    <p>Эти данные лежат на твоём устройстве (localStorage и sessionStorage) и никуда не отправляются, если ниже не сказано иначе.</p>
+    <ul>
+      <li><b>Подстройка «Для тебя»</b> — до 400 последних действий на сайте (что открыл, сохранил, куда позвал) и модель предпочтений. Как она работает — в <a href="rules.html">правилах рекомендаций</a>.</li>
+      <li><b>Сохранённые</b> планы и места, выбранный повод, черновик приглашения, история твоих приглашений и прогресс в играх-приглашениях.</li>
+      <li><b>Голосования компании</b>: имя, под которым ты голосуешь (<code>kuda-name</code> — подставим его в следующий раз), и для каждого приглашения свой номер голосующего (<code>kuda-voter:&lt;id&gt;</code>), секрет голосующего (<code>kuda-vsec:&lt;id&gt;</code>), копия голосов, которые ты видел (<code>kuda-votes:&lt;id&gt;</code>), и итог колеса при ничьей (<code>kuda-spin:&lt;id&gt;</code>). Секрет — случайная строка: по нему сервер узнаёт, что голос меняешь именно ты, и хранит только его необратимый отпечаток. Без секрета свой голос в этом приглашении ты уже не изменишь.</li>
+      <li><b>Случайные ключи этого браузера</b>: секрет создателя (по нему «Мои приглашения» узнают твои приглашения) и номер устройства (один отзыв на место, «приглашение открыли» без повторов). Сервер хранит только их необратимые отпечатки или солёные хэши.</li>
+      <li><b>Отзывы</b>: список мест, где ты уже оставил отзыв, и отзывов, на которые пожаловался, — чтобы не спрашивать дважды.</li>
+      <li><b>Точка «Рядом со мной»</b>: геопозиция — только пока открыта вкладка, выбранная станция метро или точка на карте — дольше. Координаты никуда не отправляются.</li>
+      <li><b>Профиль Яндекса</b> (имя, аватар и номер аккаунта) — если ты вошёл через Яндекс ID. <b>Токен доступа Яндекса</b> — только в sessionStorage, пока ты вошёл: в localStorage он не попадает и стирается при закрытии вкладки или выходе. Подробнее — <a href="#yandex">ниже</a>.</li>
+      <li><b>Уведомления «Мои приглашения»</b> — если ты их включил: разрешение и отметка хранятся в браузере, а уведомления показывает сам браузер, пока страница открыта.</li>
+      <li><b>Ключ владельца</b> для уведомлений в Telegram — если ты его ввёл.</li>
+      <li><b>Служебное</b>: твой выбор про аналитику, рейтинги мест (на 10 минут), прогноз погоды (на час), короткие ссылки (до закрытия вкладки) и копии страниц, скриптов и фото сайта для быстрого открытия и работы без сети. В копиях только общие файлы сайта, личных данных там нет.</li>
+    </ul>
+    <p>Всё это удаляется кнопкой ниже или очисткой данных сайта в настройках браузера. Данные на сервере кнопка не трогает — о них <a href="#delete">ниже</a>.</p>
     <button class="btn ghost" id="wipe" type="button">Удалить мои данные на этом устройстве</button>
+    <p class="muted" id="wipeAsk" aria-live="polite"></p>
 
-    <h2>Что и куда отправляется</h2>
+    <h2 id="server">Что хранится на нашем сервере</h2>
+    <p>Сервер нужен, чтобы компания видела одни и те же итоги голосования, создатель — ответы на свои приглашения, а все — отзывы о местах. Сервер и база данных находятся в России — <span id="hosting" data-auto><!-- Оператору: data-auto сам выбирает «Yandex Cloud…» или «российский дата-центр» по адресу api.url. Хочешь точнее — убери data-auto и впиши, например: «в дата-центре Selectel в Москве» -->в Yandex Cloud, регион ru-central1</span>. Голоса, ответы и статусы приглашений лежат не под самой ссылкой, а под её отпечатком — необратимым хэшем (SHA-256) кода приглашения из ссылки: по отпечатку ссылку не восстановить и приглашение не открыть. Целиком ссылку сервер получает, только если ты её сокращаешь, — см. «Короткие ссылки».</p>
+    <ul class="facts">
+      <li><b>Голоса компании</b>Под отпечатком ссылки: имя, которое ты ввёл, выбранные варианты и дни, случайный номер голосующего, отпечаток твоего секрета голосующего и итог колеса при ничьей.<span class="term">90 дней после последнего изменения</span></li>
+      <li><b>Приглашения и ответы</b>Отпечатки кода и секрета создателя, повод и название, когда приглашение открыли впервые и солёные хэши открывших его устройств (чтобы не считать одно устройство дважды), ответ на свидание: место, день, время, еда и записка.<span class="term">90 дней после последнего изменения</span></li>
+      <li id="reviews"><b>Отзывы</b>Место, оценка, текст, теги, имя (любое, какое укажешь), для чего ходили, солёные хэши устройства и Яндекс ID (если ты вошёл). Отзыв публичный — его видят все посетители. Ссылки, почту, телефоны и @ники сервер вырезает из текста сам, но лучше не пиши в отзыве ничего личного.<span class="term">пока ты не попросишь удалить или его не скроет модерация</span></li>
+      <li><b>Жалобы на отзывы</b>Солёный хэш устройства и причина.<span class="term">вместе с отзывом</span></li>
+      <li><b>Сообщения об ошибках в каталоге</b>Место, текст сообщения, солёный хэш устройства.<span class="term">до разбора, не дольше года</span></li>
+      <li><b>Короткие ссылки</b>Адрес страницы сайта — в нём может быть то, что зашито в ссылку: имена и выбор.<span class="term">180 дней</span></li>
+      <li><b>Защита от спама</b>Солёные хэши IP-адреса и устройства в счётчиках запросов; солёный хэш устройства с датой, когда сервер впервые его увидел (открытие приглашения, отзыв или сообщение об ошибке), — чтобы замечать волны накруток с новых устройств.<span class="term">счётчики — от 10 минут до суток, отметка устройства — 30 дней после последнего действия</span></li>
+    </ul>
+    <p>По солёным хэшам нельзя восстановить IP-адрес, номер устройства или Яндекс ID. Секреты сервер не хранит — только их отпечатки. В журналы сервера не пишутся IP-адреса, параметры и тексты запросов. Просроченные записи удаляются автоматически, не реже раза в сутки. Провайдер хостинга может вести свои технические журналы (например, адрес и время запроса) по своим правилам.</p>
+
+    <h2 id="yandex">Вход через Яндекс ID</h2>
+    <p>Входить не обязательно. Если войдёшь, сайт попросит у Яндекса доступ к профилю: логин, имя и фамилию, пол (Яндекс выдаёт их одним разрешением) и аватар. Из профиля сайт сохраняет только имя (если его нет — отображаемое имя или логин), аватар и номер аккаунта — в твоём браузере, для шапки, конструктора и формы отзыва. Пол сайт не использует, почту и телефон не запрашивает. Чтобы выйти, нажми на своё имя в шапке главной и подтверди выход — профиль удалится из браузера.</p>
+    <p>Токен доступа, который выдаёт Яндекс при входе, сайт держит только в sessionStorage этой вкладки, пока ты вошёл: в localStorage и cookie он не записывается и стирается при закрытии вкладки или выходе. Уходит он только самому Яндексу (за профилем) и — вместе с отзывом — нашему серверу: сервер один раз спрашивает у Яндекса номер твоего аккаунта, чтобы засчитать один отзыв на место с аккаунта, и хранит только солёный хэш этого номера. Сам токен сервер не сохраняет.</p>
+
+    <h2 id="metrika">Яндекс Метрика</h2>
+    <p>Счётчик подключается только после того, как ты нажмёшь «Разрешить» в плашке про аналитику. Туда уходят обезличенные события — открыт план, создано приглашение, открыта карточка события и т. п. — без имён и текстов приглашений. Метрика использует cookie. Передумал — «Настройки аналитики» внизу главной: счётчик отключится сразу, а его cookie удалятся. <span class="hidden" id="metrikaOff">Сейчас счётчик не подключён.</span></p>
+
+    <h2 id="telegram">Уведомления в Telegram — по желанию</h2>
+    <p>Создатель приглашения может получить у нашего бота ключ владельца — тогда ответы на его приглашения (имя, выбранные места и дни) приходят ему в Telegram. Их пересылает посредник на Google Apps Script — это серверы Google за пределами России. Посредник хранит номер чата, ключ, отпечатки приглашений и секретов; тексты ответов он не сохраняет. Если посредник сокращает ссылку, адрес хранится в его таблице 90 дней. Отключить уведомления — команда <code>/stop</code> боту. <span class="hidden" id="tgOff">Сейчас уведомления в Telegram выключены.</span></p>
+    <p>Если ты пишешь нам в Telegram — в поддержку или боту, например об ошибке в карточке места, — мы получаем текст сообщения и твоё имя или ник в Telegram. Используем их только чтобы ответить и поправить каталог.</p>
+
+    <h2 id="services">Другие сервисы</h2>
     <ul>
-      <li><b>Яндекс Метрика</b> — только если ты нажал «Разрешить» в плашке про аналитику. Туда уходят обезличенные события (открыт план, скопирован промокод и т. п.) без имён и текстов приглашений. Метрика использует cookie. Передумал — «Настройки аналитики» внизу главной.</li>
-      <li><b>Сокращение ссылок.</b> Чтобы в чат не уходили длинные ссылки, адрес приглашения или голосования отправляется в сервис коротких ссылок: в наш посредник, а если он недоступен — в clck.ru (Яндекс) или is.gd. В самой ссылке закодированы имена и выбор участников — учитывай это.</li>
-      <li><b>Ответы в Telegram.</b> Если создатель приглашения подключил ключ владельца, ответ на его приглашение (имя, выбранные места и дни) пересылается ему в Telegram через посредника на Google Apps Script.</li>
-      <li><b>Вход через Яндекс ID.</b> Яндекс сообщает сайту имя и аватар; почту и телефон сайт не запрашивает.</li>
-      <li><b>Карты и фото.</b> Тайлы карты грузятся с серверов OpenStreetMap, библиотека карты — с cdnjs, шрифты — с Google Fonts, дополнительные фото мест — с Wikimedia Commons. Эти сервисы видят твой IP-адрес, как при любом заходе на сайт.</li>
-      <li><b>Яндекс Карты</b> открываются по ссылкам «Как добраться» и «Маршрут» — дальше действуют правила Яндекса.</li>
+      <li><b>Сокращение ссылок.</b> Чтобы в чат не уходили километровые ссылки, адрес приглашения сокращает наш сервер (или посредник уведомлений, если он подключён). Если они недоступны — сервис clck.ru (Яндекс): туда уходит полная ссылка со всем, что в ней зашито.</li>
+      <li><b>Яндекс Карты</b> — вкладка «Карта» и ссылки «Как добраться», «Маршрут», «Фото и отзывы в Яндекс Картах». Когда ты их открываешь, действуют <a href="https://yandex.ru/legal/maps_termsofuse/" target="_blank" rel="noopener">условия Яндекс Карт</a>.</li>
+      <li><b>Шрифты</b> загружаются с Google Fonts, <b>дополнительные фото мест</b> — с Wikimedia Commons, <b>погода</b> — из открытого сервиса Open-Meteo: сайт спрашивает прогноз для центра Москвы, без данных о тебе. <b>Билеты</b> на события продаются на официальных сайтах — сайт только даёт на них ссылку.</li>
+      <li>Эти сервисы видят твой IP-адрес, как при любом заходе на сайт.</li>
     </ul>
 
-    <h2>Возраст</h2>
-    <p>Раздел 18+ открывается только после подтверждения возраста. Приглашения в такие места сайт не создаёт.</p>
+    <h2 id="age">Раздел 18+</h2>
+    <p>Раздел 18+ открывается только после подтверждения возраста; отметка о нём хранится в браузере до закрытия вкладки. Приглашения в такие места сайт не создаёт.</p>
 
-    <h2>Связаться</h2>
-    <p id="contact">Вопросы о данных и просьбы об удалении — через раздел «Написать нам» на главной.</p>
-    <p id="operator" class="hidden"></p>
-    <p class="muted">Обновлено: октябрь 2026.</p>
+    <h2 id="delete">Как удалить данные</h2>
+    <ul>
+      <li><b>На этом устройстве</b> — кнопка «Удалить мои данные на этом устройстве» выше или очистка данных сайта в браузере.</li>
+      <li><b>Голоса, ответы и статусы приглашений</b> удаляются сами через 90 дней после последнего изменения. Нужно раньше — напиши нам и пришли ссылку на приглашение.</li>
+      <li><b>Отзыв</b> — напиши нам: место, примерную дату и имя, под которым ты его оставил. Удалим в течение 10 рабочих дней.</li>
+      <li><b>Уведомления в Telegram</b> — команда <code>/stop</code> боту.</li>
+      <li><b>Яндекс Метрика</b> — «Только нужное» в «Настройках аналитики» внизу главной.</li>
+    </ul>
+
+    <h2 id="contacts">Оператор и контакты</h2>
+    <p id="operator">Оператор персональных данных — владелец сайта; его наименование будет указано на этой странице.</p>
+    <p id="contact">Адрес для вопросов о данных появится на этой странице в ближайшее время.</p>
+    <p>Как работают «Для тебя», квиз «Подобрать за 10 секунд», «Удиви меня» и сортировка по оценкам — в <a href="rules.html">правилах применения рекомендательных технологий</a>.</p>
+    <p class="muted">Обновлено 15 октября 2026 года.</p>
   </main>
-  <footer class="foot"><a href="start.html">← На главную</a></footer>
+  <footer class="foot"><nav class="foot-links"><a href="start.html">← На главную</a><a href="rules.html">Правила рекомендаций</a><a href="partners.html">Для заведений</a></nav></footer>
   <div class="toast hidden" id="toast" role="status"></div>
-  <script src="config.js?v=26"></script>
+  <script src="config.js?v=28"></script>
   <script>
   (function () {
-    var C = window.DATE_CONFIG || {}, sup = C.support || {};
-    if (C.site && C.site.name) document.querySelector('.brand').textContent = C.site.name;
-    var c = document.getElementById('contact');
-    if (C.site && C.site.operator) { var op = document.getElementById('operator'); op.textContent = 'Оператор персональных данных: ' + C.site.operator + '.'; op.classList.remove('hidden'); }
-    if (sup.email) c.innerHTML = 'Вопросы о данных и просьбы об удалении: <a href="mailto:' + sup.email + '">' + sup.email + '</a>.';
-    else if (sup.telegram) c.innerHTML = 'Вопросы о данных и просьбы об удалении: <a href="https://t.me/' + sup.telegram + '">@' + sup.telegram + '</a> в Telegram.';
-    document.getElementById('wipe').onclick = function () {
-      if (!confirm('Удалить сохранённое, историю, черновики и предпочтения на этом устройстве?')) return;
+    var C = window.DATE_CONFIG || {}, sup = C.support || {}, site = C.site || {};
+    var $ = function (id) { return document.getElementById(id); };
+    var show = function (id, on) { $(id).classList.toggle('hidden', !on); };
+    if (site.name) document.querySelector('.brand').textContent = site.name;
+    if (site.operator) $('operator').textContent = 'Оператор персональных данных: ' + site.operator + '.';
+    /* Контакт: почта или поддержка в Telegram из config.js */
+    var c = $('contact');
+    if (sup.email) {
+      c.textContent = 'Вопросы о данных и просьбы об удалении: ';
+      var a = document.createElement('a'); a.href = 'mailto:' + sup.email; a.textContent = sup.email; c.appendChild(a); c.appendChild(document.createTextNode('.'));
+    } else if (sup.telegram) {
+      var nick = String(sup.telegram).replace(/^@/, '');
+      c.textContent = 'Вопросы о данных и просьбы об удалении: ';
+      var t = document.createElement('a'); t.href = 'https://t.me/' + encodeURIComponent(nick); t.target = '_blank'; t.rel = 'noopener'; t.textContent = '@' + nick;
+      c.appendChild(t); c.appendChild(document.createTextNode(' в Telegram.'));
+    }
+    /* Что сейчас включено на сайте */
+    var api = String((C.api || {}).url || '').trim();
+    show('apiOff', !api);
+    var host = '';
+    try { host = api ? new URL(api).hostname : ''; } catch (e) { /* адрес с ошибкой — оставляем текст как есть */ }
+    if (host && $('hosting').hasAttribute('data-auto')) $('hosting').textContent = /(^|\.)yandexcloud\.net$/i.test(host) ? 'в Yandex Cloud, регион ru-central1' : 'на арендованном сервере в российском дата-центре';
+    show('metrikaOff', !String((C.analytics || {}).metrikaId || '').trim());
+    show('tgOff', !String((C.telegram || {}).relayUrl || '').trim());
+
+    var toast = function (text) {
+      var el = $('toast'); el.textContent = text; el.classList.remove('hidden');
+      setTimeout(function () { el.classList.add('hidden'); }, 2800);
+    };
+    /* Удаление — в два нажатия на самой кнопке: confirm() во встроенных браузерах мессенджеров бывает заблокирован */
+    var wipe = $('wipe'), ask = $('wipeAsk'), label = wipe.textContent, armed = 0;
+    var disarm = function () { clearTimeout(armed); armed = 0; wipe.textContent = label; ask.textContent = ''; };
+    wipe.onclick = function () {
+      if (!armed) {
+        wipe.textContent = 'Точно удалить? Нажми ещё раз';
+        ask.textContent = 'Удалятся сохранённое, история и черновики приглашений, ключи, предпочтения и копии сайта для офлайна. «Мои приглашения» на этом устройстве опустеют, а свои голоса в старых приглашениях ты отсюда уже не изменишь. Данные на сервере останутся.';
+        armed = setTimeout(disarm, 10000);
+        return;
+      }
+      disarm();
       try {
-        Object.keys(localStorage).filter(function (k) { return /^(kuda|date-invite)/.test(k); }).forEach(function (k) { localStorage.removeItem(k); });
-        Object.keys(sessionStorage).filter(function (k) { return /^kuda/.test(k); }).forEach(function (k) { sessionStorage.removeItem(k); });
+        // все ключи сайта: kuda-* (подстройка, ключи, голоса, отзывы, «рядом»), date-* (черновики, история, прогресс игр), _ym* (Метрика)
+        Object.keys(localStorage).filter(function (k) { return /^(kuda|date-|_ym)/.test(k); }).forEach(function (k) { localStorage.removeItem(k); });
+        Object.keys(sessionStorage).filter(function (k) { return /^(kuda|date-)/.test(k); }).forEach(function (k) { sessionStorage.removeItem(k); });
+        document.cookie.split(';').map(function (x) { return x.split('=')[0].trim(); }).filter(function (n) { return /^_ym/.test(n); }).forEach(function (n) {
+          [location.hostname, '.' + location.hostname.split('.').slice(-2).join('.'), ''].forEach(function (d) {
+            document.cookie = n + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/' + (d ? '; domain=' + d : '');
+          });
+        });
       } catch (e) { /* хранилище недоступно */ }
-      var t = document.getElementById('toast'); t.textContent = 'Готово: данные на этом устройстве удалены'; t.classList.remove('hidden');
-      setTimeout(function () { t.classList.add('hidden'); }, 2600);
+      // копии страниц для офлайна (service worker)
+      if (window.caches && caches.keys) caches.keys().then(function (names) { names.filter(function (n) { return /^kuda-/.test(n); }).forEach(function (n) { caches.delete(n); }); }).catch(function () {});
+      toast('Готово: данные на этом устройстве удалены');
     };
   })();
   </script>
+  <script src="assets/pwa.js?v=28"></script>
 </body>
 </html>

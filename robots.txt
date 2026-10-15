@@ -1,5 +1,12 @@
+# Сгенерировано scripts/build-seo.mjs — адрес сайта меняется константой SITE в скрипте.
+# Поисковики читают robots.txt только из корня домена: на github.io/<репозиторий>/ этот файл работает после переезда на свой домен.
+# Служебные страницы (adult.html, create.html, go.html, index.html с приглашением…) закрыты meta robots noindex —
+# Disallow им не ставим: страницу, закрытую в robots.txt, поисковик не прочитает и noindex не увидит.
 User-agent: *
 Allow: /
-Disallow: /go.html
-Disallow: /index.html
+# Яндекс: параметры, которые только открывают карточку или фильтр на главной, — одна страница, а не тысячи
+Clean-param: plan&place&event&f&b&cat&okr&tab&quiz /love/start.html
+# и метки рекламы и рассылок — на всём сайте
+Clean-param: utm_source&utm_medium&utm_campaign&utm_content&utm_term&yclid
+
 Sitemap: https://kirillpavlov-21.github.io/love/sitemap.xml
