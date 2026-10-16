@@ -148,7 +148,7 @@ export async function main(argv = process.argv.slice(2), deps = {}) {
 
   out(`Футбол: матчи с ${fmtDay(today)} по ${fmtDay(until)}`);
   const raw = [];
-  const gonePairs = [];                                          // [сезон, 'хозяева|гости'] — уже сыграно
+  const gonePairs = [];                                          // [сезон, 'хозяева|гости'] — сыграно, перенесено или отменено
   const stat = { clubs: 0, boxes: 0, rpl: 0, exact: 0, tours: 0, cup: 0, nt: 0 };
   try {
     const T = wikiTitles(today, until);
@@ -166,7 +166,11 @@ export async function main(argv = process.argv.slice(2), deps = {}) {
     }
     seasons.forEach((s, i) => {
       const tpl = wiki[T.rpl[i]];
-      if (!tpl) return;
+      if (!tpl) {
+        // шаблона будущего сезона может ещё не быть, а без шаблона текущего РПЛ держится только на прошлом файле
+        if (s === seasonOf(today)) warn(`Википедия: нет страницы «${T.rpl[i]}» — новых матчей РПЛ нет, держатся только матчи из прошлого файла`);
+        return;
+      }
       const { tours, played } = parseWikiResults(tpl.text);
       played.forEach(p => gonePairs.push([s, p]));
       stat.tours += tours.size;
@@ -176,6 +180,7 @@ export async function main(argv = process.argv.slice(2), deps = {}) {
       if (tours.size && !articles.length) warn(`Википедия: статей клубов о сезоне ${s} не нашёл — дни матчей РПЛ только из FIXES`);
       const r = rplSchedule({ articles, tours, today, until, warn });
       r.played.forEach(p => gonePairs.push([s, p]));
+      r.moved.forEach(p => gonePairs.push([s, p]));
       if (articles.length && !r.stat.boxes) warn(`Википедия: в статьях клубов о сезоне ${s} не разобрал ни одного матча РПЛ — поменялась разметка?`);
       stat.boxes += r.stat.boxes;
       stat.rpl += r.matches.length;
@@ -196,7 +201,8 @@ export async function main(argv = process.argv.slice(2), deps = {}) {
 
   const prevById = new Map(prev.events.filter(e => e && e.id).map(e => [e.id, e]));
   const gone = new Set();
-  // сыгранные пары РПЛ: их матчи из прошлого файла больше не держим (а свежими они и не придут)
+  // сыгранные, перенесённые (без нового дня) и отменённые пары РПЛ: их матчи из прошлого файла больше не держим
+  // (а свежими они и не придут)
   for (const e of prev.events) {
     if (!e || !e.id || e.league !== 'РПЛ' || !e.start) continue;
     if (gonePairs.some(([s, p]) => s === seasonOf(e.start) && e.id.startsWith(`ev-fb-${p.replace('|', '-')}-`) && /^\d{8}$/.test(e.id.slice(`ev-fb-${p.replace('|', '-')}-`.length)))) gone.add(e.id);

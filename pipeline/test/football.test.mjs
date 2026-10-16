@@ -172,6 +172,21 @@ test('parseWikiResults: несыгранные пары → номер тура,
   assert.deepEqual(parseWikiTours(fix('wiki-rpl-results-2026-2027.txt')), tours);
 });
 
+test('РПЛ: команда не из TEAMS не путается с нашим клубом, а её матчи с нашими — в предупреждениях', () => {
+  // «Акрон» вылетел, вместо него — костромской «Спартак» (его латиница — тоже spartak)
+  const text = fix('wiki-rpl-results-2026-2027.txt').replace('[[Акрон (футбольный клуб)|Акрон]]', '[[Спартак (футбольный клуб, Кострома)|Спартак (Кострома)]]');
+  const { tours } = parseWikiResults(text);
+  assert.equal(tours.get('?Спартак|dinamo'), 12);
+  assert.equal(tours.get('spartak|?Спартак'), 14);
+  assert.equal(tours.get('cska|spartak'), 12, 'московский «Спартак» на месте');
+  assert.ok(![...tours.keys()].some(p => p === 'spartak|dinamo' && tours.get(p) === 12), 'чужой «Спартак» не стал московским');
+  const warns = [];
+  const r = rplSchedule({ articles: ARTICLES, tours, today: TODAY, until: UNTIL, fixes: {}, warn: w => warns.push(w) });
+  assert.ok(!r.matches.some(m => m.home.key === 'spartak' && m.away.key === 'spartak'));
+  assert.ok(warns.some(w => /незнакомая команда «Спартак» в РПЛ/.test(w)), warns.join('\n'));
+  assert.ok(r.matches.some(m => m.home.key === 'cska' && m.away.key === 'spartak'));
+});
+
 test('parseWikiMatches: Кубок России — дата, время МСК, стадия, стадион, сыгранные; дни «3—5 ноября»', () => {
   const list = parseWikiMatches(fix('wiki-cup-2026-2027.txt'), 'cup');
   assert.ok(list.length >= 40, `матчей ${list.length}`);
@@ -297,6 +312,26 @@ test('rplSchedule: поправки FIXES заполняют пробелы и �
     assert.match(f.date, /^\d{4}-\d{2}-\d{2}$/);
     assert.match(f.time, /^\d{2}:\d{2}$/);
   }
+});
+
+test('rplSchedule: матч перенесён — ни старый день из других статей, ни FIXES, ни окно тура; новый день — берём', () => {
+  const box = '|date = 8 ноября 2026\n|time = 16:15 [[Московское время|MSK]]\n|team1 = [[Спартак (футбольный клуб, Москва)|Спартак (Москва)]]\n|team2 = [[Акрон (футбольный клуб)|Акрон (Тольятти)]]\n|score =';
+  const sp = ARTICLES.find(a => CLUBS[a.title][0] === 'spartak');
+  assert.ok(sp.text.includes(box), 'в статье «Спартака» есть матч с «Акроном» 8 ноября');
+  const withSpartak = text => ARTICLES.map(a => (a === sp ? Object.assign({}, a, { text }) : a));
+  const fixes = { 'spartak|akron': { date: '2026-11-08', time: '16:15' } };
+  const warns = [];
+  const r = rplSchedule({ articles: withSpartak(sp.text.replace(box, box + ' перенесён')), tours: RESULTS.tours, today: TODAY, until: UNTIL, fixes, warn: w => warns.push(w) });
+  assert.ok(!r.matches.some(m => m.home.key === 'spartak' && m.away.key === 'akron'), 'перенесённый матч не показываем');
+  assert.ok(r.moved.has('spartak|akron'));
+  assert.ok(warns.some(w => /Спартак — Акрон.*08\.11\.2026 перенесён/.test(w)), warns.join('\n'));
+  assert.equal(r.matches.filter(m => m.home.track && m.date <= '2026-12-07').length, 20, 'остальные матчи на месте');
+  // лига назначила новый день — он и берётся, пара больше не «перенесена»
+  const moved = sp.text.replace(box, box.replace('8 ноября', '9 декабря').replace('16:15', '19:00'));
+  const r2 = rplSchedule({ articles: withSpartak(moved + '\n' + '== Чемпионат России ==\n{{Footballbox collapsible\n' + box + ' перенесён\n}}'), tours: RESULTS.tours, today: TODAY, until: UNTIL, fixes, warn: () => {} });
+  const m2 = r2.matches.find(m => m.home.key === 'spartak' && m.away.key === 'akron');
+  assert.deepEqual([m2.date, m2.time, m2.tbc], ['2026-12-09', '19:00', false]);
+  assert.ok(!r2.moved.has('spartak|akron'));
 });
 
 /* ---------- события ---------- */
@@ -530,6 +565,32 @@ test('main: пишет assets/sport.js, второй запуск ничего �
   assert.equal(parseSportJs(r5.text).updated, '2026-10-20');
 });
 
+test('main: матч перенесли без нового дня — из файла уходит, а не остаётся на старой дате', async () => {
+  const repo = await tmpRepo(renderSportJs({ updated: '', events: [] }));
+  await main(['--repo', repo, '--today', TODAY], { fetch: fakeFetch(), pause: 0, log: () => {} });
+  const before = parseSportJs(await fs.readFile(path.join(repo, 'assets', 'sport.js'), 'utf8')).events;
+  assert.ok(before.some(e => e.id === 'ev-fb-spartak-akron-20261108'));
+  const f = fakeFetch();
+  const postponed = async url => {
+    const r0 = await f(url);
+    if (!new URL(String(url)).searchParams.get('titles')) return r0;
+    const j = JSON.parse(await r0.text());
+    for (const p of j.query.pages) {
+      if (p.title !== 'ФК «Спартак» Москва в сезоне 2026/2027') continue;
+      const c = p.revisions[0].slots.main.content;
+      p.revisions[0].slots.main.content = c.replace(/(\|date = 8 ноября 2026\n[\s\S]*?\|score =)/, '$1 перенесён');
+      assert.notEqual(p.revisions[0].slots.main.content, c);
+    }
+    return { ok: true, status: 200, text: async () => JSON.stringify(j) };
+  };
+  const r = await main(['--repo', repo, '--today', TODAY], { fetch: postponed, pause: 0, log: () => {} });
+  assert.equal(r.changed, true);
+  assert.ok(!r.events.some(e => /^ev-fb-spartak-akron-/.test(e.id)), 'перенесённого матча в файле нет');
+  assert.ok(r.removed.some(e => e.id === 'ev-fb-spartak-akron-20261108'));
+  assert.equal(r.kept.length, 0);
+  assert.ok(r.warnings.some(w => /Спартак — Акрон.*перенесён/.test(w)), r.warnings.join('\n'));
+});
+
 test('main: источник недоступен — файл не трогаем, fatal', async () => {
   const before = renderSportJs({ updated: '2026-10-10', events: [{ id: 'ev-fb-x-y-20261101', sub: 'football', start: '2026-11-01', teams: ['X', 'Y'] }] });
   for (const failWiki of ['search', 'net', 'json']) {
@@ -600,4 +661,19 @@ test('assets/sport.js в репозитории: формат, поля, мет�
   assert.deepEqual(football.map(e => e.id), []);
   const legacy = Object.values(LEGACY_IDS).flat();
   assert.ok(!sb.window.KUDA_EVENTS.some(e => legacy.includes(e.id)));
+  // старые приглашения на матч из events.js открываются: DateKit.eventById находит матч по id из aka
+  const win = {
+    location: { search: '', href: 'https://example.org/start.html', pathname: '/start.html', hash: '' },
+    localStorage: { getItem: () => null, setItem() {}, removeItem() {} }, navigator: {},
+    addEventListener() {}, matchMedia: () => ({ matches: false, addEventListener() {} }),
+    document: { addEventListener() {}, querySelector: () => null, querySelectorAll: () => [], documentElement: { dataset: {}, classList: { add() {}, remove() {} } } },
+  };
+  win.window = win;
+  const site = vm.createContext(win);
+  for (const f of ['assets/shared.js', 'assets/events.js', 'assets/sport.js']) vm.runInContext(readFileSync(path.join(ROOT, f), 'utf8'), site, { filename: f });
+  for (const [id, old] of Object.entries(LEGACY_IDS)) {
+    if (!events.some(e => e.id === id)) continue;
+    for (const o of old) assert.equal((win.DateKit.eventById(o) || {}).id, id, `${o} → ${id}`);
+  }
+  assert.equal(win.DateKit.eventById('ev-fb-nope-nope-20261018'), null);
 });

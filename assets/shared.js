@@ -485,11 +485,16 @@
 
   /* ---------- афиша: события из assets/events.js и assets/auto.js (window.KUDA_EVENTS) ----------
      Даты — строки 'YYYY-MM-DD' по Москве. Прошедшие события (end раньше сегодняшнего дня) в списки не попадают,
-     но eventById находит и их — чтобы старые приглашения на событие открывались. */
+     но eventById находит и их — чтобы старые приглашения на событие открывались. Находит и по прежнему id из поля aka
+     (футбольные матчи переехали из events.js в sport.js с новыми id, у перенесённого матча меняется дата в id). */
   const RX_YMD = /^\d{4}-\d{2}-\d{2}$/;
   const evAll = () => (Array.isArray(window.KUDA_EVENTS) ? window.KUDA_EVENTS : []).filter(e => e && e.id && e.title && RX_YMD.test(e.start || ''));
   const evEnd = ev => (RX_YMD.test(ev.end || '') && ev.end >= ev.start ? ev.end : ev.start);
-  const eventById = id => (id ? evAll().find(e => e.id === id) || null : null);
+  const eventById = id => {
+    if (!id) return null;
+    const all = evAll();
+    return all.find(e => e.id === id) || all.find(e => Array.isArray(e.aka) && e.aka.includes(id)) || null;
+  };
   const EV_MAX_DAYS = 90;   // у долгих выставок — не больше 90 дней вперёд, как в listDates
   /* Дни события начиная с сегодняшнего (или from): явные dates либо каждый день от start до end */
   function eventDays(ev, from) {

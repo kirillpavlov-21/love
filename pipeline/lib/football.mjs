@@ -374,7 +374,8 @@ export function parseWikiMatches(text, league, { self } = {}) {
 }
 
 /* Шаблон «Результаты матчей чемпионата России …»: несыгранные пары → номер тура, сыгранные — отдельно.
-   { tours: Map 'хозяева|гости' → n, played: Set 'хозяева|гости' } */
+   Команда не из TEAMS — ключ '?<название>': латиница названия могла бы совпасть с ключом нашего клуба
+   («Спартак» из Костромы — тоже spartak). { tours: Map 'хозяева|гости' → n, played: Set 'хозяева|гости' } */
 export function parseWikiResults(text) {
   const abbr = {};
   const tours = new Map(), played = new Set();
@@ -384,7 +385,7 @@ export function parseWikiResults(text) {
   while ((m = reName.exec(src))) {
     const l = wikiLink(m[2]);
     const t = teamOf(l ? { wiki: l.target, text: l.text } : { text: wikiPlain(m[2]) });
-    if (t) abbr[m[1]] = t.key;
+    if (t) abbr[m[1]] = t.unknown ? `?${t.name}` : t.key;
   }
   const reMatch = /^\|\s*match_([^\s_=]+)_([^\s_=]+)\s*=\s*(.*)$/gm;
   while ((m = reMatch.exec(src))) {
@@ -426,9 +427,11 @@ const uniq = list => [...new Set(list)].sort();
    Окно тура — самая плотная четырёхдневка среди дней его матчей во всех статьях. Если статьи расходятся,
    решает поправка из fixes, затем большинство; ничья — матч без утверждённого дня (tbc) на все спорные дни.
    Матчи без точного дня — tbc на окно своего тура (если окно известно). Матч со счётом хотя бы в одной статье —
-   сыгран (шаблон результатов иногда обновляют позже). → { matches, windows, played: Set пар, stat } */
+   сыгран (шаблон результатов иногда обновляют позже). Матч «перенесён» или «отменён» хотя бы в одной статье: этот
+   день больше не годится ни из статей, ни из FIXES; если нового точного дня нет, пары нет в matches — она в moved
+   (её матчи из прошлого файла тоже уходят). → { matches, windows, played: Set пар, moved: Set пар, stat } */
 export function rplSchedule({ articles = [], tours = new Map(), today = '', until = '9999-12-31', fixes = FIXES, warn = () => {} } = {}) {
-  const boxes = [], played = new Set();
+  const boxes = [], played = new Set(), movedDays = new Map(), moved = new Set();
   for (const a of articles) {
     const self = seasonClubKey(a.title);
     if (!self) continue;
@@ -438,6 +441,7 @@ export function rplSchedule({ articles = [], tours = new Map(), today = '', unti
       const n = tours.get(pair);
       if (!n || (m.round && m.round !== n)) continue;            // сыгран, не пара РПЛ или матч другого турнира
       if (m.played) played.add(pair);
+      else if (m.gone) movedDays.set(pair, (movedDays.get(pair) || new Set()).add(m.date));   // перенесён или отменён
       if (m.gone) continue;                                         // сыгран, перенесён или отменён
       boxes.push(Object.assign(m, { pair, tour: n, from: a.title }));
     }
@@ -460,13 +464,24 @@ export function rplSchedule({ articles = [], tours = new Map(), today = '', unti
   for (const [pair, n] of [...tours].sort((x, y) => x[1] - y[1] || (x[0] < y[0] ? -1 : 1))) {
     const [hk, ak] = pair.split('|');
     const home = teamByKey(hk), away = teamByKey(ak);
+    const ours = home && home.track ? home : away && away.track ? away : null;
+    if (ours && (!home || !away)) {                                // новичок РПЛ не в TEAMS — его матчи молча не теряем
+      warn(`незнакомая команда «${String(home ? ak : hk).replace(/^\?/, '')}» в РПЛ — добавьте её в TEAMS в pipeline/lib/football.mjs: пока её матчи с нашими клубами не попадают`);
+      continue;
+    }
     if (!home || !away || (!home.track && !away.track) || played.has(pair)) continue;
-    const list = byPair.get(pair) || [];
+    const off = movedDays.get(pair) || new Set();                 // дни, с которых матч перенесли или отменили
+    const list = (byPair.get(pair) || []).filter(b => !off.has(b.date));
     const fx = fixes[pair];
-    const fix = fx && fx.date >= today && fx.date <= until ? fx : null;
+    const fix = fx && fx.date >= today && fx.date <= until && !off.has(fx.date) ? fx : null;
     const exact = list.filter(b => !b.dateTo && b.time);
     const dates = uniq(exact.map(b => b.date));
     const label = `${home.name} — ${away.name} (${n}-й тур)`;
+    if (off.size && !exact.length) {                               // перенесли, нового дня ещё нет — не показываем
+      moved.add(pair);
+      warn(`${label}: в статьях клубов матч ${[...off].sort().map(fmt).join(' / ')} перенесён или отменён — убираю, пока не назначат новый день`);
+      continue;
+    }
     let date = null, time = null, range = null;
     if (dates.length === 1) {
       date = dates[0];
@@ -504,7 +519,7 @@ export function rplSchedule({ articles = [], tours = new Map(), today = '', unti
     if (!date && range.to !== range.from) m.dateTo = range.to;
     matches.push(m);
   }
-  return { matches, windows, played, stat: { boxes: boxes.length, exact: exactN } };
+  return { matches, windows, played, moved, stat: { boxes: boxes.length, exact: exactN } };
 }
 const fmt = d => { const [y, m, dd] = d.split('-'); return `${dd}.${m}.${y}`; };
 
