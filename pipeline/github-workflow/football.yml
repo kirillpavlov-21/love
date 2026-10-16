@@ -1,0 +1,87 @@
+# Футбол «для пацанов»: каждый день пересобирает assets/sport.js — матчи РПЛ, Кубка России и домашние игры сборной
+# на стадионах Москвы, Подмосковья и Петербурга — и, если расписание поменялось, присылает Pull Request.
+# Модель и секреты не нужны: открытые данные русской Википедии. Подробности: pipeline/README.md, раздел «Футбол».
+name: Футбол — расписание матчей
+
+on:
+  schedule:
+    - cron: '41 4 * * *'          # каждый день в 07:41 по Москве
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: football-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      BR: auto/football
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Git от имени бота
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+      # Зависимости конвейера не нужны: football.mjs работает на голом Node.
+      # Код 1 — источник не ответил или ответил не то: assets/sport.js не тронут, запуск красный (GitHub пришлёт письмо)
+      - name: Расписание матчей
+        id: run
+        shell: bash
+        run: |
+          node pipeline/football.mjs --report football-report.md | tee football.log
+          echo "changes=$(tail -n 1 football.log | sed -n 's/^CHANGES=//p')" >> "$GITHUB_OUTPUT"
+
+      - name: Pull Request с новым расписанием
+        if: ${{ steps.run.outputs.changes == '1' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          DATE=$(TZ=Europe/Moscow date +%F)
+          # версия скриптов и стилей во всех страницах: +1, чтобы браузеры взяли свежий sport.js
+          FILES=$(grep -l -E '\.(js|css)\?v=[0-9]+' *.html || true)
+          if [ -n "$FILES" ]; then
+            V=$(grep -hoE '\.(js|css)\?v=[0-9]+' $FILES | sed -E 's/.*\?v=//' | sort -n | tail -n 1)
+            sed -i -E "s/(\.(js|css))\?v=[0-9]+/\1?v=$((V + 1))/g" $FILES
+          fi
+          # ветка PR каждый раз собирается заново от свежего main: в ней только sport.js и номера ?v=
+          git checkout -q -B "$BR"
+          git add assets/sport.js $FILES
+          git commit -qm "Футбол: расписание на $DATE"
+          git push --force origin "HEAD:refs/heads/$BR"
+          gh label create auto --color 0E8A16 --description 'Автоматическое обновление каталога' 2>/dev/null || true
+          # только PR самого бота из этого репозитория: ветку с таким именем в форке может назвать кто угодно
+          NUM=$(gh pr list --state open --base main --head "$BR" --json number,isCrossRepository \
+            --jq '[.[] | select(.isCrossRepository | not)][0].number // empty')
+          if [ -n "$NUM" ]; then
+            gh pr edit "$NUM" --title "Футбол: расписание на $DATE" --body-file football-report.md --add-label auto
+          else
+            gh pr create --base main --head "$BR" --title "Футбол: расписание на $DATE" --body-file football-report.md --label auto
+          fi
+
+      # расписание снова совпало с main (например, PR уже смержен руками) — старый PR больше не нужен
+      - name: Закрыть устаревший PR
+        if: ${{ steps.run.outputs.changes == '0' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          NUM=$(gh pr list --state open --base main --head "$BR" --json number,isCrossRepository \
+            --jq '[.[] | select(.isCrossRepository | not)][0].number // empty')
+          if [ -n "$NUM" ]; then
+            gh pr close "$NUM" --delete-branch --comment 'Расписание в main уже актуальное — этот PR больше не нужен.'
+          else
+            echo 'Открытого PR нет'
+          fi

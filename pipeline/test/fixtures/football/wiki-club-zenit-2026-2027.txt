@@ -1,0 +1,246 @@
+== Состав команды ==
+=== Основной состав ===
+== Трансферы ==
+=== Пришли в клуб ===
+=== Ушли из клуба ===
+=== Ушли в аренду ===
+== Соревнования ==
+== Предсезонные и товарищеские матчи ==
+=== Лето ===
+
+== Суперкубок России ==
+{{footballbox_collapsible
+|date={{date|18|07|2026|4}}
+|time=19:30 [[Московское время|МСК]]
+|team1=Зенит
+|score=1:1
+|report=[https://www.rfs.ru/match/57020 (отчёт)]
+|team2=[[Спартак (футбольный клуб, Москва)|Спартак]]
+|goals1= Нино {{ЖК|53}}<br/>Педро {{ЖК|58}}<br/>Адамов {{ЖК|90+4}}<br/>Соболев {{гол|90+8|пен.}}
+|goals2= Мартинс {{гол|25}}<br/>Фернандеш {{ЖК|38}}
+|stadium=[[Совкомбанк Арена]]
+|location=[[Нижний Новгород]]
+|attendance=42 139
+|referee=Евгений Буланов
+|result=D
+|penalties1=Дивеев {{пенгол}}<br/>Аугусто {{пенгол}}<br/>Мостовой {{пенпромах}}<br/>Джон Джон {{пенгол}}<br/>Соболев {{пенгол}}
+|penaltyscore=4:2
+|penalties2={{пенгол}} Солари<br/>{{пенпромах}} Умяров<br/>{{пенпромах}} Дмитриев<br/>{{пенгол}} Ву
+|squad1=(4-3-3): Адамов - Дркушич (Джон Джон, 46'), Дивеев, Нино (Андраде, 59'), Вега - Барриос (к)(Аугусто, 59'), Вендел - Мантуан (Волков, 88'), Глушенков (Мостовой, 75'), Педро - Соболев
+|squad2=(4-2-3-1): Максименко - Фернандеш (Пруцев, 81'), Ву, Бабич (Джику, 74'), Зобнин (к) - Литвинов, Умяров - Солари, Мартинс (Денисов, 74'), Маркиньос (Дмитриев, 83') - Барко (Угальде, 81')
+}}
+== Чемпионат России ==
+=== Турнирная таблица ===
+=== Статистика выступлений ===
+=== Результаты по турам ===
+=== Матчи ===
+==== Осенняя часть ====
+{{footballbox_collapsible
+|date={{date|25|07|2026|4}}
+|time=16:15 [[Московское время|МСК]]
+|team1=[[Акрон (футбольный клуб)|Акрон]]
+|score=
+|report=[https://premierliga.ru/matches/16247/ (отчёт)]
+|team2=Зенит
+|goals1= 
+|goals2=
+|stadium=[[Солидарность Самара Арена]]
+|location=[[Самара]]
+|attendance=
+|referee=
+|round=1 тур
+|result=
+|squad2=
+}}
+{{footballbox_collapsible
+|date={{date|2|08|2026|4}}
+|time=16:00 [[Московское время|МСК]]
+|team1=[[Оренбург (футбольный клуб)|Оренбург]]
+|score=
+|report=[https://premierliga.ru/matches/16251/ (отчёт)]
+|team2=Зенит
+|goals1=
+|goals2=
+|stadium=[[Газовик (стадион)|Газовик]]
+|location=[[Оренбург]]
+|attendance=
+|referee=
+|round=2 тур
+|result=
+|squad2=
+}}
+{{footballbox_collapsible
+|date={{date|9|08|2026|4}}
+|time=17:00 [[Московское время|МСК]]
+|team1=Зенит
+|score=
+|report=[https://premierliga.ru/matches/16263/ (отчёт)]
+|team2=[[Родина (футбольный клуб)|Родина]]
+|goals1=
+|goals2=
+|stadium=[[Газпром Арена]]
+|location=[[Санкт-Петербург]]
+|attendance=
+|referee=
+|round=3 тур
+|result=
+|squad2=
+}}
+{{footballbox_collapsible
+|date={{date|16|08|2026|4}}
+|time=14:30 [[Московское время|МСК]]
+|team1=Зенит
+|score=
+|report=[https://premierliga.ru/matches/16272/ (отчёт)]
+|team2=[[Динамо (футбольный клуб, Москва)|Динамо (Москва)]]
+|goals1=
+|goals2=
+|stadium=[[Газпром Арена]]
+|location=[[Санкт-Петербург]]
+|attendance=
+|referee=
+|round=4 тур
+|result=
+|squad2=
+}}
+{{footballbox_collapsible
+|date={{date|23|08|2026|4}}
+|time=20:00 [[Московское время|МСК]]
+|team1=[[Спартак (футбольный клуб, Москва)|Спартак]]
+|score=
+|report=[https://premierliga.ru/matches/16274/ (отчёт)]
+|team2=Зенит
+|goals1=
+|goals2=
+|stadium=[[Лукойл Арена]]
+|location=[[Москва]]
+|attendance=
+|referee=
+|round=5 тур
+|result=
+|squad2=
+}}
+{{footballbox_collapsible
+|date={{date|29|08|2026|4}}
+|time=15:00 [[Московское время|МСК]]
+|team1=[[Факел (футбольный клуб, Воронеж)|Факел]]
+|score=
+|report=[https://premierliga.ru/matches/16288/ (отчёт)]
+|team2=Зенит
+|goals1=
+|goals2=
+|stadium=[[Факел (стадион)|Факел]]
+|location=[[Воронеж]]
+|attendance=
+|referee=
+|round=6 тур
+|result=
+|squad2=
+}}
+{{footballbox_collapsible
+|date={{date|5|09|2026|4}}
+|time=16:30 [[Московское время|МСК]]
+|team1=Зенит
+|score=
+|report=[https://premierliga.ru/matches/16296/ (отчёт)]
+|team2=[[ЦСКА (футбольный клуб, Москва)|ЦСКА]]
+|goals1=
+|goals2=
+|stadium=[[Газпром Арена]]
+|location=[[Санкт-Петербург]]
+|attendance=
+|referee=
+|round=7 тур
+|result=
+|squad2=
+}}
+{{footballbox_collapsible
+|date={{date|12|09|2026|4}}
+|time=16:15 [[Московское время|МСК]]
+|team1=Зенит
+|score=
+|report=[https://premierliga.ru/matches/16303/ (отчёт)]
+|team2=[[Локомотив (футбольный клуб, Москва)|Локомотив]]
+|goals1=
+|goals2=
+|stadium=[[Газпром Арена]]
+|location=[[Санкт-Петербург]]
+|attendance=
+|referee=
+|round=8 тур
+|result=
+|squad2=
+}}
+{{footballbox_collapsible
+|date={{date|16|09|2026|4}}
+|time=20:45 [[Московское время|МСК]]
+|team1=[[Балтика (футбольный клуб)|Балтика]]
+|score=
+|report=[https://premierliga.ru/matches/16296/ (отчёт)]
+|team2=Зенит
+|goals1=
+|goals2=
+|stadium=[[Ростех Арена]]
+|location=[[Калининград]]
+|attendance=
+|referee=
+|round=9 тур
+|result=
+|squad2=
+}}
+== Кубок России ==
+=== Путь РПЛ. Групповой этап ===
+==== Турнирная таблица ====
+==== Матчи ====
+{{footballbox_collapsible
+|date={{date|5|08|2026|4}}
+|time=20:45 [[Московское время|МСК]]
+|team1=Зенит
+|score=
+|report=[https://www.rfs.ru/cup/tournament/match/57198 (отчёт)]
+|team2=[[Балтика (футбольный клуб)|Балтика]]
+|goals1=
+|goals2= 
+|stadium=[[Газпром Арена]]
+|location=[[Санкт-Петербург]]
+|attendance=
+|referee=
+|round=1 тур
+|result=
+|squad1=
+}}
+{{footballbox_collapsible
+|date={{date|20|08|2026|4}}
+|time=20:45 [[Московское время|МСК]]
+|team1=[[Крылья Советов (футбольный клуб, Самара)|Крылья Советов]]
+|score=
+|report=[https://www.rfs.ru/cup/tournament/match/57196 (отчёт)]
+|team2=Зенит
+|goals1=
+|goals2= 
+|stadium=[[Солидарность Самара Арена]]
+|location=[[Самара]]
+|attendance=
+|referee=
+|round=2 тур
+|result=
+|squad1=
+}}
+{{footballbox_collapsible
+|date={{date|02|09|2026|4}}
+|time=18:30 [[Московское время|МСК]]
+|team1=Зенит
+|score=
+|report=[https://www.rfs.ru/cup/tournament/match/57200 (отчёт)]
+|team2=[[Динамо (футбольный клуб, Махачкала)|Динамо (Махачкала)]]
+|goals1=
+|goals2= 
+|stadium=[[Газпром Арена]]
+|location=[[Санкт-Петербург]]
+|attendance=
+|referee=
+|round=3 тур
+|result=
+|squad1=
+}}
+== Примечания ==
