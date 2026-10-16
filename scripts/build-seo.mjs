@@ -1466,7 +1466,8 @@ ${events ? staleNote(c) + '\n' : ''}${body}
     o.eventStatus = 'https://schema.org/EventScheduled';
     o.eventAttendanceMode = 'https://schema.org/OfflineEventAttendanceMode';
     const loc = { '@type': 'Place', name: e.venue || e.addr || C.full };
-    if (e.addr) loc.address = { '@type': 'PostalAddress', streetAddress: e.addr, addressLocality: e.placeObj ? C.locality(e.placeObj) : C.full, addressCountry: 'RU' };
+    // площадка не из каталога: город — по началу адреса («Пушкин, …», «Мурино, …»), иначе сам город
+    if (e.addr) loc.address = { '@type': 'PostalAddress', streetAddress: e.addr, addressLocality: e.placeObj ? C.locality(e.placeObj) : C.town(e) || C.full, addressCountry: 'RU' };
     if (Number.isFinite(e.lat) && Number.isFinite(e.lon)) loc.geo = ldGeo(e);
     o.location = loc;
     if (e.note) o.description = e.note;
@@ -1488,7 +1489,8 @@ ${events ? staleNote(c) + '\n' : ''}${body}
     const url = pageUrl(pg.slug);
     // цепочка: станция метро — внутри своего округа, клубы — внутри общей подборки клубов
     const parent = pg.group === 'pc' ? 'kompyuternye-kluby' : pg.group === 'metro' ? (okrPages.find(x => x.okr === pg.okr) || {}).slug : null;
-    const crumbs = [['Главная', href('start.html', c), BASE + 'start.html'], [C.name, href('#index', c), pageUrl('')],
+    // «Главная» — каталог своего города, как и ссылка в цепочке на странице (у Петербурга — start.html?city=spb)
+    const crumbs = [['Главная', href('start.html', c), appUrl('start.html')], [C.name, href('#index', c), pageUrl('')],
       ...(parent && BY.has(parent) ? [[BY.get(parent).label, href('@' + parent, c), pageUrl(parent)]] : []),
       [pg.group === 'metro' ? 'У метро ' + pg.label : pg.group === 'pc' && pg.station ? 'У метро ' + pg.station.name : pg.label, '', url]];
     const stats = pg.stats.filter(Boolean).map(x => `<li>${esc(x)}</li>`).join('');
@@ -1511,7 +1513,7 @@ ${events ? staleNote(c) + '\n' : ''}${body}
   function renderIndex() {
     const c = { depth: 1, mode: 'date', img: 0 };
     const url = pageUrl('');
-    const crumbs = [['Главная', href('start.html', c), BASE + 'start.html'], [C.name, '', url]];
+    const crumbs = [['Главная', href('start.html', c), appUrl('start.html')], [C.name, '', url]];
     const groups = GROUPS.map(([g], i) => {
       const list = PAGES.filter(p => p.group === g);
       if (!list.length) return '';
@@ -1730,7 +1732,8 @@ const STATIC = [
   { file: 'start.html', deps: DATA_FILES, priority: '1.0', changefreq: 'daily' },
   { file: 'start.html', query: '?m=guys', priority: '0.9', changefreq: 'weekly', variant: true },
   { file: 'start.html', query: '?m=girls', priority: '0.9', changefreq: 'weekly', variant: true },
-  { file: 'start.html', query: '?city=spb', deps: DATA_FILES, priority: '0.9', changefreq: 'daily', variant: true, city: 'spb' },
+  // каталог Петербурга меняется вместе с его данными (и общими auto.js, photos.js), а не с московскими
+  { file: 'start.html', query: '?city=spb', deps: DATA_FILES.filter(f => !/^assets\/(places|events)\.js$/.test(f)), priority: '0.9', changefreq: 'daily', variant: true, city: 'spb' },
   { file: 'create.html', priority: '0.6', changefreq: 'monthly' },
   { file: 'partners.html', priority: '0.4', changefreq: 'monthly' },
   { file: 'rules.html', priority: '0.2', changefreq: 'yearly' },
