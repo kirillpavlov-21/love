@@ -1060,6 +1060,9 @@
   function chooseCity(c) {
     cityMenu(false);
     const changed = setCity(c);
+    // город выбран в переключателе сам — плашку «Похоже, ты в …» про другой город не показываем (как после ×)
+    hideCityAsk();
+    CITY_IDS.forEach(x => { if (x !== c) rememberAsk(x); });
     const b = $('#cityBtn');
     if (b) b.focus({ preventScroll: true });
     if (changed) { toast('Город: ' + K.cityConf(c).name); T.ev('city', { v: c }); }
