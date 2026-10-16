@@ -1204,7 +1204,7 @@ function buildCity(cid) {
       desc: matches.length
         ? `Ближайшие футбольные матчи ${C.in}: даты, стадионы, метро и цены, ссылки на официальные кассы${bars.length ? ', а ещё бары, где показывают трансляции' : ''}. Собери компанию голосованием.`
         : `Где посмотреть футбол ${C.in}: спорт-бары и пабы с трансляциями. Расписание матчей появится здесь, как только его объявят.`,
-      h1: `Футбол ${C.in}: ближайшие матчи`, eyebrow: `Афиша · обновлено ${dm(TODAY)}`,
+      h1: matches.length ? `Футбол ${C.in}: ближайшие матчи` : `Футбол ${C.in}: где смотреть матчи`, eyebrow: `Афиша · обновлено ${dm(TODAY)}`,
       lead: matches.length
         ? `${cap1(N(matches.length, W_.match))} ${when}${venues.length ? ` — ${venues.length > 1 ? 'на стадионах' : 'на стадионе'} ${joinRu(venues)}` : ''}. ${min ? `Билеты — от ${num(min)} ₽, ссылки на официальные кассы — в карточках.` : 'Ссылки на официальные кассы — в карточках.'}${bars.length ? ` Не достал билеты — ниже ${barsN}, где показывают трансляции.` : ''} Кинь ссылку в чат: каждый отметит, на какой матч может пойти.`
         : `Ближайших матчей в нашей афише пока нет: у лиги перерыв или расписание ещё не объявили. А посмотреть футбол компанией можно в ${barsN} — например, ${names(bars)}.`,
@@ -1417,7 +1417,7 @@ function buildCity(cid) {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&amp;family=Onest:wght@400;500;600;700&amp;display=swap">
-<link rel="stylesheet" href="${depth === 2 ? '../' : ''}seo.css?v=${cssVersion}">
+<link rel="stylesheet" href="${depth === 2 ? '../' : ''}seo.css?v=${cssVersionOf(C)}">
 <script type="application/ld+json">${ldJson(ld)}</script>
 </head>
 <body>
@@ -1537,7 +1537,7 @@ ${events ? staleNote(c) + '\n' : ''}${body}
   /* файлы города: стиль, подборки, оглавление; others — все собранные города (для ссылок между ними) */
   function render(all, files) {
     OTHERS = all.filter(b => b.C !== C);
-    files.set(C.out + '/seo.css', CSS);
+    files.set(C.out + '/seo.css', cssOf(C));
     PAGES.sort((a, b) => GROUPS.findIndex(g => g[0] === a.group) - GROUPS.findIndex(g => g[0] === b.group));
     for (const pg of PAGES) files.set(`${C.out}/${pg.slug}/index.html`, renderPage(pg));
     files.set(C.out + '/index.html', renderIndex());
@@ -1546,7 +1546,7 @@ ${events ? staleNote(c) + '\n' : ''}${body}
 }
 
 /* ---------- стили подборок ---------- */
-const CSS = `/* Подборки «Куда идём?» (moskva/**) — стиль «Ночной город», как на главной.
+const CSS = `/* Подборки «Куда идём?» (@OUT/**) — стиль «Ночной город», как на главной.
    Файл пишет scripts/build-seo.mjs — правь там, иначе следующий запуск перезапишет. */
 :root {
   --bg: #0F0E13; --surface: #1A1920; --surface-2: #22212A; --surface-3: #2A2932;
@@ -1652,8 +1652,9 @@ h1 { font: 700 26px/1.12 var(--display); letter-spacing: -.02em; text-wrap: bala
 .fl { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 16px; }
 .fl a { display: inline-flex; align-items: center; min-height: 32px; color: var(--muted-2); font-size: 13px; font-weight: 500; text-underline-offset: 3px; }
 `;
-/* версия в ссылке на стиль: меняется только вместе с CSS (файл один и тот же в каждой папке города) */
-const cssVersion = sha(CSS).slice(0, 8);
+/* стиль города: тот же CSS, в шапке — папка города; версия в ссылке на стиль меняется только вместе с файлом */
+const cssOf = C => CSS.replace('@OUT', C.out);
+const cssVersionOf = C => sha(cssOf(C)).slice(0, 8);
 
 /* ---------- сборка: города, файлы, манифесты, sitemap.xml, robots.txt ---------- */
 const BUILT = [], SKIPPED = [];
