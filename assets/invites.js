@@ -78,6 +78,25 @@
     return (window.KUDA_EVENTS || []).find(e => e && e.id === id) || null;
   }
 
+  /* ---------- город ----------
+     Город приглашения — у мест и событий в нём (id spb-…, ev-spb-… или поле city): из истории (create.js пишет city)
+     или по первому пункту из каталога. Без мест из каталога города нет. */
+  const okCity = c => !!c && typeof c === 'string' && !!K.CITIES && Object.prototype.hasOwnProperty.call(K.CITIES, c);
+  const cityOf = x => (typeof K.cityOf === 'function' ? K.cityOf(x) : 'msk');
+  function invCity(x, inv) {
+    if (okCity(x && x.city)) return x.city;
+    if (!inv) return '';
+    const ids = [inv.event].concat((Array.isArray(inv.places) ? inv.places : []).map(p => p && p.plan),
+      (Array.isArray(inv.opts) ? inv.opts : []).map(o => o && (o.plan || o.event)));
+    const id = ids.find(v => typeof v === 'string' && v);
+    return id ? cityOf(id) : '';
+  }
+  /* Город в конце адреса для календаря — только не московский (в московских адресах бывают города области) */
+  const locCity = (x, addr) => {
+    const c = K.CITIES && K.CITIES[cityOf(x)];
+    return c && c.id !== 'msk' && String(addr || '').indexOf(c.addr) < 0 ? c.addr : '';
+  };
+
   /* ---------- история и голоса ---------- */
   function histList() { const l = readJson(HIST, []); return Array.isArray(l) ? l.filter(x => x && (x.code || x.link)) : []; }
   const saveHist = list => ls.set(HIST, JSON.stringify(list.slice(0, MAX)));
@@ -157,7 +176,7 @@
       const prev = old.get(code) || {};
       // ссылка из истории — только обычная http(s); иначе собираем заново по коду
       const link = /^https?:\/\/[^\s"'<>]+$/.test(x.link || '') ? x.link : K.sitePath('index.html').replace(/index\.html$/, '') + '#' + code;
-      const it = Object.assign(prev, { x, code, inv, mode, group, title, link, who: inv && inv.who === 'm' ? 'm' : 'f' });
+      const it = Object.assign(prev, { x, code, inv, mode, group, title, link, who: inv && inv.who === 'm' ? 'm' : 'f', city: invCity(x, inv) });
       it.vsuf = group ? await votesSuffix(code) : '';
       return it;
     }));
@@ -213,8 +232,8 @@
     const when = day ? dayShort(day) : a.dateOther ? `«${a.dateOther}»` : '';
     const food = Array.isArray(a.food) ? (a.food.length ? a.food.map(f => (typeof f === 'string' ? f : [f.emoji, f.title].filter(Boolean).join(' '))).filter(Boolean).join(', ') : 'выбираешь ты') : '';
     let loc = '';
-    if (ev) loc = [ev.venue, ev.addr].filter(Boolean).join(', ');
-    else if (plan) { const st = K.planStops(plan)[0]; if (st) loc = [st.name, st.addr].filter(Boolean).join(', '); }
+    if (ev) loc = [ev.venue, ev.addr, locCity(ev, ev.addr)].filter(Boolean).join(', ');
+    else if (plan) { const st = K.planStops(plan)[0]; if (st) loc = [st.name, st.addr, locCity(st, st.addr)].filter(Boolean).join(', '); }
     const time = a.time || (ev && ev.time) || '';
     const rest = [place, when, time].filter(Boolean).join(', ');
     // время после полуночи (окно «22:00–02:00») — в календарь уже следующий день
@@ -310,11 +329,14 @@
 
   /* ---------- разметка ---------- */
   const cardId = code => 'inv-' + K.hash(code);
+  const multiCity = () => new Set(items.map(it => (okCity(it.city) ? it.city : 'msk'))).size > 1;
   function card(it) {
     const MC = K.MODES[it.mode] || K.MODES.date;
     const ev = !it.group && it.inv && it.inv.event ? evById(it.inv.event) : null;
     const opts = it.group && it.inv ? (it.inv.opts || []).length : 0;
-    const sub = [it.group ? MC.label : 'Свидание', created(it.x.at)].filter(Boolean).join(' · ') +
+    // город подписываем, если приглашения в разных городах или город не Москва
+    const city = okCity(it.city) && (it.city !== 'msk' || multiCity()) ? K.CITIES[it.city].name : '';
+    const sub = [it.group ? MC.label : 'Свидание', city, created(it.x.at)].filter(Boolean).join(' · ') +
       (opts ? ` · ${opts} ${plural(opts, 'вариант', 'варианта', 'вариантов')}` : '');
     const id = cardId(it.code);
     return `<article class="inv" data-mode="${esc(it.mode)}" data-code="${esc(it.code)}" id="${id}" aria-labelledby="${id}-t">
