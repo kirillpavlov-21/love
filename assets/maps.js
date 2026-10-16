@@ -38,8 +38,13 @@
   const CAT_COLOR = { walk: '#1E9E57', culture: '#7B5CD6', food: '#E0446B', coffee: '#D9731A', bar: '#B88A00', fun: '#6C9A0F', pc: '#0E9AA7', spa: '#2F80ED', books: '#C1489C' };
   const PROMO_COLOR = '#F5B000';
 
-  /* Центр Москвы и масштаб, с которых карта открывается, когда мест под фильтром много */
+  /* Центр и масштаб, с которых карта открывается, когда мест под фильтром много (или их нет), — свои у каждого города
+     (K.CITIES в shared.js: center, zoom). center(c) / zoom(c) — для города c, по умолчанию — для города интерфейса.
+     CENTER и ZOOM — московские, для старых вызовов */
   const CENTER = [55.751, 37.618], ZOOM = 11;
+  const conf = c => { const K = window.DateKit; try { return K && typeof K.cityConf === 'function' ? K.cityConf(c) : null; } catch (e) { return null; } };
+  const center = c => { const x = conf(c); return x && Array.isArray(x.center) ? x.center.slice() : CENTER.slice(); };
+  const zoom = c => { const x = conf(c); return x && Number.isFinite(x.zoom) ? x.zoom : ZOOM; };
 
-  window.KudaMap = { load, CAT_COLOR, PROMO_COLOR, CENTER, ZOOM, hasKey: !!KEY };
+  window.KudaMap = { load, CAT_COLOR, PROMO_COLOR, CENTER, ZOOM, center, zoom, hasKey: !!KEY };
 })();

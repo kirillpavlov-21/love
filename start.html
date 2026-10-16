@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Куда сходить в Москве: готовые планы на вечер, свидание, с друзьями | Куда идём?</title>
-  <meta name="description" content="Готовые планы на вечер в Москве: место, ужин рядом и маршрут. Для свидания, друзей и девичника. Скинь ссылку — решите голосованием за пару минут.">
+  <title>Куда сходить в Москве и Петербурге: готовые планы на вечер, свидание, с друзьями | Куда идём?</title>
+  <meta name="description" content="Готовые планы на вечер в Москве и Петербурге: место, ужин рядом и маршрут. Для свидания, друзей и девичника. Скинь ссылку — решите голосованием за пару минут.">
   <meta property="og:title" content="Куда идём? Решим за пару минут">
-  <meta property="og:description" content="Готовые планы на вечер в Москве: место, ужин рядом и маршрут. Для свидания, друзей и девичника. Скинь ссылку — решите голосованием за пару минут.">
+  <meta property="og:description" content="Готовые планы на вечер в Москве и Петербурге: место, ужин рядом и маршрут. Для свидания, друзей и девичника. Скинь ссылку — решите голосованием за пару минут.">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="ru_RU">
   <meta property="og:image" content="https://kirillpavlov-21.github.io/love/assets/og-hub.png">
@@ -32,7 +32,8 @@
   <header class="top">
     <a class="logo" href="start.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/></svg>Куда идём?</a>
     <span class="top-r">
-      <span class="city">Москва</span>
+      <!-- переключатель города: hub.js рисует ту же разметку (renderCityUi) и меню Москва / Петербург -->
+      <div class="city-sw" id="citySw"><button type="button" class="city" id="cityBtn" aria-haspopup="menu" aria-expanded="false" aria-controls="cityMenu" aria-label="Город: Москва. Сменить город" title="Сменить город"><span class="city-pin" aria-hidden="true">📍</span><span class="l-long">Москва</span><span class="l-short">МСК</span><svg class="ic chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button></div>
       <a class="icon-btn" href="invites.html" aria-label="Мои приглашения" title="Мои приглашения"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 13l2.6-7.2A2 2 0 0 1 7.5 4.5h9a2 2 0 0 1 1.9 1.3L21 13"/><path d="M3 13v5a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5h-5l-1.5 2.5h-5L8 13z"/></svg></a>
       <!-- «Войти» показываем, только когда в config.js задан auth.yandexClientId -->
       <button type="button" class="login hidden" id="login"></button>
@@ -58,7 +59,7 @@
     <div class="cat-slot" id="heroCat" aria-hidden="true"></div>
     <h1 id="heroTitle">Куда идём? Решим за&nbsp;пару минут</h1>
     <!-- Тексты здесь — для сайта без своего сервера (config.js → api.url пустой); с сервером hub.js (applyLiveCopy) меняет их на «живые» -->
-    <p class="hero-sub" id="heroSub"><span id="planCount">450+ готовых планов</span> на вечер в Москве: место, ужин рядом и маршрут. <span id="heroSubEnd">Кинь ссылку в чат — каждый отметит, что ему подходит.</span></p>
+    <p class="hero-sub" id="heroSub"><span id="planCount">450+ готовых планов</span> на вечер <span id="heroCity">в Москве</span>: место, ужин рядом и маршрут. <span id="heroSubEnd">Кинь ссылку в чат — каждый отметит, что ему подходит.</span></p>
     <div class="hero-mode" id="heroMode">
       <p class="hero-hook"><b>Не пиши «го?». Позови игрой</b>Ссылка-игра: сердечки, письмо, выбор места, дня и времени из твоих вариантов. Ответ вернётся к тебе с готовым маршрутом.</p>
       <div class="hero-actions">
@@ -150,14 +151,14 @@
     <details><summary>Как собрать компанию?</summary><p id="faqGroup">Выбери «Пацаны» или «Подружки», отметь подходящие планы и кинь ссылку в общий чат. Каждый отметит, куда и в какие дни может, и перешлёт обновлённую ссылку в чат — так голоса складываются. При ничьей поможет колесо.</p></details>
     <details><summary>Где найти комп рядом?</summary><p>В разделе «Все места» выбери «🎮 Компы» и нажми «📍 Рядом со мной» — клубы встанут по расстоянию. Цены и свободные места лучше уточнить у клуба: у сетей бывают ночные пакеты и скидки по будням.</p></details>
     <details><summary>Где хранятся имена и ответы?</summary><p id="faqStore">В самой ссылке и в твоём браузере — аккаунтов и базы с приглашениями нет. Чтобы ссылка была короткой, она может пройти через сервис коротких ссылок. Подробнее — в <a href="privacy.html">политике конфиденциальности</a>.</p></details>
-    <details><summary>Места только в Москве?</summary><p>Москва и ближнее Подмосковье — <span id="faqPlaces">960+</span> мест во всех округах: от парков и усадеб до ресторанов из гида Michelin, баров, бань и компьютерных клубов. В конструкторе можно добавить любые свои варианты, в том числе в другом городе.</p></details>
+    <details><summary>В каких городах есть места?</summary><p>В Москве с ближним Подмосковьем и в Петербурге с пригородами — <span id="faqPlaces">960+</span> мест: от парков, усадеб и музеев до ресторанов, баров, бань и компьютерных клубов. Город переключается в шапке страницы. В конструкторе можно добавить любые свои варианты, в том числе в другом городе.</p></details>
   </section>
   </main>
 
   <footer class="foot">
     <nav class="foot-links" aria-label="Ссылки">
       <a href="invites.html">Мои приглашения</a>
-      <a href="moskva/">Подборки по Москве</a>
+      <a href="moskva/" id="seoLink">Подборки по Москве</a>
       <a href="rules.html">Как работают рекомендации</a>
       <a href="privacy.html">Конфиденциальность</a>
       <a href="partners.html">Для заведений</a>
