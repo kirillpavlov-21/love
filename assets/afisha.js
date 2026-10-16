@@ -142,8 +142,10 @@
   /* ---------- данные ---------- */
   /* число или строка с числом; '' и true не считаем ценой (isFinite('') === true) */
   const numOk = v => (typeof v === 'number' && isFinite(v)) || (typeof v === 'string' && v.trim() !== '' && isFinite(v));
-  /* Футбольный матч: sub 'football' из sport.js; у старых записей — «(футбол, РПЛ)» в названии */
-  const fbRaw = (raw, title) => raw.cat === 'sport' && (raw.sub === 'football' || /футбол/i.test(title));
+  /* Футбольный матч: sub 'football' из sport.js; у старых записей events.js — «(футбол, РПЛ)» в названии
+     или значок ⚽ («Спартак — Рубин»); другой sub (хоккей) — не футбол */
+  const fbRaw = (raw, title) => raw.cat === 'sport' &&
+    (raw.sub ? raw.sub === 'football' : /футбол/i.test(title) || String(raw.emoji || '').trim() === '⚽');
   /* Хозяева и гости: поле teams, иначе — из названия «Спартак — Зенит (футбол, РПЛ)» */
   function teamsOf(raw, title) {
     const t = Array.isArray(raw.teams) ? raw.teams.map(x => String(x == null ? '' : x).trim()).filter(Boolean) : [];
@@ -202,10 +204,32 @@
     const src = Array.isArray(window.KUDA_EVENTS) ? window.KUDA_EVENTS : [];
     if (src !== SRC || src.length !== SRC_N) {
       SRC = src; SRC_N = src.length;
-      LIST = normalize(src);
-      BY_ID = new Map(LIST.map(e => [e.id, e]));
+      const all = normalize(src), tw = twins(all, src);
+      LIST = tw.hide.size ? all.filter(e => !tw.hide.has(e.id)) : all;
+      BY_ID = new Map(all.map(e => [e.id, e]));
+      tw.alias.forEach((m, a) => { if (!BY_ID.has(a)) BY_ID.set(a, m); });
     }
     return LIST;
+  }
+  /* Один матч дважды: старая запись events.js («ЦСКА — Спартак (футбол, РПЛ)») и он же из sport.js.
+     Старая — в aka матча или футбол в тот же день на том же стадионе (до 1 км). В списках остаётся матч из sport.js;
+     по старому id (приглашения, ссылки) карточка открывается, как раньше, а если записи уже нет — открывается матч.
+     → { hide: старые id, alias: старый id → матч } */
+  function twins(all, src) {
+    const fresh = new Map(), hide = new Set(), alias = new Map();
+    src.forEach(r => {
+      if (r && typeof r === 'object' && r.sub === 'football' && r.id) {
+        fresh.set(String(r.id).trim(), Array.isArray(r.aka) ? r.aka.map(x => String(x == null ? '' : x).trim()).filter(Boolean) : []);
+      }
+    });
+    if (!fresh.size) return { hide, alias };
+    const live = all.filter(e => fresh.has(e.id));
+    live.forEach(m => fresh.get(m.id).forEach(a => { if (!fresh.has(a)) { hide.add(a); alias.set(a, m); } }));
+    all.forEach(e => {
+      if (fresh.has(e.id) || hide.has(e.id) || !isFootball(e) || e.lat == null) return;
+      if (live.some(m => m.city === e.city && m.start === e.start && m.lat != null && distM(m, e) <= 1000)) hide.add(e.id);
+    });
+    return { hide, alias };
   }
   const findEvent = id => (events(), BY_ID.get(String(id || '')) || null);
   /* События одного города (c = '' — всех): списки, ленты и числа показывают только город интерфейса */
@@ -853,26 +877,31 @@
   }
   const emptyBox = (e, title, text, actions) => `<div class="af-empty"><span class="af-empty-e" aria-hidden="true">${e}</span><b>${esc(title)}</b><p>${esc(text)}</p>${actions ? `<div class="af-empty-act">${actions}</div>` : ''}</div>`;
 
-  /* Подборка в адресе страницы (?col=football): ссылкой из строки браузера можно поделиться.
-     Только когда открыта сама страница (не запись шторки) и подборку страница не задала сама */
+  /* Подборка в адресе страницы (?col=football; без подборки — col=free или col=weekend, если выбраны «Бесплатно» или «Выходные»):
+     ссылкой из строки браузера можно поделиться. Только когда открыта сама страница (не запись шторки) и подборку страница не задала сама */
   function syncCol(m) {
     if (!m.url) return;
     try {
       if (history.state && history.state.kudaSheet) return;
-      const u = new URL(location.href), col = m.st.col;
+      const st = m.st, col = st.col || (st.free ? 'free' : st.when === 'weekend' && !m.auto ? 'weekend' : '');
+      const u = new URL(location.href);
       if ((u.searchParams.get('col') || '') === col) return;
       if (col) u.searchParams.set('col', col); else u.searchParams.delete('col');
       history.replaceState(history.state, '', u.pathname + u.search + u.hash);
     } catch (e) { /* file:// и песочницы */ }
   }
   const reduced = () => { try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } };
-  /* «Все →» у ленты обзора: подборка (или «Бесплатно», «Выходные») целиком — списком по дням */
+  /* Сменили подборку или «Бесплатно», а день подобран сам: числа на чипах посчитаны на нынешние даты — их и держим
+     (иначе «Концерты 31» открыли бы 2 концерта недели); сняли и подборку, и «Бесплатно» — день подберём заново (обзор) */
+  const keepWhen = m => { if (m.auto && !m.st.col && !m.st.free) m.st.when = ''; };
+  /* «Все →» у ленты обзора: подборка (или «Бесплатно», «Выходные») целиком — списком по дням, на все даты, как в ленте */
   function openCol(m, id) {
     const st = m.st;
-    if (id === 'weekend') { st.col = ''; st.when = 'weekend'; m.auto = false; }
-    else if (id === 'free') { st.col = ''; st.free = true; if (m.auto) st.when = ''; }
-    else if (COLS[id]) { st.col = id; if (m.auto) st.when = ''; }
+    if (id === 'weekend') { st.col = ''; st.when = 'weekend'; }
+    else if (id === 'free') { st.col = ''; st.free = true; st.when = 'all'; }
+    else if (COLS[id]) { st.col = id; st.when = 'all'; }
     else return;
+    m.auto = false;
     st.limit = PAGE;
     syncCol(m);
     renderMount(m);
@@ -896,11 +925,12 @@
     const c = t.closest('[data-af-k]');
     if (c) {
       const [kind, val] = c.dataset.afK.split(':');
-      /* подборка: повторное нажатие (и «Все») снимает её; день, подобранный сам, подбираем под новую */
-      if (kind === 'col') { st.col = val && st.col !== val ? val : ''; if (m.auto) st.when = ''; syncCol(m); }
+      /* подборка: повторное нажатие (и «Все») снимает её; даты — те, на которые посчитаны числа чипов */
+      if (kind === 'col') { st.col = val && st.col !== val ? val : ''; keepWhen(m); }
       else if (kind === 'when') { st.when = val; m.auto = false; }
-      else if (kind === 'free') { st.free = !st.free; if (m.auto) st.when = ''; }
+      else if (kind === 'free') { st.free = !st.free; keepWhen(m); }
       else if (kind === 'fit') { if (st.fit === (val === '1')) return; st.fit = val === '1'; }
+      if (kind !== 'fit') syncCol(m);
       st.limit = PAGE;
       const row = c.closest('[data-af-row]');
       renderMount(m);
@@ -911,11 +941,12 @@
     const rx = t.closest('[data-af-relax]');
     if (rx) {
       const k = rx.dataset.afRelax;
-      if (k === 'col' || k === 'reset') { st.col = ''; syncCol(m); }
+      if (k === 'col' || k === 'reset') st.col = '';
       if (k === 'free' || k === 'reset') st.free = false;
       if (k === 'fit' || k === 'reset') st.fit = false;
+      /* «Смотреть все даты» — все даты; другие кнопки обещали число «на эти даты» — даты не трогаем */
       if (k === 'when' || k === 'reset') { st.when = 'all'; m.auto = false; }
-      else if (m.auto) st.when = '';
+      syncCol(m);
       st.limit = PAGE;
       renderMount(m);
       m.el.querySelectorAll('[data-af-row]').forEach(revealOn);
