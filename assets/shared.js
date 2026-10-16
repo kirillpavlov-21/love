@@ -341,6 +341,56 @@
     return p && !p.adult ? { id, mode: '', emoji: p.emoji, title: p.name, stops: [id.slice(2)], when: '', why: p.note, single: true } : null;
   };
   const planStops = plan => (plan ? plan.stops.map(placeById).filter(Boolean) : []);
+
+  /* ---------- города ----------
+     У старых данных поля city нет — это Москва. Петербург: места spb-…, планы spb-d-/spb-g-/spb-w-…, события ev-spb-…;
+     матчи из sport.js несут city сами. Город интерфейса: ?city= → localStorage 'kuda-city' → Москва. */
+  const CITIES = {
+    msk: { id: 'msk', name: 'Москва', full: 'Москва', in: 'в Москве', gen: 'Москвы', center: [55.751, 37.618], zoom: 11, maxKm: 70,
+      ya: { id: 213, slug: 'moscow' }, addr: 'Москва', seo: 'moskva', all: 'Вся Москва',
+      okrs: [['center', 'Центр'], ['north', 'Север'], ['ne', 'Северо-Восток'], ['east', 'Восток'], ['se', 'Юго-Восток'], ['south', 'Юг'],
+        ['sw', 'Юго-Запад'], ['west', 'Запад'], ['nw', 'Северо-Запад'], ['khimki', 'Химки · Левобережный'], ['zel', 'Зеленоград'], ['new', 'Новая Москва'], ['mo', 'Подмосковье']] },
+    spb: { id: 'spb', name: 'Петербург', full: 'Санкт-Петербург', in: 'в Петербурге', gen: 'Петербурга', center: [59.939167, 30.315833], zoom: 11, maxKm: 60,
+      ya: { id: 2, slug: 'saint-petersburg' }, addr: 'Санкт-Петербург', seo: 'spb', all: 'Весь Петербург',
+      okrs: [['center', 'Центр'], ['petrograd', 'Петроградка'], ['vo', 'Васильевский'], ['north', 'Север'], ['nw', 'Приморский'], ['south', 'Юг'],
+        ['sw', 'Юго-Запад'], ['east', 'Правый берег'], ['out', 'Пригороды']] },
+  };
+  const CITY_KEY = 'kuda-city';
+  const SPB_ID = /^(spb-|ev-spb-|p-spb-)/;
+  const isCity = c => typeof c === 'string' && Object.prototype.hasOwnProperty.call(CITIES, c);
+  function city() {
+    try { const q = new URLSearchParams(location.search).get('city'); if (isCity(q)) return q; } catch (e) { /* нет location */ }
+    try { const s = localStorage.getItem(CITY_KEY); if (isCity(s)) return s; } catch (e) { /* приватный режим */ }
+    return 'msk';
+  }
+  function setCity(c) {
+    if (!isCity(c)) return;
+    try { localStorage.setItem(CITY_KEY, c); } catch (e) { /* приватный режим */ }
+  }
+  const cityConf = c => CITIES[isCity(c) ? c : city()];
+  /* Город места, плана, события или id; у точки без id и города — по координатам */
+  function cityOf(x) {
+    if (x == null) return 'msk';
+    if (typeof x === 'string') {
+      if (SPB_ID.test(x)) return 'spb';
+      const p = placeById(x); if (p) return cityOf(p);
+      const s = kuda().scenarios.find(y => y.id === x); if (s) return cityOf(s);
+      const e = eventById(x); if (e) return cityOf(e);
+      return 'msk';
+    }
+    if (isCity(x.city)) return x.city;
+    if (typeof x.id === 'string' && SPB_ID.test(x.id)) return 'spb';
+    if (Array.isArray(x.stops) && x.stops.length) return cityOf(String(x.stops[0]));
+    if (typeof x.place === 'string' && x.place) return cityOf(x.place);
+    if (Number.isFinite(x.lat) && Number.isFinite(x.lon)) return cityByPoint(x.lat, x.lon) || 'msk';
+    return 'msk';
+  }
+  const inCity = (x, c) => cityOf(x) === (isCity(c) ? c : city());
+  /* Город по точке: в пределах maxKm от центра, иначе null */
+  function cityByPoint(lat, lon) {
+    for (const c of Object.values(CITIES)) if (distM({ lat, lon }, { lat: c.center[0], lon: c.center[1] }) <= c.maxKm * 1000) return c.id;
+    return null;
+  }
   /* Раздел каталога: поле cat, а у старых мест — по типу места */
   const CAT_BY_KIND = [
     ['pc', /компьютерн|кибер/i],
@@ -500,12 +550,19 @@
      «Переделкино (МЦД-4)», «Мытищи (ж/д)» → «ж/д Мытищи» */
   const isMetro = m => !!m && !/\((ж\/д|МЦД[^)]*)\)$/.test(m);
   const metroText = m => !m ? '' : /\(ж\/д\)$/.test(m) ? 'ж/д ' + m.replace(/\s*\(ж\/д\)$/, '') : isMetro(m) ? 'м. ' + m : m;
-  const mapUrl = p => 'https://yandex.ru/maps/213/moscow/?text=' + encodeURIComponent(p.name + ', ' + p.addr);
+  /* Регион Яндекс Карт — по городу самого места (у приглашения своего «города интерфейса» нет) */
+  const yaBase = c => { const y = CITIES[c].ya; return `https://yandex.ru/maps/${y.id}/${y.slug}/`; };
+  const mapUrl = p => yaBase(cityOf(p)) + '?text=' + encodeURIComponent(p.name + ', ' + p.addr);
   /* Точка маршрута: адрес с номером дома — текстом (Яндекс находит тот же дом, что и ссылка на место),
      парки, набережные и адреса без номера — координатами */
   const MO_CITY = /^(Химки|Красногорск|Мытищи|Королёв|Балашиха|Люберцы|Реутов|Одинцово|Долгопрудный|Котельники|Видное|Лобня|Дзержинский|Лыткарино|Подольск|Щёлково|Пушкино|Ивантеевка|Фрязино|Домодедово|Жуковский|Раменское|Истра|Дмитров|Звенигород|Апрелевка|Наро-Фоминск|Сергиев Посад|Электросталь|Ногинск|Солнечногорск|Ступино|Чехов|Серпухов|Коломна|Клин|Голицыно|Нахабино|Мытищинский|Красногорский)(?=[,\s])/;
   function routePt(p) {
     const a = String(p.addr || '').replace(/\s*\([^)]*\)/g, '').trim();
+    if (cityOf(p) === 'spb') {
+      // пригороды пишем с городом в начале адреса («Пушкин, Садовая ул., 7») — им префикс Петербурга не мешает
+      if (/\d/.test(a) && !/^(у|рядом|напротив)\s/i.test(a) && !/(^|, )Санкт-Петербург(,|$)/.test(a)) return encodeURIComponent('Санкт-Петербург, ' + a);
+      return p.lat.toFixed(6) + ',' + p.lon.toFixed(6);
+    }
     if (/\d/.test(a) && !/^(у|рядом|напротив)\s/i.test(a) && !/(^|, )Москва(,|$)/.test(a)) {
       // города области: иначе Яндекс найдёт одноимённую улицу в Москве (Комсомольский просп. в Люберцах и в Хамовниках)
       const city = /^Московская обл/.test(a) ? '' : MO_CITY.test(a) ? 'Московская область, ' : 'Москва, ';
@@ -516,7 +573,7 @@
   /* Маршрут: первая точка пустая — откуда ехать, человек укажет сам в Яндекс Картах,
      дальше — места плана по порядку. Общественный транспорт: короткие отрезки Яндекс сам проложит пешком */
   function routeUrl(stops) {
-    return 'https://yandex.ru/maps/213/moscow/?rtext=~' + stops.map(routePt).join('~') + '&rtt=mt';
+    return yaBase(cityOf(stops[0] || null)) + '?rtext=~' + stops.map(routePt).join('~') + '&rtt=mt';
   }
 
   /* ---------- Telegram-ник владельца и календарь ---------- */
@@ -873,6 +930,7 @@
     MODES, modeOf, kuda, placeById, planById, planStops, catOf, photo, planPhoto, photoCredit, cleanAuthor, HINTS, placeHints, planHints, hintChip, seasonHints,
     todayMsk, seasonNow, seasonOk, eventById, events, eventDays, sheet,
     distM, walkMin, priceText, priceHint, isMetro, metroText, mapUrl, routeUrl,
+    CITIES, city, setCity, cityOf, cityConf, inCity, cityByPoint,
     THEMES: ['pink', 'lavender', 'peach', 'mint', 'sport'],
   };
 })();
