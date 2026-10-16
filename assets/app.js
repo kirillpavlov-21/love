@@ -16,7 +16,7 @@
   };
   const apiErr = () => (API && typeof API.lastError === 'string' ? API.lastError : '');
   const stage = document.getElementById('stage');
-  /* ?v= этого скрипта — с тем же номером догружаем афишу (assets/events.js), когда она нужна */
+  /* ?v= этого скрипта — с тем же номером догружаем афишу (assets/events.js, events-spb.js, sport.js), когда она нужна */
   const VER = (() => { try { const m = /[?&]v=([^&#]+)/.exec((document.currentScript && document.currentScript.src) || ''); return m ? '?v=' + m[1] : ''; } catch (e) { return ''; } })();
   /* «Уменьшить движение» в настройках системы: без конфетти, сердечного дождя и плавной прокрутки */
   const RMQ = typeof window.matchMedia === 'function' ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
@@ -390,6 +390,31 @@
   const isInt = (x, lo, hi) => Number.isInteger(x) && x >= lo && x <= hi;
   const hnum = s => parseInt(K.hash(s), 36) || 0;
 
+  /* ================= Город приглашения =================
+     У игры нет своего «города интерфейса»: город — у мест и событий приглашения (id spb-…, ev-spb-… или поле city).
+     По нему — регион Яндекс Карт, город в адресе для календаря и город главной в ссылках «Все планы», «Создать свой…». */
+  const cityOf = x => (typeof K.cityOf === 'function' ? K.cityOf(x) : 'msk');
+  /* Город приглашения — по первому пункту из каталога (событие, шарик-место, вариант голосования); '' — таких нет */
+  function invCity() {
+    if (!INV) return '';
+    const ids = [INV.event].concat((Array.isArray(INV.places) ? INV.places : []).map(p => p && p.plan),
+      (Array.isArray(INV.opts) ? INV.opts : []).map(o => o && (o.plan || o.event)));
+    const id = ids.find(x => typeof x === 'string' && x);
+    return id ? cityOf(id) : '';
+  }
+  /* Город в конце адреса для календаря — только не московский: в московских адресах бывают города области («Химки, …»),
+     и раньше календарь получал их без города */
+  const locCity = (x, addr) => {
+    const c = K.CITIES && K.CITIES[cityOf(x)];
+    return c && c.id !== 'msk' && String(addr || '').indexOf(c.addr) < 0 ? c.addr : '';
+  };
+  /* Ссылка на главную в городе приглашения: получатель из Петербурга попадёт на петербургские планы */
+  function hubUrl(q, c) {
+    if (c === undefined) c = invCity();
+    const s = [q, c ? 'city=' + encodeURIComponent(c) : ''].filter(Boolean).join('&');
+    return 'start.html' + (s ? '?' + s : '');
+  }
+
   /* ================= Дата в Москве ================= */
   let MSK_FMT = null;
   /* { today: 'YYYY-MM-DD', min: минуты от полуночи } */
@@ -482,12 +507,13 @@
     return { name: ev.venue || (pl && pl.name) || '', addr: ev.addr || (pl && pl.addr) || '', metro: ev.metro || (pl && pl.metro) || '', lat, lon, pl };
   }
   const evPlaceLine = ev => { const v = evVenue(ev); return [v.name, K.metroText(v.metro)].filter(Boolean).join(' · '); };
-  const evLoc = ev => { const v = evVenue(ev); return [v.name, v.addr].filter(Boolean).join(', '); };
+  const evLoc = ev => { const v = evVenue(ev); return [v.name, v.addr, locCity(ev, v.addr)].filter(Boolean).join(', '); };
+  /* Яндекс Карты — в регионе города события (Москва или Петербург), а не по умолчанию московском */
   function evRoute(ev) {
-    const v = evVenue(ev);
+    const v = evVenue(ev), city = cityOf(ev);
     if (v.pl) return K.routeUrl([v.pl]);
-    if (isFinite(v.lat) && isFinite(v.lon)) return K.routeUrl([{ name: v.name, addr: v.addr, lat: v.lat, lon: v.lon }]);
-    return v.addr ? K.mapUrl({ name: v.name, addr: v.addr }) : '';
+    if (isFinite(v.lat) && isFinite(v.lon)) return K.routeUrl([{ name: v.name, addr: v.addr, lat: v.lat, lon: v.lon, city }]);
+    return v.addr ? K.mapUrl({ name: v.name, addr: v.addr, city }) : '';
   }
   const evPhoto = ev => (ev.place ? K.photo(K.placeById(ev.place)) : null);
   /* Автор фото без приписок про соцсети (shared.js cleanAuthor) */
@@ -758,7 +784,7 @@
     </div>`;
   }
 
-  const placeLoc = plan => { const p = K.planStops(plan)[0]; return p ? p.name + ', ' + p.addr : ''; };
+  const placeLoc = plan => { const p = K.planStops(plan)[0]; return p ? [p.name, p.addr, locCity(p, p.addr)].filter(Boolean).join(', ') : ''; };
   const planDetails = plan => {
     const st = K.planStops(plan);
     return st.length ? stopsLine(plan) + '\nМаршрут: ' + K.goRoute(plan.id) : '';
@@ -1742,7 +1768,7 @@
     const after = !!day && day < todayYmd();
     return `<div class="rate-box">
       <p class="hint">${I('sparkle')}${after ? 'Как прошло? Оцени место — так другим будет проще выбрать' : 'Как сходите — оцени место: так другим будет проще выбрать'}</p>
-      <div class="plan-links">${ids.map(id => `<a class="chip-link" href="start.html?place=${encodeURIComponent(id)}#reviews" target="_blank" rel="noopener">${I('heart')}${one ? 'Оценить место' : 'Оценить: ' + esc(K.placeById(id).name)}</a>`).join('')}</div>
+      <div class="plan-links">${ids.map(id => `<a class="chip-link" href="${esc(hubUrl('place=' + encodeURIComponent(id), cityOf(id)))}#reviews" target="_blank" rel="noopener">${I('heart')}${one ? 'Оценить место' : 'Оценить: ' + esc(K.placeById(id).name)}</a>`).join('')}</div>
     </div>`;
   }
 
@@ -1787,7 +1813,7 @@
       ${rateBlock(rateIds(plan, ev), S.a.date)}
       <div class="send-state" role="status"></div>
       <div class="final-cat"><div class="cat-slot">${K.catSVG(LOVE())}</div><div class="bubble b-left">${esc(view ? 'Осталось только встретиться 😉' : T(INV.finale))}</div></div>
-      ${view ? `<div class="actions"><a class="btn btn-primary btn-wide" href="start.html">Все планы «${esc((CFG.site && CFG.site.name) || 'Куда идём?')}»${I('arrow')}</a></div>` : ''}
+      ${view ? `<div class="actions"><a class="btn btn-primary btn-wide" href="${esc(hubUrl(''))}">Все планы «${esc((CFG.site && CFG.site.name) || 'Куда идём?')}»${I('arrow')}</a></div>` : ''}
       <div class="actions${view ? ' hidden' : ''}">
         <button class="btn btn-primary btn-wide share">${I('share')}${tgUser ? 'Отправить ответ в Telegram' : 'Отправить ответ'}</button>
         <button class="btn btn-soft btn-wide note-open">${I('pen')}Написать пару слов</button>
@@ -1796,7 +1822,7 @@
           <button class="btn btn-primary note-send">Отправить</button>
         </div>
         <button class="link-btn replay">${I('redo')}Пройти заново</button>
-        <a class="link-btn viral" href="start.html?from=invite">${I('sparkle')}Сделать своё приглашение</a>
+        <a class="link-btn viral" href="${esc(hubUrl('from=invite'))}">${I('sparkle')}Сделать своё приглашение</a>
       </div>`;
 
     const ticket = $('.ticket', el), cut = $('.t-cut', el);
@@ -2349,7 +2375,7 @@
         </div>`}
         <div class="actions">
           <button class="link-btn revote">${myVote() ? I('redo') + 'Изменить мой голос' : I('check') + 'Проголосовать'}</button>
-          <a class="link-btn" href="start.html?m=${MODE}&from=invite">Создать свой сбор${I('arrow')}</a>
+          <a class="link-btn" href="${esc(hubUrl('m=' + MODE + '&from=invite'))}">Создать свой сбор${I('arrow')}</a>
         </div>`;
       const wrap = $('.tally-wrap', el), box = $('.vstate', el), liveNote = $('.live-note', el), sr = $('.vs-live', el);
 
@@ -2697,23 +2723,26 @@
     if (+m[1] === wheelPlan(L.map(x => x.i)).win) saveLocalSpin(+m[1], leadSig(L));
   }
 
-  /* Афиша (assets/events.js, ~130 КБ) нужна только приглашениям с событием — её грузим тогда, остальные открываются без неё.
-     events.js записывает window.KUDA_EVENTS заново: события из auto.js (он уже выполнен) возвращаем, если таких id в афише нет */
+  /* Афиша нужна только приглашениям с событием — её грузим тогда, остальные открываются без неё:
+     assets/events.js (Москва, ~130 КБ), events-spb.js (Петербург) и sport.js (футбольные матчи обоих городов).
+     Качаются параллельно, выполняются по порядку (async = false): events.js записывает window.KUDA_EVENTS заново,
+     events-spb.js и sport.js дописывают в него свои. События из auto.js (он уже выполнен) возвращаем, если таких id в афише нет */
+  const EV_FILES = ['assets/events.js', 'assets/events-spb.js', 'assets/sport.js'];
   const needsEvents = inv => !!inv.event || (Array.isArray(inv.opts) && inv.opts.some(o => o && o.event));
   function loadEvents() {
-    if (document.querySelector('script[src*="assets/events.js"]')) return Promise.resolve();
+    const files = EV_FILES.filter(f => !document.querySelector('script[src*="' + f + '"]'));
+    if (!files.length) return Promise.resolve();
     const before = Array.isArray(window.KUDA_EVENTS) ? window.KUDA_EVENTS.slice() : [];
-    return new Promise(ok => {
+    return Promise.all(files.map(f => new Promise(ok => {
       const s = document.createElement('script');
-      s.src = 'assets/events.js' + VER;
-      s.onload = () => {
-        const E = Array.isArray(window.KUDA_EVENTS) ? window.KUDA_EVENTS : (window.KUDA_EVENTS = []);
-        const seen = new Set(E.map(e => e && e.id));
-        before.forEach(e => { if (e && !seen.has(e.id)) { seen.add(e.id); E.push(e); } });
-        ok();
-      };
-      s.onerror = () => ok();   // без сети — откроется как приглашение без события
+      s.src = f + VER;
+      s.async = false;
+      s.onload = s.onerror = () => ok();   // без сети — откроется как приглашение без события
       document.head.appendChild(s);
+    }))).then(() => {
+      const E = Array.isArray(window.KUDA_EVENTS) ? window.KUDA_EVENTS : (window.KUDA_EVENTS = []);
+      const seen = new Set(E.map(e => e && e.id));
+      before.forEach(e => { if (e && !seen.has(e.id)) { seen.add(e.id); E.push(e); } });
     });
   }
 
