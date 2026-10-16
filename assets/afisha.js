@@ -445,7 +445,9 @@
       if (!p || !isFinite(p.lat) || !isFinite(p.lon) || placeCity(id, p) !== city || !showsMatches(p)) return;
       cand.push({ id, p, dist: distM(from, p) });
     });
-    return cand.sort((a, b) => (a.dist - b.dist) || cmp(a.id, b.id)).slice(0, limit);
+    // проверенные бары (tv: true) — если их в городе хватает, угадывать по описанию («паб», «матч») не нужно
+    const sure = cand.filter(x => x.p.tv === true);
+    return (sure.length >= WATCH_N ? sure : cand).sort((a, b) => (a.dist - b.dist) || cmp(a.id, b.id)).slice(0, limit);
   }
   /* Точка «Рядом со мной» этого города (assets/geo.js: 'kuda-near' — Москва, 'kuda-near:spb' — Петербург;
      GPS — в sessionStorage, станция или точка на карте — в localStorage). Точка из другого города не годится */
