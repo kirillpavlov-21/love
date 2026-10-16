@@ -10,7 +10,7 @@ import path from 'node:path';
 import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
 import {
-  CITIES, normCity, cityHint, inRegion, inSpbRegion, inMoscowRegion, regionOf, okrOf, geocode, nearestMetro,
+  CITIES, normCity, cityHint, mentionsCity, inRegion, inSpbRegion, inMoscowRegion, regionOf, okrOf, geocode, nearestMetro,
 } from '../lib/geo.mjs';
 import {
   loadCatalog, parseStations, placeCity, cityOf, findMatch, slugId, placeId, validatePlan, nearbyPlaces, catalogIndex, parseAutoJs,
@@ -75,7 +75,15 @@ test('normCity и cityHint: коды, русские названия, приг�
   assert.equal(cityHint('ул. Ломоносова, 5'), '', 'улица, а не Ломоносов');
   assert.equal(cityHint('г. Москва, Тверская ул., 7'), 'msk');
   assert.equal(cityHint('Московский пр., 10'), '', 'Московский проспект есть и в Петербурге');
+  for (const s of ['Песочный пер., 3', 'Кронштадтский бул., 7', 'Ломоносовский пр., 23', 'Павловская ул., 7', 'Ленинградский пр., 31'])
+    assert.equal(cityHint(s), '', `московская улица: ${s}`);
   assert.equal(cityHint(''), '');
+  assert.equal(mentionsCity('Открылось в Петербурге', 'spb'), true);
+  assert.equal(mentionsCity('Открылось в Петербурге', 'msk'), false);
+  assert.equal(mentionsCity('Петербургская кухня в центре Москвы', 'msk'), true);
+  assert.equal(mentionsCity('Новое кафе в Химках', 'msk'), true);
+  assert.equal(mentionsCity('Московский пр., 10', 'msk'), false, 'Московский проспект — не Москва');
+  assert.equal(mentionsCity('что угодно', 'kzn'), false);
   assert.deepEqual(Object.keys(CITIES), ['msk', 'spb']);
 });
 
@@ -393,6 +401,17 @@ test('normSources: старый формат — Москва; cities.spb — П
   assert.equal(s.invalid, 2, 'заглушка с дефисом и канал неизвестного города');
   assert.deepEqual(s.badCities, ['Казань']);
   assert.deepEqual(normSources({ cities: { 'СПб': { telegram: ['spb_two'] } } }).city, { 'tg:spb_two': 'spb' }, 'город по-русски');
+  // записи-объекты { handle, city } тоже понимаются: город записи важнее города списка
+  const o = normSources({
+    telegram: ['msk_one', { handle: 'spb_obj', city: 'spb' }, { handle: '@msk_obj' }, { name: 'both_obj', city: 'msk' }, { handle: 'kzn_obj', city: 'Казань' }, { city: 'spb' }],
+    instagram: [{ username: 'spb.ig', city: 'Петербург' }],
+    cities: { spb: { telegram: ['both_obj', { handle: 'msk_in_spb', city: 'msk' }] } },
+  });
+  assert.deepEqual(o.telegram, ['msk_one', 'spb_obj', 'msk_obj', 'both_obj', 'msk_in_spb']);
+  assert.deepEqual(o.instagram, ['spb.ig']);
+  assert.deepEqual(o.city, { 'tg:msk_one': 'msk', 'tg:spb_obj': 'spb', 'tg:msk_obj': 'msk', 'tg:both_obj': '', 'tg:msk_in_spb': 'msk', 'ig:spb.ig': 'spb' });
+  assert.equal(o.invalid, 2, 'неизвестный город записи и запись без имени');
+  assert.deepEqual(o.badCities, ['Казань']);
   assert.deepEqual(normSources(null).telegram, []);
   // пример из репозитория: только заглушки, без настоящих имён
   const ex = JSON.parse(readFileSync(path.join(HERE, '..', 'sources.example.json'), 'utf8'));
@@ -434,7 +453,12 @@ test('cleanAddr и itemCity: город из адреса убираем, при
   assert.equal(cleanAddr('Ленинградская обл., Мурино, Привокзальная пл., 1'), 'Мурино, Привокзальная пл., 1');
   assert.equal(cleanAddr('Пушкин, Садовая ул., 7'), 'Пушкин, Садовая ул., 7');
   assert.equal(cleanAddr('Московский пр., 10'), 'Московский пр., 10');
-  assert.equal(itemCity({ city: 'spb' }, { city: 'msk' }), 'spb', 'модель видит, что место в другом городе');
+  assert.equal(itemCity({ city: 'spb' }, { city: 'msk', text: 'А в Петербурге на Рубинштейна открылся бар' }), 'spb', 'модель видит, что место в другом городе');
+  assert.equal(itemCity({ city: 'spb', address: 'Пушкин, Садовая ул., 7' }, { city: 'msk', text: 'Новое кафе' }), 'spb', 'пригород в адресе');
+  assert.equal(itemCity({ city: 'spb', address: 'Садовая ул., 7' }, { city: 'msk', text: 'Новое кафе на Садовой' }), 'msk',
+    'город другой, но в посте он не назван — ошибка модели, остаётся город источника');
+  assert.equal(itemCity({ city: 'msk' }, { city: 'spb', text: 'Открылось в Химках' }), 'msk', 'ближний город Подмосковья');
+  assert.equal(itemCity({ city: 'spb' }, { city: '', text: 'Новое кафе' }), 'spb', 'канал про оба города — верим модели');
   assert.equal(itemCity({ city: '' }, { city: 'spb' }), 'spb');
   assert.equal(itemCity({ city: '', address: 'Пушкин, Садовая ул., 7' }, { source: 'inbox' }), 'spb');
   assert.equal(itemCity({ city: '' }, { source: 'inbox', text: 'Открылось в Питере кафе' }), 'spb');

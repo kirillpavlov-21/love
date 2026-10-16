@@ -49,16 +49,26 @@ export function regionOf(lat, lon) {
 }
 
 /* Приметы города в тексте адреса или поста: 'spb' | 'msk' | ''. Пригороды — целым словом:
-   «Пушкин, Садовая ул.» — Петербург, а «Пушкинская ул.» — просто улица */
+   «Пушкин, Садовая ул.» — Петербург, а «Пушкинская ул.» — просто улица.
+   Посёлка Песочный здесь нет: «Песочный пер.» есть в Москве */
 const SPB_WORDS = new RegExp('(?<![а-яё])(санкт-петербург\\S*|с\\.-петербург\\S*|петербург\\S*|спб|питер[ае]?|ленинградская обл\\S*|ленобласть|'
   + 'пушкин|павловск|петергоф|новый петергоф|ломоносов|кронштадт|сестрорецк|зеленогорск|колпино|стрельна|красное село|шушары|парголово|'
-  + 'песочный|репино|комарово|ольгино|лахта|левашово|мурино|кудрово|всеволожск|девяткино|сертолово)(?![а-яё])', 'i');
+  + 'репино|комарово|ольгино|лахта|левашово|мурино|кудрово|всеволожск|девяткино|сертолово)(?![а-яё])', 'i');
 const MSK_WORDS = /(?<![а-яё])(москв[аеуы]|московская обл\S*|подмосковь\S*)(?![а-яё])/i;
 export function cityHint(text) {
   const s = String(text || '').toLowerCase().replace(/ё/g, 'е');
   if (SPB_WORDS.test(s)) return 'spb';
   if (MSK_WORDS.test(s)) return 'msk';
   return '';
+}
+/* Назван ли в тексте именно этот город (или его пригород). Нужно, когда модель перенесла место в другой город,
+   чем у источника: верим, только если так и написано. Для Москвы — ещё ближние города области («в Химках») */
+const MSK_TOWNS = /(?<![а-яё])(химк|зеленоград|мытищ|красногорск|люберц|балаших|одинцов|реутов|долгопрудн|котельник|коммунарк|сколков)/i;
+export function mentionsCity(text, city) {
+  const s = String(text || '').toLowerCase().replace(/ё/g, 'е');
+  if (city === 'spb') return SPB_WORDS.test(s);
+  if (city === 'msk') return MSK_WORDS.test(s) || MSK_TOWNS.test(s);
+  return false;
 }
 
 function distM(a, b) {
@@ -318,7 +328,6 @@ async function viaYandex(addr, { yandexKey, fetchImpl, minIntervalMs, near, city
   // в ответе на дом нет округа (Москва) или района (Петербург) — спросим обратным геокодированием
   const noArea = res && (city === 'spb' ? !/район/i.test(res.district) : !/административн|округ/i.test(res.district));
   if (noArea && cityPart(C).test(res.district)) {
-    // в ответе на дом округа нет — спросим обратным геокодированием
     try {
       const rj = await getJson(`${YA}?apikey=${encodeURIComponent(yandexKey)}&geocode=${res.lon},${res.lat}&kind=district&format=json&lang=ru_RU&results=3`,
         { fetchImpl, provider: 'yandex', minIntervalMs });

@@ -16,7 +16,7 @@ import { fetchInbox } from './lib/sources/inbox.mjs';
 import {
   loadCatalog, findMatch, slugId, placeId, placeCity, cityOf, catOf, catalogIndex, validatePlan, nearbyPlaces, nameSim, normName, distM, CATS,
 } from './lib/catalog.mjs';
-import { geocode, inRegion, nearestMetro, okrOf, normCity, cityHint, CITIES } from './lib/geo.mjs';
+import { geocode, inRegion, nearestMetro, okrOf, normCity, cityHint, mentionsCity, CITIES } from './lib/geo.mjs';
 import { findCommonsCandidates, savePhoto } from './lib/photos.mjs';
 import { makeLLM, moscowDay, officialUrl } from './lib/llm.mjs';
 import { renderAutoJs, emptyAutoData } from './lib/autojs.mjs';
@@ -155,24 +155,32 @@ export function parseArgs(argv) {
    }
    В "cities" ключ — город ('spb', можно 'msk'; понимаются и «Петербург», «СПб»). Источник, который пишет про оба города,
    можно указать в обоих списках: тогда город каждого поста определит модель по тексту.
+   Запись в любом списке может быть и объектом { "handle": "имя", "city": "spb" } — город записи важнее города списка
+   (основной формат — "cities"; объекты понимаются, чтобы такой файл не терял источники молча).
    → { telegram, instagram — имена без дублей, inbox, invalid — сколько имён пропущено,
-       city: { 'tg:<канал>' | 'ig:<аккаунт>': 'msk' | 'spb' | '' (оба города) }, badCities: [неизвестные ключи "cities"] } */
+       city: { 'tg:<канал>' | 'ig:<аккаунт>': 'msk' | 'spb' | '' (оба города) }, badCities: [неизвестные города] } */
 export function normSources(raw) {
   const s = raw && typeof raw === 'object' ? raw : {};
   const list = v => (Array.isArray(v) ? v : []);
   const obj = v => (v && typeof v === 'object' && !Array.isArray(v) ? v : {});
   const out = { telegram: [], instagram: [], inbox: s.inbox === true, invalid: 0, city: {}, badCities: [] };
+  const bad = k => { if (!out.badCities.includes(k)) out.badCities.push(k); };
   const groups = [['msk', s]];
   for (const [k, g] of Object.entries(obj(s.cities))) {
     const c = normCity(k);
     if (c) groups.push([c, obj(g)]);
-    else { out.badCities.push(k); out.invalid += list(obj(g).telegram).length + list(obj(g).instagram).length; }
+    else { bad(k); out.invalid += list(obj(g).telegram).length + list(obj(g).instagram).length; }
   }
   const cities = new Map();
-  for (const [c, g] of groups) {
+  for (const [gc, g] of groups) {
     for (const [type, norm, pre] of [['telegram', normChannel, 'tg'], ['instagram', normUsername, 'ig']]) {
       for (const x of list(g[type])) {
-        const n = norm(x);
+        // «имя» или { handle | name | username, city }
+        const o = x && typeof x === 'object' && !Array.isArray(x) ? x : null;
+        const own = o && o.city != null && String(o.city).trim() !== '' ? String(o.city).trim() : '';
+        const c = own ? normCity(own) : gc;
+        if (!c) { bad(own); out.invalid++; continue; }
+        const n = norm(o ? (o.handle ?? o.name ?? o.username ?? '') : x);
         if (!n) { out.invalid++; continue; }
         const key = pre + ':' + n;
         if (!cities.has(key)) { cities.set(key, new Set()); out[type].push(n); }
@@ -235,12 +243,15 @@ export function cleanAddr(s) {
 }
 
 /* Город элемента из ответа модели: что сказала модель → город источника → приметы в адресе («Пушкин, …», «СПб»)
-   и в тексте поста (ящик без города) → Москва */
+   и в тексте поста (ящик без города) → Москва.
+   Другой город, чем у источника, модель ставит, только если он назван в посте или в адресе («в Петербурге», «Пушкин, …»):
+   иначе ошибка модели отправит «Садовую ул., 7» московского канала искаться в Петербург */
 export function itemCity(item, post) {
   const ev = (item && item.event) || {};
-  return normCity(item && item.city) || normCity(post && post.city)
-    || cityHint([item && item.address, item && item.area, ev.address, ev.venue].filter(Boolean).join(', '))
-    || cityHint(post && post.text) || 'msk';
+  const where = [item && item.address, item && item.area, ev.address, ev.venue].filter(Boolean).join(', ');
+  const model = normCity(item && item.city), src = normCity(post && post.city);
+  if (model && (!src || model === src || mentionsCity(where + '\n' + String((post && post.text) || ''), model))) return model;
+  return src || cityHint(where) || cityHint(post && post.text) || 'msk';
 }
 const PLAN_LETTER = { date: 'd', guys: 'g', girls: 'w' };
 
