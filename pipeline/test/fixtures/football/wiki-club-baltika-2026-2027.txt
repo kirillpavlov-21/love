@@ -1,0 +1,771 @@
+== Состав ==
+== Трансферы ==
+
+=== Лето 2026 ===
+
+==== Пришли в клуб ====
+==== Ушли из клуба ====
+=== Зима 2027 ===
+==== Пришли в клуб ====
+==== Ушли из клуба ====
+== Товарищеские матчи ==
+{{Footballbox collapsible
+ | date              = 23 июня 2026
+ | time              = 19:00 [[Московское время|MSK]]
+ | team1             = [[Балтика (футбольный клуб)|Балтика]]
+ | team2             = Альтерон
+ | score             = 
+ | report            =
+ | goals1            =
+ | goals2            = 
+ | stadium           = УТЦ «Балтия»
+ | location          = [[Светлогорск (Калининградская область)|Светлогорск]]
+ | result            = 
+ | round             =
+ }}
+{{Footballbox collapsible
+ | date              = 26 июня 2026
+ | time              = 
+ | team1             = [[Балтика (футбольный клуб)|Балтика]]
+ | team2             = [[Акрон (футбольный клуб)|Акрон]]
+ | score             = 
+ | report            =
+ | goals1            =
+ | goals2            =
+ | stadium           = СК "Рублёво"
+ | location          = [[Рублёво (посёлок, Москва)|Рублёво]]
+ | result            =
+ | round             =
+ }}
+== Премьер-лига ==
+==== Статистика выступлений ====
+=== Результаты турнира ===
+==== Матчи ====
+{{Footballbox collapsible
+ | date              = 24 июля 2026
+ | time              = 20:00 [[Московское время|MSK]]
+ | team1             = [[ЦСКА (футбольный клуб, Москва)|ЦСКА]]
+ | team2             = Балтика
+ | score             = 2:1
+ | report            = [https://premierliga.ru/matches/16245/?category=info протокол матча (РПЛ)]
+ | goals1            = [[Андерсон, Эдуардо (футболист)|Андерсон]] {{гол|33|авт.}} <br> [[Глебов, Кирилл Артёмович|Глебов]] {{гол|36}}<br>[[Силва Марселино, Жуан Витор да|Витор]] {{ЖК|90+6}}
+ | goals2            = [[Оффор, Чинонсо|Оффор]] {{гол|1}} <br> [[Мендель, Андрей Семёнович|Мендель]] {{ЖК|64}}
+ | stadium           = «[[ВЭБ Арена]]»
+ | location          = [[Москва]]
+ | attendance        = 15 196
+ | result            = L
+ | round             = 1-й тур
+ | referee           = Иван Абросимов ([[Санкт-Петербург]])
+ | assistantreferees = Кирилл Большаков ([[Санкт-Петербург]]), Егор Болховитин ([[Ленинградская область]])
+ | fourthofficial    = Александр Машлякевич ([[Москва]])
+ | VAR               = Евгений Буланов ([[Саранск]])
+ | assistantVAR      = [[Иванов, Сергей Сергеевич (футбольный судья)|Сергей Иванов]] ([[Ростов-на-Дону]])
+ | potm              = [[Круговой, Данил Владиславович|Данил Круговой]]
+}}
+{{Footballbox collapsible
+ | date              = 1 августа 2026
+ | time              = 20:45 [[Московское время|MSK]]
+ | team1             = Балтика
+ | team2             = [[Динамо (футбольный клуб, Москва)|Динамо М]]
+ | score             = 2:1
+ | report            = [https://premierliga.ru/matches/16250/?category=info протокол матча (РПЛ)]
+ | goals1            = [[Андерсон, Эдуардо (футболист)|Андерсон]] {{ЖК|30}} <br> [[Мурид, Айман|Мудрид]] {{ЖК|51}} <br> [[Титков, Николай Дмитриевич|Титков]] {{гол|57}} <br> [[Хиль, Брайан (сальвадорский футболист)|Хиль]] {{гол|75}}
+ | goals2            = [[Гомес Лоренсо, Артур|Гомес]] {{гол|76}}
+ | stadium           = «[[Ростех Арена]]»
+ | location          = [[Калининград]]
+ | attendance        = 15 311
+ | result            = W
+ | round             = 2-й тур
+ | referee           = [[Танашев, Инал Адальбиевич|Инал Танашев]] ([[Нальчик]])
+ | assistantreferees = Рустам Мухтаров ([[Петрозаводск]]), Руслан Шекемов ([[Нальчик]])
+ | fourthofficial    = Михаил Плиско ([[Ленинградская область]])
+ | VAR               = [[Левников, Кирилл Николаевич|Кирилл Левников]] ([[Санкт-Петербург]])
+ | assistantVAR      = [[Чистяков, Артём Владимирович|Артём Чистяков]] ([[Азов]])
+ | potm              = '''[[Варатынов, Сергей Владимирович|Сергей Варатынов]]'''
+}}
+{{Footballbox collapsible
+ | date              = 8 августа 2026
+ | time              = 15:30 [[Московское время|MSK]]
+ | team1             = [[Крылья Советов (футбольный клуб, Самара)|Крылья Советов]]
+ | team2             = Балтика
+ | score             = 0:2
+ | report            = [https://premierliga.ru/matches/16259/?category=info протокол матча (РПЛ)]
+ | goals1            = [[Макаров, Денис Евгеньевич|Макаров]] {{ЖК|64}} 
+ | goals2            = [[Чивич, Элдар|Чивич]] {{гол|2}} <br> [[Хиль, Брайан (сальвадорский футболист)|Хиль]] {{гол|81}} 
+ | stadium           = «[[Солидарность Самара Арена]]»
+ | location          = [[Самара]]
+ | attendance        = 11 259
+ | result            = W
+ | round             = 3-й тур
+ | referee           = [[Чистяков, Артём Владимирович|Артём Чистяков]] ([[Азов]])
+ | assistantreferees = Андрей Образко ([[Ставрополь]]), Алексей Ширяев ([[Ставрополь]])
+ | fourthofficial    = Михаил Плиско ([[Санкт-Петербург]])
+ | VAR               = [[Карасёв, Сергей Геннадьевич|Сергей Карасёв]] ([[Москва]])
+ | assistantVAR      = [[Опейкина, Вера Андреевна|Вера Опейкина]] ([[Челябинск]])
+ | potm              = '''[[Хиль, Брайан (сальвадорский футболист)|Брайан Хиль]]''' 
+}}
+{{Footballbox collapsible
+ | date              = 16 августа 2026
+ | time              = 19:30 [[Московское время|MSK]]
+ | team1             = Балтика
+ | team2             = [[Спартак (футбольный клуб, Москва)|Спартак]]
+ | score             = 
+ | report            = [https://premierliga.ru/matches/16267/?category=info протокол матча (РПЛ)]
+ | goals1            = 
+ | goals2            =
+ | stadium           = «[[Ростех Арена]]»
+ | location          = [[Калининград]]
+ | attendance        = 
+ | result            = 
+ | round             = 4-й тур
+ | referee           = 
+ | assistantreferees = 
+ | fourthofficial    = 
+ | VAR               = 
+ | assistantVAR      = 
+ | potm              = 
+}}
+{{Footballbox collapsible
+ | date              = 24 августа 2026
+ | time              = 20:30 [[Московское время|MSK]]
+ | team1             = Балтика
+ | team2             = [[Рубин (футбольный клуб)|Рубин]]
+ | score             = 
+ | report            = [https://premierliga.ru/matches/16276/?category=info протокол матча (РПЛ)]
+ | goals1            = 
+ | goals2            = 
+ | stadium           = «[[Ростех Арена]]»
+ | location          = [[Калининград]]
+ | attendance        = 
+ | result            = 
+ | round             = 5-й тур
+ | referee           = 
+ | assistantreferees =
+ | fourthofficial    = 
+ | VAR               = 
+ | assistantVAR      = 
+ | potm              = 
+}}
+{{Footballbox collapsible
+ | date              = 30 августа 2026
+ | time              = 15:00 [[Московское время|MSK]]
+ | team1             = [[Родина (футбольный клуб)|Родина]]
+ | team2             = Балтика
+ | score             = 
+ | report            = [https://premierliga.ru/matches/16285/?category=info протокол матча (РПЛ)]
+ | goals1            = 
+ | goals2            = 
+ | stadium           = «[[Арена Химки]]»
+ | location          = [[Химки]]
+ | attendance        = 
+ | result            = 
+ | round             = 6-й тур
+ | referee           = 
+ | assistantreferees = 
+ | fourthofficial    = 
+ | VAR               = 
+ | assistantVAR      = 
+ | potm              = 
+}}
+{{Footballbox collapsible
+ | date              = 6 сентября 2026
+ | time              = 20:45 [[Московское время|MSK]]
+ | team1             = Балтика
+ | team2             = [[Локомотив (футбольный клуб, Москва)|Локомотив]]
+ | score             = 
+ | report            = [https://premierliga.ru/matches/16293/?category=info протокол матча (РПЛ)]
+ | goals1            = 
+ | goals2            = 
+ | stadium           = «[[Ростех Арена]]»
+ | location          = [[Калининград]]
+ | attendance        = 
+ | result            = 
+ | round             = 7-й тур
+ | referee           = 
+ | assistantreferees = 
+ | fourthofficial    = 
+ | VAR               = 
+ | assistantVAR      = 
+ | potm              = 
+}}
+{{Footballbox collapsible
+ | date              = 12 сентября 2026
+ | time              = 14:00 [[Московское время|MSK]]
+ | team1             = [[Факел (футбольный клуб, Воронеж)|Факел]]
+ | team2             = Балтика
+ | score             = 
+ | report            = [https://premierliga.ru/matches/16304/?category=info протокол матча (РПЛ)]
+ | goals1            = 
+ | goals2            = 
+ | stadium           = «[[Факел (стадион)|Факел]]»
+ | location          = [[Воронеж]]
+ | attendance        = 
+ | result            = 
+ | round             = 8-й тур
+ | referee           = 
+ | assistantreferees =
+ | fourthofficial    = 
+ | VAR               = 
+ | assistantVAR      = 
+ | potm              = 
+}}
+{{Footballbox collapsible
+ | date              = 16 сентября 2026
+ | time              = 20:45 [[Московское время|MSK]]
+ | team1             = Балтика
+ | team2             = [[Зенит (футбольный клуб, Санкт-Петербург)|Зенит]]
+ | score             = 
+ | report            = [https://premierliga.ru/matches/16372/?category=info протокол матча (РПЛ)]
+ | goals1            = 
+ | goals2            = 
+ | stadium           = «[[Ростех Арена]]»
+ | location          = [[Калининград]]
+ | attendance        =
+ | result            = 
+ | round             = 9-й тур
+ | referee           =
+ | assistantreferees = 
+ | fourthofficial    = 
+ | VAR               = 
+ | assistantVAR      =
+ | potm              = 
+}}
+{{Footballbox collapsible
+ | date              = 9-12 октября 2026
+ | time              = 
+ | team1             = [[Ахмат (футбольный клуб)|Ахмат]]
+ | team2             = Балтика
+ | score             = 
+ | report            = [https://premierliga.ru/matches/16310/?category=info протокол матча (РПЛ)]
+ | goals1            =
+ | goals2            = 
+ | stadium           = «[[Ахмат Арена]]»
+ | location          = [[Грозный]]
+ | attendance        = 
+ | result            = 
+ | round             = 10-й тур
+ | referee           = 
+ | assistantreferees = 
+ | fourthofficial    = 
+ | VAR               = 
+ | assistantVAR      = 
+ | potm              = 
+}}
+{{Footballbox collapsible
+ | date              = 16-19 октября 2026
+ | time              = 
+ | team1             = Балтика
+ | team2             = [[Ростов (футбольный клуб)|Ростов]]
+ | score             = 
+ | report            = [https://premierliga.ru/matches/16318/?category=info протокол матча (РПЛ)]
+ | goals1            =
+ | goals2            = 
+ | stadium           = «[[Ростех Арена]]»
+ | location          = [[Калининград]]
+ | attendance        = 
+ | result            = 
+ | round             = 11-й тур
+ | referee           = 
+ | assistantreferees =
+ | fourthofficial    = 
+ | VAR               =
+ | assistantVAR      = 
+ | potm              = 
+}}
+{{Footballbox collapsible
+ | date              = 23-26 октября 2027
+ | time              =
+ | team1             = [[Краснодар (футбольный клуб)|Краснодар]]
+ | team2             = Балтика
+ | score             = 
+ | report            = [https://premierliga.ru/matches/16323/?category=info протокол матча (РПЛ)]
+ | goals1            =
+ | goals2            = 
+ | stadium           = «[[Ozon Арена]]»
+ | location          = [[Краснодар]]
+ | attendance        = 
+ | result            =
+ | round             = 12-й тур
+ | referee           =
+ | assistantreferees =
+ | fourthofficial    = 
+ | VAR               = 
+ | assistantVAR      =
+ | potm              = 
+}}
+{{Footballbox collapsible
+ | date              = 30 октября - 2 ноября 2026
+ | time              = 
+ | team1             = Балтика
+ | team2             = [[Акрон (футбольный клуб)|Акрон]]
+ | score             = 
+ | report            = [https://premierliga.ru/matches/16333/?category=info протокол матча (РПЛ)]
+ | goals1            = 
+ | goals2            = 
+ | stadium           = «[[Ростех Арена]]»
+ | location          = [[Калининград]]
+ | attendance        = 
+ | result            = 
+ | round             = 13-й тур
+ | referee           =
+ | assistantreferees = 
+ | fourthofficial    = 
+ | VAR               =
+ | assistantVAR      = 
+ | potm              = 
+}}
+{{Footballbox collapsible
+ | date              = 6-9 ноября 2026
+ | time              = 
+ | team1             = Балтика
+ | team2             = [[Динамо (футбольный клуб, Махачкала)|Динамо Мх]]
+ | score             = 
+ | report            = [https://premierliga.ru/matches/16340/?category=info протокол матча (РПЛ)]
+ | goals1            = 
+ | goals2            = 
+ | stadium           = «[[Ростех Арена]]»
+ | location          = [[Калининград]]
+ | attendance        =
+ | result            = 
+ | round             = 14-й тур
+ | referee           = 
+ | assistantreferees = 
+ | fourthofficial    = 
+ | VAR               = 
+ | assistantVAR      =
+ | potm              = 
+}}
+{{Footballbox collapsible
+ | date              = 20-23 ноября 2026
+ | time              = 
+ | team1             = [[Оренбург (футбольный клуб)|Оренбург]]
+ | team2             = Балтика
+ | score             = 
+ | report            = [https://premierliga.ru/matches/16349/?category=info протокол матча (РПЛ)]
+ | goals1            =
+ | goals2            = 
+ | stadium           = «[[Газовик (стадион)|Газовик]]»
+ | location          = [[Оренбург]]
+ | attendance        =
+ | result            = 
+ | round             = 15-й тур
+ | referee           = 
+ | assistantreferees = 
+ | fourthofficial    = 
+ | VAR               = 
+ | assistantVAR      =
+ | potm              = 
+}}
+{{Footballbox collapsible
+ | date              = 27-30 ноября 2026
+ | time              = 
+ | team1             = Балтика
+ | team2             = [[Ахмат (футбольный клуб)|Ахмат]]
+ | score             = 
+ | report            = [https://premierliga.ru/matches/16356/?category=info протокол матча (РПЛ)]
+ | goals1            = 
+ | goals2            = 
+ | stadium           = «[[Ростех Арена]]»
+ | location          = [[Калининград]]
+ | attendance        = 
+ | result            = 
+ | round             = 16-й тур
+ | referee           = 
+ | assistantreferees = 
+ | fourthofficial    =
+ | VAR               = 
+ | assistantVAR      = 
+ | potm              = 
+}}
+{{Footballbox collapsible
+ | date              = 4-7 декабря 2026
+ | time              =
+ | team1             = [[Зенит (футбольный клуб, Санкт-Петербург)|Зенит]]
+ | team2             = Балтика
+ | score             = 
+ | report            = [https://premierliga.ru/matches/16369/?category=info протокол матча (РПЛ)]
+ | goals1            = 
+ | goals2            = 
+ | stadium           = «[[Газпром Арена]]»
+ | location          = [[Санкт-Петербург]]
+ | attendance        =
+ | result            = 
+ | round             = 17-й тур
+ | referee           = 
+ | assistantreferees = 
+ | fourthofficial    =
+ | VAR               = 
+ | assistantVAR      =
+ | potm              = 
+}}
+{{Footballbox collapsible
+ | date              = 26 февраля - 1 марта 2027
+ | time              = 
+ | team1             = Балтика
+ | team2             = [[Родина (футбольный клуб)|Родина]]
+ | score             = 
+ | report            = [https://premierliga.ru/matches/16376/?category=info протокол матча (РПЛ)]
+ | goals1            = 
+ | goals2            = 
+ | stadium           = «[[Ростех Арена]]»
+ | location          = [[Калининград]]
+ | attendance        =
+ | result            = 
+ | round             = 18-й тур
+ | referee           = 
+ | assistantreferees = 
+ | fourthofficial    = 
+ | VAR               =
+ | assistantVAR      = 
+ | potm              = 
+}}
+{{Footballbox collapsible
+ | date              = 5-8 марта 2027
+ | time              = 
+ | team1             = [[Ростов (футбольный клуб)|Ростов]]
+ | team2             = Балтика
+ | score             = 
+ | report            = [https://premierliga.ru/matches/16386/?category=info протокол матча (РПЛ)]
+ | goals1            = 
+ | goals2            =
+ | stadium           = «[[Ростов Арена]]»
+ | location          = [[Ростов-на-Дону]]
+ | attendance        = 
+ | result            = 
+ | round             = 19-й тур
+ | referee           = 
+ | assistantreferees = 
+ | fourthofficial    = 
+ | VAR               = 
+ | assistantVAR      = 
+ | potm              = 
+}}
+{{Footballbox collapsible
+ | date              = 12-15 марта 2027
+ | time              = 
+ | team1             = Балтика
+ | team2             = [[Краснодар (футбольный клуб)|Краснодар]]
+ | score             = 
+ | report            = [https://premierliga.ru/matches/16395/?category=info протокол матча (РПЛ)]
+ | goals1            = 
+ | goals2            = 
+ | stadium           = «[[Ростех Арена]]»
+ | location          = [[Калининград]]
+ | attendance        =
+ | result            = 
+ | round             = 20-й тур
+ | referee           = 
+ | assistantreferees = 
+ | fourthofficial    = 
+ | VAR               =
+ | assistantVAR      = 
+ | potm              = 
+}}
+{{Footballbox collapsible
+ | date              = 19-22 марта 2027
+ | time              = 
+ | team1             = [[Динамо (футбольный клуб, Махачкала)|Динамо Мх]]
+ | team2             = Балтика
+ | score             = 
+ | report            = [https://premierliga.ru/matches/16402/?category=info протокол матча (РПЛ)]
+ | goals1            = 
+ | goals2            =
+ | stadium           = «[[Анжи Арена]]»
+ | location          = [[Каспийск]]
+ | attendance        =
+ | result            = 
+ | round             = 21-й тур
+ | referee           = 
+ | assistantreferees = 
+ | fourthofficial    = 
+ | VAR               =
+ | assistantVAR      = 
+ | potm              = 
+}}
+{{Footballbox collapsible
+ | date              = 2-4 апреля 2027
+ | time              = 
+ | team1             = [[Динамо (футбольный клуб, Москва)|Динамо М]]
+ | team2             = Балтика
+ | score             = 
+ | report            = [https://premierliga.ru/matches/16409/?category=info протокол матча (РПЛ)]
+ | goals1            = 
+ | goals2            = 
+ | stadium           = «[[ВТБ Арена]]»
+ | location          = [[Москва]]
+ | attendance        = 
+ | result            = 
+ | round             = 22-й тур
+ | referee           = 
+ | assistantreferees = 
+ | fourthofficial    =
+ | VAR               = 
+ | assistantVAR      = 
+ | potm              = 
+}}
+{{Footballbox collapsible
+ | date              = 9-12 апреля 2027
+ | time              = 
+ | team1             = Балтика
+ | team2             = [[ЦСКА (футбольный клуб, Москва)|ЦСКА]]
+ | score             = 
+ | report            = [https://premierliga.ru/matches/16419/?category=info протокол матча (РПЛ)]
+ | goals1            = 
+ | goals2            =  
+ | stadium           = «[[Ростех Арена]]»
+ | location          = [[Калининград]]
+ | attendance        = 
+ | result            = 
+ | round             = 23-й тур
+ | referee           =
+ | assistantreferees = 
+ | fourthofficial    =
+ | VAR               =
+ | assistantVAR      = 
+ | potm              = 
+}}
+{{Footballbox collapsible
+ | date              = 16-19 апреля 2027
+ | time              = 
+ | team1             = [[Рубин (футбольный клуб)|Рубин]]
+ | team2             = Балтика
+ | score             = 
+ | report            = [https://premierliga.ru/matches/16430/?category=info протокол матча (РПЛ)]
+ | goals1            =
+ | goals2            = 
+ | stadium           = «[[Ак Барс Арена]]»
+ | location          = [[Казань]]
+ | attendance        = 
+ | result            = 
+ | round             = 24-й тур
+ | referee           = 
+ | assistantreferees =
+ | fourthofficial    = 
+ | VAR               = 
+ | assistantVAR      =
+ | potm              = 
+}}
+{{Footballbox collapsible
+ | date              = 23-26 апреля 2027
+ | time              = 
+ | team1             = Балтика
+ | team2             = [[Крылья Советов (футбольный клуб, Самара)|Крылья Советов]]
+ | score             = 
+ | report            = [https://premierliga.ru/matches/16433/?category=info протокол матча (РПЛ)]
+ | goals1            = 
+ | goals2            =  
+ | stadium           = «[[Ростех Арена]]»
+ | location          = [[Калининград]]
+ | attendance        =
+ | result            = 
+ | round             = 25-й тур
+ | referee           = 
+ | assistantreferees = 
+ | fourthofficial    = 
+ | VAR               = 
+ | assistantVAR      = 
+ | potm              = 
+}}
+{{Footballbox collapsible
+ | date              = 30 апреля - 3 мая 2027
+ | time              = 
+ | team1             = [[Спартак (футбольный клуб, Москва)|Спартак]]
+ | team2             = Балтика
+ | score             = 
+ | report            = [https://premierliga.ru/matches/16442/?category=info протокол матча (РПЛ)]
+ | goals1            = 
+ | goals2            = 
+ | stadium           = «[[Лукойл Арена]]»
+ | location          = [[Москва]]
+ | attendance        = 
+ | result            = 
+ | round             = 26-й тур
+ | referee           =
+ | assistantreferees =
+ | fourthofficial    = 
+ | VAR               = 
+ | assistantVAR      = 
+ | potm              =
+}}
+{{Footballbox collapsible
+ | date              = 27 апреля 2026
+ | time              = 20:00 [[Московское время|MSK]]
+ | team1             = Балтика
+ | team2             = [[Факел (футбольный клуб, Воронеж)|Факел]]
+ | score             = 
+ | report            = [https://premierliga.ru/matches/16453/?category=info протокол матча (РПЛ)]
+ | goals1            = 
+ | goals2            =
+ | stadium           = «[[Ростех Арена]]»
+ | location          = [[Калининград]]
+ | attendance        = 
+ | result            = 
+ | round             = 27-й тур
+ | referee           = 
+ | assistantreferees = 
+ | fourthofficial    = 
+ | VAR               =
+ | assistantVAR      = 
+ | potm              =
+}}
+{{Footballbox collapsible
+ | date              = 14-17 мая 2027
+ | time              = 
+ | team1             = [[Локомотив (футбольный клуб, Москва)|Локомотив]]
+ | team2             = Балтика
+ | score             =
+ | report            =
+ | goals1            =
+ | goals2            =
+ | stadium           = «[[РЖД Арена]]»
+ | location          = [[Москва]]
+ | attendance        =
+ | result            =
+ | round             = 28-й тур
+ | referee           =
+ | assistantreferees =
+ | fourthofficial    =
+ | VAR               =
+ | assistantVAR      =
+ | potm              =
+}}
+{{Footballbox collapsible
+ | date              = 21-24 мая 2027
+ | time              =
+ | team1             = [[Акрон (футбольный клуб)|Акрон]]
+ | team2             = Балтика
+ | score             =
+ | report            =
+ | goals1            =
+ | goals2            =
+ | stadium           = «[[Солидарность Самара Арена]]»
+ | location          = [[Самара]]
+ | attendance        =
+ | result            =
+ | round             = 29-й тур
+ | referee           =
+ | assistantreferees =
+ | fourthofficial    =
+ | VAR               =
+ | assistantVAR      =
+ | potm              =
+}}
+{{Footballbox collapsible
+ | date              = 29 мая 2027
+ | time              = 
+ | team1             = Балтика
+ | team2             = [[Оренбург (футбольный клуб)|Оренбург]]
+ | score             =
+ | report            =
+ | goals1            =
+ | goals2            =
+ | stadium           = «[[Ростех Арена]]»
+ | location          = [[Калининград]]
+ | attendance        =
+ | result            =
+ | round             = 30-й тур
+ | referee           =
+ | assistantreferees =
+ | fourthofficial    =
+ | VAR               =
+ | assistantVAR      =
+ | potm              =
+}}
+=== Турнирная таблица ===
+== Кубок России ==
+==== Путь РПЛ. Групповой раунд ====
+===== Группа C =====
+===== Матчи =====
+{{Footballbox collapsible
+|дата     = 4-6 августа 2026
+|время    = 
+|команда1 = [[Зенит (футбольный клуб, Санкт-Петербург)|Зенит (Санкт-Петербург)]]
+|счёт     = 
+|протокол = https://www.rfs.ru/cup/tournament/match/57198
+|команда2 = [[Балтика (футбольный клуб)|Балтика (Калининград)]]
+|голы1    = 
+|голы2    =
+|раунд    = 1 тур
+|стадион  = [[Газпром Арена]]
+|место    = [[Санкт-Петербург]]
+|зрители  =
+|судья    = 
+}}
+{{Footballbox collapsible
+|дата     = 18-20 августа 2026
+|время    = 
+|команда1 = [[Балтика (футбольный клуб)|Балтика (Калининград)]]
+|счёт     = 
+|протокол = https://www.rfs.ru/cup/tournament/match/57195
+|команда2 = [[Динамо (футбольный клуб, Махачкала)|Динамо (Махачкала)]]
+|голы1    =
+|голы2    =
+|раунд    = 2 тур
+|стадион  = [[Ростех Арена]]
+|место    = [[Калининград]]
+|зрители  = 
+|судья    = 
+}}
+{{Footballbox collapsible
+|дата     = 1-3 сентября 2026
+|время    = 
+|команда1 = [[Балтика (футбольный клуб)|Балтика (Калининград)]]
+|счёт     =
+|протокол = https://www.rfs.ru/cup/tournament/match/57193
+|команда2 = [[Крылья Советов (футбольный клуб, Самара)|Крылья Советов (Самара)]]
+|голы1    =
+|голы2    =
+|раунд    = 3 тур
+|стадион  = [[Ростех Арена]]
+|место    = [[Калининград]]
+|зрители  =
+|судья    =
+}}
+{{Footballbox collapsible
+|дата     = 13-15 октября 2026
+|время    =
+|команда1 = [[Крылья Советов (футбольный клуб, Самара)|Крылья Советов (Самара)]]
+|счёт     = 
+|протокол = https://www.rfs.ru/cup/tournament/match/57199
+|команда2 = [[Балтика (футбольный клуб)|Балтика (Калининград)]]
+|голы1    =
+|голы2    =
+|раунд    = 4 тур
+|стадион  = [[Солидарность Самара Арена]]
+|место    = [[Самара]]
+|зрители  =
+|судья    =
+}}
+{{Footballbox collapsible
+|дата     = 27-29 октября 2026
+|время    = 
+|команда1 = [[Балтика (футбольный клуб)|Балтика (Калининград)]]
+|счёт     = 
+|протокол = https://www.rfs.ru/cup/tournament/match/57204
+|команда2 = [[Зенит (футбольный клуб, Санкт-Петербург)|Зенит (Санкт-Петербург)]]
+|голы1    =
+|голы2    = 
+|раунд    = 5 тур
+|стадион  = [[Ростех Арена]]
+|место    = [[Калининград]]
+|зрители  = 
+|судья    = 
+}}
+{{Footballbox collapsible
+|дата     = 24-26 ноября 2026
+|время    = 
+|команда1 = [[Динамо (футбольный клуб, Махачкала)|Динамо (Махачкала)]]
+|счёт     = 
+|протокол = https://www.rfs.ru/cup/tournament/match/57201
+|команда2 = [[Балтика (футбольный клуб)|Балтика (Калининград)]]
+|голы1    = 
+|голы2    =
+|раунд    = 6 тур
+|стадион  = [[Анжи Арена]]
+|место    = [[Каспийск]]
+|зрители  =
+|судья    =
+}}
+== СМИ ==
+
+== Примечания ==
