@@ -50,7 +50,7 @@ const okMsg = (data, extra = {}) => ({
 });
 
 const item = (o) => ({
-  post_key: 'p1', type: 'new_place', match_id: '', name: 'Тест', kind: 'Кафе', cat: 'food', address: '', area: '', price: 2, hours: '',
+  post_key: 'p1', type: 'new_place', city: '', match_id: '', name: 'Тест', kind: 'Кафе', cat: 'food', address: '', area: '', price: 2, hours: '',
   note_ru: 'Описание.', fit: [], hints: [], adult: false, event: null, confidence: 0.7, reason: 'тест', ...o,
 });
 

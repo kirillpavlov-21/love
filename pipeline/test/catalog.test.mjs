@@ -7,7 +7,7 @@ import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
 import {
   loadCatalog, parseAutoJs, parseStations, normName, nameSkeleton, distM, findMatch, parseAddr, slugId, translit,
-  catOf, catalogIndex, validatePlan, nearbyPlaces,
+  catOf, catalogIndex, validatePlan, nearbyPlaces, placeCity,
 } from '../lib/catalog.mjs';
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -150,13 +150,13 @@ test('настоящий каталог: findMatch не путает места 
   }
   assert.equal(wrong, 0);
   assert.equal(miss, 0);
-  // только имя и адрес, без координат: у мест с номером дома
+  // только имя и адрес, без координат: у мест с номером дома (в своём городе — у сетей точки есть в обоих)
   let withHouse = 0, found = 0;
   for (const [id, p] of Object.entries(c.places)) {
     const a = parseAddr(p.addr);
     if (!a || !a.house) continue;
     withHouse++;
-    const m = findMatch({ name: p.name, addr: p.addr }, c);
+    const m = findMatch({ name: p.name, addr: p.addr, city: placeCity(id, p) }, c);
     if (m && m.id === id) found++;
   }
   assert.ok(withHouse > 650);

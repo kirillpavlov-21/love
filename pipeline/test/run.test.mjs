@@ -116,7 +116,7 @@ const BASE = { match_id: '', name: '', kind: '', cat: '', address: '', area: '',
 
 function extractItems(content) {
   const items = [];
-  for (const [, ref, text] of content.matchAll(/<post key="(p\d+)" date="[^"]*">\n([\s\S]*?)\n<\/post>/g)) {
+  for (const [, ref, text] of content.matchAll(/<post key="(p\d+)" date="[^"]*"(?: city="[^"]*")?>\n([\s\S]*?)\n<\/post>/g)) {
     const it = o => items.push({ ...BASE, post_key: ref, ...o });
     if (/Тестовое зерно/.test(text)) {
       it({ type: 'new_place', name: 'Тестовое зерно', kind: 'Кофейня', cat: 'coffee', address: 'ул. Покровка, 99', area: 'Китай-город',
