@@ -193,8 +193,10 @@ export function normSources(raw) {
 }
 
 /* Не больше limit постов, старые первыми, но поровну между городами (по кругу): завал одного города
-   не задерживает другой. posts уже отсортированы по дате. → [взятые (в том же порядке), остальные] */
-export function fairSlice(posts, limit, cityOfPost = p => p.city || '') {
+   не задерживает другой. posts уже отсортированы по дате. → [взятые (в том же порядке), остальные]
+   Пост без города (ящик без метки, канал про оба города) — в очереди Москвы, города по умолчанию:
+   при одних московских источниках всё как раньше — просто самые старые, ящик не обгоняет каналы */
+export function fairSlice(posts, limit, cityOfPost = p => p.city || 'msk') {
   if (posts.length <= limit) return [posts.slice(), []];
   const queues = new Map();
   for (const p of posts) {
@@ -349,7 +351,7 @@ export const eventId = (ev, venue = '', city = 'msk') => {
   let t = slugId(ev.title);
   const v = venue ? shortSlug(venue, 24) : '';
   if (city === 'spb') t = 'spb-' + t;
-  else if (t.startsWith('spb-')) t = 'msk-' + t;
+  else if (t === 'spb' || t.startsWith('spb-')) t = 'msk-' + t;          // «СПб» целиком дало бы ev-spb-<площадка>-…
   return `ev-${t}${v && v !== 'place' && !t.endsWith(v) ? '-' + v : ''}-${String(ev.start).replace(/-/g, '')}`;
 };
 

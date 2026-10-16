@@ -342,6 +342,9 @@ test('id: места spb-…, московское «SPB …» — msk-…, со
   assert.equal(eventId({ title: 'Ночь в музее', start: '2026-11-01' }, 'Эрмитаж', 'spb'), 'ev-spb-noch-v-muzee-ermitazh-20261101');
   assert.equal(eventId({ title: 'Ночь в музее', start: '2026-11-01' }), 'ev-noch-v-muzee-20261101', 'Москва — как раньше');
   assert.equal(eventId({ title: 'СПб-джаз', start: '2026-11-01' }), 'ev-msk-spb-dzhaz-20261101');
+  // название «СПб» целиком: без пометки id начался бы с ev-spb- — и сайт счёл бы московское событие петербургским
+  assert.equal(eventId({ title: 'СПб', start: '2026-11-01' }, 'Тестовый зал'), 'ev-msk-spb-testovyy-zal-20261101');
+  assert.equal(eventId({ title: 'SPB', start: '2026-11-01' }), 'ev-msk-spb-20261101');
 });
 
 const PL = {
@@ -430,6 +433,12 @@ test('fairSlice: лимит постов поровну между города�
   assert.equal(all.length, 6);
   assert.deepEqual(none, []);
   assert.deepEqual(fairSlice(list.slice(0, 4), 2)[0].map(x => x.key), ['s1', 's2'], 'один город — просто самые старые');
+  // старый список (только Москва) и ящик без метки города: как раньше — просто самые старые, ящик не идёт вне очереди
+  const old = [p('m1', 'msk', '1'), p('m2', 'msk', '2'), p('m3', 'msk', '3'), p('i1', undefined, '4'), p('i2', undefined, '5')];
+  assert.deepEqual(fairSlice(old, 3)[0].map(x => x.key), ['m1', 'm2', 'm3']);
+  // пост без города — в очереди Москвы: Петербург своё всё равно получает
+  const mixed = [p('m1', 'msk', '1'), p('i1', undefined, '2'), p('i2', undefined, '3'), p('s1', 'spb', '4'), p('s2', 'spb', '5')];
+  assert.deepEqual(fairSlice(mixed, 4)[0].map(x => x.key), ['m1', 'i1', 's1', 's2']);
 });
 
 test('ящик: метка «спб» задаёт город заявки', async () => {
