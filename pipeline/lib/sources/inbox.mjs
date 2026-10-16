@@ -1,12 +1,24 @@
 /* Источник: ручной «ящик» — issues в GitHub-репозитории с меткой (по умолчанию «источник»).
    Владелец кладёт туда ссылку или текст поста из Instagram, наводку на место и т. п.
-   По умолчанию берём только issues от владельца и участников репозитория: чужие могут прислать что угодно. */
+   По умолчанию берём только issues от владельца и участников репозитория: чужие могут прислать что угодно.
+   Город: вторая метка «спб» / «Петербург» (или «мск» / «Москва») задаёт город заявки; без неё город определит модель по тексту. */
 
 const API = 'https://api.github.com';
 const UA = 'KudaIdemBot/1.0 (+https://kirillpavlov-21.github.io/love/)';
 const TRUSTED = ['OWNER', 'MEMBER', 'COLLABORATOR'];
 const MAX_PAGES = 5;
 const MAX_TEXT = 8000;
+const CITY_LABEL = [[/^(спб|питер|петербург|санкт-петербург|spb)$/i, 'spb'], [/^(мск|москва|msk)$/i, 'msk']];
+
+/* Город по меткам issue: 'spb' | 'msk' | '' */
+export function labelCity(labels) {
+  for (const l of Array.isArray(labels) ? labels : []) {
+    const name = String((l && typeof l === 'object' ? l.name : l) || '').trim();
+    const hit = CITY_LABEL.find(([rx]) => rx.test(name));
+    if (hit) return hit[1];
+  }
+  return '';
+}
 
 function checkRepo(repo) {
   const r = String(repo || '').trim();
@@ -64,7 +76,7 @@ export async function fetchInbox({ repo, token, label = 'источник', fetc
       if (!it || it.pull_request || (it.state && it.state !== 'open') || !Number.isInteger(it.number)) continue;   // PR тоже приходят в /issues
       if (allow && !allow.has(it.author_association)) { ignored.push(it.number); continue; }
       const text = (String(it.title || '').trim() + '\n' + cleanBody(it.body)).trim().slice(0, MAX_TEXT);
-      posts.push({
+      const post = {
         source: 'inbox',
         channel: 'inbox',
         id: it.number,
@@ -72,7 +84,10 @@ export async function fetchInbox({ repo, token, label = 'источник', fetc
         url: it.html_url || `https://github.com/${r}/issues/${it.number}`,
         date: it.created_at ? new Date(it.created_at).toISOString() : '',
         text,
-      });
+      };
+      const city = labelCity(it.labels);
+      if (city) post.city = city;
+      posts.push(post);
     }
     url = nextLink(res);
   }

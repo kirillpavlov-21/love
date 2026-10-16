@@ -1,7 +1,8 @@
 #!/usr/bin/env node
-/* Конвейер каталога «Куда идём?».
+/* Конвейер каталога «Куда идём?» — Москва и Петербург.
    Источники (Telegram, Instagram, ящик в issues) → модель вытаскивает факты → код проверяет их
-   (совпадения с каталогом, геокодер, метро, правила планов) → assets/auto.js + отчёт для Pull Request.
+   (совпадения с каталогом, геокодер, метро, правила планов — всё в городе поста) → assets/auto.js + отчёт для Pull Request.
+   Город поста — из списка источников (sources.json, см. normSources) или, если модель уверена, из текста.
    Имена источников живут только в папке состояния (--state; в Actions это служебная ветка pipeline-data —
    на сайт она не публикуется, но в публичном репозитории видна на GitHub), в отчёте и описании PR.
    Issues ящика закрывает close-inbox.mjs — отдельным шагом, когда PR уже создан.
@@ -13,9 +14,9 @@ import { fetchChannel, normChannel } from './lib/sources/telegram.mjs';
 import { fetchAccount, normUsername } from './lib/sources/instagram.mjs';
 import { fetchInbox } from './lib/sources/inbox.mjs';
 import {
-  loadCatalog, findMatch, slugId, catOf, catalogIndex, validatePlan, nearbyPlaces, nameSim, normName, distM, CATS,
+  loadCatalog, findMatch, slugId, placeId, placeCity, cityOf, catOf, catalogIndex, validatePlan, nearbyPlaces, nameSim, normName, distM, CATS,
 } from './lib/catalog.mjs';
-import { geocode, inMoscowRegion, nearestMetro, okrOf } from './lib/geo.mjs';
+import { geocode, inRegion, nearestMetro, okrOf, normCity, cityHint, CITIES } from './lib/geo.mjs';
 import { findCommonsCandidates, savePhoto } from './lib/photos.mjs';
 import { makeLLM, moscowDay, officialUrl } from './lib/llm.mjs';
 import { renderAutoJs, emptyAutoData } from './lib/autojs.mjs';
@@ -23,7 +24,8 @@ import { renderAutoJs, emptyAutoData } from './lib/autojs.mjs';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, '..');
 
-// posts — сколько постов отдаём модели за запуск (остальные ждут следующего, попытка не считается)
+// places, events, plans, planPlaces, closed — за запуск в каждом городе: завал Петербурга не отнимает лимит у Москвы.
+// posts — сколько постов отдаём модели за запуск на все города (поровну между городами; остальные ждут следующего, попытка не считается)
 export const LIMITS = { places: 25, events: 30, plans: 15, planPlaces: 10, closed: 5, posts: 120 };
 // $ за 1 млн токенов; запись в кеш на час — вдвое дороже обычного ввода
 export const PRICE = { input: 4, output: 20, cacheRead: 0.2, cacheWrite: 8 };
@@ -145,17 +147,60 @@ export function parseArgs(argv) {
 
 /* ---------- источники и состояние ---------- */
 
-/* sources.json: { telegram: [...], instagram: [...], inbox: true } → нормализованные имена без дублей */
+/* sources.json:
+   {
+     "telegram": [...], "instagram": [...],                               ← Москва (прежний формат — без изменений)
+     "cities": { "spb": { "telegram": [...], "instagram": [...] } },      ← источники других городов
+     "inbox": true
+   }
+   В "cities" ключ — город ('spb', можно 'msk'; понимаются и «Петербург», «СПб»). Источник, который пишет про оба города,
+   можно указать в обоих списках: тогда город каждого поста определит модель по тексту.
+   → { telegram, instagram — имена без дублей, inbox, invalid — сколько имён пропущено,
+       city: { 'tg:<канал>' | 'ig:<аккаунт>': 'msk' | 'spb' | '' (оба города) }, badCities: [неизвестные ключи "cities"] } */
 export function normSources(raw) {
   const s = raw && typeof raw === 'object' ? raw : {};
   const list = v => (Array.isArray(v) ? v : []);
-  const tg = list(s.telegram).map(normChannel), ig = list(s.instagram).map(normUsername);
-  return {
-    telegram: uniq(tg.filter(Boolean)),
-    instagram: uniq(ig.filter(Boolean)),
-    inbox: s.inbox === true,
-    invalid: tg.filter(x => !x).length + ig.filter(x => !x).length,
-  };
+  const obj = v => (v && typeof v === 'object' && !Array.isArray(v) ? v : {});
+  const out = { telegram: [], instagram: [], inbox: s.inbox === true, invalid: 0, city: {}, badCities: [] };
+  const groups = [['msk', s]];
+  for (const [k, g] of Object.entries(obj(s.cities))) {
+    const c = normCity(k);
+    if (c) groups.push([c, obj(g)]);
+    else { out.badCities.push(k); out.invalid += list(obj(g).telegram).length + list(obj(g).instagram).length; }
+  }
+  const cities = new Map();
+  for (const [c, g] of groups) {
+    for (const [type, norm, pre] of [['telegram', normChannel, 'tg'], ['instagram', normUsername, 'ig']]) {
+      for (const x of list(g[type])) {
+        const n = norm(x);
+        if (!n) { out.invalid++; continue; }
+        const key = pre + ':' + n;
+        if (!cities.has(key)) { cities.set(key, new Set()); out[type].push(n); }
+        cities.get(key).add(c);
+      }
+    }
+  }
+  for (const [key, set] of cities) out.city[key] = set.size === 1 ? [...set][0] : '';
+  return out;
+}
+
+/* Не больше limit постов, старые первыми, но поровну между городами (по кругу): завал одного города
+   не задерживает другой. posts уже отсортированы по дате. → [взятые (в том же порядке), остальные] */
+export function fairSlice(posts, limit, cityOfPost = p => p.city || '') {
+  if (posts.length <= limit) return [posts.slice(), []];
+  const queues = new Map();
+  for (const p of posts) {
+    const c = cityOfPost(p);
+    if (!queues.has(c)) queues.set(c, []);
+    queues.get(c).push(p);
+  }
+  const take = new Set();
+  for (let i = 0; take.size < limit; i++) {
+    let any = false;
+    for (const q of queues.values()) if (i < q.length && take.size < limit) { take.add(q[i]); any = true; }
+    if (!any) break;
+  }
+  return [posts.filter(p => take.has(p)), posts.filter(p => !take.has(p))];
 }
 
 /* state.json: { tg: {канал: lastId}, ig: {аккаунт: lastTs}, seen: {ключ поста: дата}, retry: {…}, geocache: {…} } */
@@ -181,11 +226,23 @@ function trimCache(cache, max = GEOCACHE_MAX) {
 /* ---------- разбор полей ---------- */
 
 const cleanName = s => String(s || '').replace(/[«»"“”„]/g, '').replace(/\s+/g, ' ').trim();
-/* «г. Москва, ул. Покровка, 9, Россия» → «ул. Покровка, 9» */
+/* «г. Москва, ул. Покровка, 9, Россия» → «ул. Покровка, 9»; «г. Санкт-Петербург, Невский пр., 28» → «Невский пр., 28».
+   Пригороды и города области («Пушкин», «Мурино») остаются: без них адрес найдётся не там */
 export function cleanAddr(s) {
   return String(s || '').split(',').map(x => x.replace(/\s+/g, ' ').trim())
-    .filter(x => x && !/^(г\.?\s*)?москва$|^россия$|^\d{6}$/i.test(x)).join(', ');
+    .filter(x => x && !/^(г\.?\s*)?(москва|санкт-петербург|с\.?-петербург|петербург|спб)$|^россия$|^\d{6}$|^ленинградская обл(\.|асть)?$/i.test(x))
+    .join(', ');
 }
+
+/* Город элемента из ответа модели: что сказала модель → город источника → приметы в адресе («Пушкин, …», «СПб»)
+   и в тексте поста (ящик без города) → Москва */
+export function itemCity(item, post) {
+  const ev = (item && item.event) || {};
+  return normCity(item && item.city) || normCity(post && post.city)
+    || cityHint([item && item.address, item && item.area, ev.address, ev.venue].filter(Boolean).join(', '))
+    || cityHint(post && post.text) || 'msk';
+}
+const PLAN_LETTER = { date: 'd', guys: 'g', girls: 'w' };
 
 const KIND_BY_CAT = { food: 'Кафе', coffee: 'Кофейня', bar: 'Бар', culture: 'Культурное пространство', walk: 'Прогулка',
   fun: 'Развлечения', spa: 'Баня', books: 'Книжный магазин', pc: 'Компьютерный клуб' };
@@ -203,7 +260,8 @@ const EVENT_EMOJI = { concert: '🎵', theatre: '🎭', exhibition: '🖼️', s
   party: '🪩', lecture: '🎓', kids: '🧸' };
 
 /* Станция метро, упомянутая у элемента (area) или единственная в тексте поста («м. Китай-город»):
-   подсказка геокодеру, где искать адрес, если в Москве несколько одинаковых улиц */
+   подсказка геокодеру, где искать адрес, если в городе несколько одинаковых улиц.
+   stations — таблица города поста: «Маяковская» и «Спортивная» есть и в Москве, и в Петербурге */
 export function stationHint(area, text, stations) {
   const names = Object.keys(stations || {});
   const norm = s => String(s || '').toLowerCase().replace(/ё/g, 'е');
@@ -273,10 +331,14 @@ const shortSlug = (s, n) => {
   const x = slugId(s);
   return x.length > n ? (x.slice(0, n).replace(/-[^-]*$/, '') || x.slice(0, n)) : x;
 };
-/* ev-<название>-<площадка>-<ГГГГММДД>: одинаковые названия в разных местах в один день — разные события */
-export const eventId = (ev, venue = '') => {
-  const t = slugId(ev.title);
+/* ev-<название>-<площадка>-<ГГГГММДД>: одинаковые названия в разных местах в один день — разные события.
+   В Петербурге — ev-spb-…: по префиксу сайт понимает город. Московское событие «СПб-…» не должно
+   начинаться с ev-spb- — тогда ev-msk-… */
+export const eventId = (ev, venue = '', city = 'msk') => {
+  let t = slugId(ev.title);
   const v = venue ? shortSlug(venue, 24) : '';
+  if (city === 'spb') t = 'spb-' + t;
+  else if (t.startsWith('spb-')) t = 'msk-' + t;
   return `ev-${t}${v && v !== 'place' && !t.endsWith(v) ? '-' + v : ''}-${String(ev.start).replace(/-/g, '')}`;
 };
 
@@ -291,11 +353,15 @@ export function similarTitle(a, b) {
 }
 
 /* Повтор события: те же дни (или пересекающиеся у выставок), похожее название и та же площадка —
-   по id места, по точке в пределах 150 м или по названию площадки. → найденное событие или null */
-export function findDupEvent(e, list) {
+   по id места, по точке в пределах 150 м или по названию площадки. Только в том же городе:
+   «Щелкунчик» 25 декабря идёт и в Москве, и в Петербурге (e.city; places — чтобы узнать город события по площадке).
+   → найденное событие или null */
+export function findDupEvent(e, list, places) {
   const eEnd = e.end || e.start;
+  const city = normCity(e.city);
   for (const x of list || []) {
     if (!x || !x.start || !x.title) continue;
+    if (city && cityOf(x, places) !== city) continue;
     const xEnd = x.end || x.start;
     const overlap = e.start <= xEnd && x.start <= eEnd && (xEnd !== x.start || eEnd !== e.start);
     if (x.start !== e.start && !overlap) continue;
@@ -349,7 +415,7 @@ export const isCopied = (note, text, keep = []) => {
 
 const nameRx = n => new RegExp(`(?<![A-Za-z0-9_])${escRx(n)}(?![A-Za-z0-9_])`, 'i');
 // поля-коды (раздел, округ, даты, id остановок) — не текст: «coffee» в cat не значит, что это имя канала
-const CODE_KEYS = new Set(['id', 'cat', 'okr', 'hint', 'fit', 'tags', 'when', 'mode', 'emoji', 'chk', 'added', 'updated',
+const CODE_KEYS = new Set(['id', 'city', 'cat', 'okr', 'hint', 'fit', 'tags', 'when', 'mode', 'emoji', 'chk', 'added', 'updated',
   'start', 'end', 'dates', 'time', 'price', 'lat', 'lon', 's', 't', 'stops', 'place', 'closed']);
 function textsOf(v, key = '', out = []) {
   if (CODE_KEYS.has(key)) return out;
@@ -407,6 +473,13 @@ async function runPipeline(opts, deps, box) {
   }
   const sources = normSources(rawSources);
   if (sources.invalid) log(`sources: пропущено некорректных имён — ${sources.invalid}`);
+  if (sources.badCities.length) log(`sources: неизвестные города в "cities" — ${sources.badCities.length} (знаем: ${Object.keys(CITIES).join(', ')})`);
+  // город поста — по списку источников; у ящика города нет (его определит модель); убранный из списка источник — как было
+  const postCity = p => {
+    const k = p && (p.source === 'tg' || p.source === 'ig') ? `${p.source}:${p.channel}` : '';
+    return k && Object.prototype.hasOwnProperty.call(sources.city, k) ? sources.city[k] : normCity(p && p.city);
+  };
+  const setCity = p => { const c = postCity(p); if (c) p.city = c; else delete p.city; return p; };
   if (!sources.telegram.length && !sources.instagram.length && !sources.inbox) log('sources: список пуст — читать нечего (см. pipeline/README.md)');
 
   // в логах (а они в публичном репозитории видны всем) — не имена каналов, а номера
@@ -435,10 +508,10 @@ async function runPipeline(opts, deps, box) {
     if (i > 0) await sleep(tgDelayMs);
     const since = Number(state.tg[ch]) || 0;
     if (!since) firstRun.add('tg:' + ch);
-    const s = { type: 'tg', name: ch, label: labels.get(ch), posts: 0 };
+    const s = { type: 'tg', name: ch, label: labels.get(ch), posts: 0, city: sources.city['tg:' + ch] };
     try {
       const r = await fetchChannel(ch, { sinceId: since, maxPosts: opts.maxPosts, fetchImpl, delayMs: tgDelayMs });
-      fetched.push(...r.posts);
+      fetched.push(...r.posts.map(setCity));
       s.posts = r.posts.length;
       if (r.capped) s.capped = r.capped;
       cursor.tg[ch] = Math.max(since, Number(r.lastId) || 0);
@@ -452,12 +525,12 @@ async function runPipeline(opts, deps, box) {
   for (const u of sources.instagram) {
     const since = Number(state.ig[u]) || 0;
     if (!since) firstRun.add('ig:' + u);
-    const s = { type: 'ig', name: u, label: labels.get(u), posts: 0 };
+    const s = { type: 'ig', name: u, label: labels.get(u), posts: 0, city: sources.city['ig:' + u] };
     try {
       const r = await fetchAccount(u, { token: env.IG_ACCESS_TOKEN, igUserId: env.IG_USER_ID, sinceTs: since, fetchImpl, limit: opts.maxPosts });
       if (r.skipped) s.skipped = 'нет IG_ACCESS_TOKEN / IG_USER_ID';
       else {
-        fetched.push(...r.posts);
+        fetched.push(...r.posts.map(setCity));
         s.posts = r.posts.length;
         cursor.ig[u] = Math.max(since, Number(r.lastTs) || 0);
       }
@@ -488,7 +561,8 @@ async function runPipeline(opts, deps, box) {
   // посты, которые прошлый запуск не смог разобрать
   const fetchedKeys = new Set(fetched.map(p => p && p.key));
   for (const [key, r] of Object.entries(state.retry)) {
-    if (r && r.post && r.post.key === key && !state.seen[key] && !fetchedKeys.has(key)) fetched.push(r.post);
+    // город — по нынешнему списку источников: канал могли перенести в другой город
+    if (r && r.post && r.post.key === key && !state.seen[key] && !fetchedKeys.has(key)) fetched.push(setCity(r.post));
   }
 
   // имена всех источников (и прошлых — из курсоров): в данных сайта их быть не должно
@@ -524,9 +598,9 @@ async function runPipeline(opts, deps, box) {
     fresh.push(p);
   }
   fresh.sort((a, b) => String(a.date || '').localeCompare(String(b.date || '')) || String(a.key).localeCompare(String(b.key)));
-  // не больше LIMITS.posts за запуск, старые первыми: остальные ждут в retry, попытка не считается
-  const overflow = fresh.slice(LIMITS.posts);
-  fresh = fresh.slice(0, LIMITS.posts);
+  // не больше LIMITS.posts за запуск, старые первыми и поровну между городами: остальные ждут в retry, попытка не считается
+  const [kept, overflow] = fairSlice(fresh, LIMITS.posts);
+  fresh = kept;
 
   const fetchLines = summarizeSources(srcRuns, skipped, fresh.length, opts.sinceDays ?? FIRST_RUN_DAYS, overflow.length);
   if (!opts.llm) {
@@ -585,17 +659,23 @@ async function runPipeline(opts, deps, box) {
   const reject = (item, post, reason) => { res.rejected.push({ item, post, reason }); note(post, `не добавлено: ${reason}`); };
   const defer = (item, post, reason) => { res.deferred.push({ item, post, reason }); deferredKeys.add(post.key); note(post, `отложено: ${reason}`); };
   const leak = v => { const n = leakOf(v, srcNames); return n ? labelOf(n) : ''; };
+  // лимиты за запуск — в каждом городе свои
+  const inCity = (list, city) => list.filter(x => x.city === city).length;
+  const stationsOf = city => (catalog.cityStations && catalog.cityStations[city]) || (city === 'msk' ? catalog.stations : {});
 
-  // геокодер: «не нашли» — отказ, а сбой сервиса (429, 5xx, блокировка) — отложить пост до следующего запуска
+  // геокодер: «не нашли» — отказ, а сбой сервиса (429, 5xx, блокировка) — отложить пост до следующего запуска.
+  // Всё в городе элемента (item.city): рамка поиска, станции метро, районы
   let geoFails = 0;
   async function locate(addr, item, post) {
     if (geoFails >= GEO_FAILS_MAX) return { transient: 'геокодер недоступен — повторим в следующий раз' };
-    const near = stationHint(item.area, post.text, catalog.stations);
+    const city = item.city, C = CITIES[city];
+    const stations = stationsOf(city);
+    const near = stationHint(item.area, post.text, stations);
     let g;
     try {
       g = await geocode(addr, {
         yandexKey: env.YANDEX_GEOCODER_KEY || undefined, fetchImpl, cache: state.geocache, minIntervalMs: geoIntervalMs,
-        near: near || undefined, log: m => log(m), strict: true,
+        near: near || undefined, log: m => log(m), strict: true, city,
       });
     } catch (e) {
       if (!e.transient) throw e;
@@ -604,20 +684,25 @@ async function runPipeline(opts, deps, box) {
     }
     geoFails = 0;
     if (!g) return { error: `адрес «${addr}» не нашёлся на карте` };
-    if (!inMoscowRegion(g.lat, g.lon)) return { error: 'адрес вне Москвы и ближнего Подмосковья' };
+    if (!inRegion(city, g.lat, g.lon)) return { error: `адрес вне ${C.area}` };
     const weak = WEAK_PRECISION.has(String(g.precision || ''));
     if (near) {
       const d = distM(g, near);
       if (d > (weak ? 1500 : 3000)) return { error: `адрес нашёлся в ${km(d)} от метро из поста (${near.name}) — проверить вручную` };
     } else if (g.ambiguous) {
-      return { error: 'в Москве несколько мест с таким адресом — проверить вручную' };
+      return { error: `${C.in} несколько мест с таким адресом — проверить вручную` };
     } else if (weak) {
       return { error: 'адрес нашёлся только до улицы, без дома' };
     }
-    const metro = nearestMetro(g.lat, g.lon, catalog.stations);
-    if (!metro || metro.distM > MAX_METRO_M) return { error: `до метро дальше 3 км (${metro ? km(metro.distM) : 'нет станций'})` };
-    return { lat: r6(g.lat), lon: r6(g.lon), metro: metro.name, metroDistM: metro.distM,
-      okr: okrOf(g.lat, g.lon, g.district, catalog.places), display: g.display || '' };
+    const okr = okrOf(g.lat, g.lon, g.district, catalog.places, city);
+    const metro = nearestMetro(g.lat, g.lon, stations);
+    if (!metro || metro.distM > MAX_METRO_M) {
+      // пригороды Петербурга (Пушкин, Петергоф, Кронштадт…) далеко от метро: берём без станции,
+      // ж/д станцию («Новый Петергоф (ж/д)») впишет человек в PR — в отчёте об этом пометка
+      if (!(metro && city === 'spb' && okr === 'out')) return { error: `до метро дальше 3 км (${metro ? km(metro.distM) : 'нет станций'})` };
+      return { lat: r6(g.lat), lon: r6(g.lon), metro: '', metroDistM: metro.distM, noMetro: metro.name, okr, display: g.display || '' };
+    }
+    return { lat: r6(g.lat), lon: r6(g.lon), metro: metro.name, metroDistM: metro.distM, okr, display: g.display || '' };
   }
 
   function onUpdate(item, post, id, by) {
@@ -659,16 +744,17 @@ async function runPipeline(opts, deps, box) {
     if (!item.note_ru) return reject(item, post, 'нет описания своими словами');
     if (isCopied(item.note_ru, post.text, [name, item.name, addr, item.address, kind]))
       return reject(item, post, 'описание повторяет текст поста — нужно своими словами');
-    let m = findMatch({ name, addr, kind, cat }, catalog);
+    const city = item.city;
+    let m = findMatch({ name, addr, kind, cat, city }, catalog);
     if (m) return onUpdate(item, post, m.id, m.by);
-    if (res.places.length >= LIMITS.places) return defer(item, post, 'лимит новых мест за запуск');
+    if (inCity(res.places, city) >= LIMITS.places) return defer(item, post, `лимит новых мест за запуск (${CITIES[city].name})`);
     const loc = await locate(addr, item, post);
     if (loc.transient) return defer(item, post, loc.transient);
     if (loc.error) return reject(item, post, loc.error);
-    m = findMatch({ name, addr, kind, cat, lat: loc.lat, lon: loc.lon }, catalog);
+    m = findMatch({ name, addr, kind, cat, city, lat: loc.lat, lon: loc.lon }, catalog);
     if (m) return onUpdate(item, post, m.id, m.by);
 
-    const id = slugId(name, taken);
+    const id = placeId(name, taken, city);
     taken.add(id);
     const hint = uniq((item.hints || []).filter(h => PLACE_HINTS.includes(h)
       || (h === 'night' && /круглосуточ|24\s*\/\s*7|24 час/i.test(item.hours || ''))));
@@ -677,6 +763,7 @@ async function runPipeline(opts, deps, box) {
     if (hint.length) place.hint = hint;
     place.chk = today.slice(0, 7);
     place.added = today;
+    if (city !== 'msk') place.city = city;                // Москва — без поля, как все старые места
     const leaked = leak(place);
     if (leaked) return reject(item, post, `в данных места имя источника (${leaked})`);
     let photo = { note: opts.dry ? 'пробный запуск — фото не искали' : 'фото выключены (--no-photos)' };
@@ -686,7 +773,7 @@ async function runPipeline(opts, deps, box) {
     }
     auto.places[id] = place;
     catalog.places[id] = place;
-    res.places.push({ id, place, item, post, loc, photo });
+    res.places.push({ id, place, item, post, loc, photo, city });
     appliedKeys.add(post.key);
     note(post, `добавлено место «${name}»`);
   }
@@ -698,7 +785,7 @@ async function runPipeline(opts, deps, box) {
     if (!name) return reject(item, post, 'закрытие без названия места');
     let id = item.match_id;
     if (!id) {
-      const m = findMatch({ name, addr: cleanAddr(item.address) }, catalog);
+      const m = findMatch({ name, addr: cleanAddr(item.address), city: item.city }, catalog);
       if (m && m.score >= 0.9) id = m.id;
     }
     const p = id && catalog.places[id];
@@ -707,11 +794,12 @@ async function runPipeline(opts, deps, box) {
     if (!sameName(name, p.name)) return reject(item, post, `закрытие: «${name}» не похоже на «${p.name}» (${id})`);
     if (!CLOSURE_RX.test(String(post.text || ''))) return reject(item, post, 'закрытие: в тексте нет слов о закрытии');
     if (closedNow.has(id) || p.closed) { note(post, `«${p.name}» уже отмечено закрытым`); return; }
-    if (res.closed.length >= LIMITS.closed) return defer(item, post, 'лимит закрытий за запуск');
+    const city = placeCity(id, p);
+    if (inCity(res.closed, city) >= LIMITS.closed) return defer(item, post, `лимит закрытий за запуск (${CITIES[city].name})`);
     closedNow.add(id);
     p.closed = true;
     auto.closed.push(id);
-    res.closed.push({ id, name: p.name, item, post, evidence: evidenceQuote(post.text) });
+    res.closed.push({ id, name: p.name, item, post, evidence: evidenceQuote(post.text), city });
     appliedKeys.add(post.key);
     note(post, `«${p.name}» отмечено закрытым`);
   }
@@ -735,22 +823,24 @@ async function runPipeline(opts, deps, box) {
     if (isCopied(item.note_ru, post.text, [ev.title, ev.venue, item.name, ev.address, item.address]))
       return reject(item, post, 'описание повторяет текст поста — нужно своими словами');
 
-    // площадка из каталога — по match_id модели или по имени и адресу
+    // площадка из каталога того же города — по match_id модели или по имени и адресу
+    const city = item.city;
     let venue = null;
     const byId = item.match_id && catalog.places[item.match_id];
     if (byId && !byId.closed) venue = { id: item.match_id, p: byId };
     else {
-      const m = findMatch({ name: cleanName(ev.venue || item.name), addr: cleanAddr(ev.address || item.address) }, catalog);
+      const m = findMatch({ name: cleanName(ev.venue || item.name), addr: cleanAddr(ev.address || item.address), city }, catalog);
       if (m && m.score >= 0.9 && !catalog.places[m.id].closed) venue = { id: m.id, p: catalog.places[m.id] };
     }
-    if (venue && !(Number.isFinite(venue.p.lat) && venue.p.metro)) venue = null;
+    // у площадки должны быть точка и станция; в пригородах Петербурга станции может не быть
+    if (venue && !(Number.isFinite(venue.p.lat) && (venue.p.metro || city === 'spb'))) venue = null;
     const venueName = cleanName(ev.venue) || (venue ? venue.p.name : cleanName(item.name));
     if (!venueName) return reject(item, post, 'не указана площадка');
     // повтор: сначала без геокодера (площадка из каталога или по названию), потом ещё раз по точке
-    const probe = { title: ev.title, start: ev.start, end: ev.end, place: venue ? venue.id : '', venue: venueName };
-    let dup = findDupEvent(venue ? { ...probe, lat: venue.p.lat, lon: venue.p.lon } : probe, knownEvents);
+    const probe = { title: ev.title, start: ev.start, end: ev.end, place: venue ? venue.id : '', venue: venueName, city };
+    let dup = findDupEvent(venue ? { ...probe, lat: venue.p.lat, lon: venue.p.lon } : probe, knownEvents, catalog.places);
     if (dup) return dupEvent(item, post, dup);
-    if (res.events.length >= LIMITS.events) return defer(item, post, 'лимит событий за запуск');
+    if (inCity(res.events, city) >= LIMITS.events) return defer(item, post, `лимит событий за запуск (${CITIES[city].name})`);
 
     let loc;
     if (venue) {
@@ -762,11 +852,11 @@ async function runPipeline(opts, deps, box) {
       if (l.transient) return defer(item, post, l.transient);
       if (l.error) return reject(item, post, l.error);
       loc = { ...l, addr };
-      dup = findDupEvent({ ...probe, lat: loc.lat, lon: loc.lon }, knownEvents);
+      dup = findDupEvent({ ...probe, lat: loc.lat, lon: loc.lon }, knownEvents, catalog.places);
       if (dup) return dupEvent(item, post, dup);
     }
-    let id = eventId(ev, venueName);
-    for (let n = 2; eventIds.has(id); n++) id = `${eventId(ev, venueName)}-${n}`;
+    let id = eventId(ev, venueName, city);
+    for (let n = 2; eventIds.has(id); n++) id = `${eventId(ev, venueName, city)}-${n}`;
     const e = { id, title: ev.title, cat: ev.cat, emoji: EVENT_EMOJI[ev.cat], start: ev.start, end: ev.end };
     if (Array.isArray(ev.dates) && ev.dates.length > 1) e.dates = ev.dates;
     if (ev.time) e.time = ev.time;
@@ -778,13 +868,14 @@ async function runPipeline(opts, deps, box) {
     e.url = url;
     e.note = item.note_ru;
     e.fit = uniq((item.fit || []).filter(f => FITS.includes(f)));
+    if (city !== 'msk') e.city = city;
     e.added = today;
     const leaked = leak(e);
     if (leaked) return reject(item, post, `в данных события имя источника (${leaked})`);
     eventIds.add(id);
     knownEvents.push(e);
     auto.events.push(e);
-    res.events.push({ event: e, item, post, loc });
+    res.events.push({ event: e, item, post, loc, city });
     appliedKeys.add(post.key);
     note(post, `событие «${ev.title}» добавлено в афишу`);
   }
@@ -793,11 +884,14 @@ async function runPipeline(opts, deps, box) {
     const post = postByKey.get(item.post_key);
     if (!post) continue;
     if (item.type === 'irrelevant') { res.irrelevant++; continue; }
+    item.city = itemCity(item, post);
+    // match_id из другого города — не то место: сети и одноимённые заведения есть в обоих городах
+    if (item.match_id && placeCity(item.match_id, catalog.places[item.match_id]) !== item.city) item.match_id = '';
     if (item.type === 'new_place') await onNewPlace(item, post);
     else if (item.type === 'place_update') {
       if (item.match_id) onUpdate(item, post, item.match_id);
       else {
-        const m = findMatch({ name: cleanName(item.name), addr: cleanAddr(item.address) }, catalog);
+        const m = findMatch({ name: cleanName(item.name), addr: cleanAddr(item.address), city: item.city }, catalog);
         if (m) onUpdate(item, post, m.id, m.by);
         else reject(item, post, 'обновление для места, которого нет в каталоге');
       }
@@ -806,36 +900,42 @@ async function runPipeline(opts, deps, box) {
   }
 
   /* ---- 5. подборки с новыми местами ---- */
-  const planId = (mode, title) => {
-    const base = `auto-${mode}-${slugId(title) || 'plan'}`;
+  // id: Москва — auto-<режим>-<название>; Петербург — spb-d-/spb-g-/spb-w-auto-<название> (по префиксу сайт понимает город)
+  const planId = (mode, title, city) => {
+    const base = city === 'spb' ? `spb-${PLAN_LETTER[mode] || 'd'}-auto-${slugId(title) || 'plan'}` : `auto-${mode}-${slugId(title) || 'plan'}`;
     let id = base;
     for (let n = 2; scenarioIds.has(id); n++) id = `${base}-${n}`;
     return id;
   };
-  for (const np of res.places.slice(0, LIMITS.planPlaces)) {
-    if (res.plans.length >= LIMITS.plans) break;
+  const planPlaces = {};
+  for (const np of res.places) {
+    const city = np.city;
+    if (inCity(res.plans, city) >= LIMITS.plans) continue;
+    planPlaces[city] = (planPlaces[city] || 0) + 1;
+    if (planPlaces[city] > LIMITS.planPlaces) continue;
     const p = np.place;
     const nearby = nearbyPlaces({ id: np.id, ...p }, catalog, 1200, 25);
     const modes = uniq((np.item.fit || []).filter(f => FITS.includes(f)));
     const proposals = await llm.proposePlans({
-      newPlace: { id: np.id, name: p.name, kind: p.kind, cat: p.cat, addr: p.addr, price: p.price, note: p.note, hours: np.item.hours },
-      nearby, modes: modes.length ? modes : FITS,
+      newPlace: { id: np.id, name: p.name, kind: p.kind, cat: p.cat, addr: p.addr, price: p.price, note: p.note, hours: np.item.hours, city },
+      nearby, modes: modes.length ? modes : FITS, city,
     });
     for (const pl of proposals) {
-      if (res.plans.length >= LIMITS.plans) break;
-      const v = validatePlan(pl, catalog);
+      if (inCity(res.plans, city) >= LIMITS.plans) break;
+      // один город на план: соседи и так из города нового места, но проверка — по правилам сайта
+      const v = validatePlan(city === 'msk' ? pl : { ...pl, city }, catalog);
       if (!v.ok) { res.plansRejected.push({ plan: pl, errors: v.errors, place: np.id }); continue; }
       const sig = pl.mode + ':' + pl.stops.join(',');
       if (planSigs.has(sig)) continue;
-      const sc = { id: planId(pl.mode, pl.title), mode: pl.mode, emoji: pl.emoji, title: pl.title,
-        stops: pl.stops, when: pl.when, tags: pl.tags, why: pl.why, added: today };
+      const sc = { id: planId(pl.mode, pl.title, city), mode: pl.mode, emoji: pl.emoji, title: pl.title,
+        stops: pl.stops, when: pl.when, tags: pl.tags, why: pl.why, ...(city !== 'msk' ? { city } : {}), added: today };
       const leaked = leak(sc);
       if (leaked) { res.plansRejected.push({ plan: pl, errors: [`в тексте имя источника (${leaked})`], place: np.id }); continue; }
       scenarioIds.add(sc.id);
       planSigs.add(sig);
       auto.scenarios.push(sc);
       catalog.scenarios.push(sc);
-      res.plans.push({ scenario: sc, place: np.id });
+      res.plans.push({ scenario: sc, place: np.id, city });
     }
   }
 
@@ -952,8 +1052,18 @@ const postLink = p => (p ? link(p.source === 'inbox' ? `issue #${p.id}` : 'по�
 const fmtPrice = pr => (pr ? (pr[0] === 0 && pr[1] === 0 ? 'бесплатно' : pr[0] === pr[1] ? `${pr[0]} ₽` : `${pr[0]}–${pr[1]} ₽`) : '');
 const MODE_EMOJI = { date: '💕', guys: '🍻', girls: '💅' };
 const TYPE_RU = { new_place: 'новое место', place_update: 'обновление места', closure: 'закрытие', event: 'событие', irrelevant: 'не по теме' };
-const OKR_RU = { center: 'Центр', north: 'Север', ne: 'Северо-Восток', east: 'Восток', se: 'Юго-Восток', south: 'Юг', sw: 'Юго-Запад',
-  west: 'Запад', nw: 'Северо-Запад', zel: 'Зеленоград', new: 'Новая Москва', khimki: 'Химки', mo: 'Подмосковье' };
+// районы — по городам: коды center, north, sw… есть в обоих, а названия разные
+const OKR_RU = {
+  msk: { center: 'Центр', north: 'Север', ne: 'Северо-Восток', east: 'Восток', se: 'Юго-Восток', south: 'Юг', sw: 'Юго-Запад',
+    west: 'Запад', nw: 'Северо-Запад', zel: 'Зеленоград', new: 'Новая Москва', khimki: 'Химки', mo: 'Подмосковье' },
+  spb: { center: 'Центр', petrograd: 'Петроградка', vo: 'Васильевский', north: 'Север', nw: 'Приморский', south: 'Юг',
+    sw: 'Юго-Запад', east: 'Правый берег', out: 'Пригороды' },
+};
+const okrName = (okr, city) => (OKR_RU[city] || OKR_RU.msk)[okr] || okr;
+// пометка города в отчёте — только не у Москвы: в обычном московском отчёте ничего не меняется
+const cityTag = city => (city && city !== 'msk' && CITIES[city] ? `${CITIES[city].name}, ` : '');
+const metroBit = (metro, loc) => (metro ? `м. ${md(metro)}${loc && loc.metroDistM != null ? ` (${km(loc.metroDistM)})` : ''}`
+  : `**без метро** (до «${md(loc && loc.noMetro)}» ${loc && loc.metroDistM != null ? km(loc.metroDistM) : '—'}; пригород — впишите ж/д станцию, например «Новый Петергоф (ж/д)»)`);
 
 /* Остановки плана по-человечески: «Название (тип, `id`) → 350 м → …» */
 function stopsText(stops, places) {
@@ -978,20 +1088,28 @@ function renderReport({ today, opts, res, srcRuns, skipped, fresh, overflow = []
   L.push(`**Итог:** новых мест ${res.places.length} · закрытий ${res.closed.length} · событий ${res.events.length} · подборок ${res.plans.length}`
     + ` · обновлений (не применены) ${res.updates.length} · отклонено ${res.rejected.length + res.plansRejected.length}`
     + (res.deferred.length ? ` · отложено ${res.deferred.length}` : '') + (changes ? '' : ' · **изменений нет**'));
+  // по городам — когда кроме Москвы есть что-то ещё
+  const lists = [res.places, res.closed, res.events, res.plans];
+  if (lists.some(l => l.some(x => x.city && x.city !== 'msk'))) {
+    L.push('', 'По городам: ' + Object.values(CITIES).map(c => {
+      const n = l => l.filter(x => (x.city || 'msk') === c.id).length;
+      return `${c.name} — мест ${n(res.places)}, закрытий ${n(res.closed)}, событий ${n(res.events)}, подборок ${n(res.plans)}`;
+    }).join(' · '));
+  }
   L.push('');
 
   // закрытия — первыми: они прячут места и подборки с сайта
   if (res.closed.length) {
     L.push(`## Закрылись — проверьте в первую очередь (${res.closed.length})`, '');
-    for (const c of res.closed) L.push(`- **${md(c.name)}** (\`${c.id}\`) — «${md(c.evidence)}» · уверенность ${c.item.confidence} · ${postLink(c.post)}`);
+    for (const c of res.closed) L.push(`- **${md(c.name)}** (\`${c.id}\`${c.city && c.city !== 'msk' ? ', ' + CITIES[c.city].name : ''}) — «${md(c.evidence)}» · уверенность ${c.item.confidence} · ${postLink(c.post)}`);
     if (res.hidden.length) L.push('', `Скроются подборки с этими местами: ${res.hidden.map(id => '`' + id + '`').join(', ')}`);
     L.push('');
   }
 
   if (res.places.length) {
     L.push(`## Новые места (${res.places.length})`, '');
-    for (const { id, place: p, item, post, loc, photo } of res.places) {
-      L.push(`- ${p.emoji} **${md(p.name)}** (\`${id}\`) — ${md(p.kind)}, ${md(p.addr)} · м. ${md(p.metro)} (${km(loc.metroDistM)}) · ${OKR_RU[p.okr] || p.okr} · цена ${p.price}`
+    for (const { id, place: p, item, post, loc, photo, city } of res.places) {
+      L.push(`- ${p.emoji} **${md(p.name)}** (\`${id}\`) — ${md(p.kind)}, ${cityTag(city)}${md(p.addr)} · ${metroBit(p.metro, loc)} · ${okrName(p.okr, city)} · цена ${p.price}`
         + ` · ${link('на карте', mapUrl(p.lat, p.lon))} · ${postLink(post)}`);
       L.push(`  > ${md(p.note)}`);
       const extra = [];
@@ -1006,9 +1124,9 @@ function renderReport({ today, opts, res, srcRuns, skipped, fresh, overflow = []
 
   if (res.events.length) {
     L.push(`## События (${res.events.length})`, '');
-    for (const { event: e, post } of res.events) {
+    for (const { event: e, post, city } of res.events) {
       const when = e.start === e.end ? e.start : `${e.start} — ${e.end}`;
-      const bits = [`${when}${e.time ? ' ' + e.time : ''}`, `${md(e.venue)} (${md(e.addr)}, м. ${md(e.metro)})`];
+      const bits = [`${when}${e.time ? ' ' + e.time : ''}`, `${md(e.venue)} (${cityTag(city)}${md(e.addr)}${e.metro ? ', м. ' + md(e.metro) : ', без метро'})`];
       if (e.price) bits.push(fmtPrice(e.price));
       if (e.age) bits.push(e.age);
       // куда ведёт «Билеты» — домен открытым текстом, а не «сайт»
@@ -1022,8 +1140,8 @@ function renderReport({ today, opts, res, srcRuns, skipped, fresh, overflow = []
 
   if (res.plans.length) {
     L.push(`## Подборки (${res.plans.length})`, '');
-    for (const { scenario: s } of res.plans) {
-      L.push(`- ${MODE_EMOJI[s.mode] || ''} ${s.emoji} **${md(s.title)}** (\`${s.id}\`, ${s.when}) — ${stopsText(s.stops, places)}`
+    for (const { scenario: s, city } of res.plans) {
+      L.push(`- ${MODE_EMOJI[s.mode] || ''} ${s.emoji} **${md(s.title)}** (\`${s.id}\`, ${cityTag(city)}${s.when}) — ${stopsText(s.stops, places)}`
         + (s.tags.length ? ` · ${s.tags.join(', ')}` : ''));
       L.push(`  > ${md(s.why)}`);
     }
@@ -1083,7 +1201,8 @@ function renderReport({ today, opts, res, srcRuns, skipped, fresh, overflow = []
       what += s.capped.left ? ` · ещё ${s.capped.left} ждут следующего запуска` : '';
       what += s.capped.lost ? ` · **пропущены посты ${s.capped.lost[0]}–${s.capped.lost[1]}** (слишком много с прошлого запуска)` : '';
     }
-    L.push(`- ${s.type === 'inbox' ? 'ящик (issues)' : s.type + ' `' + s.name + '`'} — ${what}${s.ignored ? ` · от посторонних (пропущены): ${s.ignored.map(n => '#' + n).join(', ')}` : ''}`);
+    const where = s.type === 'inbox' ? '' : s.city === '' ? ' · оба города' : s.city && s.city !== 'msk' && CITIES[s.city] ? ' · ' + CITIES[s.city].name : '';
+    L.push(`- ${s.type === 'inbox' ? 'ящик (issues)' : s.type + ' `' + s.name + '`'}${where} — ${what}${s.ignored ? ` · от посторонних (пропущены): ${s.ignored.map(n => '#' + n).join(', ')}` : ''}`);
   }
   L.push(`- к разбору: ${fresh.length} · уже разобраны раньше: ${skipped.seen} · старые: ${skipped.old} · без текста: ${skipped.short} · нерелевантных: ${res.irrelevant}`
     + (overflow.length ? ` · не влезли в лимит ${LIMITS.posts} постов за запуск: ${overflow.length}` : '')

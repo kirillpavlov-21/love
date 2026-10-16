@@ -1,4 +1,4 @@
-/* Геокодирование адресов, округ и ближайшее метро.
+/* Геокодирование адресов, округ и ближайшее метро — для Москвы и Петербурга.
    Яндекс HTTP Геокодер, если есть ключ; иначе Nominatim (OpenStreetMap) по правилам сервиса:
    не чаще раза в секунду, понятный User-Agent, результаты кешируются. */
 
@@ -6,10 +6,59 @@ export const UA = 'KudaIdemBot/1.0 (+https://kirillpavlov-21.github.io/love/)';
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const r6 = x => Math.round(x * 1e6) / 1e6;
 
-/* ---------- Москва и область ---------- */
+/* ---------- города ----------
+   Те же id, что K.CITIES в assets/shared.js: 'msk' и 'spb'. Нет поля city — значит, Москва.
+   box — рамка [юг, запад, север, восток] для геокодера и проверки «адрес в нашем регионе»:
+   Москва с ближним Подмосковьем; Петербург с пригородами (Кронштадт, Петергоф, Пушкин, Колпино, Зеленогорск)
+   и ближней Ленобластью (Мурино, Кудрово, Всеволожск). okrs — коды районов, как в places.js / places-spb.js */
+export const CITIES = {
+  msk: { id: 'msk', name: 'Москва', full: 'Москва', in: 'в Москве', area: 'Москвы и ближнего Подмосковья',
+    center: [55.7520, 37.6175], box: [55.1, 36.8, 56.1, 38.3],
+    okrs: ['center', 'north', 'ne', 'east', 'se', 'south', 'sw', 'west', 'nw', 'zel', 'new', 'khimki', 'mo'] },
+  spb: { id: 'spb', name: 'Петербург', full: 'Санкт-Петербург', in: 'в Петербурге', area: 'Петербурга и пригородов',
+    center: [59.939167, 30.315833], box: [59.633, 29.425, 60.245, 30.76],
+    okrs: ['center', 'petrograd', 'vo', 'north', 'nw', 'south', 'sw', 'east', 'out'] },
+};
+export const CITY_IDS = Object.keys(CITIES);
+const isCity = c => typeof c === 'string' && Object.prototype.hasOwnProperty.call(CITIES, c);
+
+/* Код города из конфига или ответа модели: 'msk' | 'spb' | '' (не распознан). Понимает и русские названия */
+const CITY_ALIAS = { msk: 'msk', moscow: 'msk', moskva: 'msk', 'москва': 'msk', 'мск': 'msk',
+  spb: 'spb', 'saint-petersburg': 'spb', 'st-petersburg': 'spb', petersburg: 'spb', piter: 'spb', 'санкт-петербург': 'spb',
+  'петербург': 'spb', 'спб': 'spb', 'питер': 'spb' };
+export function normCity(raw) {
+  const s = String(raw == null ? '' : raw).trim().toLowerCase().replace(/ё/g, 'е').replace(/[\s_.]+/g, '-');
+  return isCity(s) ? s : CITY_ALIAS[s] || '';
+}
+
+const inBox = (box, lat, lon) => Number.isFinite(lat) && Number.isFinite(lon) && lat >= box[0] && lat <= box[2] && lon >= box[1] && lon <= box[3];
 
 export function inMoscowRegion(lat, lon) {
-  return Number.isFinite(lat) && Number.isFinite(lon) && lat >= 55.1 && lat <= 56.1 && lon >= 36.8 && lon <= 38.3;
+  return inBox(CITIES.msk.box, lat, lon);
+}
+export function inSpbRegion(lat, lon) {
+  return inBox(CITIES.spb.box, lat, lon);
+}
+/* Точка в регионе города (Москва по умолчанию — как раньше) */
+export function inRegion(city, lat, lon) {
+  return inBox((CITIES[city] || CITIES.msk).box, lat, lon);
+}
+/* Город по точке: 'msk' | 'spb' | '' (ни там, ни там) */
+export function regionOf(lat, lon) {
+  return CITY_IDS.find(c => inRegion(c, lat, lon)) || '';
+}
+
+/* Приметы города в тексте адреса или поста: 'spb' | 'msk' | ''. Пригороды — целым словом:
+   «Пушкин, Садовая ул.» — Петербург, а «Пушкинская ул.» — просто улица */
+const SPB_WORDS = new RegExp('(?<![а-яё])(санкт-петербург\\S*|с\\.-петербург\\S*|петербург\\S*|спб|питер[ае]?|ленинградская обл\\S*|ленобласть|'
+  + 'пушкин|павловск|петергоф|новый петергоф|ломоносов|кронштадт|сестрорецк|зеленогорск|колпино|стрельна|красное село|шушары|парголово|'
+  + 'песочный|репино|комарово|ольгино|лахта|левашово|мурино|кудрово|всеволожск|девяткино|сертолово)(?![а-яё])', 'i');
+const MSK_WORDS = /(?<![а-яё])(москв[аеуы]|московская обл\S*|подмосковь\S*)(?![а-яё])/i;
+export function cityHint(text) {
+  const s = String(text || '').toLowerCase().replace(/ё/g, 'е');
+  if (SPB_WORDS.test(s)) return 'spb';
+  if (MSK_WORDS.test(s)) return 'msk';
+  return '';
 }
 
 function distM(a, b) {
@@ -77,11 +126,78 @@ function okrByGeometry(lat, lon) {
   return SECTORS.find(([to]) => deg < to)[1];
 }
 
+/* ---------- районы Петербурга ----------
+   Код района сайта по названию административного района: геокодеры отвечают «Центральный район»,
+   «Петроградский район», для пригородов — «Пушкинский район» или сам город («Ломоносов»). */
+const SPB_RAYON = [['центральн', 'center'], ['адмиралтейск', 'center'], ['петроградск', 'petrograd'], ['василеостровск', 'vo'],
+  ['выборгск', 'north'], ['калининск', 'north'], ['приморск', 'nw'], ['московск', 'south'], ['фрунзенск', 'south'],
+  ['кировск', 'sw'], ['красносельск', 'sw'], ['невск', 'east'], ['красногвардейск', 'east'],
+  ['пушкинск', 'out'], ['петродворцов', 'out'], ['кронштадтск', 'out'], ['курортн', 'out'], ['колпинск', 'out'],
+  ['всеволожск', 'out'], ['ломоносовск', 'out'], ['гатчинск', 'out'], ['тосненск', 'out']];
+const SPB_TOWNS = /(?<![а-яё])(пушкин|павловск|петергоф|новый петергоф|стрельна|ломоносов|кронштадт|сестрорецк|зеленогорск|колпино|шушары|мурино|кудрово|всеволожск|сертолово)(?![а-яё])/;
+/* Опорные точки районов: когда геокодер района не назвал и рядом нет мест каталога, берём район ближайшей точки
+   (центр, острова, берега Невы и пригороды — по станциям метро и известным местам) */
+const SPB_ANCHORS = [
+  ['center', 59.9390, 30.3158], ['center', 59.9338, 30.3330], ['center', 59.9313, 30.3608], ['center', 59.9277, 30.3480],
+  ['center', 59.9164, 30.3185], ['center', 59.9073, 30.2997], ['center', 59.9267, 30.3175], ['center', 59.9290, 30.2880],
+  ['center', 59.9256, 30.2960], ['center', 59.9220, 30.2800], ['center', 59.9463, 30.3950], ['center', 59.9445, 30.3600],
+  ['center', 59.9450, 30.3730], ['center', 59.9244, 30.3859], ['center', 59.9207, 30.3549], ['center', 59.9449, 30.3360],
+  ['petrograd', 59.9662, 30.3117], ['petrograd', 59.9561, 30.3189], ['petrograd', 59.9611, 30.2920], ['petrograd', 59.9518, 30.2906],
+  ['petrograd', 59.9718, 30.2594], ['petrograd', 59.9730, 30.2210], ['petrograd', 59.9790, 30.2600], ['petrograd', 59.9790, 30.2940],
+  ['petrograd', 59.9500, 30.3167], ['petrograd', 59.9700, 30.3200],
+  ['vo', 59.9427, 30.2783], ['vo', 59.9440, 30.3060], ['vo', 59.9485, 30.2344], ['vo', 59.9325, 30.2611], ['vo', 59.9240, 30.2400],
+  ['vo', 59.9520, 30.2160], ['vo', 59.9550, 30.2400],
+  ['north', 59.9557, 30.3559], ['north', 59.9712, 30.3478], ['north', 59.9850, 30.3442], ['north', 59.9999, 30.3667],
+  ['north', 60.0089, 30.3709], ['north', 60.0127, 30.3960], ['north', 60.0350, 30.4181], ['north', 60.0167, 30.3157],
+  ['north', 60.0371, 30.3217], ['north', 60.0516, 30.3325], ['north', 60.0670, 30.3339], ['north', 59.9900, 30.4100],
+  ['nw', 60.0027, 30.2967], ['nw', 59.9853, 30.3011], ['nw', 59.9892, 30.2551], ['nw', 59.9883, 30.2031], ['nw', 60.0084, 30.2588],
+  ['nw', 59.9871, 30.1776], ['nw', 60.0000, 30.1300], ['nw', 59.9840, 30.2000],
+  ['east', 59.9290, 30.4119], ['east', 59.9324, 30.4391], ['east', 59.9500, 30.4100], ['east', 59.9200, 30.4666], ['east', 59.9075, 30.4833],
+  ['east', 59.8968, 30.4235], ['east', 59.8775, 30.4419], ['east', 59.8653, 30.4702], ['east', 59.8488, 30.4577], ['east', 59.8309, 30.5001],
+  ['east', 59.9750, 30.4850],
+  ['south', 59.8916, 30.3180], ['south', 59.8791, 30.3187], ['south', 59.8664, 30.3217], ['south', 59.8522, 30.3220], ['south', 59.8333, 30.3495],
+  ['south', 59.8297, 30.3755], ['south', 59.8961, 30.3580], ['south', 59.8840, 30.3687], ['south', 59.8703, 30.3789], ['south', 59.8586, 30.3935],
+  ['south', 59.8397, 30.4111], ['south', 59.7700, 30.3300],
+  ['sw', 59.9011, 30.2749], ['sw', 59.8796, 30.2618], ['sw', 59.8673, 30.2615], ['sw', 59.8518, 30.2683], ['sw', 59.8419, 30.2518],
+  ['sw', 59.8592, 30.2303], ['sw', 59.8350, 30.1500], ['sw', 59.7390, 30.0880], ['sw', 59.9000, 30.2200],
+  ['out', 59.7230, 30.4100], ['out', 59.6850, 30.4400], ['out', 59.8820, 29.9080], ['out', 59.8540, 30.0350], ['out', 59.9110, 29.7720],
+  ['out', 59.9950, 29.7660], ['out', 60.0960, 29.9640], ['out', 60.1960, 29.7010], ['out', 59.7500, 30.5900], ['out', 59.8200, 30.4328],
+  ['out', 60.0504, 30.4424], ['out', 59.9050, 30.5150], ['out', 60.0200, 30.6500],
+];
+function okrByGeometrySpb(lat, lon) {
+  let best = null;
+  for (const [okr, la, lo] of SPB_ANCHORS) {
+    const d = distM({ lat, lon }, { lat: la, lon: lo });
+    if (!best || d < best.d) best = { d, okr };
+  }
+  return !best || best.d > 6000 ? 'out' : best.okr;                                // дальше 6 км от всех точек — пригороды
+}
+function okrByNameSpb(s) {
+  const rx = new RegExp(NB + '([а-я-]+?(?:ий|ый|ой))\\s+район' + NA, 'g');
+  let m;
+  while ((m = rx.exec(s))) {
+    const hit = SPB_RAYON.find(([pre]) => m[1].startsWith(pre));
+    if (hit) return hit[1];
+  }
+  if (SPB_TOWNS.test(s)) return 'out';
+  if (/ленинградская обл/.test(s)) return 'out';
+  return '';
+}
+
 /* Код округа по названию района от геокодера («Центральный административный округ», «ЮЗАО»,
-   «Московская область, городской округ Химки»). Если названия нет — ближайшее место каталога
-   (places, необязательно, до 1,5 км), иначе — по координатам. */
-export function okrOf(lat, lon, district, places) {
+   «Московская область, городской округ Химки»; в Петербурге — «Петроградский район», «Пушкинский район»).
+   Если названия нет — ближайшее место каталога того же города (places, необязательно, до 1,5 км), иначе — по координатам.
+   city — 'msk' | 'spb'; если не задан — по точке (а без точки — по названию: «Санкт-Петербург, …» — Петербург) */
+export function okrOf(lat, lon, district, places, city) {
   const s = String(district || '').toLowerCase().replace(/ё/g, 'е');
+  const c = isCity(city) ? city : regionOf(lat, lon) || (/санкт-петербург|ленинградская обл/.test(s) ? 'spb' : 'msk');
+  if (c === 'spb') {
+    const byName = s ? okrByNameSpb(s) : '';
+    if (byName) return byName;
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return '';
+    const near = nearestOkr(lat, lon, places, CITIES.spb.okrs, 'spb');
+    return near || okrByGeometrySpb(lat, lon);
+  }
   if (s) {
     const ao = new RegExp(NB + '([а-я-]+?)(?:ий|ый|ой)\\s+(?:административн\\S*\\s+)?округ', 'g');
     let m;
@@ -102,16 +218,22 @@ export function okrOf(lat, lon, district, places) {
     if (/новая москва|поселение/.test(s)) return 'new';
   }
   if (!Number.isFinite(lat) || !Number.isFinite(lon)) return '';
-  if (places) {
-    let best = null;
-    for (const p of Object.values(places)) {
-      if (!p || !p.okr || !Number.isFinite(p.lat)) continue;
-      const d = distM({ lat, lon }, p);
-      if (d < 1500 && (!best || d < best.d)) best = { d, okr: p.okr };
-    }
-    if (best) return best.okr;
+  return nearestOkr(lat, lon, places, CITIES.msk.okrs, 'msk') || okrByGeometry(lat, lon);
+}
+
+/* Район ближайшего места каталога (до 1,5 км) того же города: коды районов у городов частью совпадают
+   (center, north…), поэтому места другого города и чужие коды не считаем */
+function nearestOkr(lat, lon, places, okrs, city) {
+  if (!places) return '';
+  let best = null;
+  for (const [id, p] of Object.entries(places)) {
+    if (!p || !p.okr || !Number.isFinite(p.lat) || !okrs.includes(p.okr)) continue;
+    const pc = isCity(p.city) ? p.city : /^spb-/.test(id) ? 'spb' : 'msk';
+    if (pc !== city) continue;
+    const d = distM({ lat, lon }, p);
+    if (d < 1500 && (!best || d < best.d)) best = { d, okr: p.okr };
   }
-  return okrByGeometry(lat, lon);
+  return best ? best.okr : '';
 }
 
 /* ---------- кеш и очередь запросов ---------- */
@@ -144,8 +266,14 @@ async function getJson(url, { fetchImpl, provider, minIntervalMs }) {
   return res.json();
 }
 
-/* В адресе нет города — значит, Москва */
-const hasCity = a => /москв|област|обл\.|химки|зеленоград|мытищ|красногорск|люберц|балаших|королев|королёв|одинцов|реутов|долгопрудн|котельник|видное|троицк|коммунарк|щербинк|апрелевк|лобн|сколково/i.test(a);
+/* В адресе нет города — значит, город источника (Москва по умолчанию) */
+const hasCityMsk = a => /москв|област|обл\.|химки|зеленоград|мытищ|красногорск|люберц|балаших|королев|королёв|одинцов|реутов|долгопрудн|котельник|видное|троицк|коммунарк|щербинк|апрелевк|лобн|сколково/i.test(a);
+const hasCity = (a, city) => (city === 'spb' ? SPB_WORDS.test(String(a).toLowerCase().replace(/ё/g, 'е')) : hasCityMsk(a));
+// Яндекс: рамка «долгота,широта~долгота,широта»; Nominatim: viewbox «запад,север,восток,юг»
+const yaBbox = c => `${c.box[1]},${c.box[0]}~${c.box[3]},${c.box[2]}`;
+const osmViewbox = c => `${c.box[1]},${c.box[2]},${c.box[3]},${c.box[0]}`;
+const cityRx = c => new RegExp(`(^|,\\s*)${c.full}$`);
+const cityPart = c => new RegExp(`(^|, )${c.full}(,|$)`);
 
 /* Из нескольких находок: ближайшая к near (например, к станции метро из поста), иначе первая — её геокодер считает лучшей.
    ambiguous — находки дальше 2 км друг от друга (в Москве несколько Октябрьских улиц): адрес стоит проверить. */
@@ -168,25 +296,28 @@ function choose(list, near) {
 
 const YA = 'https://geocode-maps.yandex.ru/1.x/';
 const yaMembers = j => (((j || {}).response || {}).GeoObjectCollection || {}).featureMember || [];
-async function viaYandex(addr, { yandexKey, fetchImpl, minIntervalMs, near }) {
-  const q = hasCity(addr) ? addr : 'Москва, ' + addr;
-  const url = `${YA}?apikey=${encodeURIComponent(yandexKey)}&geocode=${encodeURIComponent(q)}&format=json&lang=ru_RU&bbox=36.8,55.1~38.3,56.1&rspn=1&results=5`;
+async function viaYandex(addr, { yandexKey, fetchImpl, minIntervalMs, near, city }) {
+  const C = CITIES[city];
+  const q = hasCity(addr, city) ? addr : C.full + ', ' + addr;
+  const url = `${YA}?apikey=${encodeURIComponent(yandexKey)}&geocode=${encodeURIComponent(q)}&format=json&lang=ru_RU&bbox=${yaBbox(C)}&rspn=1&results=5`;
   const j = await getJson(url, { fetchImpl, provider: 'yandex', minIntervalMs });
   const list = [];
   for (const { GeoObject: g } of yaMembers(j)) {
     if (!g || !g.Point) continue;
     const [lon, lat] = String(g.Point.pos).split(/\s+/).map(Number);
-    if (!inMoscowRegion(lat, lon)) continue;
+    if (!inRegion(city, lat, lon)) continue;
     const meta = (g.metaDataProperty || {}).GeocoderMetaData || {};
-    // результат «просто Москва» или область — это не адрес
+    // результат «просто Москва» («просто Санкт-Петербург») или область — это не адрес
     if (['country', 'province', 'area'].includes(meta.kind)) continue;
-    if (meta.kind === 'locality' && /(^|,\s*)Москва$/.test(meta.text || '')) continue;
+    if (meta.kind === 'locality' && cityRx(C).test(meta.text || '')) continue;
     const comps = ((meta.Address || {}).Components || []).filter(c => ['province', 'area', 'locality', 'district'].includes(c.kind))
       .map(c => c.name).filter(n => n && !/федеральный округ|^Россия$/.test(n));
     list.push({ lat: r6(lat), lon: r6(lon), display: meta.text || g.name || addr, district: [...new Set(comps)].join(', '), precision: meta.precision || meta.kind || '' });
   }
   const res = choose(list, near);
-  if (res && !/административн|округ/i.test(res.district) && /(^|, )Москва(,|$)/.test(res.district)) {
+  // в ответе на дом нет округа (Москва) или района (Петербург) — спросим обратным геокодированием
+  const noArea = res && (city === 'spb' ? !/район/i.test(res.district) : !/административн|округ/i.test(res.district));
+  if (noArea && cityPart(C).test(res.district)) {
     // в ответе на дом округа нет — спросим обратным геокодированием
     try {
       const rj = await getJson(`${YA}?apikey=${encodeURIComponent(yandexKey)}&geocode=${res.lon},${res.lat}&kind=district&format=json&lang=ru_RU&results=3`,
@@ -215,16 +346,17 @@ export function simplifyAddr(addr) {
   return s.replace(/\s+,/g, ',').replace(/\s+/g, ' ').replace(/,\s*$/, '').trim();
 }
 
-async function viaNominatim(addr, { fetchImpl, minIntervalMs, near }) {
-  const withCity = x => (hasCity(x) ? x : x + ', Москва');
+async function viaNominatim(addr, { fetchImpl, minIntervalMs, near, city }) {
+  const C = CITIES[city];
+  const withCity = x => (hasCity(x, city) ? x : x + ', ' + C.full);
   const variants = [...new Set([withCity(addr), withCity(simplifyAddr(addr))])];
   for (const q of variants) {
-    const url = `${OSM}?format=jsonv2&addressdetails=1&countrycodes=ru&viewbox=36.8,56.1,38.3,55.1&bounded=1&limit=5&accept-language=ru&q=${encodeURIComponent(q)}`;
+    const url = `${OSM}?format=jsonv2&addressdetails=1&countrycodes=ru&viewbox=${osmViewbox(C)}&bounded=1&limit=5&accept-language=ru&q=${encodeURIComponent(q)}`;
     const raw = await getJson(url, { fetchImpl, provider: 'nominatim', minIntervalMs });
     const list = [];
     for (const r of Array.isArray(raw) ? raw : []) {
       const lat = Number(r.lat), lon = Number(r.lon);
-      if (!inMoscowRegion(lat, lon)) continue;
+      if (!inRegion(city, lat, lon)) continue;
       if (Number(r.place_rank) > 0 && Number(r.place_rank) < 17) continue;          // город или область целиком
       const ad = r.address || {};
       const district = [...new Set([ad.state, ad.county, ad.city, ad.town, ad.village, ad.city_district, ad.suburb].filter(Boolean))].join(', ');
@@ -241,18 +373,22 @@ async function viaNominatim(addr, { fetchImpl, minIntervalMs, near }) {
    strict: true — ошибку сети или сервиса (429, 5xx, блокировка) не прячем в null, а бросаем с transient: true:
    «не нашли» и «геокодер недоступен» — разные вещи, второе надо повторить в следующий раз.
    near { lat, lon } — подсказка, где искать (координаты станции метро из поста): из нескольких находок берём ближнюю.
-   cache — Map или обычный объект; ключ включает сервис и подсказку. */
-export async function geocode(addr, { yandexKey, fetchImpl = globalThis.fetch, cache, minIntervalMs = 1100, near, log = console.warn, strict = false } = {}) {
+   city — 'msk' (по умолчанию) или 'spb': город, рамка поиска и проверка региона.
+   cache — Map или обычный объект; ключ включает сервис, город (кроме Москвы — старые ключи кеша остаются в силе) и подсказку:
+   «Садовая ул., 7» в Москве и в Петербурге — разные дома. */
+export async function geocode(addr, { yandexKey, fetchImpl = globalThis.fetch, cache, minIntervalMs = 1100, near, log = console.warn, strict = false, city = 'msk' } = {}) {
   const q = String(addr || '').replace(/\s+/g, ' ').trim();
   if (!q) return null;
+  const cc = isCity(city) ? city : 'msk';
   const provider = yandexKey ? 'yandex' : 'osm';
   const hint = near && Number.isFinite(near.lat) && Number.isFinite(near.lon) ? `@${near.lat.toFixed(3)},${near.lon.toFixed(3)}` : '';
-  const key = provider + ':' + q.toLowerCase() + hint;
+  const key = provider + ':' + (cc === 'msk' ? '' : cc + ':') + q.toLowerCase() + hint;
   const c = cacheApi(cache);
   if (c && c.has(key)) return c.get(key) || null;
   let res;
   try {
-    res = yandexKey ? await viaYandex(q, { yandexKey, fetchImpl, minIntervalMs, near }) : await viaNominatim(q, { fetchImpl, minIntervalMs, near });
+    res = yandexKey ? await viaYandex(q, { yandexKey, fetchImpl, minIntervalMs, near, city: cc })
+      : await viaNominatim(q, { fetchImpl, minIntervalMs, near, city: cc });
   } catch (e) {
     if (log) log(`geocode «${q}»: ${e.message}`);
     if (strict) throw Object.assign(new Error(`геокодер недоступен (${e.message})`), { transient: true, status: e.status });
