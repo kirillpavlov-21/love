@@ -775,6 +775,12 @@
     for (let i = 1; i < st.length; i++) walk += K.walkMin(st[i - 1], st[i]);
     return st.map(p => p.name).join(' → ') + (st.length > 1 ? ` · ${walk} мин пешком` : '');
   }
+  /* «Успеть домой»: выбранные день и время + план → до скольки вход в метро, разводка мостов в Петербурге */
+  function homeRiskBlock(plan, time, day) {
+    if (!K.homeRisk || !time) return '';
+    const r = K.homeRisk(K.planStops(plan), time, day || K.todayMsk(), K.cityOf(plan));
+    return r.length ? `<div class="home-risk">${r.map(x => `<p>${esc(x.text)}</p>`).join('')}</div>` : '';
+  }
   function planBlock(plan) {
     const st = K.planStops(plan);
     if (!st.length) return '';
@@ -1794,7 +1800,7 @@
     }) : null;
     const extra = ev
       ? `<div class="tally"><h3>${esc(ev.emoji || '🎫')} ${esc(ev.title)}</h3>${evPlaceLine(ev) ? `<p class="v-day">${I('pin')}${esc(evLoc(ev))}</p>` : ''}${evLinks(ev)}${calEv ? calBlock(calEv) : ''}</div>`
-      : plan || calEv ? `<div class="tally"><h3>${plan ? esc(plan.title) : 'Не забудь'}</h3>${plan ? planBlock(plan) : ''}${calEv ? calBlock(calEv) : ''}</div>` : '';
+      : plan || calEv ? `<div class="tally"><h3>${plan ? esc(plan.title) : 'Не забудь'}</h3>${plan ? planBlock(plan) : ''}${plan ? homeRiskBlock(plan, S.a.time, S.a.date) : ''}${calEv ? calBlock(calEv) : ''}</div>` : '';
     el.innerHTML = `
       <div class="res-head"><p class="eyebrow">${view ? 'Ответ получен' : 'Готово'}</p>
         <h2 class="final-title">${view ? `${esc(INV.her)} ${GF('ответила', 'ответил')} «да»` : 'Твой билет на свидание'}</h2></div>

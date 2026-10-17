@@ -384,6 +384,9 @@ html[data-acc="shades"] .cat .acc-shades, html[data-acc="bow"] .cat .acc-bow { d
 .promo-box .ad-mark { margin-top: 8px; color: var(--muted); font-size: 11px; }
 .pl-main .ad-mark { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .plist + .promo-biz { margin-top: 4px !important; text-align: center; }
+.home-risk { display: grid; gap: 6px; padding: 10px 14px; border-radius: 14px; background: rgba(61, 139, 255, .1); border: 1px solid rgba(61, 139, 255, .3); }
+.home-risk p { margin: 0; font-size: 14px; line-height: 1.4; color: var(--muted-2); }
+.bridges-line { margin: 0 0 12px; padding: 10px 14px; border-radius: 14px; background: rgba(61, 139, 255, .1); color: var(--muted-2); font-size: 14px; line-height: 1.4; }
 /* плашка про аналитику не закрывает открытую карточку */
 body.sheet-open .consent { display: none; }
 

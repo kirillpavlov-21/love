@@ -746,3 +746,7 @@ form.name-box { margin: 0; }
   /* общее правило укорачивает анимации до 0,01 мс — тост сразу доигрывал бы до прозрачности и не был виден */
   .toast { animation: none !important; }
 }
+
+/* «Успеть домой» на билете */
+.home-risk { display: grid; gap: 6px; margin: 10px 0 0; padding: 10px 12px; border-radius: 14px; background: rgba(61, 139, 255, .12); border: 1px solid rgba(61, 139, 255, .3); text-align: left; }
+.home-risk p { margin: 0; font-size: 14px; line-height: 1.4; }
