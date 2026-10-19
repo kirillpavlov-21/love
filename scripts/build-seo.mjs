@@ -35,6 +35,7 @@ import path from 'node:path';
 import vm from 'node:vm';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import { calendar, checkIcs } from './ics.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const MIN_ITEMS = 4;                                   // меньше — страницу не делаем
@@ -94,10 +95,11 @@ function loadData() {
   sb.__clock = mskNoon(TODAY);
   vm.runInContext('(() => { const real = Date.now; Date.now = () => (typeof __clock === "number" ? __clock : real()); })();', sb);
   // порядок — как на страницах сайта: города и матчи только дописывают своё в KUDA и KUDA_EVENTS
+  // collections.js (подборки редакции) может ещё не появиться — тогда молча без него
   const files = [['config.js'], ['assets/shared.js'], ['assets/places.js', true], ['assets/places-spb.js'], ['assets/events.js'], ['assets/events-spb.js'],
-    ['assets/sport.js'], ['assets/auto.js'], ['assets/photos.js'], ['assets/geo.js']];
-  for (const [f, required] of files) {
-    if (!exists(f)) { if (required) fail(f + ' не найден'); warn(f + ' не найден — собираю без него'); continue; }
+    ['assets/sport.js'], ['assets/auto.js'], ['assets/collections.js', false, true], ['assets/photos.js'], ['assets/geo.js']];
+  for (const [f, required, quiet] of files) {
+    if (!exists(f)) { if (required) fail(f + ' не найден'); if (!quiet) warn(f + ' не найден — собираю без него'); continue; }
     try { vm.runInContext(read(f), sb, { filename: f, timeout: 10000 }); } catch (e) {
       if (required) fail(f + ': ' + e.message);
       warn(`${f} не загрузился (${e.message}) — собираю без него`);
@@ -121,6 +123,14 @@ const AFISHA_HUB = (() => {
   try { return /assets\/afisha\.js/.test(read('start.html')) && /KudaAfisha/.test(read('assets/hub.js')); } catch (e) { return false; }
 })();
 if (!AFISHA_HUB) warn('start.html пока без афиши (assets/afisha.js + KudaAfisha в hub.js) — у событий ссылки на сайт организатора, без «Вся афиша»; пересобери после подключения');
+/* Умеет ли главная подборки (?col=): start.html грузит assets/cols.js, а hub.js его подключает */
+const COL_HUB = (() => {
+  try { return /assets\/cols\.js/.test(read('start.html')) && /KudaCols/.test(read('assets/hub.js')); } catch (e) { return false; }
+})();
+/* Умеет ли конструктор «Позвать по подборке» (create.html грузит cols.js, а create.js читает ?col=) */
+const COL_CREATE = (() => {
+  try { return /assets\/cols\.js/.test(read('create.html')) && /applyCollection/.test(read('assets/create.js')); } catch (e) { return false; }
+})();
 /* Расписание матчей ведётся (sport.js собран хотя бы раз): тогда страница «Футбол» живёт и в межсезонье */
 const SPORT_FEED = /^\d{4}-\d\d-\d\d$/.test(String((CTX.KUDA_SPORT || {}).updated || ''));
 /* Сезонные подсказки, которые живы в день сборки (как фильтры 🎃 🎄 🍂 на главной) */
@@ -361,6 +371,52 @@ const isFree = e => Array.isArray(e.price) && e.price[0] === 0 && !(e.price[1] >
 /* футбольный матч: из sport.js (ev-fb-…) или футбол из общей афиши */
 const isFootball = e => e.cat === 'sport' && (/^ev-fb-/.test(e.id) || e.emoji === '⚽' || /футбол|РПЛ|Премьер-лиг|Кубок России|Кубка России/i.test(e.title + ' ' + (e.note || '')));
 
+/* ---------- страницы мест (m/<id>/), подборки редакции (podborki/<slug>/) и календари (.ics): общие данные ---------- */
+/* id места годится в адрес как есть (латиница, цифры, дефис) — иначе страницы у места нет */
+const PAGE_ID = /^[a-z0-9][a-z0-9-]*$/;
+/* закрытые места (не 18+): у них страница «Закрылось — вот похожие рядом» с noindex, в sitemap и списках их нет */
+const CLOSED_ALL = Object.entries(D.places)
+  .filter(([id, p]) => p && p.closed && !p.adult && !ADULT.has(id) && p.name && !BAD.test(p.name) && PAGE_ID.test(id) && Number.isFinite(p.lat) && Number.isFinite(p.lon))
+  .map(([id, p]) => Object.assign({}, p, { id, c: catOf(p), city: cityOf(Object.assign({ id }, p)) }));
+const PLAN_BY = new Map(PLANS_G.map(s => [s.id, s]));
+const EV_BY = new Map(EVENTS_ALL.map(e => [e.id, e]));
+/* Подборки редакции — assets/collections.js (window.KUDA.collections), если он есть. Город — поле city или префикс id
+   (spb-c-… — Петербург, c-… — Москва). Пункт — место, план или событие нашего каталога того же города; закрытые места,
+   планы с закрытыми точками и прошедшие события выпадают. Подборка живёт с from по until и в свой сезон, как на главной;
+   живых пунктов меньше 4 — страницы нет. */
+const COLS_ALL = (() => {
+  const raw = Array.isArray(D.collections) ? D.collections : [];
+  const out = [];
+  const pick = id => {
+    if (typeof id !== 'string') return null;
+    const pid = /^p-/.test(id) && PLACES_ALL.has(id.slice(2)) ? id.slice(2) : id;
+    if (PLACES_ALL.has(pid)) return { kind: 'places', x: PLACES_ALL.get(pid) };
+    if (PLAN_BY.has(id)) return { kind: 'plans', x: PLAN_BY.get(id) };
+    if (EV_BY.has(id)) return { kind: 'events', x: EV_BY.get(id) };
+    return null;
+  };
+  for (const c of raw) {
+    if (!c || typeof c.id !== 'string' || !c.title || BAD.test(c.title + ' ' + (c.lead || ''))) continue;
+    const city = CITIES[c.city] ? c.city : /^spb-/.test(c.id) ? 'spb' : 'msk';
+    if ((isYmd(c.until) && c.until < TODAY) || (isYmd(c.from) && c.from > TODAY) || !inSeason(c)) continue;
+    const live = list => uniqBy((Array.isArray(list) ? list : []).map(id => {
+      const it = pick(id);
+      if (!it) { warn(`подборка ${c.id}: пункт ${id} не найден, закрыт или прошёл — пропущен`); return null; }
+      if (it.x.city !== city) { warn(`подборка ${c.id}: пункт ${id} из другого города — пропущен`); return null; }
+      return it;
+    }).filter(Boolean), it => it.kind + ':' + it.x.id);
+    const secs = c.kind === 'trip' && Array.isArray(c.sections) ? c.sections.filter(s => s && s.t).map(s => ({ t: String(s.t), items: live(s.items) })).filter(s => s.items.length) : [];
+    const items = secs.length ? uniqBy(secs.flatMap(s => s.items), it => it.kind + ':' + it.x.id) : live(c.items);
+    if (items.length < MIN_ITEMS) { warn(`подборка ${c.id}: живых пунктов ${items.length} (меньше ${MIN_ITEMS}) — страницу не делаю`); continue; }
+    const modes = (Array.isArray(c.mode) ? c.mode : [c.mode]).filter(m => MODES.includes(m));
+    const base = String(c.id).replace(/^spb-/, '').replace(/^c-/, '');
+    out.push({ id: c.id, city, title: String(c.title), emoji: String(c.emoji || '✨'), lead: cleanText(c.lead, 'подборка ' + c.id), kind: c.kind || 'editorial',
+      mode: modes[0] || 'date', until: isYmd(c.until) ? c.until : '', updated: isYmd(c.updated) ? c.updated : '', items, secs,
+      slugBase: PAGE_ID.test(base) ? base : '' });
+  }
+  return out;
+})();
+
 /* ---------- порядок: сначала с фото, популярные (во многих планах), Michelin, недавно проверенные ---------- */
 const pScore = p => (p.ph ? 4 : 0) + Math.min(usage.get(p.id) || 0, 4) + (p.mich ? 2 : 0) + (p.chk && p.chk >= RECENT ? 1 : 0) + (isNew(p) ? 1 : 0);
 const sortPlaces = (list, bonus = () => 0) => list.slice().sort((a, b) => (pScore(b) + bonus(b)) - (pScore(a) + bonus(a)) || coll.compare(sortKey(a.name), sortKey(b.name)) || cmp(a.id, b.id));
@@ -505,6 +561,7 @@ const L = {
   invPlace: (id, m) => `create.html?mode=${m}&plan=p-${enc(id)}`,
   invPlan: s => `create.html?mode=${s.mode}&plan=${enc(s.id)}`,
   invEvent: (e, m) => `create.html?event=${enc(e.id)}&mode=${m}`,
+  go: id => `go.html#r=p-${enc(id)}`,   // маршрут до места в Яндекс Картах (go.html понимает p-<id места>)
 };
 const evMode = (e, m) => (e.fit.includes(m) || !e.fit.length ? m : MODES.find(x => e.fit.includes(x)) || m);
 /* ?city= в ссылку на главную или конструктор (перед #якорем); у Москвы ссылки не меняются */
@@ -559,6 +616,7 @@ const HOW = '<section class="sec how" aria-labelledby="s-how"><h2 id="s-how">К�
   '<li><span><b>Нажми «Позвать сюда»</b> — соберётся приглашение-игра для свидания или голосование для компании.</span></li>' +
   '<li><span><b>Отправь ссылку</b> в любой мессенджер: тебе ответят, а компания отметит, куда и когда может. Бесплатно и без регистрации.</span></li></ol></section>';
 const GEN_MARK = 'scripts/build-seo.mjs';   // по этой метке скрипт узнаёт свои страницы, даже если манифест потерян
+const ICS_PRODID = `-//kuda-idem//${GEN_MARK}//RU`;   // так же — свои календари .ics
 const ldJson = o => JSON.stringify(o).replace(/</g, '\\u003c').replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029');
 /* день по Москве (UTC+3); в разделе, где что-то скрыли, число «8 из 40» уже неверно — прячем, пустой раздел — целиком */
 const staleJs = () => `<script>(function(){var d=new Date(Date.now()+108e5).toISOString().slice(0,10);if(d<='${TODAY}')return;` +
@@ -651,6 +709,8 @@ function buildCity(cid) {
     if (!list || !list.length) return null;
     return { kind, h2, all: list, items: list.slice(0, cap), more: list.length > cap && more ? more : null, note: note || '' };
   }
+  /* блок «Подписаться в календаре» (A7): ics — путь к файлу от папки города, what — что в календаре (для дикторов) */
+  const calSec = (ics, h2, note, what) => ({ kind: 'cal', h2, all: [], items: [], more: null, note, ics, what });
   function add(pg) {
     pg.sections = pg.sections.filter(Boolean);
     pg.total = uniqBy(pg.sections.flatMap(s => s.all.map(x => ({ id: s.kind + ':' + x.id })))).length;
@@ -797,6 +857,7 @@ function buildCity(cid) {
       sections: [
         sec('events', `Афиша на ${range}`, evs, CAP.events, moreEvents('')),
         sec('plans', 'Планы на день', plans, CAP.plans, morePlans(plans, 'day')),
+        calSec('weekend.ics', 'Выходные в календаре', 'Бесплатные события и наш выбор на выходные — на две недели вперёд. Подпишись один раз, и календарь будет обновляться сам.', `бесплатные события и выходные ${C.in}`),
       ],
       related: ['segodnya', 'parki', 'muzei', 'vystavki', 'koncerty', 'futbol', 'osen', 'zima'],
     });
@@ -1305,15 +1366,128 @@ function buildCity(cid) {
     pg.related = uniqBy(pg.related.filter(s => s && s !== pg.slug && BY.has(s)), s => s);
   });
 
+  /* ---------- страницы мест (A10), подборки редакции (A1) и календари (A7): данные ---------- */
+  /* своя страница m/<id>/ — у каждого открытого места не 18+ (и у сезонных: по названию их ищут круглый год) */
+  const MP = VP_ALL.filter(p => PAGE_ID.test(p.id)).sort((a, b) => cmp(a.id, b.id));
+  const HAS_PAGE = new Set(MP.map(p => p.id));
+  const placeHref = p => (p && p.city === cid && HAS_PAGE.has(p.id) ? '@m/' + p.id : null);
+  /* закрытое место — страница «Закрылось» с noindex (только если id не занят открытым местом) */
+  const CLOSED = CLOSED_ALL.filter(p => p.city === cid && !HAS_PAGE.has(p.id)).sort((a, b) => cmp(a.id, b.id));
+  /* подборки редакции этого города: адрес podborki/<slug>/ (slug — id без spb- и c-) */
+  const COLS = [];
+  {
+    const used = new Set();
+    COLS_ALL.filter(x => x.city === cid).forEach(x => {
+      let slug = x.slugBase || slugify(x.title) || 'podborka';
+      while (used.has(slug)) slug += '-2';
+      used.add(slug);
+      COLS.push(Object.assign({}, x, { slug }));
+    });
+  }
+  const colsOf = new Map();   // 'places:<id>' / 'plans:<id>' / 'events:<id>' → подборки с этим пунктом
+  COLS.forEach(col => col.items.forEach(it => { const k = it.kind + ':' + it.x.id; if (!colsOf.has(k)) colsOf.set(k, []); colsOf.get(k).push(col); }));
+  const plansAt = new Map(), eventsAt = new Map();
+  PLANS_ALL.forEach(s => new Set(s.stops).forEach(id => { if (!plansAt.has(id)) plansAt.set(id, []); plansAt.get(id).push(s); }));
+  EVENTS.forEach(e => { if (e.place && HAS_PAGE.has(e.place)) { if (!eventsAt.has(e.place)) eventsAt.set(e.place, []); eventsAt.get(e.place).push(e); } });
+  /* «Похожие рядом» — та же категория до 3 км, как в карточке места на главной; «Что ещё рядом» — другое, до 1,5 км */
+  function nearOf(p) {
+    const same = [], other = [];
+    for (const x of VP) {
+      if (x.id === p.id || !HAS_PAGE.has(x.id)) continue;
+      const d = distM(p, x);
+      if (x.c === p.c) { if (d <= 3000) same.push({ x, d }); } else if (x.c !== 'pc' && d <= 1500) other.push({ x, d });
+    }
+    const by = (a, b) => a.d - b.d || cmp(a.x.id, b.x.id);
+    return { same: same.sort(by).slice(0, 4), other: other.sort(by).slice(0, 6) };
+  }
+  /* режим страницы места: чаще всего встречается в его планах; без планов — компьютерный клуб у пацанов, остальное — свидание */
+  function placeMode(p) {
+    const n = {};
+    (plansAt.get(p.id) || []).forEach(s => { n[s.mode] = (n[s.mode] || 0) + 1; });
+    return MODES.filter(m => n[m]).sort((a, b) => n[b] - n[a])[0] || (p.c === 'pc' ? 'guys' : 'date');
+  }
+  const catSlugOf = p => ({ food: 'restorany', coffee: 'kofejni', bar: 'bary', pc: 'kompyuternye-kluby', spa: 'bani' })[p.c]
+    || (p.c === 'walk' && isPark(p) ? 'parki' : p.c === 'culture' && isMuseum(p) ? 'muzei' : p.c === 'culture' && isTheatre(p) ? 'teatry' : isQuest(p) ? 'kvesty' : isKaraoke(p) ? 'karaoke' : null);
+  const okrSlugOf = okr => (okrPages.find(x => x.okr === okr) || {}).slug || null;
+
+  /* календари: «выходные» города (weekend.ics) и события подборки (podborki/<slug>/calendar.ics) */
+  const HOST = new URL(BASE).hostname;
+  const ICS_STAMP = DATA_DATE.replace(/-/g, '') + 'T000000Z';
+  const EV_MIN = { concert: 120, theatre: 150, standup: 90, show: 120, sport: 120, party: 240, lecture: 90, festival: 240, exhibition: 120, kids: 90 };
+  const ymd8 = s => s.replace(/-/g, '');
+  function icsEvent(e, day, uid, prefix = '') {
+    const m = evMode(e, e.fit[0] || 'date');
+    const app = AFISHA_HUB ? appUrl(L.event(e, m)) : '';
+    const price = evPrice(e);
+    return {
+      uid: uid + '@' + HOST, day, time: isRun(e) ? '' : e.time, minutes: EV_MIN[e.cat] || 120,
+      summary: prefix + e.title + (isFree(e) ? ' · бесплатно' : ''),
+      location: [e.venue, e.addr].filter(Boolean).join(', '),
+      geo: Number.isFinite(e.lat) && Number.isFinite(e.lon) ? [e.lat, e.lon] : null,
+      description: [e.note, [price ? cap1(price) : '', e.age || ''].filter(Boolean).join(', '), e.url ? 'Билеты и подробности: ' + e.url : '', app ? `Позвать друзей — в «${BRAND}»: ${app}` : ''].filter(Boolean).join('\n'),
+      url: app || e.url || '', categories: isFootball(e) ? 'Футбол' : EV_CAT[e.cat] || 'Событие',
+    };
+  }
+  const byDay = (a, b) => cmp(a.day, b.day) || cmp(a.time || '', b.time || '') || cmp(a.uid, b.uid);
+  /* Выходные на две недели вперёд: 1) бесплатные и отмеченные (pick/top или пункт подборки редакции) — каждый показ,
+     не больше 4 у события; у выставок без перерыва — день открытия и последний день, если они в окне;
+     2) наш выбор на субботу и воскресенье — до 4 событий с датой на день, каждое событие один раз: сначала площадки из
+     каталога, события для нескольких поводов, с известным временем и ценой, матчи. */
+  function weekendFeed() {
+    const last = addD(TODAY, 13), win = d => d >= TODAY && d <= last;
+    const inCols = new Set(COLS.flatMap(col => col.items.filter(it => it.kind === 'events').map(it => it.x.id)));
+    const flag = e => e.pick === true || e.top === true || inCols.has(e.id);
+    const out = [], uids = new Set(), taken = new Set();
+    const push = (e, day, uid, prefix) => { if (uids.has(uid)) return; uids.add(uid); taken.add(e.id); out.push(icsEvent(e, day, uid, prefix)); };
+    const dated = EVENTS.filter(e => !isRun(e));
+    dated.filter(e => isFree(e) || flag(e)).forEach(e => e.days.filter(win).slice(0, 4).forEach(d => push(e, d, `${e.id}-${ymd8(d)}`)));
+    EVENTS.filter(e => isRun(e) && (isFree(e) || flag(e))).forEach(e => {
+      if (win(e.start)) push(e, e.start, `${e.id}-open`, 'Открытие: ');
+      if (win(e.end) && e.end !== e.start) push(e, e.end, `${e.id}-last`, 'Последний день: ');
+    });
+    const score = e => (e.placeObj ? 2 : 0) + e.fit.length + (e.time ? 1 : 0) + (Array.isArray(e.price) ? 1 : 0) + (isFootball(e) ? 1 : 0);
+    for (let d = TODAY; d <= last; d = addD(d, 1)) {
+      if (dow(d) !== 6 && dow(d) !== 0) continue;
+      dated.filter(e => e.days.includes(d) && !taken.has(e.id))
+        .sort((a, b) => score(b) - score(a) || cmp(a.time || '99', b.time || '99') || coll.compare(a.title, b.title) || cmp(a.id, b.id))
+        .slice(0, 4).forEach(e => push(e, d, `${e.id}-${ymd8(d)}`));
+    }
+    return out.sort(byDay);
+  }
+  /* события подборки: показы на два месяца вперёд (до 8 у события), выставка без перерыва — одной записью на весь срок */
+  function colFeed(col) {
+    const last = addD(TODAY, 60), out = [], uids = new Set();
+    col.items.filter(it => it.kind === 'events').forEach(({ x: e }) => {
+      if (isRun(e)) { if (!uids.has(e.id)) { uids.add(e.id); out.push(Object.assign(icsEvent(e, e.start, e.id), { endDay: e.end })); } return; }
+      e.days.filter(d => d <= last).slice(0, 8).forEach(d => { const uid = `${e.id}-${ymd8(d)}`; if (!uids.has(uid)) { uids.add(uid); out.push(icsEvent(e, d, uid)); } });
+    });
+    return out.sort(byDay);
+  }
+  /* файлы календарей; считаем при выводе (ссылки в приложение — appUrl — определены ниже) */
+  function buildIcs() {
+    const weekend = calendar({
+      prodid: ICS_PRODID, stamp: ICS_STAMP, name: `${BRAND} · ${C.name}: выходные и бесплатно`,
+      desc: `Бесплатные события ${C.gen} и наш выбор на выходные — на две недели вперёд. Календарь обновляется сам.`, events: weekendFeed(),
+    });
+    COLS.forEach(col => {
+      const evs = colFeed(col);
+      col.ics = evs.length ? calendar({ prodid: ICS_PRODID, stamp: ICS_STAMP, name: `${BRAND} · ${col.title}`, desc: `События из подборки «${col.title}» ${C.in}.`, events: evs }) : '';
+    });
+    return weekend;
+  }
+
   /* ---------- вывод HTML ---------- */
   let OTHERS = [];   // другие собранные города — ссылка на их подборки в подвале
   const groupLabel = g => (g === 'okr' ? C.okrGroup : (GROUPS.find(x => x[0] === g) || [])[1]);
   const pageUrl = slug => BASE + C.out + '/' + (slug ? slug + '/' : '');
   const appUrl = t => BASE + addCity(t, C.q);
+  /* c.depth — глубина страницы от корня сайта: 1 — <город>/index.html, 2 — <город>/<slug>/, 3 — <город>/m/<id>/ и
+     <город>/podborki/<slug>/. '@slug' (и '@m/<id>', '@podborki/<slug>') — страница города, '#index' — оглавление города */
+  const up = n => '../'.repeat(n);
   function href(target, c) {
-    if (target.startsWith('@')) return c.depth === 2 ? `../${target.slice(1)}/` : `${target.slice(1)}/`;
-    if (target === '#index') return c.depth === 2 ? '../' : './';
-    return (c.depth === 2 ? '../../' : '../') + addCity(target, C.q);
+    if (target.startsWith('@')) return up(c.depth - 1) + target.slice(1) + '/';
+    if (target === '#index') return c.depth === 1 ? './' : up(c.depth - 1);
+    return up(c.depth) + addCity(target, C.q);
   }
   function thumb(ph, emoji, c) {
     if (!ph) return `<span class="th" aria-hidden="true">${esc(emoji || '📍')}</span>`;
@@ -1326,14 +1500,16 @@ function buildCity(cid) {
     if (slug && slug !== c.slug) return `<a href="${href('@' + slug, c)}">${esc(metroText(m))}</a>`;
     return esc(metroText(m));
   }
+  /* название места ведёт на его страницу (m/<id>/), если она есть; «Подробнее и маршрут» — в карточку на главной */
   function itPlace(p, c) {
     const app = esc(href(L.place(p.id, c.mode), c)), inv = esc(href(L.invPlace(p.id, c.mode), c));
+    const own = placeHref(p) ? esc(href(placeHref(p), c)) : app;
     const meta = [esc(p.kind)];
     if (c.near) meta.push(`≈\u00a0${N(walkMin(c.near, p), W_.minute)} пешком от метро`);
     else if (p.metro) meta.push(metroHtml(p.metro, c));
     meta.push(priceHtml(p.price));
     const tags = [p.mich && C.mich[p.mich] ? `<span class="tg mich">${C.mich[p.mich]}</span>` : '', is247(p) ? '<span class="tg">Круглосуточно</span>' : '', isNew(p) ? '<span class="tg new">Новое</span>' : ''].join('');
-    return `<li class="it"><div class="hd">${thumb(p.ph, p.emoji, c)}<div class="ti"><h3><a href="${app}">${esc(p.name)}</a></h3>` +
+    return `<li class="it"><div class="hd">${thumb(p.ph, p.emoji, c)}<div class="ti"><h3><a href="${own}">${esc(p.name)}</a></h3>` +
       `<p class="meta">${meta.join(' · ')}</p></div></div><p class="ad">${esc(p.addr)}</p>${tags ? `<p class="tgs">${tags}</p>` : ''}${p.note ? `<p class="nt">${esc(p.note)}</p>` : ''}` +
       `<p class="act"><a href="${app}">Подробнее и маршрут${forName(p.name)}</a><a class="pri" href="${inv}" rel="nofollow">Позвать сюда${forName(p.name)}</a></p>${credit(p.ph)}</li>`;
   }
@@ -1343,7 +1519,8 @@ function buildCity(cid) {
     const meta = [esc(MODE_LABEL[s.mode]), esc(WHEN[s.when] || s.when || ''), priceHtml(maxPrice(s))].filter(Boolean);
     // как на главной: тег drive или больше получаса пешком — на транспорте
     const leg = (a, b) => { const m = walkMin(a, b); return drive || m > 30 ? 'дальше на метро или такси' : `${N(m, W_.minute)} пешком`; };
-    const stops = s.st.map((p, i) => `<li>${i ? `<span class="wk">${leg(s.st[i - 1], p)}</span>` : ''}<b>${esc(p.name)}</b> <span class="k">· ${esc(p.kind)}${i === 0 && p.metro ? ' · ' + metroHtml(p.metro, c) : ''}</span></li>`).join('');
+    const stopName = p => (placeHref(p) && placeHref(p) !== '@' + c.slug ? `<a href="${esc(href(placeHref(p), c))}">${esc(p.name)}</a>` : esc(p.name));
+    const stops = s.st.map((p, i) => `<li>${i ? `<span class="wk">${leg(s.st[i - 1], p)}</span>` : ''}<b>${stopName(p)}</b> <span class="k">· ${esc(p.kind)}${i === 0 && p.metro ? ' · ' + metroHtml(p.metro, c) : ''}</span></li>`).join('');
     return `<li class="it"><div class="hd">${thumb(ph, s.emoji, c)}<div class="ti"><h3><a href="${app}">${esc(s.title)}</a></h3><p class="meta">${meta.join(' · ')}</p></div></div>` +
       `<ol class="stops">${stops}</ol>${s.why ? `<p class="nt">${esc(s.why)}</p>` : ''}` +
       `<p class="act"><a href="${app}">Открыть план${forName(s.title)}</a><a class="pri" href="${inv}" rel="nofollow">Позвать сюда${forName(s.title)}</a></p>${credit(ph)}</li>`;
@@ -1356,7 +1533,10 @@ function buildCity(cid) {
     const title = app ? `<a href="${app}">${esc(e.title)}</a>` : ext ? `<a href="${ext}" target="_blank" rel="nofollow noopener">${esc(e.title)}<span class="vh"> (страница с билетами, откроется в новой вкладке)</span></a>` : esc(e.title);
     const th = e.ph ? thumb(e.ph, e.emoji, c) : `<span class="th dt" aria-hidden="true"><b>${+e.next.slice(8, 10)}</b>${MON_S[+e.next.slice(5, 7) - 1]}</span>`;
     const meta = [esc(isFootball(e) ? 'Футбол' : EV_CAT[e.cat] || 'Событие'), esc(evWhen(e))];
-    const where = [esc(e.venue || ''), e.metro ? metroHtml(e.metro, c) : '', esc(evPrice(e)), esc(e.age || '')].filter(Boolean);
+    // площадка из каталога — ссылкой на страницу места
+    const vp = e.placeObj ? placeHref(e.placeObj) : null;
+    const venue = vp && vp !== '@' + c.slug ? `<a href="${esc(href(vp, c))}">${esc(e.venue || e.placeObj.name)}</a>` : esc(e.venue || '');
+    const where = [venue, e.metro ? metroHtml(e.metro, c) : '', esc(evPrice(e)), esc(e.age || '')].filter(Boolean);
     return `<li class="it" data-end="${e.days[e.days.length - 1]}"><div class="hd">${th}<div class="ti"><h3>${title}</h3><p class="meta">${meta.join(' · ')}</p></div></div>` +
       `${where.length ? `<p class="ad">${where.join(' · ')}</p>` : ''}${e.note ? `<p class="nt">${esc(e.note)}</p>` : ''}` +
       `<p class="act">${app ? `<a href="${app}">Подробнее${forName(e.title)}</a>` : ''}<a class="pri" href="${inv}" rel="nofollow">Позвать сюда${forName(e.title)}</a>` +
@@ -1373,6 +1553,7 @@ function buildCity(cid) {
   }
   function renderSection(s, c, i) {
     const id = 's' + (i + 1);
+    if (s.kind === 'cal') return calBlock(s, c, id);
     let body;
     if (s.kind === 'links') body = `<ul class="rel">${s.items.filter(x => BY.has(x.slug)).map(x => relLink(x.slug, c, true)).join('')}</ul>`;
     else body = `<ol class="list">${s.items.map(x => (s.kind === 'plans' ? itPlan(x, c) : s.kind === 'events' ? itEvent(x, c) : itPlace(x, c))).join('')}</ol>`;
@@ -1385,7 +1566,8 @@ function buildCity(cid) {
   /* Афиша на статической странице стареет между пересборками. Без JS страница просто показывает даты;
      с JS — прячет прошедшие события и честно пишет, когда подборку собрали. */
   const staleNote = c => `<p class="stale" id="stale" role="status" hidden>Подборку собрали ${esc(dm(TODAY))}, прошедшие события скрыты. ${AFISHA_HUB ? `<a href="${esc(href(afishaHref(''), c))}">Свежая афиша — на главной</a>` : `<a href="${esc(href('start.html', c))}">Свежие планы — на главной</a>`}</p>`;
-  function doc({ depth, url, title, desc, mode, ogImage, crumbs, body, ld, events }) {
+  /* robots — для закрытого места 'noindex, follow'; tail — свой маленький скрипт в конце страницы */
+  function doc({ depth, url, title, desc, mode, ogImage, crumbs, body, ld, events, robots, tail }) {
     const c = { depth };
     // картинка для превью ссылок — общая PNG 1200×630: webp-фото мест понимают не все соцсети и мессенджеры
     const og = BASE + (ogImage || C.og);
@@ -1399,7 +1581,7 @@ function buildCity(cid) {
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(desc)}">
 <link rel="canonical" href="${esc(url)}">
-<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="robots" content="${robots || 'index, follow, max-image-preview:large'}">
 <meta name="generator" content="${GEN_MARK}">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="${esc(BRAND)}">
@@ -1417,7 +1599,7 @@ function buildCity(cid) {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&amp;family=Onest:wght@400;500;600;700&amp;display=swap">
-<link rel="stylesheet" href="${depth === 2 ? '../' : ''}seo.css?v=${cssVersionOf(C)}">
+<link rel="stylesheet" href="${up(depth - 1)}seo.css?v=${cssVersionOf(C)}">
 <script type="application/ld+json">${ldJson(ld)}</script>
 </head>
 <body>
@@ -1428,10 +1610,10 @@ function buildCity(cid) {
 ${events ? staleNote(c) + '\n' : ''}${body}
 </main>
 <footer class="foot">
-<nav class="fl" aria-label="Разделы сайта"><a href="${href('start.html', c)}">Главная</a><a href="${href('#index', c)}">Все подборки</a>${other}<a href="${href('create.html', c)}" rel="nofollow">Конструктор приглашений</a><a href="${href('partners.html', c)}">Для заведений</a><a href="${href('privacy.html', c)}">Конфиденциальность</a>${rules}</nav>
+<nav class="fl" aria-label="Разделы сайта"><a href="${href('start.html', c)}">Главная</a><a href="${href('#index', c)}">Все подборки</a><a href="${href('@m', c)}">Все места</a>${other}<a href="${href('create.html', c)}" rel="nofollow">Конструктор приглашений</a><a href="${href('partners.html', c)}">Для заведений</a><a href="${href('privacy.html', c)}">Конфиденциальность</a>${rules}</nav>
 <p>Места проверяем каждый месяц. Часы работы лучше уточнить в Яндекс Картах перед выходом. Цена — ориентир на человека: ₽ — до 1 500 ₽, ₽₽ — 1 500–3 000 ₽, ₽₽₽ — дороже.</p>
 <p>Координаты © участники OpenStreetMap. Фото — Wikimedia Commons и Flickr под свободными лицензиями, автор и лицензия указаны под снимком.</p>
-</footer>${events ? '\n' + staleJs() : ''}
+</footer>${events ? '\n' + staleJs() : ''}${tail ? '\n' + tail : ''}
 </body>
 </html>
 `;
@@ -1482,6 +1664,211 @@ ${events ? staleNote(c) + '\n' : ''}${body}
     if (AFISHA_HUB) o.url = appUrl('start.html?event=' + enc(e.id));
     else if (e.url) o.url = e.url;
     return o;
+  }
+
+  /* ---------- календарь: «Подписаться» (webcal:// — Apple, Outlook и др.), Google Календарь и сам файл ---------- */
+  const icsUrl = rel => BASE + C.out + '/' + rel;
+  const webcal = u => u.replace(/^https?:/, 'webcal:');
+  function calBlock(s, c, id) {
+    const u = icsUrl(s.ics);
+    return `<section class="sec cal" aria-labelledby="${id}"><h2 id="${id}">${esc(s.h2)}</h2>${s.note ? `<p class="sn">${esc(s.note)}</p>` : ''}<p class="act">` +
+      `<a class="pri" href="${esc(webcal(u))}" rel="nofollow">Подписаться в календаре<span class="vh">: ${esc(s.what)}</span></a>` +
+      `<a href="${esc('https://calendar.google.com/calendar/r?cid=' + enc(webcal(u)))}" target="_blank" rel="nofollow noopener">Google Календарь<span class="vh">: ${esc(s.what)} (откроется в новой вкладке)</span></a>` +
+      `<a href="${esc(up(c.depth - 1) + s.ics)}" download rel="nofollow">Файл .ics<span class="vh">: ${esc(s.what)}</span></a></p></section>`;
+  }
+
+  /* ---------- страница места ---------- */
+  const MON_P = ['январе', 'феврале', 'марте', 'апреле', 'мае', 'июне', 'июле', 'августе', 'сентябре', 'октябре', 'ноябре', 'декабре'];
+  const lc1 = s => (/^[А-ЯЁA-Z][а-яёa-z]/.test(s) ? s.charAt(0).toLowerCase() + s.slice(1) : s);
+  const clip = (s, n) => { s = String(s || '').replace(/\s+/g, ' ').trim(); if (s.length <= n) return s; const t = s.slice(0, n - 1); return t.slice(0, Math.max(t.lastIndexOf(' '), n * 0.6)).replace(/[\s,.;:—–-]+$/, '') + '…'; };
+  const mapUrlOf = p => { try { if (DK && DK.mapUrl) { const u = DK.mapUrl(p); if (/^https:\/\//.test(u)) return u; } } catch (e) { /* ниже */ } return 'https://yandex.ru/maps/?text=' + enc(C.full + ', ' + p.addr + ', ' + p.name); };
+  /* часы работы (A5): подмножество OSM opening_hours → «пн–чт 12:00–24:00; пт, сб 12:00–02:00; вс выходной»; непонятное — не показываем */
+  const OH_D = { Mo: 'пн', Tu: 'вт', We: 'ср', Th: 'чт', Fr: 'пт', Sa: 'сб', Su: 'вс' };
+  const OH_PART = /^((?:Mo|Tu|We|Th|Fr|Sa|Su)(?:[-,](?:Mo|Tu|We|Th|Fr|Sa|Su))*)\s+(off|closed|\d\d:\d\d-\d\d:\d\d(?:,\d\d:\d\d-\d\d:\d\d)*)$/;
+  function hoursOf(p) {
+    const oh = String(p.oh || '').trim();
+    if (!oh || BAD.test(oh)) return null;
+    if (oh === '24/7') return { text: 'круглосуточно', ld: ['Mo-Su 00:00-23:59'] };
+    const parts = oh.split(/\s*;\s*/).filter(Boolean), text = [], ld = [];
+    for (const part of parts) {
+      const m = OH_PART.exec(part);
+      if (!m) return null;
+      const off = /^(off|closed)$/.test(m[2]);
+      text.push(`${m[1].replace(/[A-Z][a-z]/g, d => OH_D[d]).replace(/-/g, '–').replace(/,/g, ', ')} ${off ? 'выходной' : m[2].replace(/-/g, '–').replace(/,/g, ', ')}`);
+      if (!off) m[2].split(',').forEach(t => ld.push(`${m[1]} ${t}`));
+    }
+    return text.length ? { text: text.join('; '), ld } : null;
+  }
+  /* телефон, сайт и бронь (A8): только официальные — +7…, https://…; без соцсетей */
+  const telOf = p => (/^\+\d{10,15}$/.test(p.tel || '') ? p.tel : '');
+  const telText = t => (/^\+7\d{10}$/.test(t) ? `+7 (${t.slice(2, 5)}) ${t.slice(5, 8)}-${t.slice(8, 10)}-${t.slice(10)}` : t);
+  const urlOf = u => (/^https:\/\/[^\s"'<>]+$/.test(u || '') && !BAD.test(u) ? u : '');
+  const hostOf = u => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch (e) { return u; } };
+  /* ссылки «в текущем режиме»: главная запоминает режим в localStorage 'kuda-mode' — «Позвать сюда» и «Открыть в каталоге»
+     (a[data-m]) переписываем под него; без хранилища остаётся режим страницы */
+  const MODE_JS = `<script>(function(){try{var m=localStorage.getItem('kuda-mode');if(!/^(date|guys|girls)$/.test(m||''))return;` +
+    `document.documentElement.setAttribute('data-mode',m);var a=document.querySelectorAll('a[data-m]'),i;` +
+    `for(i=0;i<a.length;i++)a[i].setAttribute('href',a[i].getAttribute('href').replace(/([?&](?:m|mode)=)(?:date|guys|girls)/,'$1'+m));}catch(e){}})();</script>`;
+  function nearList(list, c, from) {
+    return `<ul class="near">${list.map(({ x, d }) => {
+      const m = walkMin(from, x), how = m <= 30 ? `≈\u00a0${N(m, W_.minute)} пешком` : `≈\u00a0${(d / 1000).toFixed(1).replace('.', ',')}\u00a0км`;
+      return `<li><a href="${esc(href('@m/' + x.id, c))}">${thumb(x.ph, x.emoji, c)}<span class="nm"><b>${esc(x.name)}</b><span>${esc(x.kind)} · ${how}</span></span></a></li>`;
+    }).join('')}</ul>`;
+  }
+  const colCount = col => joinRu(['places', 'plans', 'events'].map(k => [k, col.items.filter(it => it.kind === k).length]).filter(([, n]) => n)
+    .map(([k, n]) => N(n, k === 'places' ? W_.place : k === 'plans' ? W_.plan : W_.event)));
+  const colChips = (list, c) => `<ul class="rel">${list.map(col => `<li><a href="${esc(href('@podborki/' + col.slug, c))}"><span aria-hidden="true">${esc(col.emoji)}</span> ${esc(col.title)} <span>${esc(colCount(col))}</span></a></li>`).join('')}</ul>`;
+  const ldTypeFull = p => { const t = ldType(p); return LOCAL_BIZ.has(t) || t === 'TouristAttraction' ? t : [t, 'TouristAttraction']; };
+  function renderPlace(p, closed) {
+    const mode = closed ? 'date' : placeMode(p);
+    const c = { depth: 3, mode, slug: 'm/' + p.id, near: null, img: 3 };
+    const url = pageUrl('m/' + p.id);
+    const o = OKR[p.okr] || null, okrSlug = okrSlugOf(p.okr), kindLc = lc1(String(p.kind || 'Место'));
+    const near = nearOf(p);
+    const crumbs = [['Главная', href('start.html', c), appUrl('start.html')], [C.name, href('#index', c), pageUrl('')], ['Все места', href('@m', c), pageUrl('m')], [p.name, '', url]];
+    const relHtml = slugs => { const s = uniqBy(slugs.filter(x => x && BY.has(x)), x => x).slice(0, 8); return s.length ? `<nav class="sec" aria-labelledby="s-rel"><h2 id="s-rel">Ещё подборки</h2><ul class="rel">${s.map(x => relLink(x, c)).join('')}<li><a href="${href('#index', c)}">Все подборки ${esc(C.dat)}</a></li></ul></nav>` : ''; };
+    const nearSecs = (h1, h2) => [
+      near.same.length ? `<section class="sec" aria-labelledby="s-same"><h2 id="s-same">${esc(h1)}</h2>${nearList(near.same, c, p)}</section>` : '',
+      near.other.length ? `<section class="sec" aria-labelledby="s-near"><h2 id="s-near">${esc(h2)}</h2>${nearList(near.other, c, p)}</section>` : '',
+    ].join('\n');
+    if (closed) {
+      // место закрылось: страница остаётся для старых ссылок, но не индексируется; ведём к похожим рядом
+      const title = `${p.name}: закрылось`;
+      const hero = `<section class="hero"><p class="eyebrow">${esc(p.kind)}${o ? ' · ' + esc(o.short || o.name) : ''}</p><h1>${esc(`${p.name}: место закрылось`)}</h1>` +
+        `<p class="lead">${esc(`По нашим данным, ${kindLc} ${q(p.name)}${p.addr ? ` (${p.addr})` : ''} больше не работает, поэтому из каталога и планов мы его убрали. Ниже — похожие места рядом, которые работают.`)}</p>` +
+        `<p class="cta"><a class="btn primary" href="${esc(href(placesHref(mode, catOf(p), '', false), c))}">Похожие места в каталоге</a><a class="btn ghost" href="${esc(href('create.html?mode=' + mode, c))}" rel="nofollow">Позвать игрой</a></p></section>`;
+      const ld = { '@context': 'https://schema.org', '@graph': [{ '@type': 'WebPage', '@id': url + '#page', url, name: title, inLanguage: 'ru-RU', isPartOf: { '@type': 'WebSite', name: BRAND, url: BASE + 'start.html' }, breadcrumb: { '@id': url + '#breadcrumb' } }, crumbsLd(crumbs, url)] };
+      return doc({ depth: 3, url, title: `${title} | ${BRAND}`, desc: `${cap1(kindLc)} ${q(p.name)} ${C.in} закрылось. Похожие места рядом — с адресами, ценами и маршрутом.`, mode, ogImage: '', crumbs, robots: 'noindex, follow',
+        body: `${hero}\n${nearSecs('Похожие рядом', 'Что ещё рядом')}\n${relHtml([catSlugOf(p), okrSlug, isMetro(p.metro) ? metroSlugOf(p.metro) : null])}`, ld });
+    }
+    const plans = sortPlans(plansAt.get(p.id) || []);
+    const evs = sortEvents(eventsAt.get(p.id) || []);
+    const cols = colsOf.get('places:' + p.id) || [];
+    const hours = hoursOf(p), tel = telOf(p), site = urlOf(p.site), book = urlOf(p.book);
+    const price = Math.max(1, Math.min(3, p.price || 1));
+    const mapU = mapUrlOf(p);
+    // факты: адрес, метро, район, цена, часы, телефон, сайт, бронь, когда проверяли
+    const facts = [['Адрес', `${esc(p.addr)}<br><a href="${esc(mapU)}" target="_blank" rel="nofollow noopener">Открыть на Яндекс Картах<span class="vh"> (в новой вкладке)</span></a>`]];
+    if (p.metro) facts.push([isMetro(p.metro) ? 'Метро' : 'Станция', metroHtml(p.metro, c)]);
+    if (o) facts.push([cap1(C.okrOne), okrSlug ? `<a href="${esc(href('@' + okrSlug, c))}">${esc(o.name)}${o.short ? ` (${esc(o.short)})` : ''}</a>` : esc(o.name)]);
+    facts.push(['Цена', `<span aria-hidden="true">${'₽'.repeat(price)} · </span>${esc(PRICE_HINT[price])}`]);
+    if (hours) facts.push(['Часы работы', esc(hours.text) + (/^\d{4}-\d\d$/.test(p.ohChk || '') ? ` <span class="k">· проверили в ${MON_P[+p.ohChk.slice(5, 7) - 1]} ${p.ohChk.slice(0, 4)}</span>` : '')]);
+    if (tel) facts.push(['Телефон', `<a href="tel:${esc(tel)}">${esc(telText(tel))}</a>`]);
+    if (site) facts.push(['Сайт', `<a href="${esc(site)}" target="_blank" rel="nofollow noopener">${esc(hostOf(site))}<span class="vh"> (в новой вкладке)</span></a>`]);
+    if (book) facts.push(['Бронь', `<a href="${esc(book)}" target="_blank" rel="nofollow noopener">Забронировать на сайте заведения<span class="vh"> (в новой вкладке)</span></a>${p.minBook ? ` <span class="k">· ${esc(clip(p.minBook, 40))}</span>` : ''}`]);
+    if (/^\d{4}-\d\d$/.test(p.chk || '')) facts.push(['Проверено', `работает — проверили в ${MON_P[+p.chk.slice(5, 7) - 1]} ${p.chk.slice(0, 4)}`]);
+    const factsHtml = `<section class="sec" aria-labelledby="s-info"><h2 id="s-info">Адрес и детали</h2><dl class="facts">${facts.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${v}</dd></div>`).join('')}</dl></section>`;
+    const stats = [`${'₽'.repeat(price)} · ${PRICE_HINT[price]}`, p.mich && C.mich[p.mich] ? C.mich[p.mich] : '', is247(p) ? 'Круглосуточно' : '', isNew(p) ? 'Новое в каталоге' : '',
+      plans.length ? `в ${N(plans.length, ['плане', 'планах', 'планах'])}` : '', evs.length ? N(evs.length, W_.event) + ' в афише' : ''].filter(Boolean);
+    const ph = p.ph;
+    const photo = ph ? `<figure class="pph"><img src="${esc(href(ph.s, c))}" width="720" height="450" alt="${esc(`${p.name}, ${kindLc}`)}" fetchpriority="high" decoding="async"><figcaption>${credit(ph)}</figcaption></figure>\n` : '';
+    const hero = `<section class="hero"><p class="eyebrow">${esc(p.kind)}${o ? ' · ' + esc(o.short || o.name) : ''}</p><h1>${esc(p.name)}</h1>${p.note ? `<p class="lead">${esc(p.note)}</p>` : ''}` +
+      `<ul class="stats" aria-label="Коротко">${stats.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` +
+      `<p class="cta"><a class="btn primary" data-m href="${esc(href(L.invPlace(p.id, mode), c))}" rel="nofollow">Позвать сюда<span class="vh">: ${esc(p.name)}</span></a>` +
+      `<a class="btn ghost" data-m href="${esc(href(L.place(p.id, mode), c))}">Открыть в каталоге<span class="vh">: ${esc(p.name)}</span></a>` +
+      `<a class="btn ghost" href="${esc(href(L.go(p.id), c))}" rel="nofollow">Маршрут до места<span class="vh">: ${esc(p.name)}</span></a></p></section>`;
+    let i = 0;
+    const secs = [
+      sec('plans', 'Планы с этим местом', plans, 6, { href: L.place(p.id, mode), text: 'Ещё планы — в карточке места' }),
+      sec('events', 'Афиша площадки', evs, 6, moreEvents(mode)),
+    ].filter(Boolean).map(s => renderSection(s, c, i++)).join('\n');
+    const colsHtml = cols.length ? `<section class="sec" aria-labelledby="s-cols"><h2 id="s-cols">Входит в подборки</h2>${colChips(cols.slice(0, 3), c)}</section>` : '';
+    const rel = relHtml([catSlugOf(p), isView(p) ? 'krishi-i-panoramy' : null, isRink(p) ? 'katki' : null, isSportsBar(p) ? 'futbol' : null, has(p, 'first') ? 'pervoe-svidanie' : null,
+      has(p, 'autumn') ? 'osen' : null, isMetro(p.metro) ? metroSlugOf(p.metro) : null, p.c === 'pc' && isMetro(p.metro) ? pcMetroSlug(p.metro) : null, okrSlug]);
+    const title = `${p.name} — ${kindLc} ${C.in}${isMetro(p.metro) ? `, м.\u00a0${p.metro}` : ''}`;
+    const desc = clip(`${cap1(kindLc)} ${q(p.name)} ${C.in}: ${p.addr}${p.metro ? `, ${metroText(p.metro)}` : ''}. ${p.note || ''} ${PRICE_HINT[price] ? `Цена — ${PRICE_HINT[price]}.` : ''}`, 200);
+    const place = ldPlace(p);
+    place['@type'] = ldTypeFull(p);
+    place['@id'] = url + '#place';
+    place.url = site || url;
+    place.hasMap = mapU;
+    if (tel) place.telephone = tel;
+    if (hours && hours.ld.length) place.openingHours = hours.ld;
+    place.mainEntityOfPage = { '@id': url + '#page' };
+    const ld = {
+      '@context': 'https://schema.org',
+      '@graph': [
+        { '@type': 'WebPage', '@id': url + '#page', url, name: title, description: desc, inLanguage: 'ru-RU', isPartOf: { '@type': 'WebSite', name: BRAND, url: BASE + 'start.html' }, breadcrumb: { '@id': url + '#breadcrumb' }, mainEntity: { '@id': url + '#place' }, ...(ph ? { primaryImageOfPage: { '@type': 'ImageObject', url: BASE + ph.s } } : {}) },
+        crumbsLd(crumbs, url),
+        place,
+      ],
+    };
+    return doc({ depth: 3, url, title: `${title} | ${BRAND}`, desc, mode, ogImage: '', crumbs, events: evs.length > 0, tail: MODE_JS,
+      body: `${photo}${hero}\n${factsHtml}\n${secs}\n${colsHtml}\n${nearSecs('Похожие рядом', 'Что ещё рядом')}\n${rel}\n${HOW}`, ld });
+  }
+  /* — все места города от А до Я: m/ — */
+  const AZ = [['food', 'Рестораны и кафе'], ['coffee', 'Кофейни и пекарни'], ['bar', 'Бары'], ['museum', 'Музеи и галереи'], ['theatre', 'Театры'], ['culture', 'Культура'],
+    ['walk', 'Прогулки'], ['fun', 'Развлечения'], ['spa', 'Бани и спа'], ['books', 'Книжные'], ['pc', 'Компьютерные клубы']];
+  function renderPlacesIndex() {
+    const c = { depth: 2, mode: 'date', img: 0 };
+    const url = pageUrl('m');
+    const crumbs = [['Главная', href('start.html', c), appUrl('start.html')], [C.name, href('#index', c), pageUrl('')], ['Все места', '', url]];
+    const groups = [...AZ, ['other', 'Другое']].map(([k, label]) => [k, label, MP.filter(p => (AZ.some(a => a[0] === SUB(p)) ? SUB(p) : 'other') === k)
+      .sort((a, b) => coll.compare(sortKey(a.name), sortKey(b.name)) || cmp(a.id, b.id))]).filter(g => g[2].length);
+    const toc = `<nav class="sec" aria-label="Разделы"><ul class="rel">${groups.map(([k, label, list]) => `<li><a href="#g-${k}">${esc(label)} <span>${num(list.length)}</span></a></li>`).join('')}</ul></nav>`;
+    const secs = groups.map(([k, label, list]) => `<section class="sec" aria-labelledby="g-${k}"><h2 id="g-${k}">${esc(label)} <span class="n">${list.length}</span></h2>` +
+      `<ul class="az">${list.map(p => `<li><a href="${esc(p.id)}/">${esc(p.name)}</a>${p.metro ? ` <span>${esc(metroText(p.metro))}</span>` : ''}</li>`).join('')}</ul></section>`).join('\n');
+    const h1 = `Все места ${C.gen} от А до Я`;
+    const lead = `${cap1(N(MP.length, W_.place))} ${C.in} и рядом: ${breakdown(MP)}. У каждого — своя страница: адрес, метро, цена, готовые планы с этим местом и что есть рядом. Места 18+ и закрывшиеся сюда не попадают.`;
+    const hero = `<section class="hero"><p class="eyebrow">${esc(C.name)} · каталог</p><h1>${esc(h1)}</h1><p class="lead">${esc(lead)}</p>` +
+      `<p class="cta"><a class="btn primary" href="${esc(href(placesHref('date', '', '', true), c))}">Все места на карте</a><a class="btn ghost" href="${href('#index', c)}">Подборки ${esc(C.dat)}</a></p></section>`;
+    const ld = { '@context': 'https://schema.org', '@graph': [
+      { '@type': 'CollectionPage', '@id': url + '#page', url, name: h1, description: lead, inLanguage: 'ru-RU', isPartOf: { '@type': 'WebSite', name: BRAND, url: BASE + 'start.html' }, breadcrumb: { '@id': url + '#breadcrumb' } },
+      crumbsLd(crumbs, url)] };
+    return doc({ depth: 2, url, title: `${h1}: ${N(MP.length, W_.place)} с адресами и ценами | ${BRAND}`, desc: clip(`Каталог ${C.gen}: ${breakdown(MP, 3)}. Адреса, метро, цены, планы и что рядом — у каждого места своя страница.`, 200), mode: 'date', ogImage: '', crumbs, body: `${hero}\n${toc}\n${secs}`, ld });
+  }
+
+  /* ---------- подборки редакции: podborki/ и podborki/<slug>/ ---------- */
+  function colPrice(col) {
+    const ps = col.items.flatMap(it => (it.kind === 'places' ? [it.x] : it.kind === 'plans' ? it.x.st : []));
+    if (!ps.length) return '';
+    const m = Math.max(...ps.map(p => p.price || 1));
+    return m <= 1 ? 'до 1 500 ₽ на человека' : m <= 2 ? 'до 3 000 ₽ на человека' : '';
+  }
+  const itAny = (it, c) => (it.kind === 'plans' ? itPlan(it.x, c) : it.kind === 'events' ? itEvent(it.x, c) : itPlace(it.x, c));
+  function renderCol(col) {
+    const c = { depth: 3, mode: col.mode, slug: 'podborki/' + col.slug, near: null, img: 0 };
+    const url = pageUrl('podborki/' + col.slug);
+    const n = colCount(col);
+    const named = /москв|петербург|питер|спб/i.test(col.title);
+    const title = `${col.title}${named ? '' : ' ' + C.in}: ${n}`;
+    const desc = clip(col.lead || `${col.title} ${C.in}: ${n} — адреса, цены и маршрут. Выбери и позови игрой или голосованием.`, 200);
+    const crumbs = [['Главная', href('start.html', c), appUrl('start.html')], [C.name, href('#index', c), pageUrl('')], ['Подборки редакции', href('@podborki', c), pageUrl('podborki')], [col.title, '', url]];
+    // ?col= на главной и в конструкторе — когда они это умеют (A1), иначе — обычные кнопки
+    const app = COL_HUB ? { href: `start.html?col=${enc(col.id)}&m=${col.mode}`, text: 'Открыть в приложении' } : { href: `start.html?m=${col.mode}`, text: 'Все планы' };
+    const inv = COL_CREATE ? { href: `create.html?col=${enc(col.id)}&mode=${col.mode}`, text: 'Позвать по подборке' } : { href: `create.html?mode=${col.mode}`, text: col.mode === 'date' ? 'Позвать игрой' : 'Собрать компанию' };
+    const stats = [n, colPrice(col), col.until ? `до ${dm(col.until)}` : ''].filter(Boolean);
+    const hero = `<section class="hero"><p class="eyebrow">Подборка редакции · ${esc(C.name)}</p><h1><span aria-hidden="true">${esc(col.emoji)}</span> ${esc(col.title)}</h1>` +
+      `<p class="lead">${esc(col.lead || `${cap1(n)}: адреса, цены и маршрут. Выбери вариант и позови игрой или голосованием.`)}</p>` +
+      `<ul class="stats" aria-label="Коротко">${stats.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` +
+      `<p class="cta"><a class="btn primary" href="${esc(href(inv.href, c))}" rel="nofollow">${esc(inv.text)}</a><a class="btn ghost" href="${esc(href(app.href, c))}">${esc(app.text)}</a></p></section>`;
+    const parts = col.secs.length ? col.secs : [{ t: 'Что в подборке', items: col.items }];
+    const secs = parts.map((s, i) => `<section class="sec" aria-labelledby="s${i + 1}"><h2 id="s${i + 1}">${esc(s.t)} <span class="n">${s.items.length}</span></h2>` +
+      `<ol class="list">${s.items.map(it => itAny(it, c)).join('')}</ol></section>`).join('\n');
+    const cal = col.ics ? calBlock(calSec(`podborki/${col.slug}/calendar.ics`, 'События подборки в календаре', 'Даты и время событий из подборки — в твоём календаре. Подпишись, и новые даты появятся сами.', `события подборки «${col.title}»`), c, 's-cal') : '';
+    const others = COLS.filter(x => x !== col);
+    const rel = `<nav class="sec" aria-labelledby="s-rel"><h2 id="s-rel">Ещё подборки редакции</h2>${others.length ? colChips(others.slice(0, 8), c) : ''}<p class="more"><a class="btn ghost" href="${esc(href('@podborki', c))}">Все подборки редакции ${esc(C.in)}</a></p></nav>`;
+    const items = col.items.map(it => (it.kind === 'places' ? ldPlace(it.x) : it.kind === 'plans' ? ldPlan(it.x) : ldEvent(it.x)));
+    const ld = { '@context': 'https://schema.org', '@graph': [
+      { '@type': 'CollectionPage', '@id': url + '#page', url, name: col.title, description: desc, inLanguage: 'ru-RU', isPartOf: { '@type': 'WebSite', name: BRAND, url: BASE + 'start.html' }, breadcrumb: { '@id': url + '#breadcrumb' }, mainEntity: { '@id': url + '#list' } },
+      crumbsLd(crumbs, url),
+      { '@type': 'ItemList', '@id': url + '#list', name: col.title, numberOfItems: items.length, itemListElement: items.map((it, i) => ({ '@type': 'ListItem', position: i + 1, item: it })) }] };
+    return doc({ depth: 3, url, title: `${title} | ${BRAND}`, desc, mode: col.mode, ogImage: '', crumbs, events: col.items.some(it => it.kind === 'events'), body: `${hero}\n${secs}\n${cal}\n${rel}\n${HOW}`, ld });
+  }
+  function renderColsIndex() {
+    const c = { depth: 2, mode: 'date', img: 0 };
+    const url = pageUrl('podborki');
+    const crumbs = [['Главная', href('start.html', c), appUrl('start.html')], [C.name, href('#index', c), pageUrl('')], ['Подборки редакции', '', url]];
+    const h1 = `Подборки редакции ${C.in}`;
+    const lead = `${cap1(N(COLS.length, ['подборка', 'подборки', 'подборок']))}, которые мы собрали сами: места, готовые планы и события на одну тему. Открой любую и позови по ней — игрой на свидание или голосованием для компании.`;
+    const list = `<section class="sec" aria-labelledby="s1"><h2 id="s1" class="vh">Подборки</h2><ol class="list">${COLS.map(col => `<li class="it"><div class="hd"><span class="th" aria-hidden="true">${esc(col.emoji)}</span><div class="ti"><h3><a href="${esc(col.slug)}/">${esc(col.title)}</a></h3>` +
+      `<p class="meta">${esc([colCount(col), colPrice(col), col.until ? `до ${dm(col.until)}` : ''].filter(Boolean).join(' · '))}</p></div></div>${col.lead ? `<p class="nt">${esc(clip(col.lead, 180))}</p>` : ''}</li>`).join('')}</ol></section>`;
+    const hero = `<section class="hero"><p class="eyebrow">${esc(C.name)} · ${N(COLS.length, ['подборка', 'подборки', 'подборок'])}</p><h1>${esc(h1)}</h1><p class="lead">${esc(lead)}</p></section>`;
+    const ld = { '@context': 'https://schema.org', '@graph': [
+      { '@type': 'CollectionPage', '@id': url + '#page', url, name: h1, description: lead, inLanguage: 'ru-RU', isPartOf: { '@type': 'WebSite', name: BRAND, url: BASE + 'start.html' }, breadcrumb: { '@id': url + '#breadcrumb' }, mainEntity: { '@id': url + '#list' } },
+      crumbsLd(crumbs, url),
+      { '@type': 'ItemList', '@id': url + '#list', numberOfItems: COLS.length, itemListElement: COLS.map((col, i) => ({ '@type': 'ListItem', position: i + 1, name: col.title, url: pageUrl('podborki/' + col.slug) })) }] };
+    return doc({ depth: 2, url, title: `${h1}: бани, бары, свидания и выходные | ${BRAND}`, desc: clip(`${h1}: ${COLS.slice(0, 4).map(x => x.title).join(', ')}. Места, планы и события на одну тему — с адресами, ценами и маршрутом.`, 200), mode: 'date', ogImage: '', crumbs, body: `${hero}\n${list}\n${HOW}`, ld });
   }
 
   function renderPage(pg) {
@@ -1539,10 +1926,23 @@ ${events ? staleNote(c) + '\n' : ''}${body}
     OTHERS = all.filter(b => b.C !== C);
     files.set(C.out + '/seo.css', cssOf(C));
     PAGES.sort((a, b) => GROUPS.findIndex(g => g[0] === a.group) - GROUPS.findIndex(g => g[0] === b.group));
+    // календари считаем до страниц: у подборки с событиями на странице — блок «Подписаться» (col.ics)
+    const weekend = buildIcs();
+    if (weekend) files.set(C.out + '/weekend.ics', weekend);
     for (const pg of PAGES) files.set(`${C.out}/${pg.slug}/index.html`, renderPage(pg));
     files.set(C.out + '/index.html', renderIndex());
+    // своя страница у каждого места (A10) и «Закрылось» с noindex у закрытых
+    for (const p of MP) files.set(`${C.out}/m/${p.id}/index.html`, renderPlace(p));
+    for (const p of CLOSED) files.set(`${C.out}/m/${p.id}/index.html`, renderPlace(p, true));
+    if (MP.length) files.set(C.out + '/m/index.html', renderPlacesIndex());
+    // подборки редакции (A1)
+    for (const col of COLS) {
+      files.set(`${C.out}/podborki/${col.slug}/index.html`, renderCol(col));
+      if (col.ics) files.set(`${C.out}/podborki/${col.slug}/calendar.ics`, col.ics);
+    }
+    if (COLS.length) files.set(C.out + '/podborki/index.html', renderColsIndex());
   }
-  return { C, PAGES, VP, PLANS, EVENTS, DATA_DATE, groupLabel, pageUrl, render };
+  return { C, PAGES, VP, PLANS, EVENTS, DATA_DATE, groupLabel, pageUrl, render, MP, COLS };
 }
 
 /* ---------- стили подборок ---------- */
@@ -1681,7 +2081,7 @@ for (const C of Object.values(CITIES)) {
     if (C === MAIN && m.static) old.static = m.static;
   } catch (e) { /* первый запуск */ }
 }
-const SAFE = new RegExp(`^(${DIRS.join('|')})\\/(seo\\.css|index\\.html|[a-z0-9-]+\\/index\\.html)$`);
+const SAFE = new RegExp(`^(${DIRS.join('|')})\\/(seo\\.css|index\\.html|weekend\\.ics|[a-z0-9-]+\\/index\\.html|(m|podborki)\\/[a-z0-9-]+\\/(index\\.html|calendar\\.ics))$`);
 const NOTE = 'Список файлов, которые создаёт scripts/build-seo.mjs (для удаления устаревших и <lastmod> в sitemap.xml). Не править руками.';
 const mans = new Map(BUILT.map(b => [b.C.out, b.C === MAIN ? { note: NOTE, site: BASE, files: {}, static: {} } : { note: NOTE, site: BASE, files: {} }]));
 const stat = { added: [], changed: [], same: 0, removed: [] };
@@ -1704,6 +2104,12 @@ for (const dir of DIRS) {
     for (const d of fs.readdirSync(outAbs(dir), { withFileTypes: true })) {
       const f = `${dir}/${d.name}/index.html`;
       if (d.isDirectory() && !files.has(f) && SAFE.test(f) && ours(f)) stale.add(f);
+      if (d.isDirectory() && (d.name === 'm' || d.name === 'podborki')) {
+        for (const e of fs.readdirSync(outAbs(`${dir}/${d.name}`), { withFileTypes: true })) {
+          const g = `${dir}/${d.name}/${e.name}/index.html`;
+          if (e.isDirectory() && !files.has(g) && SAFE.test(g) && ours(g)) stale.add(g);
+        }
+      }
     }
     if (!files.has(`${dir}/index.html`) && ours(`${dir}/index.html`)) stale.add(`${dir}/index.html`);
   } catch (e) { /* папки ещё нет */ }
@@ -1759,6 +2165,15 @@ for (const b of BUILT) {
   const man = mans.get(b.C.out);
   urls.push({ loc: b.pageUrl(''), lastmod: man.files[b.C.out + '/index.html'].lastmod, changefreq: 'weekly', priority: '0.8' });
   for (const pg of b.PAGES) urls.push({ loc: b.pageUrl(pg.slug), lastmod: man.files[`${b.C.out}/${pg.slug}/index.html`].lastmod, changefreq: pg.changefreq || 'weekly', priority: PRIO[pg.group] || '0.5' });
+  const lm = f => (man.files[f] || {}).lastmod || TODAY;
+  if (b.COLS.length) {
+    urls.push({ loc: b.pageUrl('podborki'), lastmod: lm(`${b.C.out}/podborki/index.html`), changefreq: 'weekly', priority: '0.7' });
+    for (const col of b.COLS) urls.push({ loc: b.pageUrl('podborki/' + col.slug), lastmod: lm(`${b.C.out}/podborki/${col.slug}/index.html`), changefreq: 'weekly', priority: '0.7' });
+  }
+  if (b.MP.length) {
+    urls.push({ loc: b.pageUrl('m'), lastmod: lm(`${b.C.out}/m/index.html`), changefreq: 'weekly', priority: '0.5' });
+    for (const p of b.MP) urls.push({ loc: b.pageUrl('m/' + p.id), lastmod: lm(`${b.C.out}/m/${p.id}/index.html`), changefreq: 'monthly', priority: '0.4' });
+  }
 }
 const xml = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
