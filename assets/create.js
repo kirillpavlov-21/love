@@ -1476,8 +1476,57 @@
     const cur = readList('places');
     return !cur.length || (cur.length === DEF.places.length && cur.every((p, i) => !p.plan && p.title === DEF.places[i].title && p.emoji === DEF.places[i].emoji));
   };
+  /* «Позвать по подборке»: ?col=<id> или свой список ?list=…&t=… (start.html, assets/cols.js). В компании пункты встают
+     вариантами голосования (план другого повода — его местами), в свидании — шариками; события — вариантами или событием */
+  function applyCollection(q) {
+    const C = window.KudaCols;
+    const colId = q.get('col'), lv = q.get('list');
+    if (!C || (!colId && !lv)) return false;
+    const col = colId ? C.find(colId) : null;
+    const ids = col ? [] : C.decodeList(lv || '');
+    const c = col ? C.cityOf(col) || state.city : C.listCity(ids);
+    const qm = q.get('mode');
+    history.replaceState(null, '', 'create.html' + location.hash);
+    if (c && !switchCity(c, { save: true, quiet: true })) K.setCity(c);
+    if (okMode(qm)) switchMode(qm);
+    const rows = col ? C.items(col, { city: c, mode: state.mode }) : C.items({ id: 'list', items: ids, city: c }, { city: c, mode: state.mode });
+    if (!rows.length) { toast('Подборка сейчас пустая — выбери места сам'); return true; }
+    const title = col ? col.title : C.cleanTitle(q.get('t'));
+    let n = 0;
+    if (isGroup()) {
+      const sel = [];
+      const add = id => { if (sel.length < MAX_OPTS && !sel.includes(id) && validOpt(id, state.mode)) sel.push(id); };
+      rows.forEach(r => {
+        if (r.kind === 'place') add('p-' + r.id);
+        else if (r.kind === 'event') add(r.id);
+        else if (validOpt(r.id, state.mode)) add(r.id);
+        else r.x.stops.forEach(sid => add('p-' + sid));
+      });
+      state.gsel = new Set(sel); state.autoSel = false; n = sel.length;
+      if (title) $('#title').value = title;
+      pk.tab = rows.every(r => r.kind === 'event') ? 'events' : pk.tab;
+    } else {
+      const pl = [];
+      rows.forEach(r => { const id = r.kind === 'place' ? 'p-' + r.id : r.kind === 'plan' ? r.id : ''; if (id && K.planById(id) && !pl.includes(id) && pl.length < MAX_PLACES) pl.push(id); });
+      if (pl.length) {
+        $('#places').innerHTML = pl.map(id => itemRow({ plan: id }, 'places')).join('');
+        const lvp = $('#lv-place');
+        if (lvp) lvp.checked = true;
+        n = pl.length;
+      } else {
+        const ev = rows.find(r => r.kind === 'event');
+        if (ev) { setEvent(ev.id); n = 1; }
+      }
+    }
+    pinNow();
+    renderPicker();
+    changed();
+    toast(n ? `Подставил ${n} из подборки «${title || 'список'}» ✓` : 'Из подборки ничего не подошло — выбери места сам');
+    return true;
+  }
   function applyUrlParams() {
     const q = new URLSearchParams(location.search);
+    if (applyCollection(q)) return;
     const m = q.get('mode'), planId = q.get('plan'), evId = q.get('event'), qc = q.get('city');
     if (!m && !planId && !evId && !qc) return;
     history.replaceState(null, '', 'create.html' + location.hash);

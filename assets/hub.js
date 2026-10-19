@@ -325,6 +325,7 @@
   const placeCover = p => `<div class="hero-cv cover ${cvOf(p)}" aria-hidden="true"><span class="cv-e">${esc(p.emoji)}</span><span class="cv-k">${esc(String(p.kind || '').split(' · ')[0])}</span></div>`;
 
   // город — и в конструктор: его выбор мест откроется на том же городе (без ?city= — Москва или город из хранилища)
+  const createUrlQ = q => `create.html?mode=${mode}&${q}` + (cityParam() ? '&city=' + city : '');
   const createUrl = (m, planId) => `create.html?mode=${m}` + (planId ? `&plan=${encodeURIComponent(planId)}` : '') + (cityParam() ? '&city=' + city : '');
   /* Демо-приглашение для каждого режима и города: открывается как превью — ничего не отправляется.
      Ссылки собираем заранее, при загрузке: пока ссылки нет, кнопка неактивна (раньше ранний тап открывал копию главной) */
@@ -339,7 +340,7 @@
   }
 
   /* ---------- адрес страницы: режим и фильтры в строке браузера, чтобы ссылку можно было переслать ---------- */
-  const OWN_PARAMS = ['m', 'city', 'f', 'b', 'cat', 'okr', 'tab', 'place', 'plan', 'event', 'quiz'];
+  const OWN_PARAMS = ['m', 'city', 'f', 'b', 'cat', 'okr', 'tab', 'place', 'plan', 'event', 'quiz', 'col', 'list', 't'];
   function baseQuery() {
     const q = new URLSearchParams();
     q.set('m', mode);
@@ -475,11 +476,84 @@
   function renderSeason(all) {
     const fnOf = id => (FILTERS.find(f => f[0] === id) || [])[2] || (p => hasHint(p, id));
     const promo = PROMO_TILE[mode] || [];
-    const ids = promo.concat(SEASON.filter(h => SEASON_TILES[h] && !promo.includes(h)));
+    const cols = colShelf();
+    const covered = new Set(cols.map(x => x.col.filter).filter(Boolean));
+    const ids = promo.concat(SEASON.filter(h => SEASON_TILES[h] && !promo.includes(h))).filter(h => !covered.has(h));
     const tiles = ids.map(h => [h, all.filter(fnOf(h)).length]).filter(x => x[1]);
-    $('#season').innerHTML = tiles.map(([h, n]) => { const [e, t, d0] = SEASON_TILES[h], d = ctxt(h) || d0;
+    $('#season').innerHTML = (cols.length ? `<div class="cols" role="list" aria-label="Подборки">${cols.map(colTile).join('')}</div>` : '') + tiles.map(([h, n]) => { const [e, t, d0] = SEASON_TILES[h], d = ctxt(h) || d0;
       return `<button type="button" class="season-tile s-${h}${flt === h ? ' on' : ''}" data-f="${h}" aria-pressed="${flt === h}"><span class="e" aria-hidden="true">${e}</span><span><b>${t}</b><small>${d} · ${n} ${plural(n, 'план', 'плана', 'планов')}</small></span></button>`; }).join('');
-    $('#season').classList.toggle('hidden', !tiles.length);
+    $('#season').classList.toggle('hidden', !tiles.length && !cols.length);
+  }
+
+  /* ---------- подборки (assets/collections.js + cols.js): полка над планами, шторка ?col= и свой список ?list= ---------- */
+  const CO = window.KudaCols || null;
+  const colShelf = () => (CO ? safe(() => CO.shelf({ city, mode, wet: !!wxHint(WX) }), []) : []).slice(0, 10);
+  const colTile = x => `<button type="button" class="col-tile" role="listitem" data-col="${esc(x.col.id)}"><span class="e" aria-hidden="true">${esc(x.col.emoji)}</span><b>${esc(x.col.title)}</b><small>${esc(CO.summary(x.items))}</small></button>`;
+  /* Пункт подборки в шторке — открывает свою карточку */
+  function colRow(r) {
+    const x = r.x;
+    if (r.kind === 'place') return `<button type="button" class="col-it" data-open-place="${esc(r.id)}"><span class="ce" aria-hidden="true">${esc(x.emoji || '📍')}</span><span><b>${esc(x.name)}</b><small>${esc(x.kind)} · ${esc(K.metroText(x.metro))} · ${K.priceText(x.price)}</small></span></button>`;
+    if (r.kind === 'plan') return `<button type="button" class="col-it" data-open-plan="${esc(r.id)}"><span class="ce" aria-hidden="true">${esc(x.emoji || '🗺️')}</span><span><b>${esc(x.title)}</b><small>${esc(K.planStops(x).map(p => p.name).join(' → '))}</small></span></button>`;
+    return `<button type="button" class="col-it" data-open-event="${esc(r.id)}"><span class="ce" aria-hidden="true">${esc(x.emoji || '📅')}</span><span><b>${esc(x.title)}</b><small>${esc(evWhen(x))}${x.venue ? ' · ' + esc(x.venue) : ''}</small></span></button>`;
+  }
+  /* Шторка подборки: вступление, пункты (у 'trip' — по разделам), «Позвать по подборке» и «Поделиться» */
+  function colSheet(o) {
+    const { col, rows, call, share: sq, kind, id, url } = o;
+    const live = new Set(rows.map(r => r.kind + ':' + r.id));
+    const secs = col.sections && col.sections.length ? col.sections.map(sc => [sc.t, CO.items({ id: '', items: sc.items, city: CO.cityOf(col) || city }, { city, mode }).filter(r => live.has(r.kind + ':' + r.id))]).filter(x => x[1].length) : [];
+    const body = secs.length ? secs.map(([t, rs]) => `<p class="k">${esc(t)}</p><div class="col-list">${rs.map(colRow).join('')}</div>`).join('')
+      : `<div class="col-list">${rows.map(colRow).join('')}</div>`;
+    openSheet(`
+      <p class="eyebrow">${col.auto ? 'Подборка дня' : 'Подборка'} · ${esc(CO.summary(rows))}</p>
+      <div class="ttl-row"><h3>${esc(col.emoji || '📌')} ${esc(col.title)}</h3></div>
+      ${col.lead ? `<p class="why">${esc(col.lead)}</p>` : ''}
+      ${body}
+      <div class="sheet-actions">
+        <a class="btn primary wide" data-act="create" href="${esc(call)}">${o.callText || 'Позвать по подборке'}${I('arrow')}</a>
+        <div class="row two">
+          <button type="button" class="btn ghost" data-share="${esc(sq)}" data-title="${esc(col.title)}">${I('share')}Поделиться</button>
+          <button type="button" class="btn ghost" data-close-sheet>Закрыть</button>
+        </div>
+      </div>`, Object.assign({ kind, id, url }, o.so));
+  }
+  /* start.html?col=<id>: подборка этого города (иначе — её город); живых пунктов меньше 4 — подборки нет */
+  function openCol(id, so) {
+    if (!CO) return false;
+    const col = CO.find(id);
+    if (!col) return false;
+    const c = CO.cityOf(col);
+    if (c) ensureCity(c);
+    const rows = CO.items(col, { city, mode });
+    if (rows.length < CO.MIN) { toast('Эта подборка сейчас пустая — загляни позже'); return false; }
+    colSheet({ col, rows, kind: 'col', id, url: sheetUrl('col=' + encodeURIComponent(id)), share: 'col=' + encodeURIComponent(id),
+      call: createUrlQ('col=' + encodeURIComponent(id)), so });
+    T.ev('open_col', { id, mode });
+    return true;
+  }
+  /* start.html?list=<base64url id>&t=название — свой список из «Сохранённых»; без сервера */
+  function openList(v, so) {
+    if (!CO) return false;
+    const ids = CO.decodeList(v);
+    const c = CO.listCity(ids);
+    if (!c) return false;
+    ensureCity(c);
+    // название — из адреса, с которым открыли страницу (syncUrl к этому моменту уже убрал t из строки)
+    const t = CO.cleanTitle((so && so.t) || QS.get('t') || new URLSearchParams(location.search).get('t')) || 'Список мест';
+    const rows = CO.items({ id: 'list', items: ids, city: c }, { city: c, mode });
+    if (!rows.length) return false;
+    const q = 'list=' + v + '&t=' + encodeURIComponent(t);
+    colSheet({ col: { id: 'list', title: t, emoji: '🔖', lead: '' }, rows, kind: 'list', id: 'list', url: sheetUrl(q), share: q,
+      call: createUrlQ(q), callText: 'Голосовать за эти места', so });
+    return true;
+  }
+  /* «Поделиться списком» в «Сохранённых»: места этого города, до LIST_MAX */
+  function shareSaved() {
+    if (!CO) return;
+    const ids = safe(() => T.favs(), []).map(String).filter(k => k.startsWith('place:')).map(k => k.slice(6)).filter(id => { const p = K.placeById(id); return p && placeOk(p) && K.cityOf(Object.assign({ id }, p)) === city; });
+    const v = CO.encodeList(ids);
+    if (!v) { toast('Сохрани хотя бы одно место этого города'); return; }
+    share('Мои места', shareUrl('list=' + v + '&t=' + encodeURIComponent('Мои места')));
+    T.ev('share', { kind: 'list', id: String(ids.length), mode });
   }
   function renderFilters(all, fe) {
     renderSeason(all);
@@ -752,7 +826,7 @@
         ${emoTile(p)}
         <span class="pl-main"><span class="pl-name"><span class="nm">${esc(p.name)}</span>${p.mich ? '<span class="mich" title="' + MICH[p.mich] + '">M</span>' : ''}${promoOf(p.id) ? '<span class="promo-tag" title="Есть промокод">🎁</span>' : ''}${placeRate(p.id)}</span><span class="pl-sub">${p.dist != null ? `<b class="dist">${distText(p.dist)}</b> · ` : ''}${esc(K.metroText(p.metro))} · ${listHints(p)}${esc(p.kind)}</span></span>
         ${priceTag(p.price)}
-      </button>` + (i === NEWP_AT - 1 ? rail : '')).join('') + (pcat === 'saved' ? favHint('place', fe) : '')
+      </button>` + (i === NEWP_AT - 1 ? rail : '')).join('') + (pcat === 'saved' ? favHint('place', fe) + (CO ? '<button type="button" class="mini share-list" data-share-list>🔗 Поделиться списком</button>' : '') : '')
       : pcat === 'saved' ? (fe ? favHint('place', fe) : '<p class="pl-empty">Здесь появятся места, которые ты сохранишь значком 🔖 в карточке.</p>')
       : bud ? '<p class="pl-empty">В этом бюджете ничего не нашлось — попробуй «любой» или другую категорию.</p>'
       : '<p class="pl-empty">Ничего не нашлось. Попробуй другое слово или категорию.</p>';
@@ -777,6 +851,8 @@
      .sheet-slot — места для блоков, которые добавляются отдельно: data-slot="rating" (оценка под заголовком),
      "reviews" (отзывы), "events" (события в этом месте). Пустые слоты не видны. */
   /* so — параметры шторки (adopt: занять текущую запись истории) */
+  const placeCols = id => { const cs = CO ? safe(() => CO.ofPlace(id, { city, mode }), []).slice(0, 3) : [];
+    return cs.length ? `<div class="in-plans"><p class="k">Входит в подборки</p>${cs.map(c => `<button type="button" class="chip" data-open-col="${esc(c.id)}">${esc(c.emoji)} ${esc(c.title)}</button>`).join('')}</div>` : ''; };
   function openPlace(id, so) {
     const p = K.placeById(id);
     if (!p || p.adult) return false;
@@ -806,6 +882,7 @@
       <div class="sheet-slot" data-slot="events">${placeEvents(id)}</div>
       ${inPlans.length ? `<div class="in-plans"><p class="k">Есть в готовых планах</p>${inPlans.map(s =>
         `<button type="button" class="chip" data-open-plan="${esc(s.id)}">${esc(s.title)}</button>`).join('')}</div>` : ''}
+      ${placeCols(id)}
       ${similar.length ? `<div class="in-plans"><p class="k">Похожие рядом</p>${similar.map(x =>
         `<button type="button" class="chip" data-open-place="${esc(x.id)}">${esc(x.emoji)} ${esc(x.name)}</button>`).join('')}</div>` : ''}
       <div class="sheet-actions">
@@ -1278,6 +1355,7 @@
     if (e.target.closest('[data-map-retry]')) { $('#pmap').innerHTML = ''; renderMap(); }
   });
   $('#plist').addEventListener('click', e => {
+    if (e.target.closest('[data-share-list]')) { shareSaved(); return; }
     if (e.target.closest('[data-pc-new]')) { pcat = 'new'; plimit = PSTEP; renderPlaces(); syncUrl(); $('#pfilters').scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
     const b = e.target.closest('[data-pid]');
     if (b) openPlace(b.dataset.pid);
@@ -1327,6 +1405,9 @@
     if (op) { openPlace(op.dataset.openPlace, op.hasAttribute('data-rv') ? { reviews: true } : null); return; }
     const oe = e.target.closest('[data-open-event]');
     if (oe) { openEvent(oe.dataset.openEvent); return; }
+    const oc = e.target.closest('[data-open-col]');
+    if (oc) { openCol(oc.dataset.openCol); return; }
+    if (e.target.closest('[data-close-sheet]')) { closeSheet(); return; }
     const b = e.target.closest('[data-open-plan]');
     if (b) { openPlan(b.dataset.openPlan); return; }
     const qz = e.target.closest('[data-qz]');
@@ -1384,6 +1465,8 @@
     syncUrl();
   });
   $('#season').addEventListener('click', e => {
+    const ct = e.target.closest('button[data-col]');
+    if (ct) { openCol(ct.dataset.col); return; }
     const b = e.target.closest('button[data-f]');
     if (!b) return;
     flt = b.dataset.f === flt ? 'all' : b.dataset.f; climit = CSTEP;
@@ -1959,6 +2042,7 @@
   /* start.html?place=<id>#reviews («Оцени место» из игры) — карточка места сразу на «Отзывах гостей» */
   const OPENERS = [['plan', openPlan], ['place', (v, so) => openPlace(v, so && so.rv ? Object.assign({ reviews: 'land' }, so) : so)], ['quiz', (v, so) => openQuiz(so)]];
   if (A) OPENERS.push(['event', (v, so) => openEvent(v, Object.assign({ deep: true }, so))]);
+  if (CO) OPENERS.push(['col', openCol], ['list', openList]);
   const addOpener = (param, fn) => { if (typeof fn === 'function' && !OPENERS.some(o => o[0] === param)) { OPENERS.push([param, fn]); OWN_PARAMS.push(param); } };
   function openFromQuery(q, so) {
     for (const [param, fn] of OPENERS) {
@@ -1980,7 +2064,7 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mountPwa); else setTimeout(mountPwa, 0);
 
   /* Для модулей страницы и проверок: та же шторка, режим, уведомление */
-  window.KudaHub = { openSheet, closeSheet, mode: () => mode, city: () => city, setCity, toast, openPlace, openPlan, openEvent, openQuiz, addOpener };
+  window.KudaHub = { openSheet, closeSheet, mode: () => mode, city: () => city, setCity, toast, openPlace, openPlan, openEvent, openQuiz, openCol, addOpener };
 
   /* Параметры ссылки: m — режим, city — город (spb; у Москвы нет), f — фильтр планов (f=cheap из старых ссылок — то же, что b=1),
      b — бюджет на человека (1 | 2), cat/okr — раздел каталога (okr — округ или район этого города), tab — вкладка
