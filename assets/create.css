@@ -356,3 +356,12 @@ a.btn { text-decoration: none; }
   body.inv-page .toast { bottom: calc(24px + env(safe-area-inset-bottom)); }
 }
 @media (prefers-reduced-motion: reduce) { .inv.fresh { animation: none; } .tgbox > summary::after { transition: none; } }
+
+/* компания: варианты времени и «Решаем до» */
+.preset-now { border-style: solid; border-color: rgba(var(--rgb), .45); }
+.slot-ed { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 10px 0 12px; }
+.slot-ed input { margin: 0; padding-left: 8px; padding-right: 8px; min-width: 0; }
+.slot-ed.off { display: none; }
+.seg.seg-wrap { display: flex; flex-wrap: wrap; gap: 2px; }
+#untilAt { margin-bottom: 8px; }
+@media (max-width: 420px) { .slot-ed { grid-template-columns: repeat(2, 1fr); } }

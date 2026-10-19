@@ -72,6 +72,8 @@
   const MON = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
 
   const DEF = K.defaults();
+  // пришли по чужому приглашению (?ref= — 8 знаков хэша его кода): метка уйдёт на сервер вместе с регистрацией
+  const REF = (/^[a-z0-9]{8}$/.exec(new URLSearchParams(location.search).get('ref') || '') || [''])[0];
   const state = {
     mode: 'date', cat: 'line', theme: 'pink', who: 'f',
     texts: {},                          // тексты других режимов: {guys: {greeting, question, title}, …}
@@ -784,6 +786,15 @@
     $('#tTo').value = clockOf(t.to, '22:00');
     $('#tStep').value = String([15, 30, 60].includes(+t.step) ? +t.step : 30);
     $('#tDef').value = clockOf(t.def, '19:00');
+    // компания: варианты времени и срок. В черновике — как в полях; в ссылке без slots — стандартные три
+    const draftSl = Array.isArray(src._slots) ? src._slots.map(x => (typeof x === 'string' ? x : '')) : null;
+    const linkSl = Array.isArray(src.slots) ? src.slots.filter(x => typeof x === 'string') : null;
+    fillSlots(draftSl || (linkSl && linkSl.length ? linkSl : SLOT_DEF), typeof src._slotAsk === 'boolean' ? src._slotAsk : true);
+    const um = ['hour', 'today', 'thu', 'own'].includes(src._umode) ? src._umode : '';
+    const uMs = typeof src._until === 'string' ? msOfLocal(src._until) : Number.isInteger(src.until) ? src.until * 60000 : NaN;
+    if (um && um !== 'own') { setUMode(um); pickUntil(um); }   // «через час» из вчерашнего черновика — от текущего момента
+    else if ((um === 'own' || (!draft && uMs)) && uMs > Date.now()) { setUMode('own'); $('#untilAt').value = localOf(uMs); renderUntil(); }
+    else { setUMode(''); $('#untilAt').value = ''; renderUntil(); }
     // пустой список блюд — осознанный выбор (уровень пропускается), стандартные не подставляем
     renderList('food', (inv.food || []).filter(f => f && f.title));
     // событие: из черновика (_event) или из ссылки (event)
@@ -825,6 +836,84 @@
     let b = K.toMin(to), x = K.toMin(t);
     if (b <= a) { b += 1440; if (x < a) x += 1440; }
     return x >= a && x <= b;
+  }
+  /* ---------- компания: «Во сколько» и «Решаем до» (время московское, как в игре) ---------- */
+  const SLOT_DEF = ['19:00', '20:00', '21:00'];
+  const MSK = 3 * 3600e3, DAY = 86400e3;
+  const UNTIL_MAX = 14 * DAY;                       // дальше двух недель сервер дедлайн не примет
+  const mskNow = () => new Date(Date.now() + MSK);   // поля UTC этой даты — московское время
+  const localOf = ms => new Date(ms + MSK).toISOString().slice(0, 16);   // 'ГГГГ-ММ-ДДTЧЧ:ММ' по Москве
+  const msOfLocal = s => { const m = /^(\d{4})-(\d\d)-(\d\d)T(\d\d):(\d\d)$/.exec(s || ''); return m ? Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]) - MSK : NaN; };
+  const mskMidnight = () => { const n = mskNow(); return Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), n.getUTCDate()) - MSK; };
+  /* «через час» (до 5 минут вверх), «сегодня 18:00» (прошло — завтра), «чт 18:00» (ближайший четверг) */
+  function untilPreset(kind) {
+    const now = Date.now(), soon = now + 15 * 60e3, day = mskMidnight();
+    if (kind === 'hour') return Math.ceil((now + 3600e3) / 300e3) * 300e3;
+    if (kind === 'today') { const t = day + 18 * 3600e3; return t > soon ? t : t + DAY; }
+    if (kind === 'thu') { let t = day + ((4 - mskNow().getUTCDay() + 7) % 7) * DAY + 18 * 3600e3; if (t <= soon) t += 7 * DAY; return t; }
+    return NaN;
+  }
+  const uMode = () => ($('input[name="umode"]:checked') || {}).value || '';
+  function setUMode(m) { $$('input[name="umode"]').forEach(r => { r.checked = r.value === m; }); }
+  function renderSlots() { $('#slotEd').classList.toggle('off', !$('#slotAsk').checked); }
+  function renderUntil() {
+    const t = mskMidnight() + 18 * 3600e3;
+    $('#uToday').textContent = t > Date.now() + 15 * 60e3 ? 'Сегодня 18:00' : 'Завтра 18:00';
+    const m = uMode(), box = $('#untilAt');
+    box.classList.toggle('hidden', !m);
+    const ms = msOfLocal(box.value), info = $('#untilInfo');
+    if (!m) info.textContent = 'После срока голосование закроется, итог у всех будет одинаковый.';
+    else if (!(ms > Date.now())) info.textContent = 'Этот срок уже прошёл — выбери другой.';
+    else if (ms - Date.now() > UNTIL_MAX) info.textContent = 'Не дальше двух недель — так компания точно не забудет.';
+    else info.textContent = 'Время московское. После срока голосование закроется, итог у всех будет одинаковый.';
+  }
+  function pickUntil(m) {
+    const box = $('#untilAt');
+    if (m && m !== 'own') box.value = localOf(untilPreset(m));
+    else if (m === 'own' && !(msOfLocal(box.value) > Date.now())) box.value = localOf(untilPreset('today'));
+    renderUntil();
+  }
+  function fillSlots(list, ask) {
+    const ins = $$('#slotEd .slot-in');
+    ins.forEach((el, i) => { el.value = list[i] || ''; });
+    $('#slotAsk').checked = ask;
+    renderSlots();
+  }
+  function readSlots() {
+    if (!$('#slotAsk').checked) return [];
+    const out = [];
+    $$('#slotEd .slot-in').forEach(el => { const t = el.value; if (/^([01]\d|2[0-3]):[0-5]\d$/.test(t) && !out.includes(t)) out.push(t); });
+    return out.slice(0, 4);
+  }
+  /* дедлайн в минутах эпохи или 0 (нет, прошёл, дальше двух недель) */
+  function readUntil() {
+    if (!uMode()) return 0;
+    const ms = msOfLocal($('#untilAt').value);
+    return ms > Date.now() && ms - Date.now() <= UNTIL_MAX ? Math.floor(ms / 60000) : 0;
+  }
+  /* «Сегодня, решаем за час»: только сегодня, ближайшие часы с 19:00, срок — через час */
+  function presetNow() {
+    const n = mskNow();
+    $$('input[name="dmode"]').forEach(r => { r.checked = r.value === 'list'; });
+    renderList('dates', [n.toISOString().slice(0, 10)]);
+    syncDateMode();
+    const h0 = Math.max(19, n.getUTCHours() + (n.getUTCMinutes() >= 30 ? 2 : 1));
+    const sl = [h0, h0 + 1, h0 + 2].filter(h => h <= 23).map(h => String(h).padStart(2, '0') + ':00');
+    fillSlots(sl.length ? sl : ['23:30'], true);
+    setUMode('hour');
+    pickUntil('hour');
+    changed();
+    toast('Сегодня, решаем за час ✓');
+  }
+  /* «Собрать снова»: тот же состав, даты на неделю позже, старый срок не переносим */
+  function shiftWeek(inv) {
+    const d = inv && inv.dates;
+    if (!isObj(d)) return inv;
+    const plus = s => { const t = K.parseYmd(s); return t ? K.ymd(K.addDays(t, 7)) : s; };
+    if (Array.isArray(d.list)) d.list = d.list.map(plus);
+    if (d.start) d.start = plus(d.start);
+    delete inv.until;
+    return inv;
   }
   function groupOpts() {
     const out = [];
@@ -870,6 +959,9 @@
       if (inv.greeting === MC().greeting) inv.greeting = DEF.greeting;
       if (inv.question === MC().question) inv.question = DEF.question;
       Object.assign(inv, { mode: state.mode, title: v('title') || MC().title, opts: groupOpts() });
+      const sl = readSlots(), until = readUntil();
+      if (sl.length) inv.slots = sl;
+      if (until) inv.until = until;
     } else {
       Object.assign(inv, dateFields());
       if (state.who === 'm') inv.who = 'm';
@@ -916,6 +1008,11 @@
       ['guys', 'girls'].forEach(m => { if (by[m]) { inv._gsel[m] = by[m].sel; inv._auto[m] = !!by[m].auto; } });
       inv._event = state.event;
       inv._evOther = state.evOther;
+      inv._slots = $$('#slotEd .slot-in').map(el => el.value);
+      inv._slotAsk = $('#slotAsk').checked;
+      inv._umode = uMode();
+      inv._until = $('#untilAt').value;
+      delete inv.slots; delete inv.until;
     }
     return inv;
   }
@@ -1203,7 +1300,7 @@
   function registerInvite(x) {
     const api = API();
     if (!api || !x || x.reg) return;
-    api.invite(x.code, ownerSecret(), { mode: x.mode, title: x.title }).then(ok => {
+    api.invite(x.code, ownerSecret(), { mode: x.mode, title: x.title, until: x.until, city: x.city, ref: x.ref }).then(ok => {
       if (ok) patchHist(x.code, { reg: 1 });
       else if (api.lastError === 'taken') patchHist(x.code, { reg: -1 });
     });
@@ -1227,6 +1324,8 @@
     // город — если в приглашении есть что-то из каталога («Мои приглашения» подпишут петербургские)
     const city = firstCity([inv.event].concat((inv.places || []).map(p => p && p.plan), (inv.opts || []).map(o => o && (o.plan || o.event))).filter(Boolean));
     if (city) x.city = city; else delete x.city;
+    if (inv.until) x.until = inv.until; else delete x.until;
+    if (REF && !x.ref) x.ref = REF;
     saveHist([x].concat(list.filter(y => histCode(y) !== code)));
     markOwn(code);
     renderHist();
@@ -1428,12 +1527,14 @@
   }
   /* «В конструктор» из «Мои приглашения»: create.html#from=<код> — копия приглашения в форме */
   async function applyHashLoad() {
-    const m = /^#from=([A-Za-z0-9_-]{2,4000})$/.exec(location.hash);
+    const m = /^#(from|again)=([A-Za-z0-9_-]{2,4000})$/.exec(location.hash);
     if (!m) return false;
     history.replaceState(null, '', 'create.html' + location.search);
     try {
-      const r = fillForm(await K.decodeInvite(m[1]));
-      toast(r.pastEvent ? 'Загрузил в форму. Событие уже прошло — выбери другое' : 'Загрузил приглашение в форму ✓');
+      const inv = await K.decodeInvite(m[2]);
+      const again = m[1] === 'again';
+      const r = fillForm(again ? shiftWeek(inv) : inv);
+      toast(r.pastEvent ? 'Загрузил в форму. Событие уже прошло — выбери другое' : again ? 'Тот же состав, даты на неделю позже ✓' : 'Загрузил приглашение в форму ✓');
       changed();
       return true;
     } catch (e) { toast('Не удалось прочитать приглашение'); return false; }
@@ -1516,6 +1617,9 @@
         return;
       }
       if (t.name === 'dmode') syncDateMode();
+      if (t.name === 'umode') pickUntil(t.value);
+      if (t.id === 'untilAt') { if (uMode() !== 'own') setUMode('own'); renderUntil(); }
+      if (t.id === 'slotAsk') renderSlots();
       if (t.id === 'tgu') {
         const raw = t.value.trim(), u = K.tgUser(raw);
         if (raw && !u) toast('Ник в Telegram: латиница, цифры и _, от 5 символов');
@@ -1550,6 +1654,7 @@
         return;
       }
       if (t.closest('.del') && t.closest('.li')) { t.closest('.li').remove(); renderPicker(); changed(); return; }
+      if (t.closest('#presetNow')) { presetNow(); return; }
       const add = t.closest('.btn-add');
       if (add) {
         const id = add.dataset.add, box = $('#' + id);

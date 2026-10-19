@@ -123,6 +123,27 @@
         </div>
       </section>
 
+      <section class="card only-group">
+        <h2>6. Во сколько и до когда решаем</h2>
+        <button class="btn-add preset-now" type="button" id="presetNow">⚡ Сегодня, решаем за час</button>
+        <div class="toggles compact">
+          <label class="tg"><input type="checkbox" id="slotAsk" checked><span></span><b>Спросить, во сколько</b><i>до 4 вариантов; один — время уже решено</i></label>
+        </div>
+        <div class="slot-ed" id="slotEd" role="group" aria-label="Варианты времени">
+          <input type="time" class="slot-in" aria-label="Время 1"><input type="time" class="slot-in" aria-label="Время 2"><input type="time" class="slot-in" aria-label="Время 3"><input type="time" class="slot-in" aria-label="Время 4">
+        </div>
+        <div class="field-label" id="untilLabel">Решаем до</div>
+        <div class="seg seg-wrap" id="untilMode" role="radiogroup" aria-labelledby="untilLabel">
+          <label><input type="radio" name="umode" value="" checked><span>Без срока</span></label>
+          <label><input type="radio" name="umode" value="hour"><span>Через час</span></label>
+          <label><input type="radio" name="umode" value="today"><span id="uToday">Сегодня 18:00</span></label>
+          <label><input type="radio" name="umode" value="thu"><span id="uThu">Чт 18:00</span></label>
+          <label><input type="radio" name="umode" value="own"><span>Своё</span></label>
+        </div>
+        <input type="datetime-local" id="untilAt" class="hidden" aria-label="Решаем до (по Москве)">
+        <p class="hint" id="untilInfo" aria-live="polite">После срока голосование закроется, итог у всех будет одинаковый.</p>
+      </section>
+
       <section class="card only-date">
         <h2>6. Время</h2>
         <p class="ev-note hidden" id="evTime"></p>

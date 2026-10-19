@@ -11,11 +11,11 @@ const SCHEMA = `
 CREATE TABLE IF NOT EXISTS inv (
   key TEXT PRIMARY KEY, rev INTEGER NOT NULL DEFAULT 0, cnt INTEGER NOT NULL DEFAULT 0, spin TEXT, spins TEXT,
   owner TEXT, mode TEXT, title TEXT, answer TEXT, opened INTEGER NOT NULL DEFAULT 0, fo INTEGER,
-  upd INTEGER NOT NULL, exp INTEGER NOT NULL);
+  upd INTEGER NOT NULL, exp INTEGER NOT NULL, until INTEGER, ref TEXT, city TEXT, cre INTEGER);
 CREATE INDEX IF NOT EXISTS inv_exp ON inv(exp);
 CREATE TABLE IF NOT EXISTS voters (
   key TEXT NOT NULL, id TEXT NOT NULL, n TEXT NOT NULL, y INTEGER NOT NULL, o TEXT NOT NULL, d TEXT NOT NULL,
-  t INTEGER NOT NULL, h TEXT, PRIMARY KEY (key, id)) WITHOUT ROWID;
+  t INTEGER NOT NULL, h TEXT, x TEXT, PRIMARY KEY (key, id)) WITHOUT ROWID;
 CREATE TABLE IF NOT EXISTS opens (key TEXT NOT NULL, dev TEXT NOT NULL, at INTEGER NOT NULL, PRIMARY KEY (key, dev)) WITHOUT ROWID;
 CREATE TABLE IF NOT EXISTS reviews (
   id TEXT PRIMARY KEY, place TEXT NOT NULL, stars INTEGER NOT NULL, text TEXT NOT NULL, tags TEXT NOT NULL,
@@ -40,7 +40,13 @@ CREATE INDEX IF NOT EXISTS devs_exp ON devs(exp);
 
 const DEV_TTL = 30 * 864e5;
 
-const voterOut = r => ({ id: r.id, n: r.n, y: r.y, o: JSON.parse(r.o), d: JSON.parse(r.d), t: r.t });
+/* x — необязательные поля голоса компании одним JSON: s (слоты времени), m (дни «может быть»), p (+N); нет — NULL */
+const voterX = v => { const x = {}; if (v.s && v.s.length) x.s = v.s; if (v.m && v.m.length) x.m = v.m; if (v.p) x.p = v.p; return Object.keys(x).length ? JSON.stringify(x) : null; };
+function voterOut(r) {
+  const v = { id: r.id, n: r.n, y: r.y, o: JSON.parse(r.o), d: JSON.parse(r.d), t: r.t };
+  if (r.x) { try { const x = JSON.parse(r.x); if (x.s) v.s = x.s; if (x.m) v.m = x.m; if (x.p) v.p = x.p; } catch (e) { /* битая запись — без доп. полей */ } }
+  return v;
+}
 const reviewOut = r => (!r ? null : {
   id: r.id, place: r.place, stars: r.stars, text: r.text, tags: JSON.parse(r.tags), name: r.name, fit: r.fit, at: r.at,
   status: r.status, why: r.why, dev: r.dev, yuid: r.yuid, ver: r.ver, reports: r.reports, rbase: r.rbase, reply: r.reply,
@@ -52,9 +58,18 @@ export async function createSqliteStore({ path }) {
   db.exec('PRAGMA journal_mode = WAL; PRAGMA synchronous = NORMAL; PRAGMA busy_timeout = 5000;');
   db.exec(SCHEMA);
   // база старой версии: колонка spins (итоги колеса по наборам лидеров) появилась позже; spin — последний итог
-  if (!db.prepare('PRAGMA table_info(inv)').all().some(c => c.name === 'spins')) {
-    try { db.exec('ALTER TABLE inv ADD COLUMN spins TEXT'); } catch (e) { if (!/duplicate column/i.test(e.message)) throw e; }   // второй процесс успел раньше
-  }
+  // база старой версии: колонки, которых в ней ещё нет (spins — итоги колеса по наборам лидеров; until, ref, city, cre —
+  // дедлайн, метка «пришёл по приглашению», город и время регистрации приглашения; x — доп. поля голоса)
+  const addCol = (table, col, type) => {
+    if (db.prepare(`PRAGMA table_info(${table})`).all().some(c => c.name === col)) return;
+    try { db.exec(`ALTER TABLE ${table} ADD COLUMN ${col} ${type}`); } catch (e) { if (!/duplicate column/i.test(e.message)) throw e; }   // второй процесс успел раньше
+  };
+  addCol('inv', 'spins', 'TEXT');
+  addCol('inv', 'until', 'INTEGER');
+  addCol('inv', 'ref', 'TEXT');
+  addCol('inv', 'city', 'TEXT');
+  addCol('inv', 'cre', 'INTEGER');
+  addCol('voters', 'x', 'TEXT');
 
   const q = {};
   const st = (name, sql) => (q[name] = db.prepare(sql));
@@ -65,13 +80,17 @@ export async function createSqliteStore({ path }) {
   st('invTouch', 'UPDATE inv SET upd = ?, exp = ? WHERE key = ?');
   st('invVote', 'UPDATE inv SET rev = rev + 1, cnt = ?, upd = ?, exp = ? WHERE key = ? RETURNING rev, spin, spins');
   st('invSpin', 'UPDATE inv SET spin = ?, spins = ?, rev = rev + 1, upd = ?, exp = ? WHERE key = ? RETURNING rev');
-  st('invOwner', 'UPDATE inv SET owner = ?, mode = ?, title = ?, upd = ?, exp = ? WHERE key = ?');
+  // until, ref, city и время регистрации — с первой регистрации: повтор их не меняет
+  st('invOwner', `UPDATE inv SET owner = ?, mode = ?, title = ?, until = CASE WHEN cre IS NULL THEN ? ELSE until END,
+    ref = CASE WHEN cre IS NULL THEN ? ELSE ref END, city = CASE WHEN cre IS NULL THEN ? ELSE city END,
+    cre = COALESCE(cre, ?), upd = ?, exp = ? WHERE key = ?`);
+  st('invClose', 'UPDATE inv SET until = ?, rev = rev + 1, upd = ?, exp = ? WHERE key = ? RETURNING rev');
   st('invOpened', 'UPDATE inv SET opened = opened + 1, fo = COALESCE(fo, ?), upd = ?, exp = ? WHERE key = ?');
   st('invAnswer', 'UPDATE inv SET answer = ?, upd = ?, exp = ? WHERE key = ?');
   st('voters', 'SELECT * FROM voters WHERE key = ? ORDER BY t, id');
-  st('voterPut', `INSERT INTO voters (key, id, n, y, o, d, t, h) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    ON CONFLICT(key, id) DO UPDATE SET n = excluded.n, y = excluded.y, o = excluded.o, d = excluded.d, t = excluded.t, h = excluded.h`);
-  st('voterSeed', 'INSERT INTO voters (key, id, n, y, o, d, t, h) VALUES (?, ?, ?, ?, ?, ?, ?, NULL) ON CONFLICT(key, id) DO NOTHING');
+  st('voterPut', `INSERT INTO voters (key, id, n, y, o, d, t, h, x) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(key, id) DO UPDATE SET n = excluded.n, y = excluded.y, o = excluded.o, d = excluded.d, t = excluded.t, h = excluded.h, x = excluded.x`);
+  st('voterSeed', 'INSERT INTO voters (key, id, n, y, o, d, t, h, x) VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?) ON CONFLICT(key, id) DO NOTHING');
   st('openIns', 'INSERT INTO opens (key, dev, at) VALUES (?, ?, ?) ON CONFLICT(key, dev) DO NOTHING');
   st('ownerGet', 'SELECT id FROM review_owners WHERE place = ? AND who = ?');
   st('ownerIns', 'INSERT INTO review_owners (place, who, id) VALUES (?, ?, ?)');
@@ -137,27 +156,30 @@ export async function createSqliteStore({ path }) {
     /* ---------- голоса ---------- */
     async vote(key, voter, h, seeds, o) {
       return tx(() => {
+        const inv = q.invGet.get(key);
+        // дедлайн (минуты эпохи) прошёл или организатор закрыл голосование
+        if (inv && inv.until != null && o.now >= inv.until * 60000) return { status: 'closed' };
         const cur = new Map(q.voters.all(key).map(r => [r.id, r]));
         const mine = cur.get(voter.id);
         if (mine && mine.h && !safeEqual(mine.h, h)) return { status: 'owner' };
         if (!mine && cur.size >= o.max) return { status: 'full' };
         ensureInv(key, o.now, o.exp);
-        q.voterPut.run(key, voter.id, voter.n, voter.y, JSON.stringify(voter.o), JSON.stringify(voter.d), voter.t, h);
+        q.voterPut.run(key, voter.id, voter.n, voter.y, JSON.stringify(voter.o), JSON.stringify(voter.d), voter.t, h, voterX(voter));
         cur.set(voter.id, true);
         for (const s of seeds) {
           if (cur.size >= o.max) break;
           if (cur.has(s.id)) continue;
-          q.voterSeed.run(key, s.id, s.n, s.y, JSON.stringify(s.o), JSON.stringify(s.d), s.t);
+          q.voterSeed.run(key, s.id, s.n, s.y, JSON.stringify(s.o), JSON.stringify(s.d), s.t, voterX(s));
           cur.set(s.id, true);
         }
         const r = q.invVote.get(cur.size, o.now, o.exp, key);
-        return { status: 'ok', votes: q.voters.all(key).map(voterOut), rev: r.rev, ...spinView(spinList(r.spins, r.spin)) };
+        return { status: 'ok', votes: q.voters.all(key).map(voterOut), rev: r.rev, ...spinView(spinList(r.spins, r.spin)), until: inv ? inv.until : null };
       });
     },
     async votes(key) {
       const inv = q.invGet.get(key);
       if (!inv) return null;
-      return { votes: q.voters.all(key).map(voterOut), rev: inv.rev, ...spinView(spinList(inv.spins, inv.spin)) };
+      return { votes: q.voters.all(key).map(voterOut), rev: inv.rev, ...spinView(spinList(inv.spins, inv.spin)), until: inv.until };
     },
     async rev(key) { const inv = q.invGet.get(key); return inv ? inv.rev : null; },
     async spin(key, spin, o) {
@@ -179,8 +201,19 @@ export async function createSqliteStore({ path }) {
         const inv = q.invGet.get(key);
         if (inv && inv.owner && !safeEqual(inv.owner, x.owner)) return 'taken';
         ensureInv(key, o.now, o.exp);
-        q.invOwner.run(x.owner, x.mode, x.title, o.now, o.exp, key);
+        q.invOwner.run(x.owner, x.mode, x.title, x.until == null ? null : x.until, x.ref || null, x.city || null, o.now, o.now, o.exp, key);
         return 'ok';
+      });
+    },
+    /* «Закрыть сейчас»: дедлайн = o.until (минуты), если он раньше прежнего; только владелец */
+    async closeVote(key, owner, o) {
+      return tx(() => {
+        const inv = q.invGet.get(key);
+        if (!inv || !inv.owner) return { status: 'nf' };
+        if (!safeEqual(inv.owner, owner)) return { status: 'owner' };
+        if (inv.until != null && inv.until <= o.until) return { status: 'ok', until: inv.until, rev: inv.rev };
+        const r = q.invClose.get(o.until, o.now, o.exp, key);
+        return { status: 'ok', until: o.until, rev: r.rev };
       });
     },
     async opened(key, dev, o) {
@@ -198,7 +231,7 @@ export async function createSqliteStore({ path }) {
       const out = {};
       for (const k of keys) {
         const r = q.invGet.get(k);
-        if (r) out[k] = { owner: r.owner || '', mode: r.mode || '', title: r.title || '', opened: r.opened, firstOpen: r.fo || null, cnt: r.cnt, answer: r.answer || '', upd: r.upd };
+        if (r) out[k] = { owner: r.owner || '', mode: r.mode || '', title: r.title || '', opened: r.opened, firstOpen: r.fo || null, cnt: r.cnt, answer: r.answer || '', upd: r.upd, until: r.until == null ? null : r.until };
       }
       return out;
     },
@@ -297,6 +330,9 @@ export async function createSqliteStore({ path }) {
         places: one("SELECT COUNT(DISTINCT place) AS n FROM reviews WHERE status = 'ok'"),
         fixes: one('SELECT COUNT(*) AS n FROM fixes'),
         shorts: db.prepare('SELECT COUNT(*) AS n FROM shorts WHERE exp > ?').get(now).n,
+        // гость → автор: приглашения, зарегистрированные за 7 дней, — все и с меткой ref, по городам
+        week: db.prepare(`SELECT COALESCE(city, '') AS city, COUNT(*) AS n, SUM(ref IS NOT NULL) AS r FROM inv
+          WHERE owner IS NOT NULL AND cre >= ? GROUP BY COALESCE(city, '')`).all(now - 7 * 864e5).map(x => ({ city: x.city, all: x.n, ref: x.r || 0 })),
         approx: false,
       };
     },
