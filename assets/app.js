@@ -724,6 +724,31 @@
       .then(short => { if (ticket.sig !== sig) return; ticket.url = short; ticket.busy = null; if (onReady) onReady(); })
       .catch(() => { if (ticket.busy === p) ticket.busy = null; });
   }
+  /* Текст через «Поделиться», а где его нет или он не сработал — в буфер обмена */
+  function sendText(text, okMsg) {
+    if (navigator.share) {
+      navigator.share({ text }).catch(e => { if (!e || e.name !== 'AbortError') copyText(text).then(ok => toast(ok ? okMsg : 'Не получилось скопировать')); });
+      return;
+    }
+    copyText(text).then(ok => toast(ok ? okMsg : 'Не получилось скопировать'));
+  }
+  /* Текст подруге: место, день, время, кто позвал (как он сам вписал имя) и маршрут */
+  function friendText(plan) {
+    const L = [GF('Иду на свидание 💕', 'Иду на свидание 💕')];
+    if (INV.me && INV.me !== '?') L.push('С кем: ' + INV.me);
+    for (const [i, , l, v] of answerRows(true)) L.push(`${i} ${l}: ${v}`);
+    if (plan) L.push('🗺 Маршрут: ' + K.goRoute(plan.id));
+    return L.join('\n');
+  }
+  /* Картинка-билет для сторис: без имён — только план, день и время; QR — на маршрут или на сайт */
+  function ticketCard(plan, ev, when) {
+    const stopOf = p => ({ emoji: p.emoji, name: p.name, meta: K.metroText(p.metro), lat: p.lat, lon: p.lon });
+    const stops = plan ? K.planStops(plan).map(stopOf) : ev ? [{ emoji: ev.emoji || '🎫', name: ev.title, meta: ev.venue || '' }]
+      : S.a.place && S.a.place.title ? [{ emoji: S.a.place.emoji || '📍', name: S.a.place.title, meta: '' }] : [];
+    const c = K.cityConf(K.cityOf(plan || ev || {}));
+    return { title: plan ? plan.title : ev ? ev.title : 'Иду на свидание', sub: when, stops, mode: 'date', city: c ? c.name : '',
+      url: plan ? K.goRoute(plan.id) : hubUrl(''), fileName: 'svidanie' };
+  }
   function shareAnswer() {
     if (PREVIEW) { toast('Это превью — ответ никуда не отправляется'); return; }
     prepareTicket();
@@ -1839,6 +1864,8 @@
       <div class="actions${view ? ' hidden' : ''}">
         <button class="btn btn-primary btn-wide share">${I('share')}${tgUser ? 'Отправить ответ в Telegram' : 'Отправить ответ'}</button>
         <button class="btn btn-soft btn-wide note-open">${I('pen')}Написать пару слов</button>
+        <button class="btn btn-soft btn-wide friend">💬 ${GF('Скинуть подруге', 'Скинуть другу')}</button>
+        ${window.KudaShareCard ? `<button class="btn btn-soft btn-wide card-story">🖼️ Картинка для сторис</button>` : ''}
         <div class="note-box hidden">
           <textarea class="field" rows="3" maxlength="500" placeholder="Пожелание, вопрос или просто что-то милое…"></textarea>
           <button class="btn btn-primary note-send">Отправить</button>
@@ -1857,6 +1884,19 @@
     }
 
     const state = $('.send-state', el), shareBtn = $('.share', el);
+    // «Скинуть подруге»: куда, когда и с кем — текстом, без сети и без геолокации; маршрут — ссылкой go.html
+    const fr = $('.friend', el);
+    if (fr) fr.onclick = () => { Sfx.click(); sendText(friendText(plan), GF('Скопировано — отправь подруге', 'Скопировано — отправь другу')); };
+    const cs = $('.card-story', el);
+    if (cs) cs.onclick = () => {
+      Sfx.click();
+      cs.disabled = true;
+      window.KudaShareCard.share(Object.assign(ticketCard(plan, ev, topInfo), { size: 'story' })).then(r => {
+        cs.disabled = false;
+        if (r === 'saved') toast('Картинка сохранена — выкладывай');
+        else if (r === 'error') toast('Не получилось нарисовать картинку');
+      });
+    };
     const noteOpen = $('.note-open', el), noteBox = $('.note-box', el), noteArea = $('textarea', noteBox);
     const sig = JSON.stringify(Object.assign({}, S.a, { note: '' }));
     const setState = (txt, ok) => { state.innerHTML = (ok ? I('check') : '') + esc(txt); state.classList.toggle('ok', !!ok); };
@@ -2305,6 +2345,7 @@
       ${v.ev ? evLinks(v.ev) : ''}
       ${cal ? calBlock(cal) : ''}
       ${PREVIEW ? '' : `<button class="btn btn-soft btn-wide verdict-share">${I('send')}Отправить итог в чат</button>`}
+      ${PREVIEW || !window.KudaShareCard || !v.win ? '' : `<button class="btn btn-soft btn-wide verdict-card">🖼️ Картинка с итогом</button>`}
     </div>`;
   }
   function tallyHtml(votes, forced, t) {
@@ -2599,6 +2640,20 @@
         });
         const vs = $('.verdict-share', wrap);
         if (vs) vs.onclick = () => { Sfx.click(); shareNow(verdictText(PRIOR, FORCED), 'Итог скопирован — вставь в общий чат'); };
+        const vc = $('.verdict-card', wrap);
+        if (vc) vc.onclick = () => {
+          Sfx.click();
+          const v = verdict(PRIOR, FORCED);
+          if (!v.win) return;
+          const st = v.plan ? K.planStops(v.plan) : [];
+          const when = [v.day ? shortDay(v.day.d) : '', v.ev && v.ev.time ? v.ev.time : v.slot ? v.slot.tm : ''].filter(Boolean).join(' · ');
+          const ppl = v.t.plus ? `идут ${v.t.inV.length} + ${v.t.plus}` : `идут ${v.t.inV.length}`;
+          vc.disabled = true;
+          window.KudaShareCard.share({ title: v.win.o.title, sub: [when, ppl].filter(Boolean).join(' · '), mode: MODE, size: 'square', fileName: 'itog',
+            city: (K.cityConf(K.cityOf(v.plan || v.ev || {})) || {}).name || '', url: shareLink(),
+            stops: st.length ? st.map(p => ({ emoji: p.emoji, name: p.name, meta: K.metroText(p.metro), lat: p.lat, lon: p.lon })) : [{ emoji: v.win.o.emoji || '📍', name: v.win.o.title, meta: v.ev ? v.ev.venue || '' : '' }] })
+            .then(r => { vc.disabled = false; if (r === 'saved') toast('Картинка сохранена — кидай в общий чат'); else if (r === 'error') toast('Не получилось нарисовать картинку'); });
+        };
         restoreFocus(wrap, fk, '.v-title');
         renderState();
         liveNote.classList.toggle('hidden', !(live() && SYNC === 'on'));

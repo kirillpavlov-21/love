@@ -485,6 +485,34 @@
     $('#season').classList.toggle('hidden', !tiles.length && !cols.length);
   }
 
+  /* ---------- картинка для чата и сторис (assets/share-card.js): план или подборка ---------- */
+  const SC = window.KudaShareCard || null;
+  const cardBtns = (kind, id) => (SC ? `<div class="row two card-row"><button type="button" class="btn ghost" data-card="${kind}" data-card-id="${esc(id)}" data-size="story">🖼️ Картинка для сторис</button><button type="button" class="btn ghost" data-card="${kind}" data-card-id="${esc(id)}" data-size="square">💬 Для чата</button></div>` : '');
+  const stopOf = p => ({ emoji: p.emoji, name: p.name, meta: [kindLow(p.kind), K.metroText(p.metro)].filter(Boolean).join(' · '), lat: p.lat, lon: p.lon });
+  async function shareCard(kind, id, size, btn) {
+    if (!SC) return;
+    let o = null;
+    if (kind === 'plan') {
+      const plan = K.planById(id);
+      if (!plan) return;
+      o = { title: plan.title, sub: [K.MODES[plan.mode] ? K.MODES[plan.mode].label : '', plan.when].filter(Boolean).join(' · '), stops: K.planStops(plan).map(stopOf), url: shareUrl('plan=' + encodeURIComponent(id)), fileName: id };
+    } else if (kind === 'col' && CO) {
+      const col = CO.find(id);
+      if (!col) return;
+      const rows = CO.items(col, { city, mode });
+      o = { title: col.emoji + ' ' + col.title, sub: CO.summary(rows), stops: rows.slice(0, 4).map(r => (r.kind === 'place' ? stopOf(r.x) : r.kind === 'plan' ? { emoji: r.x.emoji, name: r.x.title, meta: K.planStops(r.x).map(p => p.name).join(' → ') } : { emoji: r.x.emoji || '📅', name: r.x.title, meta: r.x.venue || '' })),
+        url: shareUrl('col=' + encodeURIComponent(id)), fileName: id };
+    }
+    if (!o) return;
+    Object.assign(o, { mode, size, city: cityConf().name });
+    if (btn) btn.disabled = true;
+    const r = await SC.share(o);
+    if (btn) btn.disabled = false;
+    if (r === 'saved') toast('Картинка сохранена — отправь её в чат');
+    else if (r === 'error') toast('Не получилось нарисовать картинку');
+    T.ev('share_card', { kind, id, mode });
+  }
+
   /* ---------- подборки (assets/collections.js + cols.js): полка над планами, шторка ?col= и свой список ?list= ---------- */
   const CO = window.KudaCols || null;
   const colShelf = () => (CO ? safe(() => CO.shelf({ city, mode, wet: !!wxHint(WX) }), []) : []).slice(0, 10);
@@ -514,6 +542,7 @@
           <button type="button" class="btn ghost" data-share="${esc(sq)}" data-title="${esc(col.title)}">${I('share')}Поделиться</button>
           <button type="button" class="btn ghost" data-close-sheet>Закрыть</button>
         </div>
+        ${kind === 'col' ? cardBtns('col', id) : ''}
       </div>`, Object.assign({ kind, id, url }, o.so));
   }
   /* start.html?col=<id>: подборка этого города (иначе — её город); живых пунктов меньше 4 — подборки нет */
@@ -1041,6 +1070,7 @@
           <a class="btn ghost" data-act="route" href="${K.routeUrl(st)}" target="_blank" rel="noopener">${I('route')}${st.length > 1 ? 'Маршрут' : 'Как добраться'}</a>
           <button type="button" class="btn ghost" data-share="plan=${encodeURIComponent(plan.id)}" data-title="${esc(plan.title)}">${I('share')}Поделиться</button>
         </div>
+        ${cardBtns('plan', plan.id)}
       </div>
       ${reportBox('plan', plan.id, plan.title)}`, Object.assign({ kind: 'plan', id: plan.id, url: sheetUrl('plan=' + encodeURIComponent(plan.id)) }, so));
     T.ev('open_plan', { kind: 'plan', id: plan.id, mode });
@@ -1408,6 +1438,8 @@
     const oc = e.target.closest('[data-open-col]');
     if (oc) { openCol(oc.dataset.openCol); return; }
     if (e.target.closest('[data-close-sheet]')) { closeSheet(); return; }
+    const cd = e.target.closest('[data-card]');
+    if (cd) { shareCard(cd.dataset.card, cd.dataset.cardId, cd.dataset.size, cd); return; }
     const b = e.target.closest('[data-open-plan]');
     if (b) { openPlan(b.dataset.openPlan); return; }
     const qz = e.target.closest('[data-qz]');
