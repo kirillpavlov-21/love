@@ -1,0 +1,250 @@
+{
+ "note": "Список файлов, которые создаёт scripts/build-seo.mjs (для удаления устаревших и <lastmod> в sitemap.xml). Не править руками.",
+ "site": "https://kirillpavlov-21.github.io/love/",
+ "files": {
+  "spb/seo.css": {
+   "sha": "0fbd3c0cbd295fbe",
+   "lastmod": "2026-10-19"
+  },
+  "spb/svidanie/index.html": {
+   "sha": "316bec9d34b92ad6",
+   "lastmod": "2026-10-19"
+  },
+  "spb/pervoe-svidanie/index.html": {
+   "sha": "3128d54eefa741de",
+   "lastmod": "2026-10-19"
+  },
+  "spb/nedorogoe-svidanie/index.html": {
+   "sha": "41c20b3bafcaef23",
+   "lastmod": "2026-10-19"
+  },
+  "spb/s-druzyami/index.html": {
+   "sha": "23e5fd4e49cee2c8",
+   "lastmod": "2026-10-19"
+  },
+  "spb/devichnik/index.html": {
+   "sha": "2fbe521f2c1b32b7",
+   "lastmod": "2026-10-19"
+  },
+  "spb/segodnya/index.html": {
+   "sha": "8f287b417bfdcc57",
+   "lastmod": "2026-10-19"
+  },
+  "spb/vyhodnye/index.html": {
+   "sha": "57245960aff491ab",
+   "lastmod": "2026-10-19"
+  },
+  "spb/vecherom-posle-raboty/index.html": {
+   "sha": "541f9716a06b125e",
+   "lastmod": "2026-10-19"
+  },
+  "spb/pozdno-vecherom/index.html": {
+   "sha": "b81f8a987ce73ee8",
+   "lastmod": "2026-10-19"
+  },
+  "spb/halloween/index.html": {
+   "sha": "afe633f13ad39227",
+   "lastmod": "2026-10-19"
+  },
+  "spb/novyj-god/index.html": {
+   "sha": "cf47c8c0e2f63f42",
+   "lastmod": "2026-10-19"
+  },
+  "spb/osen/index.html": {
+   "sha": "301bdc9979522f8c",
+   "lastmod": "2026-10-19"
+  },
+  "spb/zima/index.html": {
+   "sha": "0077cdf5b6c11a80",
+   "lastmod": "2026-10-19"
+  },
+  "spb/restorany/index.html": {
+   "sha": "52ae1b7eb7596b38",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kofejni/index.html": {
+   "sha": "b122f5c31ed21587",
+   "lastmod": "2026-10-19"
+  },
+  "spb/bary/index.html": {
+   "sha": "3d98dd6180cb1d1a",
+   "lastmod": "2026-10-19"
+  },
+  "spb/parki/index.html": {
+   "sha": "2392b2378e708e33",
+   "lastmod": "2026-10-19"
+  },
+  "spb/muzei/index.html": {
+   "sha": "30a24b670684d25f",
+   "lastmod": "2026-10-19"
+  },
+  "spb/teatry/index.html": {
+   "sha": "fecaeae3dbf4cd10",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kvesty/index.html": {
+   "sha": "4e9d5137ad261f0f",
+   "lastmod": "2026-10-19"
+  },
+  "spb/bani/index.html": {
+   "sha": "1d6809420b644a0a",
+   "lastmod": "2026-10-19"
+  },
+  "spb/karaoke/index.html": {
+   "sha": "4847caf9fb577569",
+   "lastmod": "2026-10-19"
+  },
+  "spb/krishi-i-panoramy/index.html": {
+   "sha": "8f611ae7cec7685b",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kompyuternye-kluby/index.html": {
+   "sha": "8b109ff4de2b9149",
+   "lastmod": "2026-10-19"
+  },
+  "spb/koncerty/index.html": {
+   "sha": "c65dc14b17a80014",
+   "lastmod": "2026-10-19"
+  },
+  "spb/spektakli/index.html": {
+   "sha": "b0e1832b97a252f3",
+   "lastmod": "2026-10-19"
+  },
+  "spb/vystavki/index.html": {
+   "sha": "a3d1d3f1cb5a4ae5",
+   "lastmod": "2026-10-19"
+  },
+  "spb/stendap/index.html": {
+   "sha": "770892b82e80dae1",
+   "lastmod": "2026-10-19"
+  },
+  "spb/futbol/index.html": {
+   "sha": "61b47a63006106fa",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-centr/index.html": {
+   "sha": "c972cc1716c12e79",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-petrogradskaya-storona/index.html": {
+   "sha": "cd9074b06657c1f8",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-vasilevskij-ostrov/index.html": {
+   "sha": "3f2d1e8d21317a8d",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-sever/index.html": {
+   "sha": "031cb707fd61d35f",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-primorskij-rajon/index.html": {
+   "sha": "9b8d1d691b843fed",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-yug/index.html": {
+   "sha": "d51477be1c0ee09c",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-prigorody/index.html": {
+   "sha": "d66f3d9fcd2d36d4",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-u-metro-admiraltejskaya/index.html": {
+   "sha": "284d4b3297f3af3e",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-u-metro-baltijskaya/index.html": {
+   "sha": "d4a9650d6aed5383",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-u-metro-begovaya/index.html": {
+   "sha": "fff286ed004a2fc9",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-u-metro-vasileostrovskaya/index.html": {
+   "sha": "415ea8012e21aa5f",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-u-metro-vladimirskaya/index.html": {
+   "sha": "e010ddca7058e578",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-u-metro-gornyj-institut/index.html": {
+   "sha": "8d51a0344433f313",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-u-metro-gorkovskaya/index.html": {
+   "sha": "70756081a879d901",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-u-metro-gostinyj-dvor/index.html": {
+   "sha": "b5a0a88621c52a31",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-u-metro-dostoevskaya/index.html": {
+   "sha": "7cffa5f2c7926a50",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-u-metro-mayakovskaya/index.html": {
+   "sha": "6cd58cb2a650a6f9",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-u-metro-nevskij-prospekt/index.html": {
+   "sha": "2c8202f94a701c3a",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-u-metro-petrogradskaya/index.html": {
+   "sha": "c4584df35fb448c2",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-u-metro-ploschad-vosstaniya/index.html": {
+   "sha": "c3eb32b6c9529a48",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-u-metro-sadovaya/index.html": {
+   "sha": "2e40aecf94e2d8a0",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-u-metro-sennaya-ploschad/index.html": {
+   "sha": "f856b4610b116b1a",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-u-metro-sportivnaya/index.html": {
+   "sha": "2db1175dce81fc19",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-u-metro-tehnologicheskij-institut/index.html": {
+   "sha": "acde8ad92e1c74ff",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-u-metro-chernyshevskaya/index.html": {
+   "sha": "21000204fc184ed7",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-u-metro-chkalovskaya/index.html": {
+   "sha": "4c2cd56a3afeeef6",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kompyuternye-kluby-centr/index.html": {
+   "sha": "f76593e9dd3e6acf",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kompyuternye-kluby-u-metro-ploschad-aleksandra-nevskogo/index.html": {
+   "sha": "7df53e5eb2e04946",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kompyuternye-kluby-u-metro-ploschad-vosstaniya/index.html": {
+   "sha": "c730fc15652a19c6",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kompyuternye-kluby-u-metro-pushkinskaya/index.html": {
+   "sha": "5fc3a3e30eb84e55",
+   "lastmod": "2026-10-19"
+  },
+  "spb/index.html": {
+   "sha": "da1699787c7a048b",
+   "lastmod": "2026-10-19"
+  }
+ }
+}
