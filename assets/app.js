@@ -409,6 +409,32 @@
     const c = K.CITIES && K.CITIES[cityOf(x)];
     return c && c.id !== 'msk' && String(addr || '').indexOf(c.addr) < 0 ? c.addr : '';
   };
+  /* Метка «пришёл по приглашению» для своего приглашения гостя: 8 знаков хэша кода — без имён и самого кода */
+  const refTag = () => (CODE ? K.hash(CODE).padStart(8, '0').slice(-8) : '');
+  const refQ = () => (refTag() ? '&ref=' + refTag() : '');
+  /* create.html в городе приглашения, с меткой ref */
+  function guestCreateUrl(q) {
+    const c = invCity();
+    return 'create.html?' + q + refQ() + (c ? '&city=' + encodeURIComponent(c) : '');
+  }
+  /* Три плана рядом с тем, за что гость голосовал (другой повод — «позвать других на этот же план»), или любые три этого города */
+  function guestPlans() {
+    const items = optItems(), mine = (S.a.opts || []).map(i => items[i]).filter(Boolean);
+    const anchor = mine.concat(items).map(o => o.plan && K.planById(o.plan)).find(Boolean);
+    const c = invCity() || 'msk';
+    const taken = new Set(items.map(o => o.plan).filter(Boolean));
+    const at = anchor ? K.planStops(anchor)[0] : null;
+    const pool = (K.kuda().scenarios || []).filter(x => x && !taken.has(x.id) && x.mode !== MODE && K.cityOf(x) === c && K.planStops(x).length === x.stops.length && K.seasonOk(x));
+    const d = x => (at ? K.distM(at, K.planStops(x)[0]) : (K.hash(CODE + x.id) >>> 0));
+    return pool.map(x => [x, d(x)]).filter(x => !at || x[1] <= 2500).sort((a, b) => a[1] - b[1]).slice(0, 3).map(x => x[0]);
+  }
+  function guestBlock() {
+    let pl = [];
+    try { pl = guestPlans(); } catch (e) { pl = []; }
+    if (!pl.length) return '';
+    return `<div class="guest-box"><h3>Пока остальные голосуют</h3><p class="sub">Позови своих — на свидание или с друзьями, рядом с этим местом:</p>
+      ${pl.map(x => `<a class="chip-link guest-plan" href="${esc(guestCreateUrl('plan=' + encodeURIComponent(x.id) + '&mode=' + x.mode))}">${esc(x.emoji || '📍')} ${esc(x.title)} <small>· ${esc((K.MODES[x.mode] || {}).label || '')}</small></a>`).join('')}</div>`;
+  }
   /* Ссылка на главную в городе приглашения: получатель из Петербурга попадёт на петербургские планы */
   function hubUrl(q, c) {
     if (c === undefined) c = invCity();
@@ -1877,7 +1903,8 @@
           <button class="btn btn-primary note-send">Отправить</button>
         </div>
         <button class="link-btn replay">${I('redo')}Пройти заново</button>
-        <a class="link-btn viral" href="${esc(hubUrl('from=invite'))}">${I('sparkle')}Сделать своё приглашение</a>
+        <a class="btn btn-soft btn-wide surprise-back" href="${esc(guestCreateUrl('mode=date'))}">${I('sparkle')}Сделай ответный сюрприз</a>
+        <a class="link-btn viral" href="${esc(hubUrl('from=invite' + refQ()))}">${I('sparkle')}Сделать своё приглашение</a>
       </div>`;
 
     const ticket = $('.ticket', el), cut = $('.t-cut', el);
@@ -2526,8 +2553,9 @@
         </div>`}
         <div class="actions">
           <button class="link-btn revote">${myVote() ? I('redo') + 'Изменить мой голос' : I('check') + 'Проголосовать'}</button>
-          <a class="link-btn" href="${esc(hubUrl('m=' + MODE + '&from=invite'))}">Создать свой сбор${I('arrow')}</a>
-        </div>`;
+          <a class="link-btn" href="${esc(hubUrl('m=' + MODE + '&from=invite' + refQ()))}">Создать свой сбор${I('arrow')}</a>
+        </div>
+        ${justVoted && !PREVIEW && !OWN ? guestBlock() : ''}`;
       const wrap = $('.tally-wrap', el), box = $('.vstate', el), liveNote = $('.live-note', el), sr = $('.vs-live', el);
 
       /* Поделиться: текст готов заранее, вызываем сразу по нажатию */

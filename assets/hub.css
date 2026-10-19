@@ -729,3 +729,8 @@ html[data-city="spb"] .metro.l6 { background: #7B4B2A; }
 .pl-sub .oh { font-weight: 600; }
 .pl-sub .oh.on { color: var(--ok, #9be3b4); }
 .pl-sub .oh.off { color: var(--muted); }
+
+.guest-strip { display: flex; align-items: center; gap: 10px; margin: 10px 0 4px; padding: 10px 12px; border-radius: 16px; border: 1px solid rgba(var(--rgb, 255,122,154), .4); background: rgba(var(--rgb, 255,122,154), .1); }
+.guest-strip p { flex: 1; margin: 0; font-size: 14px; font-weight: 600; line-height: 1.35; }
+.guest-strip .btn.sm { min-height: 36px; padding: 0 14px; flex: none; }
+.guest-strip .icon-btn { flex: none; background: transparent; cursor: pointer; }

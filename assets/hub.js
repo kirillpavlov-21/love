@@ -2091,6 +2091,23 @@
     return false;
   }
 
+  /* Пришли по приглашению (?from=invite): полоска «своё — за 30 секунд», пока человек не создал своё или не закрыл её.
+     Метка ref (8 знаков хэша исходного приглашения) живёт в sessionStorage — конструктор возьмёт её с любой кнопки */
+  function guestStrip() {
+    const q = new URLSearchParams(location.search);
+    const ref = q.get('ref');
+    if (/^[a-z0-9]{8}$/.test(ref || '')) safe(() => sessionStorage.setItem('kuda-ref', ref));
+    if (q.get('from') !== 'invite') return;
+    const hist = safe(() => JSON.parse(localStorage.getItem('date-constructor-history') || '[]'), []);
+    if ((Array.isArray(hist) && hist.length) || safe(() => localStorage.getItem('kuda-guest-off'), null)) return;
+    const top = $('.top');
+    if (!top || $('#guestStrip')) return;
+    top.insertAdjacentHTML('afterend', `<div class="guest-strip" id="guestStrip" role="note"><p>Тебя позвали через «${esc((CFG.site && CFG.site.name) || 'Куда идём?')}». Своё приглашение — за 30 секунд</p>
+      <a class="btn primary sm" href="${createUrl(mode)}">Сделать</a><button type="button" class="icon-btn" aria-label="Скрыть">✕</button></div>`);
+    $('#guestStrip button').onclick = () => { safe(() => localStorage.setItem('kuda-guest-off', '1')); $('#guestStrip').remove(); };
+    T.ev('guest_cta', { mode });
+  }
+
   /* «Установить приложение» (assets/pwa.js подключается после этого файла): кнопка в подвале видна, только когда установка возможна */
   function mountPwa() {
     const P = window.KudaPWA;
@@ -2142,6 +2159,7 @@
   if (!restoring) syncUrl();             // в адресе остаются режим и фильтры, без plan/place/tab
   if (landTab) goTab(landTab, true);
   if (!openFromQuery(QS, { adopt: restoring, rv: toRv }) && restoring) syncUrl(true);
+  guestStrip();
   afterPaint(() => {
     bootAfisha();
     if (!WX) loadWx();

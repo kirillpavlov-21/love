@@ -73,7 +73,7 @@
 
   const DEF = K.defaults();
   // пришли по чужому приглашению (?ref= — 8 знаков хэша его кода): метка уйдёт на сервер вместе с регистрацией
-  const REF = (/^[a-z0-9]{8}$/.exec(new URLSearchParams(location.search).get('ref') || '') || [''])[0];
+  const REF = (/^[a-z0-9]{8}$/.exec(new URLSearchParams(location.search).get('ref') || (() => { try { return sessionStorage.getItem('kuda-ref') || ''; } catch (e) { return ''; } })()) || [''])[0];
   const state = {
     mode: 'date', cat: 'line', theme: 'pink', who: 'f',
     texts: {},                          // тексты других режимов: {guys: {greeting, question, title}, …}
@@ -1325,7 +1325,7 @@
     const city = firstCity([inv.event].concat((inv.places || []).map(p => p && p.plan), (inv.opts || []).map(o => o && (o.plan || o.event))).filter(Boolean));
     if (city) x.city = city; else delete x.city;
     if (inv.until) x.until = inv.until; else delete x.until;
-    if (REF && !x.ref) x.ref = REF;
+    if (REF && !x.ref) { x.ref = REF; try { if (window.KudaTrack && KudaTrack.ev) KudaTrack.ev('guest_create', { mode: state.mode }); } catch (e) { /* без аналитики */ } }
     saveHist([x].concat(list.filter(y => histCode(y) !== code)));
     markOwn(code);
     renderHist();

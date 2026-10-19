@@ -768,3 +768,9 @@ form.name-box { margin: 0; }
 /* день, когда место из плана не работает */
 .day.off.shut { opacity: .45; }
 .day.off.shut small { font-size: 8px; }
+
+/* гость становится автором */
+.guest-box { width: 100%; margin: 14px 0 4px; padding: 14px; border-radius: 18px; border: 1px solid var(--line-1); background: var(--surface); display: grid; gap: 8px; }
+.guest-box h3 { margin: 0; font: 600 16px var(--display, inherit); }
+.guest-box .sub { margin: 0; color: var(--muted-2); font-size: 14px; }
+.guest-plan small { color: var(--muted); }
