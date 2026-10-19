@@ -693,3 +693,9 @@ html[data-city="spb"] .metro.l6 { background: #7B4B2A; }
   .city .l-short { display: inline; }
   .top { gap: 8px; }
 }
+/* 320 px: логотип, город и «Мои приглашения» в одну строку — без значка булавки и с логотипом чуть мельче */
+@media (max-width: 340px) {
+  .city .city-pin { display: none; }
+  .logo { font-size: 17px; }
+  .top, .top-r { gap: 6px; }
+}
