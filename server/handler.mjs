@@ -125,6 +125,8 @@ function cleanVoter(v, now) {
   const s = intList(v.s, 4, 0, 3, 'voter');
   const m = intList(v.m, 60, 0, 40000, 'voter').filter(x => !d.includes(x));
   const p = v.p == null ? 0 : reqInt(v.p, 0, 9, 'voter');
+  // st — станция метро, откуда поедет («Встретимся посередине»): только название, до 40 знаков
+  const st = v.st == null || v.st === '' ? '' : cleanLine(optStr(v.st, 60, 'voter'), 40);
   // t из ссылок — в минутах (старый формат) или мс; будущее не принимаем
   let t = Number(v.t) || 0;
   if (t > 0 && t < 1e11) t *= 60000;
@@ -134,6 +136,7 @@ function cleanVoter(v, now) {
     if (s.length) out.s = s;
     if (m.length) out.m = m;
     if (p) out.p = p;
+    if (st) out.st = st;
   }
   return out;
 }

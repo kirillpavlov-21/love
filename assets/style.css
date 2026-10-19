@@ -783,3 +783,7 @@ form.name-box { margin: 0; }
 .book-acts { display: flex; flex-wrap: wrap; gap: 8px; }
 .book-acts .btn { flex: 1 1 140px; }
 .book-done { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+
+/* откуда поедешь */
+.st-row { display: grid; gap: 6px; width: 100%; font-weight: 600; color: var(--muted-2); font-size: 14px; }
+.st-row select { margin: 0; }

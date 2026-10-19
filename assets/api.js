@@ -163,6 +163,7 @@
     if (Array.isArray(v.s) && v.s.length) o.s = v.s;
     if (Array.isArray(v.m) && v.m.length) o.m = v.m;
     if (v.p > 0) o.p = v.p;
+    if (typeof v.st === 'string' && v.st) o.st = v.st.slice(0, 40);
     return o;
   };
   /* spins — итоги колеса по наборам лидеров {'0,2': {i, d, t, L}} (сервер с L); у старого сервера — {} */

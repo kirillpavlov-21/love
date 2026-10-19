@@ -750,6 +750,22 @@
       .then(short => { if (ticket.sig !== sig) return; ticket.url = short; ticket.busy = null; if (onReady) onReady(); })
       .catch(() => { if (ticket.busy === p) ticket.busy = null; });
   }
+  /* «Откуда поедешь?» — станция метро города приглашения (необязательно): итоги покажут, кому сколько ехать */
+  function stationPick() {
+    const M = window.KudaMetro, c = invCity() || 'msk';
+    const names = M ? M.names(c) : [];
+    if (!names.length) return '';
+    return `<label class="st-row"><span>🚇 Откуда поедешь?</span><select class="field st-pick"><option value="">не скажу</option>${names.map(n => `<option${n === S.a.st ? ' selected' : ''}>${esc(n)}</option>`).join('')}</select></label>`;
+  }
+  /* «≈ 25 мин в среднем · дольше всех — Петя, 40» у варианта: голоса за него со станцией (от двух) */
+  function travelLine(x, t) {
+    const M = window.KudaMetro;
+    if (!M || !x.o.plan) return '';
+    const pl = K.planById(x.o.plan), p = pl && K.planStops(pl)[0];
+    if (!p) return '';
+    const sp = M.spread(invCity() || 'msk', p, t.inV.filter(v => v.o.includes(x.i)));
+    return sp ? ` · 🚇 ≈ ${sp.avg} мин, дольше всех — ${esc(sp.who)} (${sp.max})` : '';
+  }
   /* «Забронировать»: готовый текст, «Позвонить» (tel:), «Скопировать», сайт или Яндекс Карты; отметка «Забронировано» */
   function bookBox(p, o) {
     if (!p) return '';
@@ -2083,6 +2099,7 @@
         s: uniq((Array.isArray(v.s) ? v.s : []).filter(x => isInt(x, 0, 3))).slice(0, 4),
         m: uniq((Array.isArray(v.m) ? v.m : []).filter(x => isInt(x, 0, 40000))).slice(0, 60),
         p: isInt(v.p, 0, 9) ? v.p : 0,
+        st: typeof v.st === 'string' ? v.st.slice(0, 40) : '',
         t: t > 0 ? t : 0,
       };
     });
@@ -2116,7 +2133,7 @@
   const voteSig = v => {
     if (!v) return '';
     const a = [v.n, v.y, v.o, v.d];
-    if ((v.s || []).length || (v.m || []).length || v.p) a.push(v.s || [], v.m || [], v.p || 0);
+    if ((v.s || []).length || (v.m || []).length || v.p || v.st) a.push(v.s || [], v.m || [], v.p || 0, v.st || '');
     return JSON.stringify(a);
   };
   const voteSaved = () => { const my = myVote(); return !!my && S.sent.api === voteSig(my); };
@@ -2425,7 +2442,7 @@
         ${votes.length && !PREVIEW ? `<p class="hint">${liveOn ? 'Кого нет в списке — те ещё не отметились.' : 'Здесь голоса из ссылок, которые дошли до тебя.'}</p>` : ''}
       </div>
       ${t.opt.length ? `<div class="tally"><h3>Куда</h3>
-        ${t.opt.map(x => row(leaders.includes(x) ? ' lead' : '', x.o.title, x.who.length ? esc(x.who.join(', ')) : x.o.when ? esc(x.o.when) : 'пока никто', x.who.length, ` data-i="${x.i}"`)).join('')}
+        ${t.opt.map(x => row(leaders.includes(x) ? ' lead' : '', x.o.title, (x.who.length ? esc(x.who.join(', ')) : x.o.when ? esc(x.o.when) : 'пока никто') + travelLine(x, t), x.who.length, ` data-i="${x.i}"`)).join('')}
         ${t.any.length ? `<p class="hint">Подойдёт любой вариант: ${esc(t.any.join(', '))}</p>` : ''}
         ${leaders.length > 1 && forced == null ? `<button class="btn btn-soft dashed btn-wide wheel">${I('wheel')}Ничья — крутить колесо</button>` : ''}
       </div>` : ''}
@@ -2445,6 +2462,7 @@
       <div class="final-cat"><div class="cat-slot">${K.catSVG(out ? 'sad' : 'happy')}</div><div class="bubble b-left">Как тебя записать в голосовании?</div></div>
       <form class="name-box" novalidate>
         <input class="field nm" maxlength="30" placeholder="Например: Петя" value="${esc(name)}" aria-label="Твоё имя" autocomplete="given-name" enterkeyhint="done">
+        ${out ? '' : stationPick()}
         ${out ? '' : `<div class="plus-row" role="group" aria-label="Сколько человек приведёшь с собой"><span>Со мной ещё</span><button type="button" class="btn btn-soft sq pl-dec" aria-label="Меньше">−</button><b class="pl-n" aria-live="polite">+${S.a.plus || 0}</b><button type="button" class="btn btn-soft sq pl-inc" aria-label="Больше">+</button></div>`}
         <button class="btn btn-primary btn-wide send" type="submit">Готово${I('check')}</button>
       </form>
@@ -2452,6 +2470,8 @@
       <div class="vstate warn twin hidden" role="group" aria-labelledby="twin-t"></div>`;
     const form = $('.name-box', el), inp = $('.nm', el), btn = $('.send', el), twinBox = $('.twin', el);
     const plusN = $('.pl-n', el);
+    const stp = $('.st-pick', el);
+    if (stp) stp.onchange = () => { S.a.st = stp.value; save(); };
     const setPlus = n => { S.a.plus = Math.max(0, Math.min(5, n)); save(); if (plusN) plusN.textContent = '+' + S.a.plus; };
     if (plusN) { $('.pl-dec', el).onclick = () => { Sfx.click(); setPlus((S.a.plus || 0) - 1); }; $('.pl-inc', el).onclick = () => { Sfx.click(); setPlus((S.a.plus || 0) + 1); }; }
     // «Изменить голос» ведёт сразу к вариантам, мимо письма с «Не смогу» — отказаться можно здесь
@@ -2490,6 +2510,7 @@
         if (m.length) mine.m = m;
         if ((S.a.slots || []).length && slotList().length > 1) mine.s = S.a.slots.slice(0, 4);
         if (S.a.plus > 0) mine.p = Math.min(5, S.a.plus | 0);
+        if (S.a.st) mine.st = S.a.st;
       }
       addVotes([mine]);
       notify('vote');

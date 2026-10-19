@@ -209,5 +209,7 @@
   };
   const farMsg = c => 'Похоже, ты не ' + K().cityConf(cityId(c)).in + ' (или включён VPN). Выбери станцию метро или точку на карте.';
 
-  window.KudaGeo = { locate, peek, stations, inArea, saved, save, MSG, farMsg };
+  /* все станции города из таблицы: { name: [lat, lon, line?] } — для графа метро (assets/metro.js) */
+  const table = c => TABLE[cityId(c)] || {};
+  window.KudaGeo = { locate, peek, stations, table, inArea, saved, save, MSG, farMsg };
 })();
