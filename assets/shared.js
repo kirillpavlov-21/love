@@ -80,7 +80,7 @@
   const KEYS = ('her:a me:b catName:c cat:d theme:e greeting:f question:g signature:h finale:i levels:j heartsGoal:k ' +
     'noButton:l places:m placeSurprise:n placeCustom:o dates:p dateOther:q time:r food:s emoji:t title:u note:v mode:w ' +
     'start:x days:y skipWeekdays:z list:A from:B to:C step:D def:E hearts:F letter:G place:H date:I opts:J plan:K tg:L tgu:M ' +
-    'event:N').split(' ').map(x => x.split(':'));   // новые ключи — только в конец, старые буквы не переиспользуем
+    'event:N slots:O until:P').split(' ').map(x => x.split(':'));   // новые ключи — только в конец, старые буквы не переиспользуем
   const SHORT = Object.fromEntries(KEYS), LONG = Object.fromEntries(KEYS.map(([l, sh]) => [sh, l]));
   function rekey(v, map) {
     if (Array.isArray(v)) return v.map(x => rekey(x, map));
@@ -180,6 +180,13 @@
     let h = 5381;
     for (let i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) | 0;
     return (h >>> 0).toString(36);
+  }
+
+  /* Сколько осталось до срока: «45 мин», «2 ч 10 мин», «3 дн 4 ч» */
+  function leftText(ms) {
+    const min = Math.max(1, Math.ceil(ms / 60000)), h = Math.floor(min / 60), d = Math.floor(h / 24);
+    if (d) return d + ' дн' + (h % 24 ? ' ' + (h % 24) + ' ч' : '');
+    return [h ? h + ' ч' : '', min % 60 ? (min % 60) + ' мин' : ''].filter(Boolean).join(' ');
   }
 
   /* ---------- даты ---------- */
@@ -930,7 +937,7 @@
 
   window.DateKit = {
     BASE, merge, defaults, diffInvite, encodeInvite, decodeInvite, encodeData, decodeData, readHash, esc, fill, hash,
-    ymd, parseYmd, addDays, listDates, fmtDay, dayNum, numDay, toMin, fromMin, relaySend, relayRegister, relayTest, shortLink, goRoute, sitePath, toB64url,
+    leftText, ymd, parseYmd, addDays, listDates, fmtDay, dayNum, numDay, toMin, fromMin, relaySend, relayRegister, relayTest, shortLink, goRoute, sitePath, toB64url,
     CATS, catVars, catSVG, HEART_D, STAR_D, markD, ICONS, icon, MODE_ICON, tgUser, tgLink, calendarLinks,
     MODES, modeOf, kuda, placeById, planById, planStops, catOf, photo, planPhoto, photoCredit, cleanAuthor, HINTS, placeHints, planHints, hintChip, seasonHints,
     todayMsk, seasonNow, seasonOk, eventById, events, eventDays, sheet,

@@ -52,6 +52,7 @@
   let EV_PAST = null;       // событие из приглашения уже прошло
   let REV = -1;             // версия голосов на сервере
   let SPIN = null;          // итог колеса с сервера: { i, L? } — для каждой ничьей (L) первый сохранённый остаётся у всех
+  let SRV_UNTIL = null;     // дедлайн с сервера («Закрыть сейчас» организатора), минуты эпохи
   let SPINS = null;         // итоги колеса по наборам лидеров с сервера: { '0,2': { i, L } }
   let SYNC = '';            // '' — сервер не спрашивали, 'on' — голоса с сервера, 'off' — сервер не ответил
   let VOTE_STATE = '';      // мой голос на сервере: 'saving' | 'saved' | 'local'
@@ -99,7 +100,7 @@
 
   /* pre — день и время, подставленные из события (их снимаем, если выбрали другое место) */
   /* timeNext — время после полуночи в окне через полночь (22:00–02:00): встреча в ночь на следующий день */
-  const freshAnswers = () => ({ yes: false, noTries: 0, hearts: 0, place: null, placeText: '', date: '', dateOther: '', time: '', timeNext: false, food: null, note: '', coming: null, opts: [], days: [], name: '', pre: null });
+  const freshAnswers = () => ({ yes: false, noTries: 0, hearts: 0, place: null, placeText: '', date: '', dateOther: '', time: '', timeNext: false, food: null, note: '', coming: null, opts: [], days: [], maybe: [], slots: [], plus: 0, name: '', pre: null });
   const S = { step: 0, a: freshAnswers(), sent: {} };
 
   function save() {
@@ -1434,7 +1435,7 @@
     const allBtn = $('.all', el);
     // в компании «Дальше» — когда отмечен хоть один день; «не знаю» — отдельной кнопкой, чтобы не путать с «любой»
     const upd = () => {
-      nextBtn.disabled = multi ? !S.a.days.length : !(S.a.date || (inp && inp.value.trim()));
+      nextBtn.disabled = multi ? !S.a.days.length && !(S.a.maybe || []).length : !(S.a.date || (inp && inp.value.trim()));
       if (allBtn) allBtn.classList.toggle('hidden', S.a.days.length === days.length);
     };
     const stampHtml = `<svg class="stamp" viewBox="0 0 24 24" aria-hidden="true"><path d="${K.markD(MODE)}"/></svg>`;
@@ -1447,6 +1448,19 @@
       S.a.days = on ? Array.from(new Set(S.a.days.concat(d))).sort() : S.a.days.filter(x => x !== d);
       line.textContent = S.a.days.length ? `Отмечено: ${S.a.days.length} ${plural(S.a.days.length, 'день', 'дня', 'дней')}` : '';
       if (!quiet) { save(); if (on) { Sfx.stamp(); vibrate(15); mood(el, 'happy', 700); } else Sfx.click(); }
+    }
+    /* компания: тап по дню — «да» → «может быть» → снято */
+    function setMaybe(b, on) {
+      const d = b.dataset.d;
+      b.classList.toggle('maybe', on);
+      S.a.maybe = on ? Array.from(new Set((S.a.maybe || []).concat(d))).sort() : (S.a.maybe || []).filter(x => x !== d);
+    }
+    function cycle(b) {
+      if (b.classList.contains('picked')) { toggle(b, true, false); setMaybe(b, true); save(); Sfx.click(); }
+      else if (b.classList.contains('maybe')) { setMaybe(b, false); save(); Sfx.click(); }
+      else toggle(b, false, true);
+      const m = (S.a.maybe || []).length;
+      line.textContent = (S.a.days.length ? `Отмечено: ${S.a.days.length} ${plural(S.a.days.length, 'день', 'дня', 'дней')}` : '') + (m ? `${S.a.days.length ? ' · ' : ''}может быть: ${m}` : '');
     }
     function mark(b, quiet) {
       $$('.day.picked', el).forEach(x => { x.classList.remove('picked'); x.setAttribute('aria-pressed', 'false'); const s = $('.stamp', x); if (s) s.remove(); });
@@ -1461,7 +1475,7 @@
     el.addEventListener('click', e => {
       const b = e.target.closest('.day.avail');
       if (!b) return;
-      if (multi) { toggle(b); upd(); return; }
+      if (multi) { cycle(b); upd(); return; }
       S.a.date = b.dataset.d; S.a.dateOther = '';
       if (inp) inp.value = '';
       save(); mark(b); upd();
@@ -1489,6 +1503,8 @@
       const keep = (S.a.days || []).filter(d => avail.has(d));
       S.a.days = [];
       keep.forEach(d => toggle($(`.day[data-d="${d}"]`, el), true));
+      S.a.maybe = (S.a.maybe || []).filter(d => avail.has(d) && !keep.includes(d));
+      S.a.maybe.forEach(d => { const b = $(`.day[data-d="${d}"]`, el); if (b) b.classList.add('maybe'); });
     } else if (S.a.date && avail.has(S.a.date)) mark($(`.day[data-d="${S.a.date}"]`, el), true);
     else S.a.date = '';
     if (S.a.dateOther && inp) { inp.value = S.a.dateOther; $('.other-box', el).classList.remove('hidden'); if (otherBtn) otherBtn.classList.add('hidden'); }
@@ -1959,6 +1975,9 @@
         id: v.id, n: String(v.n == null || v.n === '' ? '?' : v.n).slice(0, 30), y: v.y ? 1 : 0,
         o: uniq((Array.isArray(v.o) ? v.o : []).filter(x => isInt(x, 0, 99))).slice(0, 20),
         d: uniq((Array.isArray(v.d) ? v.d : []).filter(x => isInt(x, 0, 40000))).slice(0, 60),
+        s: uniq((Array.isArray(v.s) ? v.s : []).filter(x => isInt(x, 0, 3))).slice(0, 4),
+        m: uniq((Array.isArray(v.m) ? v.m : []).filter(x => isInt(x, 0, 40000))).slice(0, 60),
+        p: isInt(v.p, 0, 9) ? v.p : 0,
         t: t > 0 ? t : 0,
       };
     });
@@ -1989,7 +2008,12 @@
   function addVotes(...lists) { if (mergeIn(...lists)) votesChanged(); }
   const myVote = () => PRIOR.find(v => v.id === VOTER_ID) || null;
   /* Отпечаток голоса без времени: «этот голос уже на сервере / уже отправлен ссылкой» */
-  const voteSig = v => (v ? JSON.stringify([v.n, v.y, v.o, v.d]) : '');
+  const voteSig = v => {
+    if (!v) return '';
+    const a = [v.n, v.y, v.o, v.d];
+    if ((v.s || []).length || (v.m || []).length || v.p) a.push(v.s || [], v.m || [], v.p || 0);
+    return JSON.stringify(a);
+  };
   const voteSaved = () => { const my = myVote(); return !!my && S.sent.api === voteSig(my); };
   const voteSent = () => { const my = myVote(); return !!my && S.sent.vote === voteSig(my); };
 
@@ -2000,6 +2024,7 @@
     if (Number.isInteger(r.rev)) REV = r.rev;
     if (r.spin && Number.isInteger(r.spin.i)) SPIN = r.spin;
     if (r.spins && typeof r.spins === 'object' && !Array.isArray(r.spins)) SPINS = r.spins;
+    if (Number.isInteger(r.until)) SRV_UNTIL = r.until;
     SYNC = 'on';
     const remote = cleanVotes(r.votes);
     REMOTE_IDS = new Set(remote.map(v => v.id));
@@ -2008,6 +2033,11 @@
     const my = myVote();
     // мой голос на сервере такой же, как здесь, — значит, он сохранён
     if (rm && my && voteSig(rm) === voteSig(my) && S.sent.api !== voteSig(my)) { S.sent.api = voteSig(my); save(); }
+    if (GROUP && !PREVIEW && isClosed() && current && !current.classList.contains('s-results')) {
+      showResults(false);
+      toast('Голосование уже закрыто — вот итог');
+      return true;
+    }
     votesChanged();
     return true;
   }
@@ -2047,7 +2077,9 @@
       }
       let r = await api('vote', CODE, mine, voteSecret(), seed);
       // сервер отверг какой-то голос из старой ссылки — сохраняем хотя бы свой
-      if (!r && seed.length && !/^(rate|net|timeout|off|owner|full)$/.test(apiErr())) r = await api('vote', CODE, mine, voteSecret(), []);
+      if (!r && seed.length && !/^(rate|net|timeout|off|owner|full|closed)$/.test(apiErr())) r = await api('vote', CODE, mine, voteSecret(), []);
+      // организатор закрыл голосование или прошёл дедлайн — голос не принят, итог окончательный
+      if (!r && apiErr() === 'closed') { SRV_UNTIL = SRV_UNTIL || Math.floor(Date.now() / 60000); toast('Голосование уже закрыто — твой голос не попал в итог'); }
       if (r && Array.isArray(r.votes)) {
         if (ADOPT && ADOPT.id === mine.id) ADOPT = null;
         if (voteSig(myVote()) === voteSig(mine)) { S.sent.api = voteSig(mine); save(); }
@@ -2116,11 +2148,16 @@
     const opt = items.map((o, i) => ({ o, i, who: inV.filter(v => v.o.includes(i)).map(v => v.n) }))
       .sort((a, b) => b.who.length - a.who.length || a.i - b.i);
     // прошедшие дни не считаем; пустой список дней — «пока не знаю»
-    const dIn = inV.filter(v => v.d.some(d => d >= today));
+    const dIn = inV.filter(v => v.d.some(d => d >= today) || (v.m || []).some(d => d >= today));
     const dm = new Map();
-    dIn.forEach(v => v.d.forEach(d => { if (d >= today) dm.set(d, (dm.get(d) || []).concat(v.n)); }));
-    const days = Array.from(dm.entries()).map(([d, who]) => ({ d, who })).sort((a, b) => b.who.length - a.who.length || a.d - b.d);
-    return { opt, days, inV, dIn, idk: inV.filter(v => !v.d.length).map(v => v.n), any: inV.filter(v => !v.o.length).map(v => v.n) };
+    // «может быть» — полголоса: в списке имя с «?»
+    dIn.forEach(v => { v.d.forEach(d => { if (d >= today) { const x = dm.get(d) || { who: [], w: 0, yes: 0 }; x.who.push(v.n); x.w += 1; x.yes++; dm.set(d, x); } });
+      (v.m || []).forEach(d => { if (d >= today && !v.d.includes(d)) { const x = dm.get(d) || { who: [], w: 0, yes: 0 }; x.who.push(v.n + '?'); x.w += 0.5; dm.set(d, x); } }); });
+    const days = Array.from(dm.entries()).map(([d, x]) => ({ d, who: x.who, w: x.w, yes: x.yes })).sort((a, b) => b.w - a.w || b.yes - a.yes || a.d - b.d);
+    const SL = slotList();
+    const slots = SL.length > 1 ? SL.map((tm, i) => ({ i, tm, who: inV.filter(v => (v.s || []).includes(i)).map(v => v.n) })).sort((a, b) => b.who.length - a.who.length || a.i - b.i) : [];
+    const plus = inV.reduce((n, v) => n + (v.p || 0), 0);
+    return { opt, days, inV, dIn, slots, plus, idk: inV.filter(v => !v.d.length && !(v.m || []).length).map(v => v.n), any: inV.filter(v => !v.o.length).map(v => v.n) };
   }
   const leadersOf = t => { const top = t.opt.length ? t.opt[0].who.length : 0; return t.opt.filter(x => top > 0 && x.who.length === top); };
   const leadSig = L => L.map(x => x.i).sort((a, b) => a - b).join(',');
@@ -2154,6 +2191,46 @@
     if (sub.length > WHEEL_MAX) sub = sub.slice().sort((a, b) => hnum(CODE + '|w|' + a) - hnum(CODE + '|w|' + b) || a - b).slice(0, WHEEL_MAX).sort((a, b) => a - b);
     return { sub, win: sub[hnum(CODE + '|' + sub.join(',')) % sub.length] };
   }
+  /* Слоты времени из приглашения: 1–4 значения 'ЧЧ:ММ' (один — время фиксировано) */
+  function slotList() { return (Array.isArray(INV.slots) ? INV.slots : []).filter(x => /^([01]\d|2[0-3]):[0-5]\d$/.test(x)).slice(0, 4); }
+  /* Дедлайн: until из ссылки или с сервера (организатор закрыл раньше), минуты эпохи → {closed, text} или null */
+  function deadline() {
+    const u = [INV.until, SRV_UNTIL].filter(x => Number.isInteger(x) && x > 0);
+    if (!u.length) return null;
+    const ms = Math.min(...u) * 60000;
+    const d = new Date(ms + 3 * 3600e3);
+    const wd = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'][d.getUTCDay()];
+    const text = `${wd} ${d.getUTCDate()}.${String(d.getUTCMonth() + 1).padStart(2, '0')} в ${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`;
+    const left = ms - Date.now();
+    return { closed: left <= 0, text, left };
+  }
+  const isClosed = () => { const d = deadline(); return !!(d && d.closed); };
+  function deadlineHtml() {
+    const d = deadline();
+    if (!d) return '';
+    if (d.closed) return '<p class="deadline closed">🔒 Голосование закрыто — итог ниже окончательный</p>';
+    return `<p class="deadline">⏳ Голосуем до ${esc(d.text)} — осталось ${K.leftText(d.left)}</p>`;
+  }
+  /* Шаг «Во сколько»: можно отметить несколько слотов */
+  function lvlSlot(el, next, step) {
+    const SL = slotList();
+    S.a.slots = (S.a.slots || []).filter(i => i < SL.length);
+    el.innerHTML = `
+      ${head(step, 'Во сколько удобно?', 'Отметь всё, что подходит')}
+      <div class="slots">${SL.map((tm, i) => `<button type="button" class="slot${S.a.slots.includes(i) ? ' picked' : ''}" data-i="${i}" aria-pressed="${S.a.slots.includes(i)}">${esc(tm)}</button>`).join('')}</div>
+      <button class="link-btn any-time" type="button">Мне всё равно, во сколько</button>
+      <div class="actions"><button class="btn btn-primary btn-wide next">Дальше${I('arrow')}</button></div>`;
+    $('.slots', el).addEventListener('click', e => {
+      const b = e.target.closest('.slot');
+      if (!b) return;
+      const i = +b.dataset.i, on = !S.a.slots.includes(i);
+      S.a.slots = on ? S.a.slots.concat(i).sort() : S.a.slots.filter(x => x !== i);
+      b.classList.toggle('picked', on); b.setAttribute('aria-pressed', String(on));
+      save(); if (on) { Sfx.stamp(); vibrate(12); } else Sfx.click();
+    });
+    $('.any-time', el).onclick = () => { Sfx.click(); S.a.slots = []; save(); next(); };
+    $('.next', el).onclick = () => { Sfx.click(); next(); };
+  }
   function verdict(votes, forced, t) {
     t = t || tally(votes);
     const leaders = leadersOf(t);
@@ -2161,13 +2238,16 @@
     const ev = win && win.o.event ? eventById(win.o.event) : null;
     let day = t.days.length ? t.days[0] : null;
     if (ev) { const ok = new Set(evDaysAll(ev).map(K.dayNum)); day = t.days.find(x => ok.has(x.d)) || null; }
-    return { t, win, leaders, ev, day, wheel: forced != null && !!win, plan: win && win.o.plan ? K.planById(win.o.plan) : null };
+    const SL = slotList();
+    const slot = SL.length === 1 ? { tm: SL[0], who: [] } : t.slots.length && t.slots[0].who.length ? t.slots[0] : null;
+    return { t, win, leaders, ev, day, slot, people: t.inV.length + t.plus, wheel: forced != null && !!win, plan: win && win.o.plan ? K.planById(win.o.plan) : null };
   }
-  /* «могут все» — только когда про дни ответили хотя бы двое */
+  /* «могут все» — только когда про дни ответили хотя бы двое и все — твёрдым «да»; «может быть» считаем отдельно */
   function canLine(v, names) {
-    const n = v.day.who.length, m = v.t.dIn.length;
-    if (n === m && m >= 2) return 'могут все';
-    return names ? `могут ${v.day.who.join(', ')} (${n} из ${m})` : `могут ${n} из ${m}`;
+    const m = v.t.dIn.length, yes = v.day.yes == null ? v.day.who.length : v.day.yes, maybe = v.day.who.length - yes;
+    if (yes === m && m >= 2) return 'могут все';
+    const may = maybe ? ` + ${maybe} «может»` : '';
+    return names ? `могут ${v.day.who.join(', ')} (${yes} из ${m}${may})` : `могут ${yes} из ${m}${may}`;
   }
   /* «A, B, C и ещё 4» — чтобы ничья из десяти планов не превращалась в простыню */
   const someTitles = (list, n) => list.slice(0, n).map(x => x.o.title).join(', ') + (list.length > n ? ` и ещё ${list.length - n}` : '');
@@ -2181,7 +2261,11 @@
       if (st.length > 1 || (st[0] && st[0].name !== v.win.o.title)) L.push('   ' + st.map(p => p.name).join(' → '));
       if (v.ev && evPlaceLine(v.ev)) L.push('   ' + evPlaceLine(v.ev));
     } else if (v.leaders.length > 1) L.push(`📍 Пока ничья: ${someTitles(v.leaders, 3)}`);
-    if (v.day) L.push(`📅 ${shortDay(v.day.d)}${v.ev && v.ev.time ? ', ' + v.ev.time : ''} — ${canLine(v, true)}`);
+    if (v.day) L.push(`📅 ${shortDay(v.day.d)}${v.ev && v.ev.time ? ', ' + v.ev.time : v.slot ? ', ' + v.slot.tm : ''} — ${canLine(v, true)}`);
+    else if (v.slot && !(v.ev && v.ev.time)) L.push(`🕗 Во сколько: ${v.slot.tm}${v.slot.who.length ? ' (' + v.slot.who.length + ')' : ''}`);
+    if (v.t.plus) L.push(`👥 Идут: ${v.t.inV.length} + ${v.t.plus} ${plural(v.t.plus, 'гость', 'гостя', 'гостей')}`);
+    const dl = deadline();
+    if (dl) L.push(dl.closed ? '🔒 Голосование закрыто' : `⏳ Голосуем до ${dl.text}`);
     if (v.plan) L.push(`🗺 Маршрут: ${K.goRoute(v.plan.id)}`);
     if (v.ev && evUrl(v.ev)) L.push(`🎫 Билеты: ${evUrl(v.ev)}`);
     L.push(`🗳 ${v.win ? 'Итоги и голосование' : 'Голосуем тут'}: ${shareLink()}`);
@@ -2195,7 +2279,7 @@
     const evNext = v.ev && !v.day ? evDaysAll(v.ev)[0] || '' : '';
     const calDay = v.day ? K.numDay(v.day.d) : evNext;
     const cal = calDay ? {
-      title: groupTitle() + (v.win ? ' · ' + v.win.o.title : ''), day: calDay, time: (v.ev && v.ev.time) || '', minutes: v.ev ? EV_MIN[v.ev.cat] : undefined,
+      title: groupTitle() + (v.win ? ' · ' + v.win.o.title : ''), day: calDay, time: (v.ev && v.ev.time) || (v.slot && v.slot.tm) || '', minutes: v.ev ? EV_MIN[v.ev.cat] : undefined,
       location: v.plan ? placeLoc(v.plan) : v.ev ? evLoc(v.ev) : '', details: v.plan ? planDetails(v.plan) : v.ev ? evUrl(v.ev) : '',
     } : null;
     const title = v.win ? esc(v.win.o.title)
@@ -2207,8 +2291,10 @@
       ${tie && v.leaders.length > 2 ? `<div class="v-tie">${v.leaders.slice(0, 4).map(x => `<span>${esc(x.o.emoji || '📍')} ${esc(x.o.title)}</span>`).join('')}${v.leaders.length > 4 ? `<span class="more">+${v.leaders.length - 4}</span>` : ''}</div>` : ''}
       ${tie ? `<p class="v-day">${v.t.inV.length < 2 ? 'Подожди голоса остальных или крутани колесо ниже' : 'Крутани колесо ниже — оно решит'}</p>` : ''}
       ${v.ev && evPlaceLine(v.ev) ? `<p class="v-day">${I('pin')}${esc(evPlaceLine(v.ev))}</p>` : ''}
-      ${v.day ? `<p class="v-day">${I('calendar')}${esc(shortDay(v.day.d))}${v.ev && v.ev.time ? ' · ' + esc(v.ev.time) : ''} · ${esc(canLine(v))}</p>`
+      ${v.day ? `<p class="v-day">${I('calendar')}${esc(shortDay(v.day.d))}${v.ev && v.ev.time ? ' · ' + esc(v.ev.time) : v.slot ? ' · ' + esc(v.slot.tm) : ''} · ${esc(canLine(v))}</p>`
         : evNext ? `<p class="v-day">${I('calendar')}Ближайший показ: ${esc(dayShort(evNext))}${v.ev.time ? ' · ' + esc(v.ev.time) : ''}</p>` : ''}
+      ${!v.day && v.slot && !(v.ev && v.ev.time) ? `<p class="v-day">${I('clock')}Во сколько: ${esc(v.slot.tm)}${v.slot.who.length ? ' · ' + v.slot.who.length + ' ' + plural(v.slot.who.length, 'голос', 'голоса', 'голосов') : ''}</p>` : ''}
+      ${v.t.plus ? `<p class="v-day">${I('users')}Идут ${v.t.inV.length} + ${v.t.plus} ${plural(v.t.plus, 'гость', 'гостя', 'гостей')}</p>` : ''}
       ${v.plan ? planBlock(v.plan) : ''}
       ${v.ev ? evLinks(v.ev) : ''}
       ${cal ? calBlock(cal) : ''}
@@ -2219,11 +2305,12 @@
     t = t || tally(votes);
     const max = Math.max(1, t.inV.length);
     const leaders = leadersOf(t);
-    const dTop = t.days.length ? t.days[0].who.length : 0;
     const row = (cls, title, who, n, attr) => `<div class="t-item${cls}"${attr || ''}><i class="bar" style="width:${(n / max * 100).toFixed(0)}%"></i>
       <span class="n">${esc(title)}<small>${who}</small></span><span class="c">${n}<span class="vh"> ${plural(n, 'голос', 'голоса', 'голосов')}</span></span></div>`;
     const liveOn = live() && SYNC === 'on';
-    return `${verdictHtml(votes, forced, t)}
+    const slotsHtml = t.slots.length && t.slots.some(x => x.who.length) ? `<div class="tally"><h3>Во сколько</h3>
+        ${t.slots.map(x => row(x.who.length && x.who.length === t.slots[0].who.length ? ' lead' : '', x.tm, x.who.length ? esc(x.who.join(', ')) : 'пока никто', x.who.length)).join('')}</div>` : '';
+    return `${deadlineHtml()}${verdictHtml(votes, forced, t)}
       <div class="tally">
         <h3>Проголосовали: ${votes.length}</h3>
         <div class="voters">${votes.length ? votes.map(v => `<span class="${v.y ? '' : 'out'}">${esc(v.n)}${v.y ? '' : '<span class="vh"> — не сможет</span>'}</span>`).join('') : '<span>пока никого</span>'}</div>
@@ -2235,9 +2322,10 @@
         ${leaders.length > 1 && forced == null ? `<button class="btn btn-soft dashed btn-wide wheel">${I('wheel')}Ничья — крутить колесо</button>` : ''}
       </div>` : ''}
       ${t.days.length || t.idk.length ? `<div class="tally"><h3>Когда</h3>
-        ${t.days.slice(0, 6).map(x => row(x.who.length === dTop ? ' lead' : '', shortDay(x.d), esc(x.who.join(', ')), x.who.length)).join('')}
+        ${t.days.slice(0, 6).map(x => row(x.w === t.days[0].w ? ' lead' : '', shortDay(x.d), esc(x.who.join(', ')), x.w)).join('')}
+        ${t.days.some(x => x.who.some(n => /\?$/.test(n))) ? '<p class="hint">«?» — может быть, считается за полголоса.</p>' : ''}
         ${t.idk.length ? `<p class="hint">Пока не знают, когда смогут: ${esc(t.idk.join(', '))}</p>` : ''}
-      </div>` : ''}`;
+      </div>` : ''}${slotsHtml}`;
   }
 
   /* ---------- финал компании: имя и голос ---------- */
@@ -2249,11 +2337,15 @@
       <div class="final-cat"><div class="cat-slot">${K.catSVG(out ? 'sad' : 'happy')}</div><div class="bubble b-left">Как тебя записать в голосовании?</div></div>
       <form class="name-box" novalidate>
         <input class="field nm" maxlength="30" placeholder="Например: Петя" value="${esc(name)}" aria-label="Твоё имя" autocomplete="given-name" enterkeyhint="done">
+        ${out ? '' : `<div class="plus-row" role="group" aria-label="Сколько человек приведёшь с собой"><span>Со мной ещё</span><button type="button" class="btn btn-soft sq pl-dec" aria-label="Меньше">−</button><b class="pl-n" aria-live="polite">+${S.a.plus || 0}</b><button type="button" class="btn btn-soft sq pl-inc" aria-label="Больше">+</button></div>`}
         <button class="btn btn-primary btn-wide send" type="submit">Готово${I('check')}</button>
       </form>
       ${!out && myVote() ? `<button class="link-btn decline" type="button">Планы поменялись — не смогу</button>` : ''}
       <div class="vstate warn twin hidden" role="group" aria-labelledby="twin-t"></div>`;
     const form = $('.name-box', el), inp = $('.nm', el), btn = $('.send', el), twinBox = $('.twin', el);
+    const plusN = $('.pl-n', el);
+    const setPlus = n => { S.a.plus = Math.max(0, Math.min(5, n)); save(); if (plusN) plusN.textContent = '+' + S.a.plus; };
+    if (plusN) { $('.pl-dec', el).onclick = () => { Sfx.click(); setPlus((S.a.plus || 0) - 1); }; $('.pl-inc', el).onclick = () => { Sfx.click(); setPlus((S.a.plus || 0) + 1); }; }
     // «Изменить голос» ведёт сразу к вариантам, мимо письма с «Не смогу» — отказаться можно здесь
     const decline = $('.decline', el);
     if (decline) decline.onclick = () => {
@@ -2285,6 +2377,12 @@
         id: voterId(), n: S.a.name, y: out ? 0 : 1, o: out ? [] : (S.a.opts || []),
         d: out ? [] : (S.a.days || []).map(K.dayNum).filter(n => n >= today), t: Math.max(Date.now(), prev ? prev.t + 1 : 0),
       };
+      if (!out) {
+        const m = (S.a.maybe || []).map(K.dayNum).filter(n => n >= today && !mine.d.includes(n));
+        if (m.length) mine.m = m;
+        if ((S.a.slots || []).length && slotList().length > 1) mine.s = S.a.slots.slice(0, 4);
+        if (S.a.plus > 0) mine.p = Math.min(5, S.a.plus | 0);
+      }
       addVotes([mine]);
       notify('vote');
       goal('vote', out ? 'no' : 'yes');
@@ -2668,14 +2766,14 @@
     }
     S.a.pre = null;
   }
-  const RUNNERS = { hearts: lvlHearts, letter: lvlLetter, place: lvlPlace, date: lvlDate, time: lvlTime, food: lvlFood, vote: lvlVote };
+  const RUNNERS = { hearts: lvlHearts, letter: lvlLetter, place: lvlPlace, date: lvlDate, time: lvlTime, food: lvlFood, vote: lvlVote, slot: lvlSlot };
   function buildSteps() {
     const on = INV.levels || {};
     const list = [{ id: 'intro', run: scrIntro }];
     let n = 0;
     const ev = !GROUP && evChosen();
     if (ev) applyEvent();
-    const ids = GROUP ? ['hearts', 'letter', 'vote', 'date'] : ['hearts', 'letter', 'place', 'date', 'time', 'food'];
+    const ids = GROUP ? ['hearts', 'letter', 'vote', 'date', 'slot'] : ['hearts', 'letter', 'place', 'date', 'time', 'food'];
     for (const id of ids) {
       if (on[id] === false && !(GROUP && id === 'letter')) continue;
       if (id === 'vote' && !(INV.opts || []).length) continue;
@@ -2684,6 +2782,7 @@
       if (id === 'date' && ev && EV_DAYS.length === 1) continue;
       if (id === 'time' && ev && EVENT.time) continue;
       if (id === 'food' && !(INV.food || []).some(f => f && f.title)) continue;
+      if (id === 'slot' && slotList().length < 2) continue;
       list.push({ id, level: ++n, run: RUNNERS[id] });
     }
     list.push({ id: 'final', run: scrFinal });
@@ -2817,7 +2916,8 @@
     // «открыли приглашение» — для «Моих приглашений» создателя (с этого устройства один раз; итоги по &r=1 смотрит сам создатель)
     if (live() && !h.results && !OWN) api('opened', CODE);
     if (GROUP) pullRemote();
-    if (GROUP && h.results) { showResults(false); return; }
+    // дедлайн прошёл — голосовать поздно, сразу итог
+    if (GROUP && (h.results || isClosed())) { showResults(false); return; }
 
     if (canNotify() && TG.notifyOpen !== false && !S.sent.open) {
       notify('open').then(ok => { if (ok) { S.sent.open = true; save(); } });
