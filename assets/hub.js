@@ -926,6 +926,7 @@
           <a class="btn ghost" data-act="route" href="${K.routeUrl([p])}" target="_blank" rel="noopener">${I('route')}Как добраться</a>
           <button type="button" class="btn ghost" data-share="place=${encodeURIComponent(id)}" data-title="${esc(p.name)}">${I('share')}Поделиться</button>
         </div>
+        ${p.tel || p.site ? `<div class="row two">${p.tel ? `<a class="btn ghost" data-act="call" href="${esc(K.telHref(p.tel))}">📞 Позвонить</a>` : ''}${p.site ? `<a class="btn ghost" data-act="site" href="${esc(p.site)}" target="_blank" rel="noopener nofollow">🌐 Сайт</a>` : ''}</div>` : ''}
       </div>
       <div class="sheet-slot" data-slot="reviews"></div>
       ${reportBox('place', id, p.name)}`, Object.assign({ kind: 'place', id, url: sheetUrl('place=' + encodeURIComponent(id)) }, so));

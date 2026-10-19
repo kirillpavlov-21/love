@@ -750,6 +750,31 @@
       .then(short => { if (ticket.sig !== sig) return; ticket.url = short; ticket.busy = null; if (onReady) onReady(); })
       .catch(() => { if (ticket.busy === p) ticket.busy = null; });
   }
+  /* «Забронировать»: готовый текст, «Позвонить» (tel:), «Скопировать», сайт или Яндекс Карты; отметка «Забронировано» */
+  function bookBox(p, o) {
+    if (!p) return '';
+    const text = K.bookText(o);
+    const done = !!(S.sent && S.sent.booked);
+    return `<div class="book-wrap"><button class="btn btn-soft btn-wide book-open" aria-expanded="false">📞 Забронировать</button>
+      <div class="book-box hidden" data-text="${esc(text)}">
+        <p class="k">Бронь · ${esc(p.name)}</p>
+        <p class="book-text">${esc(text)}</p>
+        <div class="book-acts">
+          ${p.tel ? `<a class="btn btn-primary" href="${esc(K.telHref(p.tel))}">Позвонить ${esc(K.telText(p.tel))}</a>` : ''}
+          <button class="btn btn-soft book-copy">Скопировать текст</button>
+          ${p.site ? `<a class="btn btn-soft" href="${esc(p.site)}" target="_blank" rel="noopener nofollow">Сайт места</a>` : `<a class="btn btn-soft" href="${esc(K.mapUrl(p))}" target="_blank" rel="noopener">Яндекс Карты</a>`}
+        </div>
+        <label class="book-done"><input type="checkbox"${done ? ' checked' : ''}> ${GF('Забронировала', 'Забронировал')} ✓</label>
+      </div></div>`;
+  }
+  function wireBook(root) {
+    const w = root && root.querySelector('.book-wrap');
+    if (!w) return;
+    const open = w.querySelector('.book-open'), box = w.querySelector('.book-box');
+    open.onclick = () => { Sfx.click(); const on = box.classList.toggle('hidden'); open.setAttribute('aria-expanded', String(!on)); };
+    w.querySelector('.book-copy').onclick = () => copyText(box.dataset.text).then(ok => toast(ok ? 'Текст скопирован' : 'Не получилось скопировать'));
+    w.querySelector('.book-done input').onchange = e => { S.sent = S.sent || {}; S.sent.booked = e.target.checked ? (S.a.name || INV.me || '✓') : ''; save(); toast(e.target.checked ? 'Отметили: забронировано' : 'Отметку сняли'); };
+  }
   /* Текст через «Поделиться», а где его нет или он не сработал — в буфер обмена */
   function sendText(text, okMsg) {
     if (navigator.share) {
@@ -1873,7 +1898,7 @@
     }) : null;
     const extra = ev
       ? `<div class="tally"><h3>${esc(ev.emoji || '🎫')} ${esc(ev.title)}</h3>${evPlaceLine(ev) ? `<p class="v-day">${I('pin')}${esc(evLoc(ev))}</p>` : ''}${evLinks(ev)}${calEv ? calBlock(calEv) : ''}</div>`
-      : plan || calEv ? `<div class="tally"><h3>${plan ? esc(plan.title) : 'Не забудь'}</h3>${plan ? planBlock(plan) : ''}${plan ? homeRiskBlock(plan, S.a.time, S.a.date) : ''}${calEv ? calBlock(calEv) : ''}</div>` : '';
+      : plan || calEv ? `<div class="tally"><h3>${plan ? esc(plan.title) : 'Не забудь'}</h3>${plan ? planBlock(plan) : ''}${plan ? homeRiskBlock(plan, S.a.time, S.a.date) : ''}${calEv ? calBlock(calEv) : ''}${plan && !view ? bookBox(K.bookStop(K.planStops(plan)), { n: 2, day: S.a.date, time: S.a.time }) : ''}</div>` : '';
     el.innerHTML = `
       <div class="res-head"><p class="eyebrow">${view ? 'Ответ получен' : 'Готово'}</p>
         <h2 class="final-title">${view ? `${esc(INV.her)} ${GF('ответила', 'ответил')} «да»` : 'Твой билет на свидание'}</h2></div>
@@ -1917,6 +1942,7 @@
     }
 
     const state = $('.send-state', el), shareBtn = $('.share', el);
+    wireBook(el);
     // «Скинуть подруге»: куда, когда и с кем — текстом, без сети и без геолокации; маршрут — ссылкой go.html
     const fr = $('.friend', el);
     if (fr) fr.onclick = () => { Sfx.click(); sendText(friendText(plan), GF('Скопировано — отправь подруге', 'Скопировано — отправь другу')); };
@@ -2346,6 +2372,7 @@
     const dl = deadline();
     if (dl) L.push(dl.closed ? '🔒 Голосование закрыто' : `⏳ Голосуем до ${dl.text}`);
     if (v.plan) L.push(`🗺 Маршрут: ${K.goRoute(v.plan.id)}`);
+    if (S.sent && S.sent.booked) L.push(`✅ Забронировано — ${S.sent.booked}`);
     if (v.ev && evUrl(v.ev)) L.push(`🎫 Билеты: ${evUrl(v.ev)}`);
     L.push(`🗳 ${v.win ? 'Итоги и голосование' : 'Голосуем тут'}: ${shareLink()}`);
     return L.join('\n');
@@ -2379,6 +2406,7 @@
       ${cal ? calBlock(cal) : ''}
       ${PREVIEW ? '' : `<button class="btn btn-soft btn-wide verdict-share">${I('send')}Отправить итог в чат</button>`}
       ${PREVIEW || !window.KudaShareCard || !v.win ? '' : `<button class="btn btn-soft btn-wide verdict-card">🖼️ Картинка с итогом</button>`}
+      ${PREVIEW || !v.plan ? '' : bookBox(K.bookStop(K.planStops(v.plan)), { n: v.t.inV.length + v.t.plus, day: v.day ? K.numDay(v.day.d) : '', time: v.slot ? v.slot.tm : '', name: S.a.name || '' })}
     </div>`;
   }
   function tallyHtml(votes, forced, t) {
@@ -2674,6 +2702,7 @@
         });
         const vs = $('.verdict-share', wrap);
         if (vs) vs.onclick = () => { Sfx.click(); shareNow(verdictText(PRIOR, FORCED), 'Итог скопирован — вставь в общий чат'); };
+        wireBook(wrap);
         const vc = $('.verdict-card', wrap);
         if (vc) vc.onclick = () => {
           Sfx.click();

@@ -252,6 +252,26 @@
     return (st.dayOff ? 'Сегодня выходной' : 'Закрыто') + ' · откроется ' + when;
   }
 
+  /* ---------- бронь (A8) ---------- */
+  /* Где бронировать в плане: первое место с едой или баром, у которого есть телефон или сайт; иначе первое с телефоном */
+  function bookStop(stops) {
+    const list = (stops || []).filter(Boolean);
+    const eat = p => ['food', 'bar'].includes(catOf(p));
+    return list.find(p => eat(p) && (p.tel || p.site)) || list.find(p => p.tel || p.site) || list.find(eat) || null;
+  }
+  /* «Здравствуйте! Хотим стол на 6 человек на пт, 24 октября, в 20:00. Имя — Аня» */
+  function bookText(o) {
+    o = o || {};
+    const n = Math.max(1, Math.min(40, +o.n || 2));
+    const d = parseYmd(o.day);
+    const WD = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'], MON = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+    const when = d ? ` на ${WD[d.getDay()]}, ${d.getDate()} ${MON[d.getMonth()]}` : '';
+    const ppl = n === 2 ? 'на двоих' : `на ${n} ${n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? 'человека' : 'человек'}`;
+    return `Здравствуйте! Хотим стол ${ppl}${when}${o.time ? ', в ' + o.time : ''}.${o.name ? ' Имя — ' + o.name + '.' : ''}`;
+  }
+  const telHref = t => (/^\+7\d{10}$/.test(t || '') ? 'tel:' + t : '');
+  const telText = t => (/^\+7(\d{3})(\d{3})(\d{2})(\d{2})$/.test(t || '') ? t.replace(/^\+7(\d{3})(\d{3})(\d{2})(\d{2})$/, '+7 $1 $2-$3-$4') : '');
+
   /* Сколько осталось до срока: «45 мин», «2 ч 10 мин», «3 дн 4 ч» */
   function leftText(ms) {
     const min = Math.max(1, Math.ceil(ms / 60000)), h = Math.floor(min / 60), d = Math.floor(h / 24);
@@ -1103,7 +1123,7 @@
 
   window.DateKit = {
     BASE, merge, defaults, diffInvite, encodeInvite, decodeInvite, encodeData, decodeData, readHash, esc, fill, hash,
-    leftText, ohDays, openState, closedOn, openText, ymd, parseYmd, addDays, listDates, fmtDay, dayNum, numDay, toMin, fromMin, relaySend, relayRegister, relayTest, shortLink, goRoute, sitePath, toB64url,
+    leftText, bookStop, bookText, telHref, telText, ohDays, openState, closedOn, openText, ymd, parseYmd, addDays, listDates, fmtDay, dayNum, numDay, toMin, fromMin, relaySend, relayRegister, relayTest, shortLink, goRoute, sitePath, toB64url,
     CATS, catVars, catSVG, HEART_D, STAR_D, markD, ICONS, icon, MODE_ICON, tgUser, tgLink, calendarLinks,
     MODES, modeOf, kuda, placeById, planById, planStops, catOf, photo, planPhoto, photoCredit, cleanAuthor, HINTS, placeHints, planHints, hintChip, seasonHints,
     todayMsk, seasonNow, seasonOk, eventById, events, eventDays, sheet, homeRisk, bridgesToday, BRIDGES, LAST_METRO,
