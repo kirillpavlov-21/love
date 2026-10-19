@@ -1449,6 +1449,7 @@
     const oc = e.target.closest('[data-open-col]');
     if (oc) { openCol(oc.dataset.openCol); return; }
     if (e.target.closest('[data-close-sheet]')) { closeSheet(); return; }
+    if (e.target.closest('[data-mid-go]')) { midwayGo(); return; }
     const cd = e.target.closest('[data-card]');
     if (cd) { shareCard(cd.dataset.card, cd.dataset.cardId, cd.dataset.size, cd); return; }
     const b = e.target.closest('[data-open-plan]');
@@ -1941,6 +1942,35 @@
   });
   const qzBtn = $('#quiz');
   if (qzBtn) qzBtn.onclick = () => openQuiz();
+
+  /* ---------- «Нас несколько: откуда едем?» (A11): 2–6 станций → 5 планов с наименьшим «дольше всех» ---------- */
+  const MW = window.KudaMetro || null;
+  function midwayHtml() {
+    const names = MW ? MW.names(city) : [];
+    const sel = i => `<select class="field mid-st" aria-label="Станция ${i + 1}"><option value="">${i < 2 ? 'станция' : 'ещё станция'}</option>${names.map(n => `<option>${esc(n)}</option>`).join('')}</select>`;
+    return `<p class="eyebrow">Встретимся посередине</p><h3>Откуда едете?</h3>
+      <p class="why">Отметь станции метро, откуда поедет каждый, — подберём планы, куда всем ехать недолго.</p>
+      <div class="mid-grid">${[0, 1, 2, 3, 4, 5].map(sel).join('')}</div>
+      <div class="sheet-actions"><button type="button" class="btn primary wide" data-mid-go>Подобрать планы${I('arrow')}</button></div>
+      <div class="mid-res" aria-live="polite"></div>`;
+  }
+  function midwayGo() {
+    const st = Array.from(new Set($$('#sheet .mid-st').map(x => x.value).filter(Boolean)));
+    const box = $('#sheet .mid-res');
+    if (st.length < 2) { box.innerHTML = '<p class="pl-empty">Выбери хотя бы две станции.</p>'; return; }
+    const rows = modePlans().map(pl => {
+      const p = K.planStops(pl)[0];
+      const t = p ? st.map(s => MW.minutes(city, s, p)) : [];
+      if (!t.length || t.some(x => x == null)) return null;
+      const max = Math.max(...t), i = t.indexOf(max);
+      return { pl, max, avg: Math.round(t.reduce((a, b) => a + b, 0) / t.length), far: st[i] };
+    }).filter(Boolean).sort((a, b) => a.max - b.max || a.avg - b.avg).slice(0, 5);
+    box.innerHTML = rows.length ? `<div class="col-list">${rows.map(r => `<button type="button" class="col-it" data-open-plan="${esc(r.pl.id)}"><span class="ce" aria-hidden="true">${esc(r.pl.emoji || '📍')}</span><span><b>${esc(r.pl.title)}</b><small>🚇 ≈ ${r.avg} мин в среднем · дольше всех — от «${esc(r.far)}», ${r.max} мин</small></span></button>`).join('')}</div>`
+      : '<p class="pl-empty">Не нашли подходящих планов — попробуй другой повод.</p>';
+    T.ev('midway', { n: String(st.length), mode });
+  }
+  const mwBtn = $('#midway');
+  if (mwBtn && MW) { mwBtn.classList.remove('hidden'); mwBtn.onclick = () => openSheet(midwayHtml(), { kind: 'midway', label: 'Откуда едем?' }); }
 
   /* ---------- промокоды: раздел — когда партнёров в городе PROMO_MIN и больше ---------- */
   function renderPromo() {

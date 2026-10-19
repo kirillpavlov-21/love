@@ -735,3 +735,5 @@ html[data-city="spb"] .metro.l6 { background: #7B4B2A; }
 .guest-strip .btn.sm { min-height: 36px; padding: 0 14px; flex: none; }
 .guest-strip .icon-btn { flex: none; background: transparent; cursor: pointer; }
 .buzz-line { margin: 4px 0; font-size: 14px; font-weight: 700; color: #ffb36b; }
+.mid-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0 4px; }
+.mid-grid select { margin: 0; min-width: 0; }
