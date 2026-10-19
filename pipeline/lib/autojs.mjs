@@ -15,7 +15,7 @@ export const MERGE_JS = `(function (A) {
   if (!K.adult) K.adult = [];
   var E = window.KUDA_EVENTS || (window.KUDA_EVENTS = []);
   var own = Object.prototype.hasOwnProperty;
-  var places = A.places || {}, scenarios = A.scenarios || [], events = A.events || [], closedIds = A.closed || [];
+  var places = A.places || {}, scenarios = A.scenarios || [], events = A.events || [], closedIds = A.closed || [], buzz = A.buzz || {};
   var i, j, id, seen, stops;
   // места: id, которые уже есть в places.js, не трогаем
   for (id in places) if (own.call(places, id) && !own.call(K.places, id)) K.places[id] = places[id];
@@ -39,9 +39,11 @@ export const MERGE_JS = `(function (A) {
     for (j = 0; j < stops.length; j++) if (closed[stops[j]]) { K.scenarios.splice(i, 1); break; }
   }
   for (i = K.adult.length - 1; i >= 0; i--) if (closed[K.adult[i]]) K.adult.splice(i, 1);
+  // «Обсуждают»: неделя ISO (2026-W42), когда о месте писали три источника и больше
+  for (id in buzz) if (own.call(buzz, id) && own.call(K.places, id) && K.places[id]) K.places[id].buzz = buzz[id];
 })`;
 
-export const emptyAutoData = () => ({ updated: '', places: {}, scenarios: [], events: [], closed: [] });
+export const emptyAutoData = () => ({ updated: '', places: {}, scenarios: [], events: [], closed: [], buzz: {} });
 
 // JSON одной строкой; U+2028/2029 экранируем — старые браузеры считают их переводом строки
 const LS = new RegExp('\\u2028', 'g'), PS = new RegExp('\\u2029', 'g');
@@ -58,6 +60,8 @@ export function serializeAutoData(d) {
     `  "scenarios": ` + block('[', ']', data.scenarios.map(s => '    ' + one(s))),
     `  "events": ` + block('[', ']', data.events.map(e => '    ' + one(e))),
     `  "closed": ${one([...new Set(data.closed)].sort())}`,
+    // buzz — только если есть (иначе файл тот же, что раньше)
+    ...(data.buzz && Object.keys(data.buzz).length ? [`  "buzz": ${one(Object.fromEntries(Object.keys(data.buzz).sort().map(k => [k, data.buzz[k]])))}`] : []),
   ].join(',\n') + '\n}';
 }
 

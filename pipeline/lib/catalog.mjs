@@ -26,7 +26,7 @@ function runFile(ctx, code, name) {
   }
 }
 
-export const emptyAuto = () => ({ updated: '', places: {}, scenarios: [], events: [], closed: [] });
+export const emptyAuto = () => ({ updated: '', places: {}, scenarios: [], events: [], closed: [], buzz: {} });
 
 /* Данные из assets/auto.js. Файл пишет конвейер: постоянный код слияния и данные аргументом —
    `(function (A) {…})({…});`. Код слияния не запускаем, а достаём сам аргумент. */

@@ -194,6 +194,8 @@
         note: String(raw.note || '').trim(),
         fit: Array.isArray(raw.fit) ? raw.fit.filter(m => MODES.includes(m)) : [],
         long: !dates.length && dn(end) - dn(start) >= LONG_DAYS - 1,
+        // регистрация (A2): нужна ли и когда откроется
+        reg: raw.reg === true, regOpen: raw.reg === true && /^\d{4}-\d{2}-\d{2}$/.test(String(raw.regOpen || '')) ? raw.regOpen : '',
       });
     });
     return out;
@@ -1043,6 +1045,7 @@
         ${venue || ev.addr ? `<li>${I('pin')}<span><a class="af-venue" href="${venueMap(ev)}" target="_blank" rel="noopener"><b>${esc(venue)}</b></a>` +
           `<span class="af-dim">${esc([ev.addr, metro].filter(Boolean).join(' · '))}</span>${placeLink}</span></li>` : ''}
         <li>${I('ticket')}<span><b>${esc(priceFull || (src ? 'Цена — ' + src.on : 'Цену уточни у площадки'))}</b></span></li>
+        ${ev.reg ? `<li><span aria-hidden="true">📝</span><span><b>Нужна регистрация</b>${ev.regOpen && ev.regOpen >= t ? `<span class="af-dim">откроется ${esc(dayLabel(ev.regOpen, t))}</span>${K.calendarLinks ? `<a class="af-btn af-ghost af-sm af-remind" data-af-remind href="#" download="${esc(ev.id)}-reg.ics" data-af-t="event_reg">⏰ Напомнить в 10:00</a>` : ''}` : '<span class="af-dim">ссылка — на странице события</span>'}</span></li>` : ''}
       </ul>
       ${ev.note ? `<p class="af-note">${esc(ev.note)}</p>` : ''}
       <div class="af-actions">
@@ -1240,6 +1243,15 @@
     const day = t.closest('[data-af-day]');
     if (day) { setDay(cur, day.dataset.afDay); return; }
     if (t.closest('[data-af-cal]')) { toggleCal(cur); return; }
+    const rm = t.closest('[data-af-remind]');
+    if (rm && K.calendarLinks) {
+      // напоминание в день открытия регистрации, 10:00 по Москве: .ics собираем по нажатию
+      const ev = cur.st.ev;
+      const l = K.calendarLinks({ title: 'Регистрация: ' + ev.title, day: ev.regOpen, time: '10:00', minutes: 15, details: [ev.url, ev.venue].filter(Boolean).join('\n') });
+      rm.href = l.ics;
+      setTimeout(() => { try { URL.revokeObjectURL(l.ics); } catch (e) { /* ок */ } }, 10000);
+      return;   // переход по ссылке с download скачает файл
+    }
     if (t.closest('[data-af-share]')) { shareEvent(cur); return; }
     const w = t.closest('[data-af-watch]');
     if (w) { watch(w.dataset.afWatch, st.opts); return; }

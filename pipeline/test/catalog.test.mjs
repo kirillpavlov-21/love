@@ -68,7 +68,7 @@ test('loadCatalog: только places.js и geo.js — events и auto пуст�
     assert.equal(c.scenarios.length, 2);
     assert.deepEqual(c.events, []);
     assert.deepEqual(c.adult, ['strip']);
-    assert.deepEqual(c.auto, { updated: '', places: {}, scenarios: [], events: [], closed: [] });
+    assert.deepEqual(c.auto, { updated: '', places: {}, scenarios: [], events: [], closed: [], buzz: {} });
     assert.deepEqual(c.stations, { 'Арбатская': [55.7520, 37.6038], 'Смоленская': [55.7481, 37.5823] });
     assert.equal(c.updated, '2026-10-01');
     // обычные объекты, а не из песочницы vm

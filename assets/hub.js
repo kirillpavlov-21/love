@@ -747,6 +747,8 @@
   /* Часы работы (поле oh): строка в карточке и короткий бейдж в списке; без часов — пусто, как раньше */
   const ohLine = p => { const st = safe(() => K.openState(p), null); return st ? `<p class="oh-line ${st.open ? 'on' : 'off'}">🕐 ${esc(K.openText(st))}</p>` : ''; };
   const ohBadge = p => { const st = safe(() => K.openState(p), null); return !st ? '' : st.open ? `<b class="oh on">${st.allDay ? '24/7' : 'до ' + esc(st.until)}</b> · ` : '<b class="oh off">закрыто</b> · '; };
+  const isoWk = ms => { const d = new Date(ms + 3 * 3600e3); const wd = d.getUTCDay() || 7; d.setUTCDate(d.getUTCDate() + 4 - wd); const y = d.getUTCFullYear(); return y + '-W' + String(Math.ceil(((d - Date.UTC(y, 0, 1)) / 864e5 + 1) / 7)).padStart(2, '0'); };
+  const buzzOn = p => !!p && typeof p.buzz === 'string' && [isoWk(Date.now()), isoWk(Date.now() - 7 * 864e5)].includes(p.buzz);
   const listHints = p => { const e = K.placeHints(p).filter(h => ['halloween', 'newyear', 'autumn', 'night'].includes(h) || (h === 'first' && mode === 'date')).map(h => K.HINTS[h][0]).join(''); return e ? e + ' ' : ''; };
   const favBtn = key => { const on = T.isFav(key);
     return `<button type="button" class="fav${on ? ' on' : ''}" data-fav="${esc(key)}" aria-pressed="${on}" title="${on ? 'Убрать из сохранённых' : 'Сохранить'}">${I('bookmark')}<span>${on ? 'Сохранено' : 'Сохранить'}</span></button>`; };
@@ -858,7 +860,7 @@
     $('#plist').innerHTML = list.length ? list.slice(0, plimit).map((p, i) => `
       <button type="button" class="pl-item${promoOf(p.id) ? ' has-promo' : ''}" data-pid="${esc(p.id)}">
         ${emoTile(p)}
-        <span class="pl-main"><span class="pl-name"><span class="nm">${esc(p.name)}</span>${p.mich ? '<span class="mich" title="' + MICH[p.mich] + '">M</span>' : ''}${promoOf(p.id) ? '<span class="promo-tag" title="Есть промокод">🎁</span>' : ''}${placeRate(p.id)}</span><span class="pl-sub">${p.dist != null ? `<b class="dist">${distText(p.dist)}</b> · ` : ''}${esc(K.metroText(p.metro))} · ${ohBadge(p)}${listHints(p)}${esc(p.kind)}</span></span>
+        <span class="pl-main"><span class="pl-name"><span class="nm">${esc(p.name)}</span>${p.mich ? '<span class="mich" title="' + MICH[p.mich] + '">M</span>' : ''}${promoOf(p.id) ? '<span class="promo-tag" title="Есть промокод">🎁</span>' : ''}${placeRate(p.id)}</span><span class="pl-sub">${p.dist != null ? `<b class="dist">${distText(p.dist)}</b> · ` : ''}${esc(K.metroText(p.metro))} · ${buzzOn(p) ? '🔥 ' : ''}${ohBadge(p)}${listHints(p)}${esc(p.kind)}</span></span>
         ${priceTag(p.price)}
       </button>` + (i === NEWP_AT - 1 ? rail : '')).join('') + (pcat === 'saved' ? favHint('place', fe) + (CO ? '<button type="button" class="mini share-list" data-share-list>🔗 Поделиться списком</button>' : '') : '')
       : pcat === 'saved' ? (fe ? favHint('place', fe) : '<p class="pl-empty">Здесь появятся места, которые ты сохранишь значком 🔖 в карточке.</p>')
@@ -904,6 +906,7 @@
       <div class="ttl-row"><h3>${esc(p.name)}</h3>${favBtn('place:' + id)}</div>
       ${p.mich ? `<p class="mich-line"><span class="mich">M</span>${MICH[p.mich]}</p>` : ''}
       ${sheetHints(K.placeHints(p).filter(h => h !== 'michelin' && !(h === 'first' && mode !== 'date')))}
+      ${buzzOn(p) ? '<p class="buzz-line">🔥 Обсуждают на этой неделе</p>' : ''}
       ${ohLine(p)}
       <div class="sheet-slot" data-slot="rating">${ratingLine('place', id)}</div>
       ${promoBox(promoOf(id))}

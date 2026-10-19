@@ -41,7 +41,7 @@ const date = { type: 'string', format: 'date' };
 
 const EVENT_SCHEMA = obj({
   title: S, cat: strEnum(EVENT_CATS), start: date, end: date, dates: arrOf(date), time: S,
-  venue: S, address: S, price_from: intOrNull, price_to: intOrNull, age: S, url: S,
+  venue: S, address: S, price_from: intOrNull, price_to: intOrNull, age: S, url: S, reg: { type: 'boolean' }, reg_open: S,
 });
 
 const ITEM_SCHEMA = obj({
@@ -63,6 +63,7 @@ const ITEM_SCHEMA = obj({
   event: { anyOf: [EVENT_SCHEMA, { type: 'null' }] },
   confidence: { type: 'number' },
   reason: S,
+  confirm_url: S,
 });
 
 export const EXTRACT_SCHEMA = obj({ items: arrOf(ITEM_SCHEMA) });
@@ -273,6 +274,9 @@ function normEvent(e, today, channels) {
     price_from: from, price_to: to,
     age: /^\d{1,2}\+$/.test(e.age.trim()) ? e.age.trim() : '',
     url: officialUrl(e.url, channels),
+    // регистрация (A2): нужна ли и когда откроется (не позже начала события)
+    reg: e.reg === true,
+    reg_open: e.reg === true && isDate(e.reg_open) && e.reg_open <= start ? e.reg_open : '',
   };
 }
 
@@ -309,6 +313,9 @@ export function officialUrl(u, channels = []) {
 export function normItem(raw, { keyMap, ids, today, channels = [] }) {
   // ответы, записанные до появления поля city, — без него: город возьмём у источника
   if (raw && typeof raw === 'object' && !Array.isArray(raw) && raw.city === undefined) raw = { ...raw, city: '' };
+  // ответы без новых полей (confirm_url, reg, reg_open) — с пустыми значениями
+  if (raw && typeof raw === 'object' && !Array.isArray(raw) && raw.confirm_url === undefined) raw = { ...raw, confirm_url: '' };
+  if (raw && raw.event && typeof raw.event === 'object' && raw.event.reg === undefined) raw = { ...raw, event: { ...raw.event, reg: false, reg_open: '' } };
   if (!matchesSchema(raw, ITEM_SCHEMA)) return null;
   const post_key = keyMap.get(raw.post_key.trim());
   if (!post_key) return null;
@@ -335,6 +342,8 @@ export function normItem(raw, { keyMap, ids, today, channels = [] }) {
     event: null,
     confidence: Math.min(1, Math.max(0, raw.confidence)),
     reason: clip(cleanProse(raw.reason, channels), 200),
+    // закрытие: вторая ссылка-подтверждение — официальный сайт или карточка в картах, не пост
+    confirm_url: officialUrl(raw.confirm_url, channels),
   };
   if (type === 'irrelevant') return item;
   // новое место, которое уже есть в каталоге, — это обновление

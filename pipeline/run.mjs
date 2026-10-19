@@ -214,10 +214,18 @@ export function fairSlice(posts, limit, cityOfPost = p => p.city || 'msk') {
 }
 
 /* state.json: { tg: {канал: lastId}, ig: {аккаунт: lastTs}, seen: {ключ поста: дата}, retry: {…}, geocache: {…} } */
+/* день ±n (ГГГГ-ММ-ДД) и неделя ISO 8601 ('2026-W42') */
+export function isoDay(day, n) { const d = new Date(day + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); }
+export function isoWeek(day) {
+  const d = new Date(day + 'T00:00:00Z'), wd = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - wd);
+  const y = d.getUTCFullYear(), w = Math.ceil(((d - Date.UTC(y, 0, 1)) / 864e5 + 1) / 7);
+  return y + '-W' + String(w).padStart(2, '0');
+}
 export function normState(raw) {
   const s = raw && typeof raw === 'object' ? raw : {};
   const obj = v => (v && typeof v === 'object' && !Array.isArray(v) ? v : {});
-  return { tg: obj(s.tg), ig: obj(s.ig), seen: obj(s.seen), retry: obj(s.retry), geocache: obj(s.geocache), lastRun: String(s.lastRun || '') };
+  return { tg: obj(s.tg), ig: obj(s.ig), seen: obj(s.seen), retry: obj(s.retry), geocache: obj(s.geocache), mentions: obj(s.mentions), lastRun: String(s.lastRun || '') };
 }
 
 /* Забываем прочитанные посты старше days дней: курсоры каналов всё равно не дадут их скачать снова */
@@ -806,13 +814,14 @@ async function runPipeline(opts, deps, box) {
     if (item.confidence < MIN_CONF.closure) return reject(item, post, `закрытие: модель не уверена (${item.confidence} < ${MIN_CONF.closure})`);
     if (!sameName(name, p.name)) return reject(item, post, `закрытие: «${name}» не похоже на «${p.name}» (${id})`);
     if (!CLOSURE_RX.test(String(post.text || ''))) return reject(item, post, 'закрытие: в тексте нет слов о закрытии');
+    if (!item.confirm_url) return reject(item, post, 'закрытие без второй ссылки-подтверждения (официальный сайт или карточка в картах)');
     if (closedNow.has(id) || p.closed) { note(post, `«${p.name}» уже отмечено закрытым`); return; }
     const city = placeCity(id, p);
     if (inCity(res.closed, city) >= LIMITS.closed) return defer(item, post, `лимит закрытий за запуск (${CITIES[city].name})`);
     closedNow.add(id);
     p.closed = true;
     auto.closed.push(id);
-    res.closed.push({ id, name: p.name, item, post, evidence: evidenceQuote(post.text), city });
+    res.closed.push({ id, name: p.name, item, post, evidence: evidenceQuote(post.text), city, confirm: item.confirm_url });
     appliedKeys.add(post.key);
     note(post, `«${p.name}» отмечено закрытым`);
   }
@@ -878,6 +887,7 @@ async function runPipeline(opts, deps, box) {
     Object.assign(e, { addr: loc.addr, metro: loc.metro, lat: loc.lat, lon: loc.lon });
     if (ev.price_from != null || ev.price_to != null) e.price = [ev.price_from ?? ev.price_to, ev.price_to ?? ev.price_from];
     if (ev.age) e.age = ev.age;
+    if (ev.reg) { e.reg = true; if (ev.reg_open && ev.reg_open >= today) e.regOpen = ev.reg_open; }
     e.url = url;
     e.note = item.note_ru;
     e.fit = uniq((item.fit || []).filter(f => FITS.includes(f)));
@@ -910,6 +920,28 @@ async function runPipeline(opts, deps, box) {
       }
     } else if (item.type === 'closure') onClosure(item, post);
     else if (item.type === 'event') await onEvent(item, post);
+  }
+
+  /* ---- 4б. «Обсуждают» (A2): место из каталога упомянули 3 разных источника за 7 дней — buzz = неделя ISO.
+     В state.json храним только «место → [день, источник]» (state приватный); на сайт уходит лишь id места и неделя */
+  {
+    const M = state.mentions = state.mentions || {};
+    const since = isoDay(today, -6);
+    for (const item of items) {
+      const post = postByKey.get(item.post_key);
+      if (!post || !item.match_id || item.type === 'irrelevant' || !catalog.places[item.match_id]) continue;
+      const src = String(post.key || '').split('/')[0];
+      const list = (M[item.match_id] = Array.isArray(M[item.match_id]) ? M[item.match_id] : []);
+      if (!list.some(x => x && x.d === today && x.s === src)) list.push({ d: today, s: src });
+    }
+    auto.buzz = auto.buzz && typeof auto.buzz === 'object' ? auto.buzz : {};
+    const wk = isoWeek(today), old = isoWeek(isoDay(today, -14));
+    for (const id of Object.keys(M)) {
+      M[id] = M[id].filter(x => x && x.d >= since);
+      if (!M[id].length) { delete M[id]; continue; }
+      if (new Set(M[id].map(x => x.s)).size >= 3) { auto.buzz[id] = wk; res.buzz = (res.buzz || []).concat(id); }
+    }
+    for (const id of Object.keys(auto.buzz)) if (!(auto.buzz[id] > old)) delete auto.buzz[id];   // через 2 недели бейдж снимаем
   }
 
   /* ---- 5. подборки с новыми местами ---- */
@@ -1114,7 +1146,7 @@ function renderReport({ today, opts, res, srcRuns, skipped, fresh, overflow = []
   // закрытия — первыми: они прячут места и подборки с сайта
   if (res.closed.length) {
     L.push(`## Закрылись — проверьте в первую очередь (${res.closed.length})`, '');
-    for (const c of res.closed) L.push(`- **${md(c.name)}** (\`${c.id}\`${c.city && c.city !== 'msk' ? ', ' + CITIES[c.city].name : ''}) — «${md(c.evidence)}» · уверенность ${c.item.confidence} · ${postLink(c.post)}`);
+    for (const c of res.closed) L.push(`- **${md(c.name)}** (\`${c.id}\`${c.city && c.city !== 'msk' ? ', ' + CITIES[c.city].name : ''}) — «${md(c.evidence)}» · уверенность ${c.item.confidence} · ${postLink(c.post)}${c.confirm ? ' · подтверждение: ' + c.confirm : ''}`);
     if (res.hidden.length) L.push('', `Скроются подборки с этими местами: ${res.hidden.map(id => '`' + id + '`').join(', ')}`);
     L.push('');
   }
