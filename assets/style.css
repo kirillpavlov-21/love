@@ -760,3 +760,7 @@ form.name-box { margin: 0; }
 .plus-row .pl-n { min-width: 36px; text-align: center; font: 600 20px var(--display, inherit); color: var(--text); }
 .deadline { width: 100%; margin: 0 0 10px; padding: 10px 12px; border-radius: 14px; background: rgba(var(--rgb), .1); color: var(--text); font-size: 14px; font-weight: 600; text-align: center; }
 .deadline.closed { background: var(--surface-2); color: var(--muted-2); }
+
+/* «Успеть домой» на билете */
+.home-risk { display: grid; gap: 6px; margin: 10px 0 0; padding: 10px 12px; border-radius: 14px; background: rgba(61, 139, 255, .12); border: 1px solid rgba(61, 139, 255, .3); text-align: left; }
+.home-risk p { margin: 0; font-size: 14px; line-height: 1.4; }

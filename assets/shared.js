@@ -554,6 +554,102 @@
     return 2 * R * Math.asin(Math.sqrt(h));
   }
   const walkMin = (a, b) => Math.max(1, Math.round(distM(a, b) * 1.3 / 75));
+
+  /* ---------- «Успеть домой»: последний вход в метро и разводка мостов Петербурга ----------
+     Всё «около»: станции закрывают вход в разное время, мосты разводят по графику СПб ГБУ «Мостотрест» на 2026 год
+     (навигация по Неве и Малой Неве — 10.04–30.11, по Большой Невке — 20.04–15.11; в ночи после 1 и 9 мая, 12 июня
+     и 4 ноября мосты не разводят). Перед навигацией 2027 года сверить с официальным графиком. */
+  const LAST_METRO = { msk: '01:00', spb: '00:00' };
+  const BRIDGES = {
+    season: { neva: ['04-10', '11-30'], nevka: ['04-20', '11-15'] },
+    skip: ['05-01', '05-09', '06-12', '11-04'],   // вечер, после которого мосты не разводят
+    list: [
+      { name: 'Дворцовый', banks: ['center', 'vo'], water: 'neva', open: [['01:10', '02:50'], ['03:10', '04:55']] },
+      { name: 'Благовещенский', banks: ['center', 'vo'], water: 'neva', open: [['01:25', '02:45'], ['03:10', '05:00']] },
+      { name: 'Троицкий', banks: ['center', 'petrograd'], water: 'neva', open: [['01:20', '04:50']] },
+      { name: 'Литейный', banks: ['center', 'north'], water: 'neva', open: [['01:40', '04:45']] },
+      { name: 'Большеохтинский', banks: ['center', 'east'], water: 'neva', open: [['02:00', '05:00']] },
+      { name: 'Володарский', banks: ['center', 'east'], water: 'neva', open: [['02:00', '03:45'], ['04:15', '05:45']] },
+      { name: 'Александра Невского', banks: ['center', 'east'], water: 'neva', open: [['02:20', '05:10']] },
+      { name: 'Биржевой', banks: ['vo', 'petrograd'], water: 'neva', open: [['02:00', '02:55'], ['03:35', '04:55']] },
+      { name: 'Тучков', banks: ['vo', 'petrograd'], water: 'neva', open: [['02:00', '02:55'], ['03:35', '04:55']] },
+      { name: 'Сампсониевский', banks: ['petrograd', 'north'], water: 'nevka', open: [['02:10', '02:45'], ['03:20', '04:25']] },
+      { name: 'Гренадерский', banks: ['petrograd', 'north'], water: 'nevka', open: [['02:45', '03:45']] },
+      { name: 'Кантемировский', banks: ['petrograd', 'north'], water: 'nevka', open: [['02:45', '03:45']] },
+    ],
+  };
+  const BANK_NAME = { center: 'центр', vo: 'Васильевский', petrograd: 'Петроградку', north: 'Выборгскую сторону', east: 'правый берег' };
+  const BANK_FROM = { center: 'из центра', vo: 'с Васильевского', petrograd: 'с Петроградки', north: 'с Выборгской стороны', east: 'с правого берега' };
+  /* Берег по району места: Васильевский, Петроградка, север (Выборгская сторона и Приморский), правый берег, остальное — центр */
+  const bankOf = p => !p || p.okr === 'out' ? null : p.okr === 'vo' ? 'vo' : p.okr === 'petrograd' ? 'petrograd'
+    : p.okr === 'north' || p.okr === 'nw' ? 'north' : p.okr === 'east' ? 'east' : 'center';
+  /* Минуты от полудня: 23:30 → 690, 01:10 → 790 — так ночь не перескакивает через ноль */
+  const nightMin = t => { const m = toMin(t); return m < 12 * 60 ? m + 24 * 60 - 12 * 60 : m - 12 * 60; };
+  const clock = m => { const x = ((m + 12 * 60) % (24 * 60) + 24 * 60) % (24 * 60); return Math.floor(x / 60) + ':' + pad(x % 60); };
+  /* Сколько обычно длится остановка, минут */
+  const STAY = { culture: 90, food: 90, bar: 120, walk: 60, coffee: 45, fun: 90, spa: 150, pc: 120, books: 40 };
+  const START = { 'закат': '18:30', 'вечер': '19:00', 'ночь': '22:00' };
+  /* Мосты, разведённые в эту ночь (по дате вечера 'YYYY-MM-DD'), — с учётом навигации и праздничных ночей */
+  function bridgesTonight(day) {
+    const md = String(day || todayMsk()).slice(5);
+    if (BRIDGES.skip.includes(md)) return [];
+    return BRIDGES.list.filter(b => { const [a, z] = BRIDGES.season[b.water]; return md >= a && md <= z; });
+  }
+  /* Путь по берегам: прямые мосты, а если их нет — через Петроградку или центр */
+  function hops(a, b) {
+    const direct = x => (y => bridgesTonight.cache.filter(r => r.banks.includes(x) && r.banks.includes(y)));
+    const d = direct(a)(b);
+    if (d.length) return [[a, b, d]];
+    for (const via of ['petrograd', 'center']) {
+      const h1 = direct(a)(via), h2 = direct(via)(b);
+      if (via !== a && via !== b && h1.length && h2.length) return [[a, via, h1], [via, b, h2]];
+    }
+    return [];
+  }
+  /* Предупреждения «успеть домой» для плана: stops — места по порядку, start — 'HH:MM' (или по when), day — дата вечера.
+     [{ kind: 'metro' | 'bridge', text }] — пусто, если до закрытия метро и разводки далеко */
+  function homeRisk(stops, start, day, c, when) {
+    stops = (stops || []).filter(Boolean);
+    if (!stops.length) return [];
+    c = isCity(c) ? c : cityOf(stops[0]);
+    const t0 = start || START[when];
+    if (!t0) return [];
+    // когда освобождаемся с каждой остановки (минуты от полудня)
+    let t = nightMin(t0);
+    const ends = stops.map((p, i) => { if (i) t += walkMin(stops[i - 1], p); t += STAY[catOf(p)] || 90; return t; });
+    const out = [];
+    const last = nightMin(LAST_METRO[c] || '00:00');
+    if (ends[ends.length - 1] >= last - 45) out.push({ kind: 'metro', text: `🚇 Вход в метро — примерно до ${LAST_METRO[c].replace(/^0/, '')}. План закончится около ${clock(ends[ends.length - 1])}` });
+    if (c !== 'spb') return out;
+    bridgesTonight.cache = bridgesTonight(day);
+    if (!bridgesTonight.cache.length) return out;
+    const firstRaise = list => list.map(b => ({ b, m: nightMin(b.open[0][0]) })).sort((x, y) => x.m - y.m);
+    const warn = (from, to, at) => {
+      for (const [a, b, list] of hops(from, to)) {
+        const r = firstRaise(list);
+        if (at >= r[0].m - 20) {
+          const names = r.slice(0, 2).map((x, i) => (i ? x.b.name + ' — около ' : x.b.name + ' разводят около ') + x.b.open[0][0].replace(/^0/, '')).join(', ');
+          out.push({ kind: 'bridge', text: `🌉 ${names}: ${BANK_FROM[a]} на ${BANK_NAME[b]} — до ${clock(r[0].m - 10)}` });
+          return true;
+        }
+      }
+      return false;
+    };
+    // переходы внутри плана
+    for (let i = 1; i < stops.length; i++) {
+      const a = bankOf(stops[i - 1]), b = bankOf(stops[i]);
+      if (a && b && a !== b && warn(a, b, ends[i - 1])) return out;
+    }
+    // домой: если план закончится на острове или на другом берегу — подсказка про мосты в центр
+    const b = bankOf(stops[stops.length - 1]);
+    if (b && b !== 'center') warn(b, 'center', ends[ends.length - 1]);
+    return out;
+  }
+  /* «Мосты сегодня: первым разводят Дворцовый — около 1:10» (null — мосты не разводят) */
+  function bridgesToday(day) {
+    const list = bridgesTonight(day).map(b => ({ b, m: nightMin(b.open[0][0]) })).sort((x, y) => x.m - y.m);
+    return list.length ? { first: list[0].b.name, at: list[0].b.open[0][0].replace(/^0/, ''), n: list.length } : null;
+  }
   const priceText = n => '₽'.repeat(Math.max(1, Math.min(3, n || 1)));
   /* Что значат ₽ — подсказка к значку цены (как в places.js) */
   const PRICE_HINT = ['', 'до ~1 500 ₽ на человека', '~1 500–3 000 ₽ на человека', 'от ~3 000 ₽ на человека'];
@@ -940,7 +1036,7 @@
     leftText, ymd, parseYmd, addDays, listDates, fmtDay, dayNum, numDay, toMin, fromMin, relaySend, relayRegister, relayTest, shortLink, goRoute, sitePath, toB64url,
     CATS, catVars, catSVG, HEART_D, STAR_D, markD, ICONS, icon, MODE_ICON, tgUser, tgLink, calendarLinks,
     MODES, modeOf, kuda, placeById, planById, planStops, catOf, photo, planPhoto, photoCredit, cleanAuthor, HINTS, placeHints, planHints, hintChip, seasonHints,
-    todayMsk, seasonNow, seasonOk, eventById, events, eventDays, sheet,
+    todayMsk, seasonNow, seasonOk, eventById, events, eventDays, sheet, homeRisk, bridgesToday, BRIDGES, LAST_METRO,
     distM, walkMin, priceText, priceHint, isMetro, metroText, mapUrl, routeUrl,
     CITIES, city, setCity, cityOf, cityConf, inCity, cityByPoint,
     THEMES: ['pink', 'lavender', 'peach', 'mint', 'sport'],

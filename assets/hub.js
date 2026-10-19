@@ -216,6 +216,21 @@
   const indoorPlan = p => { if (!INDOOR.has(p.id)) { const st = K.planStops(p); INDOOR.set(p.id, st.length > 0 && st.every(indoorPlace)); } return INDOOR.get(p.id); };
 
   /* Отрезок между остановками: пешком, а если план на транспорте (тег drive) или идти дольше получаса — «на транспорте» */
+  /* «Успеть домой»: у вечерних и ночных планов — до скольки вход в метро, в Петербурге в навигацию — разводка мостов */
+  function homeRiskHtml(plan, st) {
+    if (!['закат', 'вечер', 'ночь'].includes(plan.when)) return '';
+    const r = K.homeRisk(st, null, K.todayMsk(), K.cityOf(plan), plan.when);
+    return r.length ? `<div class="home-risk">${r.map(x => `<p class="hr-${x.kind}">${esc(x.text)}</p>`).join('')}</div>` : '';
+  }
+  /* Главная Петербурга вечером в навигацию: «Мосты сегодня: первым разводят Дворцовый — около 1:10» */
+  function renderBridges() {
+    const box = $('#bridges');
+    if (!box) return;
+    const h = new Date(Date.now() + 3 * 3600e3).getUTCHours();
+    const b = K.city() === 'spb' && h >= 20 ? K.bridgesToday(K.todayMsk()) : null;
+    box.classList.toggle('hidden', !b);
+    box.textContent = b ? `🌉 Мосты сегодня: первым разводят ${b.first} — около ${b.at}. Планируй, как вернуться домой` : '';
+  }
   const legText = (min, plan) => hasTag(plan, 'drive') || min > 30 ? 'на транспорте' : `${min} мин пешком`;
   const priceTag = n => `<span class="price" title="${esc(K.priceHint(n))}">${K.priceText(n)}</span>`;
 
@@ -940,6 +955,7 @@
       ${sheetHints(K.planHints(plan).filter(h => !(h === 'first' && mode !== 'date')))}
       <div class="sheet-slot" data-slot="rating">${ratingLine('plan', plan.id)}</div>
       <p class="why">${esc(plan.why)}</p>
+      ${homeRiskHtml(plan, st)}
       ${st.some(p => K.catOf(p) !== 'walk') ? budgetEst(price) : ''}
       <div class="itin">${parts}</div>
       <div class="sheet-actions">
@@ -1516,6 +1532,7 @@
     return [K.numDay(sat), K.numDay(sat + 1)];
   }
   function renderWx() {
+    renderBridges();
     const box = $('#wx');
     if (!box) return;
     const h = wxHint(WX), n = h ? modePlans().filter(indoorPlan).length : 0;
