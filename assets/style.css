@@ -764,3 +764,7 @@ form.name-box { margin: 0; }
 /* «Успеть домой» на билете */
 .home-risk { display: grid; gap: 6px; margin: 10px 0 0; padding: 10px 12px; border-radius: 14px; background: rgba(61, 139, 255, .12); border: 1px solid rgba(61, 139, 255, .3); text-align: left; }
 .home-risk p { margin: 0; font-size: 14px; line-height: 1.4; }
+
+/* день, когда место из плана не работает */
+.day.off.shut { opacity: .45; }
+.day.off.shut small { font-size: 8px; }

@@ -1427,7 +1427,12 @@
       const t = setTimeout(next, 0);
       return () => clearTimeout(t);
     }
-    const avail = new Set(days);
+    // свидание с выбранным планом: дни, когда какая-то остановка не работает (часы oh), — серые с подписью «выходной»
+    const pl = !GROUP && S.a.place && S.a.place.plan ? K.planById(S.a.place.plan) : null;
+    const stops = pl ? K.planStops(pl) : [];
+    const shut = d => stops.some(p => K.closedOn(p, d));
+    const open = days.filter(d => !shut(d));
+    const avail = new Set(open.length ? open : days);
     const evOn = !GROUP && evChosen();
     let cal = '';
     if (days.length) {
@@ -1440,6 +1445,7 @@
         const mon = d.getDate() === 1 || +d === +start ? `<small>${MONTHS_SHORT[d.getMonth()]}</small>` : '';
         cells.push(avail.has(s)
           ? `<button class="day avail${we ? ' we' : ''}" data-d="${s}" aria-label="${esc(K.fmtDay(s))}" aria-pressed="false"><span>${d.getDate()}</span>${mon}</button>`
+          : days.includes(s) ? `<span class="day off shut" title="Выходной у места из плана"><span>${d.getDate()}</span><small>выходной</small></span>`
           : `<span class="day off" aria-hidden="true"><span>${d.getDate()}</span>${mon}</span>`);
       }
       const months = Array.from(new Set(days.map(s => MONTHS[K.parseYmd(s).getMonth()])));

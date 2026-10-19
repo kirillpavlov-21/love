@@ -182,6 +182,76 @@
     return (h >>> 0).toString(36);
   }
 
+  /* ---------- часы работы (поле oh, подмножество OSM opening_hours) ----------
+     'Mo-Th 12:00-24:00; Fr,Sa 12:00-02:00; Su off', '24/7', перерыв — 'Mo-Su 11:00-15:00,16:00-20:00'.
+     Дни, которых нет в строке, — выходные; правило ниже перекрывает правило выше; праздники (PH) не учитываем.
+     ohDays(oh) → 7 списков интервалов [от, до] в минутах (0 — воскресенье; до > 1440 — через полночь) или null */
+  const OH_D = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+  const OH_CACHE = new Map();
+  function ohDays(oh) {
+    if (typeof oh !== 'string' || !oh.trim()) return null;
+    if (OH_CACHE.has(oh)) return OH_CACHE.get(oh);
+    let out = [[], [], [], [], [], [], []];
+    try {
+      if (oh.trim() === '24/7') out.forEach(d => d.push([0, 1440]));
+      else for (const rule of oh.split(';').map(x => x.trim()).filter(Boolean)) {
+        const m = /^([A-Za-z,-]+)\s+(.+)$/.exec(rule);
+        if (!m) throw new Error('rule');
+        const days = new Set();
+        for (const part of m[1].split(',')) {
+          const r = /^(Mo|Tu|We|Th|Fr|Sa|Su)(?:-(Mo|Tu|We|Th|Fr|Sa|Su))?$/.exec(part);
+          if (!r) throw new Error('days');
+          const a = OH_D.indexOf(r[1]), b = r[2] ? OH_D.indexOf(r[2]) : a;
+          for (let i = a, k = 0; k < 7; i = (i + 1) % 7, k++) { days.add(i); if (i === b) break; }
+        }
+        const iv = [];
+        if (m[2].trim() !== 'off') for (const t of m[2].split(',')) {
+          const r = /^(\d\d):(\d\d)-(\d\d):(\d\d)$/.exec(t.trim());
+          if (!r) throw new Error('time');
+          const a = +r[1] * 60 + +r[2];
+          let b = +r[3] * 60 + +r[4];
+          if (a >= 1440 || b > 1440) throw new Error('range');
+          if (b <= a) b += 1440;   // через полночь (12:00-02:00)
+          iv.push([a, b]);
+        }
+        days.forEach(d => { out[d] = iv.slice(); });
+      }
+    } catch (e) { out = null; }
+    OH_CACHE.set(oh, out);
+    return out;
+  }
+  const hmOf = m => { m = ((m % 1440) + 1440) % 1440; return pad(Math.floor(m / 60)) + ':' + pad(m % 60); };
+  /* Открыто ли место в момент when (мс; по Москве): { open, until, opens, inDays, dayOff, allDay } или null без часов.
+     until — до скольки (при open), opens и inDays — когда откроется (0 — сегодня, 1 — завтра) */
+  function openState(p, when) {
+    const D = p && ohDays(p.oh);
+    if (!D) return null;
+    const d = new Date((when == null ? Date.now() : +when) + 3 * 3600e3);
+    const wd = d.getUTCDay(), t = d.getUTCHours() * 60 + d.getUTCMinutes();
+    if (D.every(x => x.length === 1 && x[0][0] === 0 && x[0][1] >= 1440)) return { open: true, allDay: true, until: '', dayOff: false };
+    const prev = D[(wd + 6) % 7].find(([, b]) => b > 1440 && t + 1440 < b);
+    const cur = D[wd].find(([a, b]) => a <= t && t < b);
+    if (prev || cur) return { open: true, until: hmOf((cur || prev)[1]), allDay: false, dayOff: false };
+    for (let k = 0; k < 7; k++) {
+      const next = D[(wd + k) % 7].filter(([a]) => k > 0 || a > t).sort((x, y) => x[0] - y[0])[0];
+      if (next) return { open: false, opens: hmOf(next[0]), inDays: k, dayOff: !D[wd].length };
+    }
+    return { open: false, opens: '', inDays: -1, dayOff: true };
+  }
+  /* Выходной в этот день (ГГГГ-ММ-ДД): часы известны, а интервалов нет */
+  function closedOn(p, ymdStr) {
+    const D = p && ohDays(p.oh), dt = parseYmd(ymdStr);
+    return !!(D && dt && !D[dt.getDay()].length);
+  }
+  /* «Открыто до 02:00» / «Закрыто · откроется в 11:00» / «Сегодня выходной · откроется завтра в 10:00»; без часов — '' */
+  function openText(st) {
+    if (!st) return '';
+    if (st.open) return st.allDay ? 'Открыто круглосуточно' : `Открыто до ${st.until === '00:00' ? '00:00' : st.until}`;
+    if (!st.opens) return 'Закрыто';
+    const when = st.inDays === 0 ? `в ${st.opens}` : st.inDays === 1 ? `завтра в ${st.opens}` : `через ${st.inDays} дн. в ${st.opens}`;
+    return (st.dayOff ? 'Сегодня выходной' : 'Закрыто') + ' · откроется ' + when;
+  }
+
   /* Сколько осталось до срока: «45 мин», «2 ч 10 мин», «3 дн 4 ч» */
   function leftText(ms) {
     const min = Math.max(1, Math.ceil(ms / 60000)), h = Math.floor(min / 60), d = Math.floor(h / 24);
@@ -1033,7 +1103,7 @@
 
   window.DateKit = {
     BASE, merge, defaults, diffInvite, encodeInvite, decodeInvite, encodeData, decodeData, readHash, esc, fill, hash,
-    leftText, ymd, parseYmd, addDays, listDates, fmtDay, dayNum, numDay, toMin, fromMin, relaySend, relayRegister, relayTest, shortLink, goRoute, sitePath, toB64url,
+    leftText, ohDays, openState, closedOn, openText, ymd, parseYmd, addDays, listDates, fmtDay, dayNum, numDay, toMin, fromMin, relaySend, relayRegister, relayTest, shortLink, goRoute, sitePath, toB64url,
     CATS, catVars, catSVG, HEART_D, STAR_D, markD, ICONS, icon, MODE_ICON, tgUser, tgLink, calendarLinks,
     MODES, modeOf, kuda, placeById, planById, planStops, catOf, photo, planPhoto, photoCredit, cleanAuthor, HINTS, placeHints, planHints, hintChip, seasonHints,
     todayMsk, seasonNow, seasonOk, eventById, events, eventDays, sheet, homeRisk, bridgesToday, BRIDGES, LAST_METRO,

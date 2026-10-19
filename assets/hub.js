@@ -257,7 +257,7 @@
   let flt = 'all';
 
   /* ---------- каталог «Все места» ---------- */
-  const PCATS = [['all', 'Все'], ['saved', '🔖 Сохранённые'], ['new', '✨ Новое'], ['promo', '🎁 С промокодом'], ['pc', '🎮 Компы'],
+  const PCATS = [['all', 'Все'], ['open', '🕐 Открыто сейчас'], ['saved', '🔖 Сохранённые'], ['new', '✨ Новое'], ['promo', '🎁 С промокодом'], ['pc', '🎮 Компы'],
     ...SEASON.filter(h => SEASON_LABEL[h]).map(h => [h, SEASON_LABEL[h]]),
     ['first', '💘 Для первого свидания'], ['walk', 'Прогулки'], ['culture', 'Культура'], ['food', 'Рестораны'], ['michelin', 'Michelin'],
     ['coffee', 'Кофе'], ['bar', 'Бары'], ['fun', 'Развлечения'], ['spa', 'Бани и спа'], ['books', 'Книжные']];
@@ -271,7 +271,7 @@
   PLACES_ALL.forEach(p => { p.city = K.cityOf(p); });
   let PLACES = [];
   /* Место в разделе каталога (чипы «Все места»): 'saved', 'new', 'promo', 'michelin', подсказка (🎃, 🍂, 💘…) или раздел (cat) */
-  const inPcat = (id, p) => id === 'all' || (id === 'michelin' ? !!p.mich : id === 'saved' ? T.isFav('place:' + p.id) : id === 'new' ? isNew(p)
+  const inPcat = (id, p) => id === 'all' || (id === 'open' ? !!(safe(() => K.openState(p), null) || {}).open : id === 'michelin' ? !!p.mich : id === 'saved' ? T.isFav('place:' + p.id) : id === 'new' ? isNew(p)
     : id === 'promo' ? !!promoOf(p.id) : K.HINTS[id] ? K.placeHints(p).includes(id) : p.c === id);
   /* Разделы, где в городе есть хоть одно место (у Петербурга нет Michelin — нет и чипа) */
   let PCAT_HAS = new Set();
@@ -292,6 +292,8 @@
     const has = new Set(PLACES.map(p => p.okr));
     QZ_OKRS = conf.okrs.map(o => o[0]).filter(o => !QZ_SKIP.includes(o) && has.has(o));
     PCAT_HAS = new Set(PCATS.map(c => c[0]).filter(id => !['all', 'saved', 'new', 'promo'].includes(id) && PLACES.some(p => inPcat(id, p))));
+    // «Открыто сейчас» — только если часы известны хотя бы у пятой части мест города (иначе фильтр почти пустой)
+    if (PLACES.filter(p => p.oh).length < PLACES.length / 5) PCAT_HAS.delete('open');
     LINE = new Map(safe(() => G.stations(city), []).filter(x => x && x.line).map(x => [x.name, x.line]));
   }
   const PSTEP = 24;
@@ -742,6 +744,9 @@
   }
 
   /* ---------- список мест ---------- */
+  /* Часы работы (поле oh): строка в карточке и короткий бейдж в списке; без часов — пусто, как раньше */
+  const ohLine = p => { const st = safe(() => K.openState(p), null); return st ? `<p class="oh-line ${st.open ? 'on' : 'off'}">🕐 ${esc(K.openText(st))}</p>` : ''; };
+  const ohBadge = p => { const st = safe(() => K.openState(p), null); return !st ? '' : st.open ? `<b class="oh on">${st.allDay ? '24/7' : 'до ' + esc(st.until)}</b> · ` : '<b class="oh off">закрыто</b> · '; };
   const listHints = p => { const e = K.placeHints(p).filter(h => ['halloween', 'newyear', 'autumn', 'night'].includes(h) || (h === 'first' && mode === 'date')).map(h => K.HINTS[h][0]).join(''); return e ? e + ' ' : ''; };
   const favBtn = key => { const on = T.isFav(key);
     return `<button type="button" class="fav${on ? ' on' : ''}" data-fav="${esc(key)}" aria-pressed="${on}" title="${on ? 'Убрать из сохранённых' : 'Сохранить'}">${I('bookmark')}<span>${on ? 'Сохранено' : 'Сохранить'}</span></button>`; };
@@ -853,7 +858,7 @@
     $('#plist').innerHTML = list.length ? list.slice(0, plimit).map((p, i) => `
       <button type="button" class="pl-item${promoOf(p.id) ? ' has-promo' : ''}" data-pid="${esc(p.id)}">
         ${emoTile(p)}
-        <span class="pl-main"><span class="pl-name"><span class="nm">${esc(p.name)}</span>${p.mich ? '<span class="mich" title="' + MICH[p.mich] + '">M</span>' : ''}${promoOf(p.id) ? '<span class="promo-tag" title="Есть промокод">🎁</span>' : ''}${placeRate(p.id)}</span><span class="pl-sub">${p.dist != null ? `<b class="dist">${distText(p.dist)}</b> · ` : ''}${esc(K.metroText(p.metro))} · ${listHints(p)}${esc(p.kind)}</span></span>
+        <span class="pl-main"><span class="pl-name"><span class="nm">${esc(p.name)}</span>${p.mich ? '<span class="mich" title="' + MICH[p.mich] + '">M</span>' : ''}${promoOf(p.id) ? '<span class="promo-tag" title="Есть промокод">🎁</span>' : ''}${placeRate(p.id)}</span><span class="pl-sub">${p.dist != null ? `<b class="dist">${distText(p.dist)}</b> · ` : ''}${esc(K.metroText(p.metro))} · ${ohBadge(p)}${listHints(p)}${esc(p.kind)}</span></span>
         ${priceTag(p.price)}
       </button>` + (i === NEWP_AT - 1 ? rail : '')).join('') + (pcat === 'saved' ? favHint('place', fe) + (CO ? '<button type="button" class="mini share-list" data-share-list>🔗 Поделиться списком</button>' : '') : '')
       : pcat === 'saved' ? (fe ? favHint('place', fe) : '<p class="pl-empty">Здесь появятся места, которые ты сохранишь значком 🔖 в карточке.</p>')
@@ -899,6 +904,7 @@
       <div class="ttl-row"><h3>${esc(p.name)}</h3>${favBtn('place:' + id)}</div>
       ${p.mich ? `<p class="mich-line"><span class="mich">M</span>${MICH[p.mich]}</p>` : ''}
       ${sheetHints(K.placeHints(p).filter(h => h !== 'michelin' && !(h === 'first' && mode !== 'date')))}
+      ${ohLine(p)}
       <div class="sheet-slot" data-slot="rating">${ratingLine('place', id)}</div>
       ${promoBox(promoOf(id))}
       <p class="why">${esc(p.note)}</p>
@@ -1047,6 +1053,7 @@
         ${stopPh(p)}
         <b>${esc(p.name)}${pr ? ' <span class="promo-tag">🎁 промокод</span>' : ''}</b>
         <span class="k">${esc(p.kind)} · ${esc(K.metroText(p.metro))} · <span title="${esc(K.priceHint(p.price))}">${K.priceText(p.price)}</span></span>
+        ${ohLine(p)}
         ${RV ? `<span class="stop-rate"><span data-rate-place="${esc(ids[i])}">${safe(() => RV.badge(ids[i]), '')}</span><button type="button" class="stop-rv" data-open-place="${esc(ids[i])}" data-rv>Отзывы<span class="vh"> о месте «${esc(p.name)}»</span></button></span>` : ''}
         <p>${esc(p.note)}</p>
         ${promoBox(pr)}
