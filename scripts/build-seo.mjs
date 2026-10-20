@@ -96,7 +96,7 @@ function loadData() {
   vm.runInContext('(() => { const real = Date.now; Date.now = () => (typeof __clock === "number" ? __clock : real()); })();', sb);
   // порядок — как на страницах сайта: города и матчи только дописывают своё в KUDA и KUDA_EVENTS
   // collections.js (подборки редакции) может ещё не появиться — тогда молча без него
-  const files = [['config.js'], ['assets/shared.js'], ['assets/places.js', true], ['assets/places-spb.js'], ['assets/events.js'], ['assets/events-spb.js'],
+  const files = [['config.js'], ['assets/shared.js'], ['assets/places.js', true], ['assets/places-spb.js'], ['assets/places-info.js', false, true], ['assets/events.js'], ['assets/events-spb.js'],
     ['assets/sport.js'], ['assets/auto.js'], ['assets/collections.js', false, true], ['assets/photos.js'], ['assets/geo.js']];
   for (const [f, required, quiet] of files) {
     if (!exists(f)) { if (required) fail(f + ' не найден'); if (!quiet) warn(f + ' не найден — собираю без него'); continue; }
