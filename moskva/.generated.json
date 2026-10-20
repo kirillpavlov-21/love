@@ -6,559 +6,4579 @@
    "sha": "7b8a27e2fd82f403",
    "lastmod": "2026-10-15"
   },
+  "moskva/weekend.ics": {
+   "sha": "bf4fcdd07ea08bf8",
+   "lastmod": "2026-10-19"
+  },
   "moskva/svidanie/index.html": {
-   "sha": "8693e070635c83e6",
-   "lastmod": "2026-10-15"
+   "sha": "84f5d98c8dd6eca7",
+   "lastmod": "2026-10-20"
   },
   "moskva/pervoe-svidanie/index.html": {
-   "sha": "21ebacb3f4c6e46e",
-   "lastmod": "2026-10-15"
+   "sha": "f9990dea6e2b3ef1",
+   "lastmod": "2026-10-19"
   },
   "moskva/nedorogoe-svidanie/index.html": {
-   "sha": "d7bd92f50c1baf29",
-   "lastmod": "2026-10-15"
+   "sha": "b93a7bbe18e877d3",
+   "lastmod": "2026-10-20"
   },
   "moskva/s-druzyami/index.html": {
-   "sha": "c464f7a79076e2d8",
-   "lastmod": "2026-10-15"
+   "sha": "a1af37f63ad22245",
+   "lastmod": "2026-10-20"
   },
   "moskva/devichnik/index.html": {
-   "sha": "65567e2e232b1e5d",
-   "lastmod": "2026-10-15"
+   "sha": "ad4e580e90b79b6b",
+   "lastmod": "2026-10-20"
   },
   "moskva/segodnya/index.html": {
-   "sha": "6f25a1505be3e87d",
-   "lastmod": "2026-10-15"
+   "sha": "d41e89f3497cfd13",
+   "lastmod": "2026-10-20"
   },
   "moskva/vyhodnye/index.html": {
-   "sha": "f07ff36494479178",
-   "lastmod": "2026-10-15"
+   "sha": "df82df5f4e1dade0",
+   "lastmod": "2026-10-20"
   },
   "moskva/vecherom-posle-raboty/index.html": {
-   "sha": "8c6e6a01aacc0faf",
-   "lastmod": "2026-10-15"
+   "sha": "aa77cafef2707676",
+   "lastmod": "2026-10-20"
   },
   "moskva/pozdno-vecherom/index.html": {
-   "sha": "3b3db10a382f2dbd",
-   "lastmod": "2026-10-15"
+   "sha": "5e2b8c489825c940",
+   "lastmod": "2026-10-20"
   },
   "moskva/halloween/index.html": {
-   "sha": "a074c3f09abbec82",
-   "lastmod": "2026-10-15"
+   "sha": "215225d418992646",
+   "lastmod": "2026-10-20"
   },
   "moskva/novyj-god/index.html": {
-   "sha": "2b5e08da5878ef66",
-   "lastmod": "2026-10-15"
+   "sha": "ea153d550da4b13f",
+   "lastmod": "2026-10-20"
   },
   "moskva/katki/index.html": {
-   "sha": "8235999397f13294",
-   "lastmod": "2026-10-15"
+   "sha": "fe6b64a33adf0f10",
+   "lastmod": "2026-10-19"
   },
   "moskva/osen/index.html": {
-   "sha": "8d87b95082d1f0ec",
-   "lastmod": "2026-10-15"
+   "sha": "88ac7448d7a6a5a3",
+   "lastmod": "2026-10-19"
   },
   "moskva/zima/index.html": {
-   "sha": "ea378453c5868cba",
-   "lastmod": "2026-10-15"
+   "sha": "c8307888f42ccf1a",
+   "lastmod": "2026-10-19"
   },
   "moskva/restorany/index.html": {
-   "sha": "749aed8eb9624354",
-   "lastmod": "2026-10-15"
+   "sha": "34e7fdffdd020f08",
+   "lastmod": "2026-10-19"
   },
   "moskva/kofejni/index.html": {
-   "sha": "83d86b5f256b4ce7",
-   "lastmod": "2026-10-15"
+   "sha": "0eba2a406455697d",
+   "lastmod": "2026-10-19"
   },
   "moskva/bary/index.html": {
-   "sha": "e4bee7dd453b6485",
-   "lastmod": "2026-10-15"
+   "sha": "c8faba028c057ae9",
+   "lastmod": "2026-10-20"
   },
   "moskva/parki/index.html": {
-   "sha": "bd55c12b57c637e0",
-   "lastmod": "2026-10-15"
+   "sha": "6177b2123efb37bd",
+   "lastmod": "2026-10-19"
   },
   "moskva/muzei/index.html": {
-   "sha": "1faf6046fa7f0ad9",
-   "lastmod": "2026-10-15"
+   "sha": "f4632b94f1121471",
+   "lastmod": "2026-10-20"
   },
   "moskva/teatry/index.html": {
-   "sha": "f3b0134861c8b38f",
-   "lastmod": "2026-10-15"
+   "sha": "c1a96c76924b1cd1",
+   "lastmod": "2026-10-20"
   },
   "moskva/kvesty/index.html": {
-   "sha": "eebdbb07fb5573bd",
-   "lastmod": "2026-10-15"
+   "sha": "b4b394149f39d9da",
+   "lastmod": "2026-10-19"
   },
   "moskva/bani/index.html": {
-   "sha": "e36c85d8e221e363",
-   "lastmod": "2026-10-15"
+   "sha": "6999e226686bbff0",
+   "lastmod": "2026-10-19"
   },
   "moskva/karaoke/index.html": {
-   "sha": "824b924d1e10456b",
-   "lastmod": "2026-10-15"
+   "sha": "874ca0f72e7d7631",
+   "lastmod": "2026-10-19"
   },
   "moskva/krishi-i-panoramy/index.html": {
-   "sha": "640c753be306ffa3",
-   "lastmod": "2026-10-15"
+   "sha": "d921adf4080ed36b",
+   "lastmod": "2026-10-19"
   },
   "moskva/kompyuternye-kluby/index.html": {
-   "sha": "f1f8b60b3efa7b99",
-   "lastmod": "2026-10-15"
+   "sha": "e878023f9c463f6d",
+   "lastmod": "2026-10-19"
   },
   "moskva/koncerty/index.html": {
-   "sha": "b41205024752e163",
-   "lastmod": "2026-10-15"
+   "sha": "71839b222aafa42b",
+   "lastmod": "2026-10-20"
   },
   "moskva/spektakli/index.html": {
-   "sha": "9a9e809f47164299",
-   "lastmod": "2026-10-15"
+   "sha": "78e168d6e3ff073f",
+   "lastmod": "2026-10-20"
   },
   "moskva/vystavki/index.html": {
-   "sha": "ced2463e51d580e8",
-   "lastmod": "2026-10-15"
+   "sha": "2b7a4851bbb29dc6",
+   "lastmod": "2026-10-20"
   },
   "moskva/stendap/index.html": {
-   "sha": "da44b9f2babd3e91",
-   "lastmod": "2026-10-15"
+   "sha": "3709e7e4535ce49a",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/futbol/index.html": {
+   "sha": "0cfd8837eb01ef54",
+   "lastmod": "2026-10-20"
   },
   "moskva/kuda-shodit-cao/index.html": {
-   "sha": "cf1f5c20a2a8a24d",
-   "lastmod": "2026-10-15"
+   "sha": "ee86d0796f7d8c90",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-sao/index.html": {
-   "sha": "3ba7d7f48423691c",
-   "lastmod": "2026-10-15"
+   "sha": "981113ae55441801",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-svao/index.html": {
-   "sha": "8cb4b9e8cce04f7b",
-   "lastmod": "2026-10-15"
+   "sha": "0a7144ad462a3cae",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-vao/index.html": {
-   "sha": "461c0251f8ff9175",
-   "lastmod": "2026-10-15"
+   "sha": "a86e153046bda8fa",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-yuvao/index.html": {
-   "sha": "e0324743439500fa",
-   "lastmod": "2026-10-15"
+   "sha": "070f4e987b7d4de6",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-yuao/index.html": {
-   "sha": "9bdecff6e47247a5",
-   "lastmod": "2026-10-15"
+   "sha": "6ee65ad5e12a4a56",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-yuzao/index.html": {
-   "sha": "085c643c37e090a2",
-   "lastmod": "2026-10-15"
+   "sha": "97e3e5dc215b6080",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-zao/index.html": {
-   "sha": "60b678851ba152e4",
-   "lastmod": "2026-10-15"
+   "sha": "aa1d1dc9a9db786e",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-szao/index.html": {
-   "sha": "b962fd76b67929dd",
-   "lastmod": "2026-10-15"
+   "sha": "9006eb76ee6590e0",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-zelenograd/index.html": {
-   "sha": "01bda12b9f2f5835",
-   "lastmod": "2026-10-15"
+   "sha": "4b8f39a857f8776e",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-novaya-moskva/index.html": {
-   "sha": "c4c4802be2416c5b",
-   "lastmod": "2026-10-15"
+   "sha": "6e992a683c3e0826",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-himki/index.html": {
-   "sha": "4be1acc33a855812",
-   "lastmod": "2026-10-15"
+   "sha": "b16e44ad19bd6132",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/kuda-shodit-u-metro-avtozavodskaya/index.html": {
+   "sha": "ef21ec987f4e12d3",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/kuda-shodit-u-metro-akademicheskaya/index.html": {
+   "sha": "48b9f96f3aa4edaf",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-aleksandrovskij-sad/index.html": {
-   "sha": "49b2b72b17dc7238",
-   "lastmod": "2026-10-15"
+   "sha": "15d6473b0b6a182d",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-alekseevskaya/index.html": {
-   "sha": "74b9f6221424bc40",
-   "lastmod": "2026-10-15"
+   "sha": "38c0eb6e1234b53f",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-arbatskaya/index.html": {
-   "sha": "cfc30df58376f05b",
-   "lastmod": "2026-10-15"
+   "sha": "753944ea1154db02",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-barrikadnaya/index.html": {
-   "sha": "f34f2cd14e583128",
-   "lastmod": "2026-10-15"
+   "sha": "b01eb7655dc2aa71",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-baumanskaya/index.html": {
-   "sha": "f4c250ee3551fe6f",
-   "lastmod": "2026-10-15"
+   "sha": "6c33814cdfcc13fb",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-belomorskaya/index.html": {
-   "sha": "e1c3d7b316263f23",
-   "lastmod": "2026-10-15"
+   "sha": "909271c4526222f2",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-belorusskaya/index.html": {
-   "sha": "5dc785e29d76e8bc",
-   "lastmod": "2026-10-15"
+   "sha": "7e36ba369921e244",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-botanicheskij-sad/index.html": {
-   "sha": "07f45b06589baa0b",
-   "lastmod": "2026-10-15"
+   "sha": "a085a256e96e2a4f",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-vdnh/index.html": {
-   "sha": "cf3f92bc86e6ea86",
-   "lastmod": "2026-10-15"
+   "sha": "3a895da70cd507df",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-vojkovskaya/index.html": {
-   "sha": "70087473da40b217",
-   "lastmod": "2026-10-15"
+   "sha": "06efd7684fade9ab",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-volzhskaya/index.html": {
-   "sha": "3a186246bf614f2e",
-   "lastmod": "2026-10-15"
+   "sha": "ff3cb9e4b8d1e89d",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-vorobyovy-gory/index.html": {
-   "sha": "f298ae21d9c4a317",
-   "lastmod": "2026-10-15"
+   "sha": "bfbc9b7d17d624b5",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-vystavochnaya/index.html": {
-   "sha": "ccb1c6aa7d5cc688",
-   "lastmod": "2026-10-15"
+   "sha": "f6a095be4177ef55",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-dinamo/index.html": {
-   "sha": "c1a7040359b534b7",
-   "lastmod": "2026-10-15"
+   "sha": "e2768a03a0d15b8d",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-dmitrovskaya/index.html": {
-   "sha": "7278220306650b0c",
-   "lastmod": "2026-10-15"
+   "sha": "f3af03f7e81b6100",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-dobryninskaya/index.html": {
-   "sha": "4f891090490ad171",
-   "lastmod": "2026-10-15"
+   "sha": "b3d4b90ec066b8ca",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-dostoevskaya/index.html": {
-   "sha": "cfa45d5ac914ef25",
-   "lastmod": "2026-10-15"
+   "sha": "7465f9f8b38661f3",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-kievskaya/index.html": {
-   "sha": "98cd1e335070c33f",
-   "lastmod": "2026-10-15"
+   "sha": "bfed57912be4d8ae",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-kitaj-gorod/index.html": {
-   "sha": "f2bbb3818b3312b2",
-   "lastmod": "2026-10-15"
+   "sha": "3cad420a91db7625",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-kolomenskaya/index.html": {
-   "sha": "235ada39844e8c26",
-   "lastmod": "2026-10-15"
+   "sha": "ed6fb30377bf2490",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-krasnye-vorota/index.html": {
-   "sha": "d653be400e064fcd",
-   "lastmod": "2026-10-15"
+   "sha": "8c8217f59163f018",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-kropotkinskaya/index.html": {
-   "sha": "9003c6b89874ffc5",
-   "lastmod": "2026-10-15"
+   "sha": "e1ca8d5dd064e2a2",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-krylatskoe/index.html": {
-   "sha": "45748ae04387905d",
-   "lastmod": "2026-10-15"
+   "sha": "96df0f38212bb340",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-kuznetskij-most/index.html": {
-   "sha": "c0325ea1346b7dba",
-   "lastmod": "2026-10-15"
+   "sha": "dec2afb94abf0e78",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-kurskaya/index.html": {
-   "sha": "3550722c3c8beafa",
-   "lastmod": "2026-10-15"
+   "sha": "c4e34b7e03ae5c63",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-lubyanka/index.html": {
-   "sha": "2e42477074c8ef70",
-   "lastmod": "2026-10-15"
+   "sha": "9a431de692c270fe",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-marksistskaya/index.html": {
-   "sha": "8c228a0c8624f6ad",
-   "lastmod": "2026-10-15"
+   "sha": "333175d4ff8309f7",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-marina-roscha/index.html": {
-   "sha": "454256c57edeea7f",
-   "lastmod": "2026-10-15"
+   "sha": "82b8338bb09578dc",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-mayakovskaya/index.html": {
-   "sha": "e4f2f5e0a2f05f9d",
-   "lastmod": "2026-10-15"
+   "sha": "85db88f435dbdd95",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-medvedkovo/index.html": {
-   "sha": "27335d394a563b40",
-   "lastmod": "2026-10-15"
+   "sha": "e5281cf82d94d28f",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-mendeleevskaya/index.html": {
-   "sha": "0c562cf8db1e5318",
-   "lastmod": "2026-10-15"
+   "sha": "994341511384fabd",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-novokuznetskaya/index.html": {
-   "sha": "90f2fb3796f5a5d3",
-   "lastmod": "2026-10-15"
+   "sha": "7549798fd19cfb40",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/kuda-shodit-u-metro-novoslobodskaya/index.html": {
+   "sha": "af975f8b245f3048",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-oktyabrskaya/index.html": {
-   "sha": "c7d69bcc00054bd8",
-   "lastmod": "2026-10-15"
+   "sha": "cb94e71c2d96ce98",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-oktyabrskoe-pole/index.html": {
-   "sha": "a2e7d5375d828b3f",
-   "lastmod": "2026-10-15"
+   "sha": "76ee159bc0313841",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-ohotnyj-ryad/index.html": {
-   "sha": "a6589b9c639b8d45",
-   "lastmod": "2026-10-15"
+   "sha": "e3ee6054087275aa",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-paveletskaya/index.html": {
-   "sha": "836814c9cdbc6cac",
-   "lastmod": "2026-10-15"
+   "sha": "085ecd461a2f5e3b",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-park-kultury/index.html": {
-   "sha": "335f7c897b160582",
-   "lastmod": "2026-10-15"
+   "sha": "9682b6b2411fa4c5",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-park-pobedy/index.html": {
-   "sha": "b22435408f82ab58",
-   "lastmod": "2026-10-15"
+   "sha": "f25b11ac5d2656e6",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-ploschad-ilicha/index.html": {
-   "sha": "bf06dfba7cb15960",
-   "lastmod": "2026-10-15"
+   "sha": "fd366e8489170204",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-ploschad-revolyutsii/index.html": {
-   "sha": "0ad426c86ac10494",
-   "lastmod": "2026-10-15"
+   "sha": "b93aed21d6ee172c",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-polyanka/index.html": {
-   "sha": "e72c1698fd173467",
-   "lastmod": "2026-10-15"
+   "sha": "b6056fcd8528086c",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-potapovo/index.html": {
-   "sha": "ef3adc4abf844eee",
-   "lastmod": "2026-10-15"
+   "sha": "3d753bedece62b36",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-proletarskaya/index.html": {
-   "sha": "67255a0216e2c404",
-   "lastmod": "2026-10-15"
+   "sha": "f418a1f8b1f77ed7",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-prospekt-mira/index.html": {
-   "sha": "82b45085ce585b30",
-   "lastmod": "2026-10-15"
+   "sha": "898165a0724e4ce3",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-pushkinskaya/index.html": {
-   "sha": "8e142b1029aeb0f5",
-   "lastmod": "2026-10-15"
+   "sha": "206c35f89c772d4e",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-rechnoj-vokzal/index.html": {
-   "sha": "ce35504757cda1f5",
-   "lastmod": "2026-10-15"
+   "sha": "c1cee44b2e0966dd",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-smolenskaya/index.html": {
-   "sha": "3f84faccf86cee39",
-   "lastmod": "2026-10-15"
+   "sha": "fd57b505c3a0d7c2",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-sokolniki/index.html": {
-   "sha": "cf00a9c320cb71dc",
-   "lastmod": "2026-10-15"
+   "sha": "b5645fdf1f446f6e",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-sportivnaya/index.html": {
-   "sha": "d6e2e4c2097aef7f",
-   "lastmod": "2026-10-15"
+   "sha": "e247200b91c38b5e",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-suharevskaya/index.html": {
-   "sha": "12fab234c16f371c",
-   "lastmod": "2026-10-15"
+   "sha": "e490bd021d3b71f4",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-shodnenskaya/index.html": {
-   "sha": "4ce8544578a8093f",
-   "lastmod": "2026-10-15"
+   "sha": "1409403b1ad4521e",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-taganskaya/index.html": {
-   "sha": "1febc0493bb632df",
-   "lastmod": "2026-10-15"
+   "sha": "e3879efe1fb12c94",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-tverskaya/index.html": {
-   "sha": "232c860927806d4e",
-   "lastmod": "2026-10-15"
+   "sha": "744de03e77e5f479",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-tretyakovskaya/index.html": {
-   "sha": "432321d7cca42a17",
-   "lastmod": "2026-10-15"
+   "sha": "a737a936866bbdba",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-trubnaya/index.html": {
-   "sha": "2d1c771a591982fd",
-   "lastmod": "2026-10-15"
+   "sha": "91907b47912a66d9",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-turgenevskaya/index.html": {
-   "sha": "deda0f85d228df8e",
-   "lastmod": "2026-10-15"
+   "sha": "ebb9d9547eda4cd9",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-ulitsa-1905-goda/index.html": {
-   "sha": "0c97f42588497355",
-   "lastmod": "2026-10-15"
+   "sha": "1da404d6c67df807",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-frunzenskaya/index.html": {
-   "sha": "c982837b252854db",
-   "lastmod": "2026-10-15"
+   "sha": "836c0655e5b820fa",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-hovrino/index.html": {
-   "sha": "05dd6626426b75d3",
-   "lastmod": "2026-10-15"
+   "sha": "306403c6b56b6578",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-tsvetnoj-bulvar/index.html": {
-   "sha": "079c53a3e6ee5d26",
-   "lastmod": "2026-10-15"
+   "sha": "31124b3f757be312",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-tsska/index.html": {
-   "sha": "f670aafcf2fea966",
-   "lastmod": "2026-10-15"
+   "sha": "139e175446a2844a",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-chehovskaya/index.html": {
-   "sha": "5f5f25ca610ea17e",
-   "lastmod": "2026-10-15"
+   "sha": "2736fdc5ce952e2a",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-chistye-prudy/index.html": {
-   "sha": "47f5779df3cb8145",
-   "lastmod": "2026-10-15"
+   "sha": "0378ba40090ef470",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-chkalovskaya/index.html": {
-   "sha": "1682e246d767f63a",
-   "lastmod": "2026-10-15"
+   "sha": "2a2bfe68292fc1e4",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-shabolovskaya/index.html": {
-   "sha": "c1c7c0751d046da7",
-   "lastmod": "2026-10-15"
+   "sha": "27acc46a58f5a7d9",
+   "lastmod": "2026-10-19"
   },
   "moskva/kuda-shodit-u-metro-schyolkovskaya/index.html": {
-   "sha": "952ab8bb70ce0d20",
-   "lastmod": "2026-10-15"
+   "sha": "d1a1de02732f9f14",
+   "lastmod": "2026-10-19"
   },
   "moskva/kompyuternye-kluby-cao/index.html": {
-   "sha": "e5dfb90d3427c4ca",
-   "lastmod": "2026-10-15"
+   "sha": "190ec8c40efdfdc7",
+   "lastmod": "2026-10-19"
   },
   "moskva/kompyuternye-kluby-sao/index.html": {
-   "sha": "0e3c9d1ad94cd9b1",
-   "lastmod": "2026-10-15"
+   "sha": "22612868389aee12",
+   "lastmod": "2026-10-19"
   },
   "moskva/kompyuternye-kluby-svao/index.html": {
-   "sha": "033b4c2e294f7a22",
-   "lastmod": "2026-10-15"
+   "sha": "fcd45a7084ac534b",
+   "lastmod": "2026-10-19"
   },
   "moskva/kompyuternye-kluby-vao/index.html": {
-   "sha": "781bd34296c9727c",
-   "lastmod": "2026-10-15"
+   "sha": "a2a324804d40737f",
+   "lastmod": "2026-10-19"
   },
   "moskva/kompyuternye-kluby-yuvao/index.html": {
-   "sha": "f1f2eb8bb5b48fae",
-   "lastmod": "2026-10-15"
+   "sha": "6e7b7b9a2e423a3e",
+   "lastmod": "2026-10-19"
   },
   "moskva/kompyuternye-kluby-yuao/index.html": {
-   "sha": "34c1652b3713b245",
-   "lastmod": "2026-10-15"
+   "sha": "503adc496497e226",
+   "lastmod": "2026-10-19"
   },
   "moskva/kompyuternye-kluby-yuzao/index.html": {
-   "sha": "01f0e87b511d616b",
-   "lastmod": "2026-10-15"
+   "sha": "a82d23fd25979d11",
+   "lastmod": "2026-10-19"
   },
   "moskva/kompyuternye-kluby-zao/index.html": {
-   "sha": "d50230c32c0f24e1",
-   "lastmod": "2026-10-15"
+   "sha": "d7f0426005410586",
+   "lastmod": "2026-10-19"
   },
   "moskva/kompyuternye-kluby-szao/index.html": {
-   "sha": "ac90e9a4b8eb14b9",
-   "lastmod": "2026-10-15"
+   "sha": "f26b5b262b061245",
+   "lastmod": "2026-10-19"
   },
   "moskva/kompyuternye-kluby-himki/index.html": {
-   "sha": "55f0fd0a0cff52ef",
-   "lastmod": "2026-10-15"
+   "sha": "b5b4d7727839c749",
+   "lastmod": "2026-10-19"
   },
   "moskva/kompyuternye-kluby-podmoskove/index.html": {
-   "sha": "34003d17dfd871bf",
-   "lastmod": "2026-10-15"
+   "sha": "281c5814203335bd",
+   "lastmod": "2026-10-19"
   },
   "moskva/kompyuternye-kluby-u-metro-alekseevskaya/index.html": {
-   "sha": "a7e789b89f092a60",
-   "lastmod": "2026-10-15"
+   "sha": "f4c0ce4d2d0d1f78",
+   "lastmod": "2026-10-19"
   },
   "moskva/kompyuternye-kluby-u-metro-aeroport/index.html": {
-   "sha": "be4ddb5a35840f30",
-   "lastmod": "2026-10-15"
+   "sha": "6cf93cb5aeb0f8d3",
+   "lastmod": "2026-10-19"
   },
   "moskva/kompyuternye-kluby-u-metro-barrikadnaya/index.html": {
-   "sha": "31aeac05c40a627a",
-   "lastmod": "2026-10-15"
+   "sha": "14b35866173b7dc4",
+   "lastmod": "2026-10-19"
   },
   "moskva/kompyuternye-kluby-u-metro-baumanskaya/index.html": {
-   "sha": "0165e367b0583a2b",
-   "lastmod": "2026-10-15"
+   "sha": "ab62a138f16348b2",
+   "lastmod": "2026-10-19"
   },
   "moskva/kompyuternye-kluby-u-metro-belomorskaya/index.html": {
-   "sha": "103f0baf1101406c",
-   "lastmod": "2026-10-15"
+   "sha": "0b1f013e40eba8a0",
+   "lastmod": "2026-10-19"
   },
   "moskva/kompyuternye-kluby-u-metro-belorusskaya/index.html": {
-   "sha": "1d51629cc82ac4b6",
-   "lastmod": "2026-10-15"
+   "sha": "b3e50b71ffbb2907",
+   "lastmod": "2026-10-19"
   },
   "moskva/kompyuternye-kluby-u-metro-kurskaya/index.html": {
-   "sha": "4a1ce269ebee3c83",
-   "lastmod": "2026-10-15"
+   "sha": "16773beffa82091f",
+   "lastmod": "2026-10-19"
   },
   "moskva/kompyuternye-kluby-u-metro-marksistskaya/index.html": {
-   "sha": "0c95d801f57e6020",
-   "lastmod": "2026-10-15"
+   "sha": "88f0200ec8622bba",
+   "lastmod": "2026-10-19"
   },
   "moskva/kompyuternye-kluby-u-metro-mayakovskaya/index.html": {
-   "sha": "755a84acbdf39dd2",
-   "lastmod": "2026-10-15"
+   "sha": "77185f8a88f73af1",
+   "lastmod": "2026-10-19"
   },
   "moskva/kompyuternye-kluby-u-metro-narodnoe-opolchenie/index.html": {
-   "sha": "1b9fcffd78792b88",
-   "lastmod": "2026-10-15"
+   "sha": "4fe72cfe0969eb63",
+   "lastmod": "2026-10-19"
   },
   "moskva/kompyuternye-kluby-u-metro-novoslobodskaya/index.html": {
-   "sha": "c7828df38ef7bafb",
-   "lastmod": "2026-10-15"
+   "sha": "c36a25d4f1ccef46",
+   "lastmod": "2026-10-19"
   },
   "moskva/kompyuternye-kluby-u-metro-proletarskaya/index.html": {
-   "sha": "1a51c1ef617ff5ae",
-   "lastmod": "2026-10-15"
+   "sha": "94305018a383ba38",
+   "lastmod": "2026-10-19"
   },
   "moskva/kompyuternye-kluby-u-metro-taganskaya/index.html": {
-   "sha": "831c6b5fb17260aa",
-   "lastmod": "2026-10-15"
+   "sha": "3e228f9c38184d81",
+   "lastmod": "2026-10-19"
   },
   "moskva/index.html": {
-   "sha": "3b54c02052c4235e",
-   "lastmod": "2026-10-15"
+   "sha": "aa07db22e4204370",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/16-tonn/index.html": {
+   "sha": "967817104280c9d0",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/1shot-alekseevskaya/index.html": {
+   "sha": "de7b74162ed377c0",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/2mood/index.html": {
+   "sha": "53ff7da73a60b12b",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/8-25/index.html": {
+   "sha": "b15807e6235398b1",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/a-house/index.html": {
+   "sha": "10093d97477040e1",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/abc-usacheva/index.html": {
+   "sha": "33d1a67bf3d5c1b9",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/afina/index.html": {
+   "sha": "4cfa385eb51ae325",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/alexander-garden/index.html": {
+   "sha": "f2565416b6f3730d",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/ami-chaise/index.html": {
+   "sha": "fae370af67bffb12",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/anchovys/index.html": {
+   "sha": "151a0b7086baac48",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/andronikov/index.html": {
+   "sha": "b716f98664aeaa7b",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/animation-museum/index.html": {
+   "sha": "5afef49d9abb7521",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/anna/index.html": {
+   "sha": "bf21fe0f10821e69",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/anti-public-library/index.html": {
+   "sha": "3f1abccc424fbdf4",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/anvio/index.html": {
+   "sha": "2a93c607cf58a8f1",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/aptekar/index.html": {
+   "sha": "c1c38a8b8cc56e44",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/aquarium/index.html": {
+   "sha": "51ae0882eb4a3d74",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/arbat/index.html": {
+   "sha": "e96ead0a6213ecd0",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/arena-play/index.html": {
+   "sha": "8004651d222c2964",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/arena-td-vavilon-92/index.html": {
+   "sha": "57ac03a02e21b8bf",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/arkhangelskoe/index.html": {
+   "sha": "f57584f569083ada",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/armed-forces-museum/index.html": {
+   "sha": "6d9c9e30c80c2d97",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/armoury/index.html": {
+   "sha": "ac9e96efb697b465",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/aroma/index.html": {
+   "sha": "260dfd23f8dca751",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/arrurru/index.html": {
+   "sha": "4cba346d065d689d",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/artist/index.html": {
+   "sha": "ef082dc8f56533de",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/artplay/index.html": {
+   "sha": "1b00e072b0acb064",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/arvo/index.html": {
+   "sha": "1ea83d4d9a28bf8b",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/assunta-madre/index.html": {
+   "sha": "78014d9953e20c30",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/astrakhanskie-bani/index.html": {
+   "sha": "c1d6b4e030850530",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/atlantica-bistro/index.html": {
+   "sha": "b0c4972f7b0a75d4",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/atlantica-seafood/index.html": {
+   "sha": "da06dfba8e6bf964",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/atom/index.html": {
+   "sha": "b3312b44029c726f",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/aura-spa/index.html": {
+   "sha": "70112d902696302e",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/ava-bistro/index.html": {
+   "sha": "10d44230fdc730ef",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/avero-mio/index.html": {
+   "sha": "5e6fa7ca57a2e845",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/avlabar/index.html": {
+   "sha": "4c461c25d6efa10a",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/avulus-cyber-space/index.html": {
+   "sha": "f76a324a38113877",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/ayna/index.html": {
+   "sha": "8432758100307dee",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/babel/index.html": {
+   "sha": "3e6058258fed3231",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/baden-baden/index.html": {
+   "sha": "4a5144a208a9a094",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/bagebi/index.html": {
+   "sha": "3688380a11c507af",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/ballers-street/index.html": {
+   "sha": "9ad4b578ccdda258",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/bamboo-bar/index.html": {
+   "sha": "35400e05b56249b9",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/bani-sokolinaya-gora/index.html": {
+   "sha": "5802a7b4d43726ac",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/banny-klub/index.html": {
+   "sha": "e2050d2cdcbd0ce6",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/bannyy-dvor-v-ochakovo/index.html": {
+   "sha": "9955062f0eb03264",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/bauman-garden/index.html": {
+   "sha": "9252526ed06a20b8",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/belaya-strekoza/index.html": {
+   "sha": "d64fad881941784d",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/beluga/index.html": {
+   "sha": "2773a65f1fc5a78a",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/beriot/index.html": {
+   "sha": "2b297cdf96f8be18",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/bibabo/index.html": {
+   "sha": "a76d51403b4a51d2",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/bibirevo-pub/index.html": {
+   "sha": "b655d16ba790054b",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/bibirevo-village/index.html": {
+   "sha": "7b0c5dc249c0e2a9",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/biblioteka-peredelkino/index.html": {
+   "sha": "07512a9cfed4c8ee",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/big-circus/index.html": {
+   "sha": "a17b1a72b58a29e9",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/bijou/index.html": {
+   "sha": "75123ef711c2ab54",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/billie/index.html": {
+   "sha": "1976948e51c37e4d",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/billy-mcdaniel/index.html": {
+   "sha": "c2b4e6cee84cb337",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/bio-museum/index.html": {
+   "sha": "cc761c81b615e2df",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/biryulevo-dendro/index.html": {
+   "sha": "1a75ba5d9f189fcc",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/bistro-trompette/index.html": {
+   "sha": "0b39ca640f6a0032",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/bistrot/index.html": {
+   "sha": "7515c6598415c41c",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/bitsa/index.html": {
+   "sha": "cc0d10d64366fd7a",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/biwon/index.html": {
+   "sha": "abb2af7ece6683bb",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/bla-bla-bar/index.html": {
+   "sha": "dae947bbb11085c9",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/black-harp-pub/index.html": {
+   "sha": "0fc428b415d4c2f3",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/black-market/index.html": {
+   "sha": "124f01916b298fb5",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/blekvud/index.html": {
+   "sha": "1942c50106f98553",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/blinkgame/index.html": {
+   "sha": "ec2051088ef811ea",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/blush/index.html": {
+   "sha": "7261ac28e5afea78",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/bodega/index.html": {
+   "sha": "cf3667c66f67792a",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/bolshevik-loft/index.html": {
+   "sha": "a0135f1ee7327aa4",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/bolshoi/index.html": {
+   "sha": "10ba02bccbd7d5df",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/borodino-panorama/index.html": {
+   "sha": "acec7de70a22f348",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/bosco-cafe/index.html": {
+   "sha": "08334a304b9ce47c",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/boston-seafood/index.html": {
+   "sha": "b4fc92ad6526bce8",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/botanic-garden/index.html": {
+   "sha": "fa54bcd17a64aea3",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/bpm128/index.html": {
+   "sha": "e7fdc521d63722fd",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/brancho/index.html": {
+   "sha": "68f9a3cde99e1615",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/brateevo-cascade/index.html": {
+   "sha": "9d2ce8de5198a729",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/bravis/index.html": {
+   "sha": "507c233c0324ba7c",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/brooms-pub/index.html": {
+   "sha": "11b147e662a46631",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/brunch-time/index.html": {
+   "sha": "5aef1374629d6ee8",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/brunchy/index.html": {
+   "sha": "bc557b540deadd53",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/bruno/index.html": {
+   "sha": "c0f01355831fde81",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/bublik-kuznetsky/index.html": {
+   "sha": "8035cfa22f099f9b",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/buddy-mcdaniel/index.html": {
+   "sha": "a703d0f009c311ca",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/budem-blizhe/index.html": {
+   "sha": "b9fe9c45cb570c16",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/buenos-padel/index.html": {
+   "sha": "68778bd0888b1556",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/buf-a39/index.html": {
+   "sha": "aa77cfad0bcad960",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/bulgakov/index.html": {
+   "sha": "9f85ba3a4721b86d",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/bulletbar-himki/index.html": {
+   "sha": "7ab4d9a93ac541b4",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/bumpfire/index.html": {
+   "sha": "bced8b961f2b3940",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/bunker42/index.html": {
+   "sha": "1df00f4104a3d568",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/buono/index.html": {
+   "sha": "ef6fbe42a0bdc9c4",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/buro-tsum/index.html": {
+   "sha": "10438151aa8d0b70",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/bus-handroll/index.html": {
+   "sha": "1cb746aa5dbc58b0",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/butler/index.html": {
+   "sha": "2f7dd0afd54af02c",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/cable-car/index.html": {
+   "sha": "09661a290c267f68",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/cactus-komsomolsky/index.html": {
+   "sha": "61acea3bd97b0f4a",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/cactus-shabolovka/index.html": {
+   "sha": "a310e5de252392b7",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/cafeteria-de-madre/index.html": {
+   "sha": "6975e87bcfa9fe62",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/catholic-cathedral/index.html": {
+   "sha": "ea15f676728c18b4",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/central-market-maroseyka/index.html": {
+   "sha": "9c89aa9af74b975d",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/centrale/index.html": {
+   "sha": "4663bd8b1f14f46b",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/centralmarket/index.html": {
+   "sha": "6e182ba644595cac",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/chaika/index.html": {
+   "sha": "707c8cb1f84b94e5",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/chaikovsky-cafe/index.html": {
+   "sha": "b9dc65417c5f13c8",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/chang/index.html": {
+   "sha": "4164f51396338af6",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/chedder/index.html": {
+   "sha": "4e23fd92eea30046",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/chekhov-house/index.html": {
+   "sha": "2225ea0c61684ee1",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/chekhov-i-ko/index.html": {
+   "sha": "9d85b1b53b5bd22f",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/cheryomukha/index.html": {
+   "sha": "31768fac8bb0ac17",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/chichilaki/index.html": {
+   "sha": "86d7a1aac82ba0f3",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/chifanka/index.html": {
+   "sha": "cf43b4f3b7a371df",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/chilichukin/index.html": {
+   "sha": "f705ac2eab1143c2",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/chip-supermetall/index.html": {
+   "sha": "1e48bc2945995b18",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/chistye-prudy/index.html": {
+   "sha": "fd27ed8520e50486",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/chistyy-razum/index.html": {
+   "sha": "4060a8993350d5bc",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/christ-saviour/index.html": {
+   "sha": "799947eb405f5fe3",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/chtivo-dom/index.html": {
+   "sha": "cb1f3e9d7246c495",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/cinema-museum/index.html": {
+   "sha": "4efb613caf343290",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/city-space/index.html": {
+   "sha": "8edf4b239747335d",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/clara/index.html": {
+   "sha": "69d5a3a94a4db92b",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/claudia/index.html": {
+   "sha": "d34d1bbe5499e611",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/climb-lab/index.html": {
+   "sha": "434864eb329732e5",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/cochonnet/index.html": {
+   "sha": "d5b594f18d1198ef",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/colizeum-aeroport/index.html": {
+   "sha": "3d5e8100824d2bb0",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/colizeum-akadem/index.html": {
+   "sha": "2e2a320fd56eabe8",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/colizeum-amurskaya/index.html": {
+   "sha": "8f1c1efdd334b3c0",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-babushkinskaya/index.html": {
+   "sha": "2a35db5239e95bb9",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/colizeum-balashikha/index.html": {
+   "sha": "b8df35dc23190b60",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-baumanka/index.html": {
+   "sha": "855f5ddc4001e13e",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/colizeum-belomorskaya/index.html": {
+   "sha": "13f729634eeb55bd",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/colizeum-belyaevo/index.html": {
+   "sha": "39bd5d739347e9ac",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-buninskie-luga/index.html": {
+   "sha": "1c80b578eaab4c01",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-butovo/index.html": {
+   "sha": "7bf209367c4acbca",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-butyrskaya/index.html": {
+   "sha": "a2e909302af53d70",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/colizeum-camp-lyubertsy/index.html": {
+   "sha": "a6f997ec00ec0dcf",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-camp-shchelkovsky/index.html": {
+   "sha": "0b6a18fec69b0b00",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-chertanovskaya/index.html": {
+   "sha": "4382c4cb49fd1a8b",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-columbus/index.html": {
+   "sha": "aab6ffb3431f3af8",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/colizeum-datsky/index.html": {
+   "sha": "7fdfaff5225eece6",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-dybenko/index.html": {
+   "sha": "50ac4b4a9082e534",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/colizeum-fili/index.html": {
+   "sha": "41ba386b06cfdcc5",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-frunzenskaya/index.html": {
+   "sha": "f0b4a4c7f7e94136",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-gagarinsky/index.html": {
+   "sha": "0d43bad9745cdb49",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-galeon/index.html": {
+   "sha": "71544453389e32f3",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-golyanovo/index.html": {
+   "sha": "3cdc22f58fb531e4",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-himki/index.html": {
+   "sha": "e4c0cb8ddd12f956",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/colizeum-horoshevskoe-shosse/index.html": {
+   "sha": "3cecc8789fc191d0",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/colizeum-izmaylovo/index.html": {
+   "sha": "5ae0c5cf99d4ff28",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-kaluzhsky/index.html": {
+   "sha": "f7e7900101bba1f2",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-kashirka/index.html": {
+   "sha": "f907daf2a83c9897",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/colizeum-kastanaevskaya/index.html": {
+   "sha": "2f13036b2585d208",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-khimki-panfilova/index.html": {
+   "sha": "db74fb4be612ec0b",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-khimki-park/index.html": {
+   "sha": "71e5a749e16546af",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-kievskaya/index.html": {
+   "sha": "692835ac71b1f03b",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-kommunarka/index.html": {
+   "sha": "39d6af5933635bd2",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-korolev/index.html": {
+   "sha": "9e1ff582aab97054",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-krasnaya-presnya/index.html": {
+   "sha": "9f0b2651d660b58d",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-krasnogorsk/index.html": {
+   "sha": "ce611bc201057e94",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-krasny-kit/index.html": {
+   "sha": "3ea9ece74d66f9d9",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-krylatskoe/index.html": {
+   "sha": "a0325f807c0d561f",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-kuntsevo/index.html": {
+   "sha": "1efc902ecdac92f9",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/colizeum-kurskaya/index.html": {
+   "sha": "830f66fd79f3490d",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-kvartal/index.html": {
+   "sha": "3b2ba30aad5e7993",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/colizeum-leningradka/index.html": {
+   "sha": "eaa5b459a65bd66f",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-leninsky/index.html": {
+   "sha": "168772ba92b53a19",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-liga/index.html": {
+   "sha": "6e306120243af94f",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/colizeum-losinoostrovskiy/index.html": {
+   "sha": "dc4a3a97c2801fa2",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/colizeum-lukhmanovskaya/index.html": {
+   "sha": "428dd4b8838cb187",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/colizeum-lyubertsy/index.html": {
+   "sha": "cef172a506b2237b",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-lyublino/index.html": {
+   "sha": "f1f4d91a74836a93",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/colizeum-maryino/index.html": {
+   "sha": "8c2c6fc5c8f6d413",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/colizeum-merimis/index.html": {
+   "sha": "1c8f3e4e494481e1",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-mitino/index.html": {
+   "sha": "eac9dc5f09d58db2",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/colizeum-mozaica/index.html": {
+   "sha": "93f02a7dc401467a",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/colizeum-mytishchi-letnaya/index.html": {
+   "sha": "312c33ff85917b75",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-nakhimovsky/index.html": {
+   "sha": "d54651c12db7ced2",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-nora/index.html": {
+   "sha": "aa8689db9de07174",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-novoe-medvedkovo/index.html": {
+   "sha": "d64bc08a95483135",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-novokurkino/index.html": {
+   "sha": "857e59a1c7be97a3",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-novoperedelkino/index.html": {
+   "sha": "8da4afa1c79334cf",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/colizeum-novopetrovskaya/index.html": {
+   "sha": "e8d60b089451a442",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/colizeum-oktyabrskoe-pole/index.html": {
+   "sha": "587441ba151d1d52",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-olimp/index.html": {
+   "sha": "dd91ea0e372bcd68",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-otradnoe/index.html": {
+   "sha": "35b6fad1f228fbb0",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/colizeum-panorama/index.html": {
+   "sha": "8cac35ca2b454175",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-park-pobedy/index.html": {
+   "sha": "ec9f7f4f2f8fe579",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-parkovaya/index.html": {
+   "sha": "f07c834badfd3908",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-pavlino/index.html": {
+   "sha": "0b864d432bc44120",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-premium-suharevskaya/index.html": {
+   "sha": "36129bbddb32a8f0",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-ramenki/index.html": {
+   "sha": "d3ee7e7391f69f49",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-rasskazovka/index.html": {
+   "sha": "565b5c813ab7463c",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-rokossovskogo/index.html": {
+   "sha": "c4648f7c76c1f5d0",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-saltykovskaya/index.html": {
+   "sha": "f7d08a130cb41714",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-semenovskaya/index.html": {
+   "sha": "b1204c33045bbdc0",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-serpuhovskaya/index.html": {
+   "sha": "0cfc8318ae92a27e",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-shabolovka/index.html": {
+   "sha": "91338a0f9bc736d5",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-shelepikha/index.html": {
+   "sha": "70426072a4f2c030",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-sheremetevskaya/index.html": {
+   "sha": "edb6fa5b06ebe1ea",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/colizeum-shodnenskaya/index.html": {
+   "sha": "59f19a1c038e9feb",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-sokolniki/index.html": {
+   "sha": "1bf8e353f84f5be4",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-solntsevsky/index.html": {
+   "sha": "6393b8a2361a1d51",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-strogino/index.html": {
+   "sha": "37d6e1a2bcb93f65",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/colizeum-sviblovo/index.html": {
+   "sha": "e481bf6c03d3646d",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-taganka/index.html": {
+   "sha": "8f3867d9e45ad2cc",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/colizeum-teply-stan/index.html": {
+   "sha": "93a3a2a81aaca838",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-tolbukhina/index.html": {
+   "sha": "78f3f5872fb8a483",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-tsska-hodynka/index.html": {
+   "sha": "a944c2b134c856c1",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/colizeum-tushinskaya/index.html": {
+   "sha": "6a9d0260f1a2789f",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/colizeum-universitet/index.html": {
+   "sha": "5e3851a939e80c90",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-vdnh/index.html": {
+   "sha": "6c717557d3458d22",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/colizeum-vernadskogo/index.html": {
+   "sha": "75d0087d0c5d9004",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-vodny/index.html": {
+   "sha": "558ead8d3e47a67a",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-volgina/index.html": {
+   "sha": "c0b7b72cc503f3db",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/colizeum-voykovskaya/index.html": {
+   "sha": "d1d4e36b6e1f724d",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-yahromskaya/index.html": {
+   "sha": "838725a1c4715001",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/colizeum-yasenevo/index.html": {
+   "sha": "99103c703ad06eef",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-yugozap/index.html": {
+   "sha": "d41cba1fa732e34d",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-zelenograd/index.html": {
+   "sha": "8a723beacb1ab23d",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/colizeum-zhulebino-lyubertsy/index.html": {
+   "sha": "8e8724c88b02c741",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/colizeum-zvezdochka/index.html": {
+   "sha": "f8ed616b524d0ba3",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/comedy-34/index.html": {
+   "sha": "f3872266a6ba96bf",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/comedy-hall/index.html": {
+   "sha": "a2e052d21854ac7a",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/conservatory/index.html": {
+   "sha": "8889f1fd6c2812e8",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/copen-57/index.html": {
+   "sha": "1cc13530b595c98c",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/core-mio/index.html": {
+   "sha": "2651c6480487e680",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/cosmos/index.html": {
+   "sha": "cca32949257aeef2",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/crazy-daisy/index.html": {
+   "sha": "2eeb79dacd181d64",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/cream-soda/index.html": {
+   "sha": "14bd663cb2dc3694",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/croissant-atelier/index.html": {
+   "sha": "c2b23c16968451fd",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/crypto-museum/index.html": {
+   "sha": "e70d7cc9abb68b67",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/cube-moscow/index.html": {
+   "sha": "af418ea6c2264bc1",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/cyber-dot-zone/index.html": {
+   "sha": "07ba52d2c44ce1f3",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/cyber-game-arena/index.html": {
+   "sha": "508287bd003e3dfa",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/cyberspot-dmitrovka/index.html": {
+   "sha": "eb854013fab1d86d",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/cyberspot-marshala-zhukova/index.html": {
+   "sha": "5b22247a0372f5f4",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/cyberx-altufevo/index.html": {
+   "sha": "0918d7fc4c04466e",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/cyberx-bauman/index.html": {
+   "sha": "c6ddc1a57a9979b0",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/cyberx-belomorskaya/index.html": {
+   "sha": "b7f9257990b4de7a",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/cyberx-mira/index.html": {
+   "sha": "2b1413e3505e392c",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/cyberx-narodnogo-opolcheniya/index.html": {
+   "sha": "06b2735d75c30a4b",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/cyberx-novokosino/index.html": {
+   "sha": "13101f85db245f9c",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/cyberx-ozernaya/index.html": {
+   "sha": "7047efa6e659eb10",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/cyberx-raikin/index.html": {
+   "sha": "47e05f047a6cb043",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/dachniki/index.html": {
+   "sha": "ef98fa2f98b7b433",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/danilov/index.html": {
+   "sha": "b6d5a9bc14650e75",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/danilovsky/index.html": {
+   "sha": "75643102bc6bfaca",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/danonna/index.html": {
+   "sha": "650d3e946a00ee4d",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/darwin-museum/index.html": {
+   "sha": "bce30750c9326f21",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/davay-lama/index.html": {
+   "sha": "91453befdeb398bd",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/debut/index.html": {
+   "sha": "2122293102d79d2d",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/decorative-art-museum/index.html": {
+   "sha": "ee515e0a6089c8a9",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/defaqto/index.html": {
+   "sha": "985dcc9cdffc0440",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/delaperuz/index.html": {
+   "sha": "a075bd50c5a949c5",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/delicatessen/index.html": {
+   "sha": "c0d81c613b1aabb4",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/delirium-tremens/index.html": {
+   "sha": "cd6bef6200733c6b",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/depo/index.html": {
+   "sha": "49a374f67a7dd293",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/derevenskie-bani/index.html": {
+   "sha": "a69001e5c7b2ae76",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/des-esseintes/index.html": {
+   "sha": "77b38e77b645826d",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/dff/index.html": {
+   "sha": "d6f62e3fd50a327e",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/diamond-fund/index.html": {
+   "sha": "33e808f72fb61d23",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/divas/index.html": {
+   "sha": "83a26c319529d094",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/dizengof/index.html": {
+   "sha": "36dda58a3b16ad25",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/doaflip/index.html": {
+   "sha": "2132c73a0517f51d",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/dom-billiarda/index.html": {
+   "sha": "26061d58d1653a05",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/dom-kultur/index.html": {
+   "sha": "b7f859284bcc18d5",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/dom-rossiyskoy-kukhni/index.html": {
+   "sha": "1c1d01686854d652",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/dom-tvorchestva-peredelkino/index.html": {
+   "sha": "2a6d94d8cc4f8d87",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/domik-v-sadu/index.html": {
+   "sha": "948425e1ea2d4f2a",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/donskoy/index.html": {
+   "sha": "1901751d2554482e",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/dorozhka/index.html": {
+   "sha": "48efb8b494eac536",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/dostoevsky/index.html": {
+   "sha": "2eb929dc1e8ee017",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/drawup/index.html": {
+   "sha": "9b145e407fc435da",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/dreamisland/index.html": {
+   "sha": "a974e9ef891006c4",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/drugoe-delo/index.html": {
+   "sha": "e9c9e35d3dbb6401",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/drunken-duck/index.html": {
+   "sha": "a0a23a956f851337",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/druzhba-park/index.html": {
+   "sha": "e18073bb5d94e943",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/due-forni/index.html": {
+   "sha": "af92be1a4f558523",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/durov-theatre/index.html": {
+   "sha": "0ba3d5700a6d2d65",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/dyuzhina/index.html": {
+   "sha": "3f0faae6a0b503ae",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/dzhamgarovsky/index.html": {
+   "sha": "a3605cd62cf94f47",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/dzhoy-khaus/index.html": {
+   "sha": "25bdd51de6f09ea1",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/e-go-karting/index.html": {
+   "sha": "9def246886c8f2b8",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/edomo/index.html": {
+   "sha": "c8aa194539dfe325",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/eggsellent/index.html": {
+   "sha": "ae7d493432dd04b8",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/ego-spa/index.html": {
+   "sha": "a972a54c1e27c41f",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/eightball/index.html": {
+   "sha": "0b09a6824c184b85",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/ekaterininsky/index.html": {
+   "sha": "1dac27be8d14dc17",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/eko-bereg/index.html": {
+   "sha": "abda344ddc2cdd40",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/ekonika-yogurt/index.html": {
+   "sha": "792a91d8bf2a92ff",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/ekta/index.html": {
+   "sha": "db77f658087372b5",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/el-idilio/index.html": {
+   "sha": "f73b3eb22fecd15c",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/eldar/index.html": {
+   "sha": "46ee1dfe73d3f6f8",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/electrotheatre/index.html": {
+   "sha": "20d19cc897a38906",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/eliso/index.html": {
+   "sha": "d9c21878caecdd70",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/ermitazh/index.html": {
+   "sha": "534e8709b9d8622c",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/erna/index.html": {
+   "sha": "3612706d0302b251",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/erwin/index.html": {
+   "sha": "33cf6ad8ea14a1af",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/erwin-reka/index.html": {
+   "sha": "6dfd9dd12131e73f",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/estrady/index.html": {
+   "sha": "c77537eff7f007ea",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/et-cetera/index.html": {
+   "sha": "becbfd0f55d7237d",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/eva/index.html": {
+   "sha": "4da5c04f87192c6f",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/everest-gaming/index.html": {
+   "sha": "28bec214b99baac4",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/evgenich/index.html": {
+   "sha": "9aa1c9f5c400303a",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/f5-kolomenskaya/index.html": {
+   "sha": "2908b85187b18636",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/f5-medvedkovo/index.html": {
+   "sha": "341e3192b62ed6e1",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/f5-semenovskaya/index.html": {
+   "sha": "a32cc6e4ef8ace69",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/f5-shchelkovskaya/index.html": {
+   "sha": "33682ad1ed697d1c",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/f5-sokol/index.html": {
+   "sha": "ef672b92ce4520cf",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/f5-vykhino/index.html": {
+   "sha": "393121bee37c33fa",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/f5-yuzhnaya/index.html": {
+   "sha": "aa1286e527d8f1d1",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/fentazi/index.html": {
+   "sha": "139c024db4f1e0c1",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/fersman-museum/index.html": {
+   "sha": "40c236727e36cb8e",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/fili-park/index.html": {
+   "sha": "4663173ff88ff478",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/finch/index.html": {
+   "sha": "282980054095b40b",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/finch-grebnoy/index.html": {
+   "sha": "1e343c15a431739f",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/flacon/index.html": {
+   "sha": "3cf292e3eb1f0b5d",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/flashback/index.html": {
+   "sha": "26543f1f755f4792",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/flor/index.html": {
+   "sha": "b5ed30c0d5de51ad",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/flotilla/index.html": {
+   "sha": "95ddf3b14981395d",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/fobs/index.html": {
+   "sha": "617406baf71787a4",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/fogo/index.html": {
+   "sha": "34624e6af478005e",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/found-ramen/index.html": {
+   "sha": "3c9c6a67edc930a6",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/fox-fili/index.html": {
+   "sha": "26944ce6bbc84103",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/fps-arena-esports-gaming-center/index.html": {
+   "sha": "8c4b677c8d2e21d5",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/friends-hall-kharizma/index.html": {
+   "sha": "5d1a02f5f8db592e",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/from-berlin/index.html": {
+   "sha": "46a21804f47180ba",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/fudkholl-druzhba/index.html": {
+   "sha": "0387a79e89d580e1",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/gallery-lounge/index.html": {
+   "sha": "4d74006c18dfaa89",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/garage/index.html": {
+   "sha": "f03b92cdf5b6fa6e",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/garazhi/index.html": {
+   "sha": "084ebd186bfe49bb",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/gelikon-opera/index.html": {
+   "sha": "0ebcffff55067fed",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/geraldine/index.html": {
+   "sha": "1af4dcefd86fdccc",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/ges2/index.html": {
+   "sha": "08670a4cfeefe010",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/gogol-house/index.html": {
+   "sha": "3931bca3daf53f91",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/gogolevsky/index.html": {
+   "sha": "18375a490884c2e9",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/goodson-bar/index.html": {
+   "sha": "8c5d9d05e42476d1",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/gorky-park/index.html": {
+   "sha": "af79316c9c3ad1f3",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/gornist/index.html": {
+   "sha": "3aedaf762d66b9c6",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/gorynych/index.html": {
+   "sha": "a721b068aac92897",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/grace-bistro/index.html": {
+   "sha": "4ff7ada934c34727",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/grammys/index.html": {
+   "sha": "b8da78652d09db19",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/grand-cru/index.html": {
+   "sha": "98c20df230537dec",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/grannar/index.html": {
+   "sha": "b194558f92b126f0",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/green-park/index.html": {
+   "sha": "c0644ad33e321085",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/green-theatre-vdnh/index.html": {
+   "sha": "69a08b05bbc25822",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/gremm/index.html": {
+   "sha": "7c572325f3fc19c9",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/gum/index.html": {
+   "sha": "a30e5ffaa4abf6aa",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/gum-katok/index.html": {
+   "sha": "63b3ecde1bb67595",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/h2o-spa/index.html": {
+   "sha": "d563872e008b1d0a",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/hachiko/index.html": {
+   "sha": "18bc737bb18aab46",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/half-trillion/index.html": {
+   "sha": "df04ccf9d0eac667",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/harats-avtozavodskaya/index.html": {
+   "sha": "d8f9c3615f7a156d",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/harats-molodezhnaya/index.html": {
+   "sha": "101654ede3b06066",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/hedo/index.html": {
+   "sha": "6d6e7eb4e0a96dc0",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/hedonist/index.html": {
+   "sha": "58849c1e4abe7f5d",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/himki-lesopark/index.html": {
+   "sha": "099638db2cc78779",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/history-museum/index.html": {
+   "sha": "8f05a7da6b9b84b7",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/hite/index.html": {
+   "sha": "99bd564c9ae7b9b5",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/hooligan-group/index.html": {
+   "sha": "066a9f3a27aae5d0",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/house-of-music/index.html": {
+   "sha": "b693f6a4ed777b89",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/huamin/index.html": {
+   "sha": "a083065ebe0287ef",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/icity/index.html": {
+   "sha": "f6711762004e2b24",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/idu-lesom/index.html": {
+   "sha": "1749ea224a0c3583",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/if-bar/index.html": {
+   "sha": "de0cece0a00eeb09",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/igristoe/index.html": {
+   "sha": "e75269f4e409dc3d",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/igrovye-avtomaty/index.html": {
+   "sha": "56a5508975555740",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/ikra-theatre/index.html": {
+   "sha": "5fd6a8b27cd3b534",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/il-ristorante/index.html": {
+   "sha": "e1b138d2e35409d0",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/illuzion/index.html": {
+   "sha": "416e8e07ae74361e",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/ilovecake/index.html": {
+   "sha": "dfbfe46e7d4cfc31",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/immerscape/index.html": {
+   "sha": "97a3422e621bc801",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/impressionism/index.html": {
+   "sha": "1bd3c2214357fb65",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/inkubo/index.html": {
+   "sha": "57b35b7662fb2fb9",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/ino-m2/index.html": {
+   "sha": "318d9bf35d41bba9",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/inspiro/index.html": {
+   "sha": "68aed81f017267f8",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/inspot-dinamo/index.html": {
+   "sha": "45f1e3330bcea7e1",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/intelligentsia/index.html": {
+   "sha": "d605b5d0f65d55ce",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/irnby/index.html": {
+   "sha": "e43a506cf73c16be",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/izi-belorusskaya/index.html": {
+   "sha": "b85b8ec4bc2bfdd9",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/izi-kurskaya/index.html": {
+   "sha": "044152479cb6d508",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/iziplay/index.html": {
+   "sha": "3eb9fec5ee9c1f84",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/izmailovo-estate/index.html": {
+   "sha": "ea1aa3f618b9d2db",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/izmailovsky-kremlin/index.html": {
+   "sha": "fad52d745f49e48b",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/izmailovsky-park/index.html": {
+   "sha": "c371dd63ff113de3",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/izmaylovskie-bani/index.html": {
+   "sha": "b70241c68f5a689a",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/japanese-garden/index.html": {
+   "sha": "389425c10b5a9a6b",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/jean-jacques/index.html": {
+   "sha": "193732838cc5eba4",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/jep/index.html": {
+   "sha": "ab05f9a151511bd8",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/jewish-museum/index.html": {
+   "sha": "bda6bf15372d5fd0",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/jimmy-poy/index.html": {
+   "sha": "3e307b65a87e891b",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/jims-pub/index.html": {
+   "sha": "dcaee5147ccdf246",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/jinju-paveletskaya/index.html": {
+   "sha": "f23fb8a077fcf6e8",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/john-bull/index.html": {
+   "sha": "e6065715949e50d1",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/jolly-leprechaun/index.html": {
+   "sha": "1790db6814d74e57",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/jpan-pyatnitskaya/index.html": {
+   "sha": "1a49140a83e07104",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/jules-zang/index.html": {
+   "sha": "5bdb647bbdff6d6f",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/just-up-tsska/index.html": {
+   "sha": "3d5743f79d489580",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/kaif-provenance/index.html": {
+   "sha": "f38d9f17cc890210",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/kalabasa/index.html": {
+   "sha": "a11346d473c3d317",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/kaleidoscope/index.html": {
+   "sha": "e34a4727e8295162",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/kalitnikovskie-bani/index.html": {
+   "sha": "508d2c05ec874e16",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/karaoke-pro/index.html": {
+   "sha": "22d19da997f4127e",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/karaokelights/index.html": {
+   "sha": "c7ef96af678a5aa9",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/karo-11-oktyabr/index.html": {
+   "sha": "420dae53780f1875",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/katok-bolotnaya/index.html": {
+   "sha": "536ffb81f45b122d",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/katok-dvorets-pionerov/index.html": {
+   "sha": "cde211da417d991f",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/katok-grad/index.html": {
+   "sha": "e438a1b2c1319ba3",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/katok-kaleydoskop/index.html": {
+   "sha": "11b387b8267376a8",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/katok-kolomenskoe/index.html": {
+   "sha": "2dd7b2bf927d89dc",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/katok-luzhniki/index.html": {
+   "sha": "47fee15b1e7779c2",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/katok-park-gorkogo/index.html": {
+   "sha": "3eed80b50853f4e2",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/katok-rechnoy-vokzal/index.html": {
+   "sha": "7ba8b76f3fb894ba",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/katok-serebryanyy-led/index.html": {
+   "sha": "429888497d74b1b4",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/katok-sokolniki/index.html": {
+   "sha": "ccbde09805c44a65",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/katok-taganskiy-park/index.html": {
+   "sha": "a25592de7a09d683",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/katok-vdnkh/index.html": {
+   "sha": "d89151db25eb9a72",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/kazbek/index.html": {
+   "sha": "47d260050417c622",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/kck-bitsa/index.html": {
+   "sha": "2e1621c46b6b21a7",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/keep/index.html": {
+   "sha": "883aca4f7912c8f0",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/kgallery/index.html": {
+   "sha": "97ac149bfd92ff05",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/khaos/index.html": {
+   "sha": "260a92be66e86c54",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/khleb-vino/index.html": {
+   "sha": "546b10b0d2263456",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/khlebzavod/index.html": {
+   "sha": "a8f69cdd0e6bea47",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/khodynka-park/index.html": {
+   "sha": "3ac486563a7f93c1",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/khostel-inglvud/index.html": {
+   "sha": "0436ecb800d471a6",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/khudozhestvenny/index.html": {
+   "sha": "5f51cd85f1eb9df7",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/kianu/index.html": {
+   "sha": "8205441abe800bf2",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/kiber-portal/index.html": {
+   "sha": "f380a5b3c5705b94",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/kibercentr-tt/index.html": {
+   "sha": "0cd442275cfc292e",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/kibereyd/index.html": {
+   "sha": "f76f1d18b573a29e",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/kiberiya-bibirevo/index.html": {
+   "sha": "c706a2fa43d3b319",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/kiberklub-portal-yahromskaya/index.html": {
+   "sha": "c15f6014d3a214e0",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/kiberprayd-altufevo/index.html": {
+   "sha": "16f04750af8e2cb3",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/kiberprayd-babushkinskaya/index.html": {
+   "sha": "e0de55b883db96c4",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/kiberpride/index.html": {
+   "sha": "a77f41fbfd91085f",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/kiberpride-nizhegorodskaya/index.html": {
+   "sha": "ae14dc291aaf7526",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/kiberum/index.html": {
+   "sha": "605335a8f6d676df",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/kinomaks-titan/index.html": {
+   "sha": "61a03a636b5b6960",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/kinozal-gum/index.html": {
+   "sha": "19fe9bb4e92fd8e7",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/kiosk-1936/index.html": {
+   "sha": "ae0c2f46c448999a",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/kitay-gorod/index.html": {
+   "sha": "15cd31845e6b5171",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/kitayskaya-gramota/index.html": {
+   "sha": "09df5dcc4e0b4d98",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/kiyomi/index.html": {
+   "sha": "f5e840aa4bb6f43c",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/kk-wine/index.html": {
+   "sha": "b9a410e2651abf3a",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/klaustro/index.html": {
+   "sha": "a72cb5409f2c5fbb",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/klub-811/index.html": {
+   "sha": "83753ca09ffacf12",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/km20/index.html": {
+   "sha": "1078a3bac0227295",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/knorozov/index.html": {
+   "sha": "ddf76584c84ce26e",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/kofe-2046/index.html": {
+   "sha": "f53fafb5dbab76eb",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/koktebel-bar/index.html": {
+   "sha": "7e2f2b364a4e6bb6",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/kolomenskoe/index.html": {
+   "sha": "0740f5d65e207d4e",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/komponent-kvest/index.html": {
+   "sha": "6225a78fddda8ba6",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/koptevskie-bani/index.html": {
+   "sha": "70023f25bfda3232",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/korolev-house/index.html": {
+   "sha": "6a963024de7798f3",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/koster/index.html": {
+   "sha": "92a57297b72e68a7",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/kotelnicheskaya/index.html": {
+   "sha": "7f993165a85048a9",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/kozmas/index.html": {
+   "sha": "562e3e5d7467ecc8",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/krasnaya-presnya-park/index.html": {
+   "sha": "e349000aada9107a",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/krasnogvardeyskie/index.html": {
+   "sha": "b3b78c70664bcc70",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/krasnopresnenskie/index.html": {
+   "sha": "a73ac4c02608c2b4",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/krasny-oktyabr/index.html": {
+   "sha": "5c1fbe085d9f61f6",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/krasota/index.html": {
+   "sha": "ccc952fef6488dbf",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/kremlin/index.html": {
+   "sha": "18628907fb245368",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/krutitsy/index.html": {
+   "sha": "f0094b184b51a64e",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/krylatskie-holmy/index.html": {
+   "sha": "5fd9ba133236c26c",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/krymsky-bridge/index.html": {
+   "sha": "db4199876a9b97e9",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/kto-ne-spryatalsya/index.html": {
+   "sha": "7540f3a8ca9daff5",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/kultkod/index.html": {
+   "sha": "d3ace9179228da51",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/kultura-streshnevo/index.html": {
+   "sha": "2fc4ca49b116721d",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/kultura-vstrechi/index.html": {
+   "sha": "cdd2302854968e6c",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/kuskovo/index.html": {
+   "sha": "c99ab6e29d7e0e48",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/kutuzovskiy-bilyardnyy-klub/index.html": {
+   "sha": "65f4ea21439da6c6",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/kuzminki/index.html": {
+   "sha": "f94c8978b162c9a2",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/kuznetsky-brasserie/index.html": {
+   "sha": "1340f08463f25519",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/kuznetsky-most-st/index.html": {
+   "sha": "de15bd741152b02c",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/kvartira-s-vidom/index.html": {
+   "sha": "6b347cb829164e3d",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/kvest-zdes/index.html": {
+   "sha": "50f3d94121d2e339",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/la-corte-himki/index.html": {
+   "sha": "63bd569e9c315701",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/la-fume/index.html": {
+   "sha": "92cd65957c734999",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/la-raquette-bistro/index.html": {
+   "sha": "32823528eaa68385",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/la-raquette-club/index.html": {
+   "sha": "1d5949cb0f840e57",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/la-virgen/index.html": {
+   "sha": "21bcba88905f96b7",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/labirint/index.html": {
+   "sha": "ccf87127c03cd2b8",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/lado/index.html": {
+   "sha": "10d79b961ca9cba9",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/lali/index.html": {
+   "sha": "6ec5b61d90ffc289",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/lambic-cherkassky/index.html": {
+   "sha": "768b167fb4b19ca3",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/lao-lee/index.html": {
+   "sha": "cfd73a3b5030ad7c",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/lastochka/index.html": {
+   "sha": "1e9d99a85ccf33fa",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/latelier-petrovka/index.html": {
+   "sha": "69edf787b37c09ce",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/lavka-pisateley/index.html": {
+   "sha": "adb8a9c55b4d7046",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/lazertag-voennyy-bunker/index.html": {
+   "sha": "96c527b3f73f6ce0",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/le-mans/index.html": {
+   "sha": "5cec1ddd3b39b55a",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/lefortovo-park/index.html": {
+   "sha": "bc2570f128fd5bf2",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/leninka/index.html": {
+   "sha": "e8e1a9420df20b6e",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/lenkom/index.html": {
+   "sha": "79100381a3d2e078",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/lermontov-house/index.html": {
+   "sha": "2b89fb8a89655f22",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/levoberezhny-park/index.html": {
+   "sha": "ee40089348faaa3c",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/levyi-bereg/index.html": {
+   "sha": "448ee63216bd2482",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/ligapap/index.html": {
+   "sha": "146c95204835c3fe",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/lila/index.html": {
+   "sha": "4e28e08c3e4b386e",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/lilians/index.html": {
+   "sha": "0e1314ac3bf7fe36",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/lime-cafe-gum/index.html": {
+   "sha": "78a86d8076c736ab",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/limestone/index.html": {
+   "sha": "f544af9d579abb82",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/linbistro/index.html": {
+   "sha": "79e9eb4922344f66",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/lions-head-pub/index.html": {
+   "sha": "ef3b22a2158dc4fd",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/lock-stock-pub/index.html": {
+   "sha": "f0d50fc88708c48c",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/lolita/index.html": {
+   "sha": "d5983053e0c0e201",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/lonato/index.html": {
+   "sha": "17bd048048c4a21f",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/look-up/index.html": {
+   "sha": "81ddd37449546919",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/loona/index.html": {
+   "sha": "418ccea7b350ec5b",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/loro/index.html": {
+   "sha": "4c718bfc0a483e0b",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/losiny-ostrov/index.html": {
+   "sha": "0efa44f683274df8",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/lublino/index.html": {
+   "sha": "e535da4a773bf43d",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/lui/index.html": {
+   "sha": "60bd92b48de0f646",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/luigis-garden/index.html": {
+   "sha": "15ce5248675c85a7",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/luna-mitino/index.html": {
+   "sha": "5f47c73f18365bb6",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/luzhniki/index.html": {
+   "sha": "1fb45a6a57ef6ab8",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/lyudi-kak-lyudi/index.html": {
+   "sha": "f4dc52fed94bf1d2",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/made-in-bali/index.html": {
+   "sha": "1b738075535a986a",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/mafiya-vip/index.html": {
+   "sha": "ab1d8272a81171a6",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/magritte/index.html": {
+   "sha": "93c8c5b8ed26db8d",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/malyy-teatr/index.html": {
+   "sha": "bcbc44305b55f9a6",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/mama-varit-pokrovka/index.html": {
+   "sha": "ad5ecbe1e4d41bff",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/mama-varit-stremyanny/index.html": {
+   "sha": "dd6abd73fa06243b",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/mamie/index.html": {
+   "sha": "ee3322369b078872",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/mamm/index.html": {
+   "sha": "9ec6bff0348e3edf",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/mandys-pokrovka/index.html": {
+   "sha": "6b5fbc81ee8dc22e",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/manezh/index.html": {
+   "sha": "496aa977f32d04da",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/manul/index.html": {
+   "sha": "cf23240718d78f7d",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/marfo-mariinskaya/index.html": {
+   "sha": "d56dca5e4a76ae45",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/margarita-bistro/index.html": {
+   "sha": "c65737cf6c323401",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/maria-santa/index.html": {
+   "sha": "a98f52d007e1b2ca",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/marie-laveau/index.html": {
+   "sha": "680f8efaf008b893",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/masa-madre/index.html": {
+   "sha": "e66c85490f3eb791",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/masterskaya-fomenko/index.html": {
+   "sha": "56d2161270beafb0",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/mates-gruzinka/index.html": {
+   "sha": "f171a5cfc783cf69",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/mates-octagon/index.html": {
+   "sha": "f67fa00a1e2eb623",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/mates-patriki/index.html": {
+   "sha": "964ad517e19bbf04",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/mates-shabolovka/index.html": {
+   "sha": "e1af7e3b1d6caa67",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/matreshka/index.html": {
+   "sha": "dc008f8cc04ee4ef",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/may/index.html": {
+   "sha": "b9d166bb7e555713",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/mega-ice/index.html": {
+   "sha": "881881cf45a51e8b",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/melnikov-house/index.html": {
+   "sha": "037884889013c7d5",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/mendeleev/index.html": {
+   "sha": "1da63d5840d559ca",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/meshchersky/index.html": {
+   "sha": "4178771346972b46",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/meteorite/index.html": {
+   "sha": "505bd0019de3b2d2",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/metropol/index.html": {
+   "sha": "ea352c162a01e38b",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/meykhana/index.html": {
+   "sha": "bbe0c396156de80e",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/mht/index.html": {
+   "sha": "a6df6a23a2a29dfa",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/mikhaylovskoe/index.html": {
+   "sha": "292871331ef54b4f",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/miks/index.html": {
+   "sha": "40bb33c7ee320dc8",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/mimika-theatre/index.html": {
+   "sha": "86ac0164b64dc4b6",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/miss-you/index.html": {
+   "sha": "7516e17a6e3214a1",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/mitino-park/index.html": {
+   "sha": "fc357c783fd47722",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/mitzva/index.html": {
+   "sha": "383a6f0487d3522d",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/mkhat-gubernskaya-stsena/index.html": {
+   "sha": "d931193c748490e2",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/mmoma/index.html": {
+   "sha": "2b8185d790483c2f",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/mmoma-sculpture/index.html": {
+   "sha": "fe012bc2487fe771",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/mokh/index.html": {
+   "sha": "a4d496eee9f0fd5f",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/moloko/index.html": {
+   "sha": "0a0ea807a01fb471",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/mooring/index.html": {
+   "sha": "c9519ed87285b8cf",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/moreon/index.html": {
+   "sha": "6d6b49d165f297fe",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/morfeus/index.html": {
+   "sha": "133acde4f774ddda",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/moris-boat/index.html": {
+   "sha": "9fa048ac4683dcec",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/moscow-city/index.html": {
+   "sha": "f6bfd4a4b9526910",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/mosfilm/index.html": {
+   "sha": "918b108dc4084212",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/moskino-kosmos/index.html": {
+   "sha": "88c9b473e9797f40",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/moskovskaya-operetta/index.html": {
+   "sha": "87a8c9f977b9df66",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/moskovskiy-kerling-klub/index.html": {
+   "sha": "5f204d82e019547f",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/moskovskiy-teatr-myuzikla/index.html": {
+   "sha": "9f91620689e850a5",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/moskva-na-volne/index.html": {
+   "sha": "5d6b650f939b0402",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/moskvarium/index.html": {
+   "sha": "bc7c428c7d41f050",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/mosspektakl/index.html": {
+   "sha": "a0508f32bfe91e25",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/mr-lee/index.html": {
+   "sha": "5de3bd60bfceb12e",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/multikultura/index.html": {
+   "sha": "b44078e0fc49359a",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/mume/index.html": {
+   "sha": "f1368377359e267d",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/muravyov-apostol/index.html": {
+   "sha": "4ee209cb3fe96040",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/museon/index.html": {
+   "sha": "a368d52697ad98e5",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/museum-moscow/index.html": {
+   "sha": "ff6bbb13caa2c09e",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/museum-of-orient/index.html": {
+   "sha": "61f978562b87b24a",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/muzey-k-g-paustovskogo/index.html": {
+   "sha": "f8077b1ef4ea942f",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/muzey-temnoty/index.html": {
+   "sha": "6040f575993bcedc",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/myata-levober/index.html": {
+   "sha": "e8da7713c075f47b",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/na-volne/index.html": {
+   "sha": "95495666575248a9",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/nablyudatel/index.html": {
+   "sha": "a81c71eb74e02ba9",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/nagatinskaya-poyma/index.html": {
+   "sha": "4e3add2e9c58db36",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/nappe/index.html": {
+   "sha": "9ec124d1ed08de0d",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/narkomfin/index.html": {
+   "sha": "cfdb81225a3a2220",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/naryshkin-pond/index.html": {
+   "sha": "dcfd564d3aeaa057",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/nauka-i-zhizn/index.html": {
+   "sha": "fdb8594ae271bca1",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/nebar/index.html": {
+   "sha": "b03b90cf85552521",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/nedalny-vostok/index.html": {
+   "sha": "08ebb41223356339",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/neighborhood/index.html": {
+   "sha": "5a3fc97683dc36a2",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/nene/index.html": {
+   "sha": "35afad03f747f1e6",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/neon-kiber-launzh-zona-koptevo/index.html": {
+   "sha": "fd1bf0537d93be98",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/neon-kiber-launzh-zona-spartak/index.html": {
+   "sha": "d1248e69d4be9974",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/nephew/index.html": {
+   "sha": "75540eb6737a4aaf",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/neskuchny/index.html": {
+   "sha": "7281807d4bf63294",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/newtretyakov/index.html": {
+   "sha": "e24b497b1877b3ce",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/night-kids/index.html": {
+   "sha": "eb7f20bed1dcb6f1",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/niki/index.html": {
+   "sha": "2e4deeefe9c05e6b",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/niki-piano/index.html": {
+   "sha": "3d2f8272c9aeb60f",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/niqa/index.html": {
+   "sha": "8515c6e98fd63a88",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/nitka-gogolevsky/index.html": {
+   "sha": "540f9860eb0ce6b1",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/noor/index.html": {
+   "sha": "551ec8bfed31bcaf",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/north-river-station/index.html": {
+   "sha": "ad13fb655abe558a",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/nothing-fancy/index.html": {
+   "sha": "4af00ffa28f36ec3",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/nouge/index.html": {
+   "sha": "e6baf234f4f6e3c9",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/novaya-liga/index.html": {
+   "sha": "18d11df38741544d",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/novaya-opera/index.html": {
+   "sha": "65819e7765186000",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/nove/index.html": {
+   "sha": "634eb42c9969828b",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/novikov/index.html": {
+   "sha": "6ab41a5fc9a6cdd5",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/novodevichy-cemetery/index.html": {
+   "sha": "4675de72e9b0dbef",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/novodevichy-convent/index.html": {
+   "sha": "fa0fa459a42686eb",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/novodevichy-ponds/index.html": {
+   "sha": "84d410fe68903221",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/novorizhskie-bani/index.html": {
+   "sha": "495ee320c3528a6e",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/novospassky/index.html": {
+   "sha": "77a280d11d0df0cc",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/nuself/index.html": {
+   "sha": "e68f5673500810e2",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/nyuans/index.html": {
+   "sha": "5ef4b18811dcef70",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/o2-restaurant/index.html": {
+   "sha": "b9cb2509426be1ef",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/obekt-35/index.html": {
+   "sha": "e95c0b934cf96ecb",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/obekt-oktyabrskoe-pole/index.html": {
+   "sha": "6ad59d08d7079748",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/oblako/index.html": {
+   "sha": "a77b982db7e9e11a",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/obraztsov-theatre/index.html": {
+   "sha": "203c1abb97bedc75",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/ochakovskie-bani/index.html": {
+   "sha": "39b60aa6a56f1e35",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/oconnells-pub/index.html": {
+   "sha": "bcdfb53853608dc6",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/odmo/index.html": {
+   "sha": "1f889e0149c871ed",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/odonoghues/index.html": {
+   "sha": "931cd3ba7a4f77d2",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/ogni-moskvy/index.html": {
+   "sha": "19fc41103ad668b0",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/ognivo/index.html": {
+   "sha": "b4daa3edb74c6b31",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/ogorod/index.html": {
+   "sha": "52ee2e974fe769fd",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/oh-my-toast/index.html": {
+   "sha": "1fdf1c02ff2926c0",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/okvest/index.html": {
+   "sha": "1b19d8af18c3e6d2",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/oltremare/index.html": {
+   "sha": "d39be32a753a667e",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/oma/index.html": {
+   "sha": "a5d33da9c368a993",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/omg-coffee/index.html": {
+   "sha": "0dbde0877a84c067",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/omg-vr/index.html": {
+   "sha": "abed3b9feeb48cba",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/on-sight/index.html": {
+   "sha": "0865a1fa70cf3209",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/onest/index.html": {
+   "sha": "336697ba4da0f2b0",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/orbita/index.html": {
+   "sha": "9eae27a51f362eea",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/orda/index.html": {
+   "sha": "af03f15a7be872c1",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/original/index.html": {
+   "sha": "d15a2ee0ecf7c226",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/osobnyak-dashkov-5/index.html": {
+   "sha": "bd1e0a78ec8c10d3",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/osso/index.html": {
+   "sha": "9206d5f860dd2507",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/ostafyevo/index.html": {
+   "sha": "07e6751e493540df",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/ostankino/index.html": {
+   "sha": "7ca68ba5f6ec74f1",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/osteria-mandys/index.html": {
+   "sha": "365fd6fed19794d5",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/oz-kebab/index.html": {
+   "sha": "53fceffd4d1a9622",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/ozero/index.html": {
+   "sha": "59cdfec9dd2c26c3",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/padel/index.html": {
+   "sha": "bf37cf04f3f1ee45",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/padron/index.html": {
+   "sha": "6090efde02057124",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/paleo-museum/index.html": {
+   "sha": "ab14ba2d93b6aa0e",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/pandapark-fili/index.html": {
+   "sha": "68c4d6157cd24eee",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/panorama/index.html": {
+   "sha": "b0fa8bc793f660fa",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/panorama-smolenskaya/index.html": {
+   "sha": "b59df1bdeef6b8cb",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/park-850/index.html": {
+   "sha": "cac7f700cbf985cc",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/park-fudkholl/index.html": {
+   "sha": "03e0b6a612d28091",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/park-pobedy/index.html": {
+   "sha": "cb682ee143976ba4",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/paroma/index.html": {
+   "sha": "b80f89fdb2e691c9",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/pasternak-house/index.html": {
+   "sha": "03332735915dd2b7",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/patriarshy-bridge/index.html": {
+   "sha": "30ea7e5217fb7160",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/patriki/index.html": {
+   "sha": "08d29cb38034ae1e",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/paveletskie-bani/index.html": {
+   "sha": "3371eade89861600",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/pech-himki/index.html": {
+   "sha": "fa8748ea49e0db31",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/pelmennaya/index.html": {
+   "sha": "987bdfbe73f0c49b",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/pepe-nero/index.html": {
+   "sha": "a81a06e10b1e3bef",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/pereplet/index.html": {
+   "sha": "607d976b7fadd953",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/perervinsky/index.html": {
+   "sha": "9ca2a93672140816",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/perovskie-bani/index.html": {
+   "sha": "6b9f395ea6f5b954",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/pertsova/index.html": {
+   "sha": "e930e9d564867f11",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/peshka/index.html": {
+   "sha": "83171507f8ec9dfd",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/petrov-vasechka/index.html": {
+   "sha": "a308ce81dad64abd",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/petrovsky-palace/index.html": {
+   "sha": "ac489ab78cabd476",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/peyntlend/index.html": {
+   "sha": "f0b53624e5b65fe2",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/pinch/index.html": {
+   "sha": "3e5befe7a086c73b",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/pio-rosello/index.html": {
+   "sha": "50dfbcded6bc5799",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/pioner/index.html": {
+   "sha": "0c7d673ebf011821",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/piotrovsky/index.html": {
+   "sha": "775566a6dd79142c",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/pixel-quest/index.html": {
+   "sha": "4065d0f293024912",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/planetarium/index.html": {
+   "sha": "b40ce54cfdf58b8e",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/ployka-taganka/index.html": {
+   "sha": "19da11cdb6d91686",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/plus47/index.html": {
+   "sha": "d588d9b7f6e5dbd4",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/poco-di-buono/index.html": {
+   "sha": "401e4384acc9231f",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/podpisnye/index.html": {
+   "sha": "90b6a41a62de1228",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/podzemka/index.html": {
+   "sha": "681018e1b31fe05f",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/pogruzhenie/index.html": {
+   "sha": "f84001db7ea35b3e",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/pokrovskie-bani/index.html": {
+   "sha": "dcbc5b509d14d469",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/pokrovskoe-streshnevo/index.html": {
+   "sha": "46dac42087a7554d",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/pokrovsky-bereg/index.html": {
+   "sha": "3daec5fce0e4bb16",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/pomme-verte/index.html": {
+   "sha": "1bcd7bd5eb91cc19",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/portal-vr/index.html": {
+   "sha": "d01139268c1fa266",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/potapovskie-bani/index.html": {
+   "sha": "97a9192182cabf01",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/praktika/index.html": {
+   "sha": "8184facb06a838f4",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/premium-cyber/index.html": {
+   "sha": "2c4ae9e50d5050ee",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/pro-khinkali/index.html": {
+   "sha": "7f4954f9d2a60a8a",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/prove-kalish/index.html": {
+   "sha": "10e915c5a9cece58",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/pryatki-v-temnote/index.html": {
+   "sha": "d4cf9e35ab39e186",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/pulcinella-himki/index.html": {
+   "sha": "6e2748d683dbf28b",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/purkins-pub-nagatinskaya/index.html": {
+   "sha": "3d968a7f2d4721a8",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/pushkin/index.html": {
+   "sha": "1121a6d614417b25",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/pushkin-museum-prechistenka/index.html": {
+   "sha": "e46f99440cd69656",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/pushkinmuseum/index.html": {
+   "sha": "c9a9c92ee5039e88",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/pyatnitskaya/index.html": {
+   "sha": "d5d8ca9edeb6d61f",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/pyur-spa/index.html": {
+   "sha": "71c229ca04863379",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/qlo/index.html": {
+   "sha": "2f80dd46b1f9cb24",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/questreality/index.html": {
+   "sha": "59fad2dbc36285fb",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/rable/index.html": {
+   "sha": "f5ed47193a9c95b6",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/railway-museum/index.html": {
+   "sha": "ddc9fa42271b8be3",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/rakovarnya/index.html": {
+   "sha": "43a0cfd15f162630",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/ramen-land/index.html": {
+   "sha": "d6cca0b64cd9e471",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/rassolnikov/index.html": {
+   "sha": "212c4a2274b27cc8",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/rave-buster/index.html": {
+   "sha": "0defaef1ff97f4ef",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/rave-by-buster-depo/index.html": {
+   "sha": "47ad1e4d9a72aacc",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/rave-by-buster-pokrovka/index.html": {
+   "sha": "75136372235da689",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/rebecca/index.html": {
+   "sha": "8d5d58b63d18f269",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/rebellion/index.html": {
+   "sha": "e7850dc930708655",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/red-square/index.html": {
+   "sha": "262be8689a42a94c",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/regent/index.html": {
+   "sha": "09042f284b6721af",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/remy-tverskoy/index.html": {
+   "sha": "677274545271f29e",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/respace/index.html": {
+   "sha": "ee7ad18c11bf3e30",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/restaurant-13/index.html": {
+   "sha": "7a6b82a491069020",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/restik/index.html": {
+   "sha": "4a10deedd105c79b",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/restomarket/index.html": {
+   "sha": "daa1e805e0e9ffc2",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/rewax/index.html": {
+   "sha": "3299e8c6973aced2",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/richter/index.html": {
+   "sha": "40338e289903c2fe",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/rico/index.html": {
+   "sha": "91840362e03f185c",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/riesling-boyz/index.html": {
+   "sha": "03e9418c9bccb133",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/risuy/index.html": {
+   "sha": "6919e8acd4a27ed4",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/ritmo/index.html": {
+   "sha": "8a8c298a51af9c8e",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/river-club/index.html": {
+   "sha": "d12e167564c2b479",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/rizz-cyber/index.html": {
+   "sha": "9811bbf28b313385",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/rock-zona/index.html": {
+   "sha": "939e02d5e17f1de5",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/rockets-tverskoy/index.html": {
+   "sha": "03e903611818e567",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/rodnya/index.html": {
+   "sha": "363851b37cc8f486",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/rogozhskiy-rynok/index.html": {
+   "sha": "677368aaee861ae3",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/roku/index.html": {
+   "sha": "f98850ac6f0879fa",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/romanov-chambers/index.html": {
+   "sha": "22feb04c5cf9801c",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/romen-theatre/index.html": {
+   "sha": "5eff2967af0180be",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/romiromi/index.html": {
+   "sha": "bf678786e4fbbcc4",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/rostokino-aqueduct/index.html": {
+   "sha": "240d2c936536fc46",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/rovesnik/index.html": {
+   "sha": "7e8b558b76075071",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/ruski/index.html": {
+   "sha": "5fed4f42679fa39e",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/russkoe-podvorie/index.html": {
+   "sha": "c704834168afc59d",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/rusty-rat/index.html": {
+   "sha": "200ead8b70bb6d30",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/ryabchik/index.html": {
+   "sha": "0ebcb89064981b52",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/ryabushinsky/index.html": {
+   "sha": "2a0c03c15f1f4c3e",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/ryba-mechty/index.html": {
+   "sha": "857e38e1cd1b54b8",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/ryba-moya/index.html": {
+   "sha": "5f15e66a8256eb54",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/rynok-na-leninskom/index.html": {
+   "sha": "3ee1da98f3f12334",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/ryumochnaya-mechty/index.html": {
+   "sha": "c86a17eb69dc7550",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/sad-akvarium/index.html": {
+   "sha": "39db216fcb784c6a",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/sakhalin/index.html": {
+   "sha": "0d19ec3f58402772",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/sakhli/index.html": {
+   "sha": "c52611f705786ebe",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/salut/index.html": {
+   "sha": "dda548a303476977",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/samokat/index.html": {
+   "sha": "651bfbf433598ad2",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/sanduny/index.html": {
+   "sha": "13ac5973eb8625c6",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/sangre-fresca/index.html": {
+   "sha": "a0f2b1fa17ba1e5a",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/sansa/index.html": {
+   "sha": "b39f04b1dc3cb1ec",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/santi/index.html": {
+   "sha": "13ebef109b649668",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/sarenok/index.html": {
+   "sha": "35d43e80081ebf94",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/sartoria-lamberti/index.html": {
+   "sha": "6ea2335b7c85f89c",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/sats-theatre/index.html": {
+   "sha": "a5600ca882d0d39f",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/savepoint-seligerskaya/index.html": {
+   "sha": "3e4d247b87e41ca2",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/savras/index.html": {
+   "sha": "779c37c1937cf58e",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/savva/index.html": {
+   "sha": "c1a9eab79dbde1f9",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/sedmoe-nebo/index.html": {
+   "sha": "d42e58cd187cea1a",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/sekret-kinoteatr/index.html": {
+   "sha": "7468e04cfdf46f71",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/seleznevskie/index.html": {
+   "sha": "7919755e552bd598",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/selfie/index.html": {
+   "sha": "347f59eac23684b1",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/semenov/index.html": {
+   "sha": "7b028a0d4bc079aa",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/sensorium/index.html": {
+   "sha": "49de14236017d3b2",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/senti-menti/index.html": {
+   "sha": "9153645d33edc208",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/serebryany-bor/index.html": {
+   "sha": "4f7e1785c45f2cdb",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/sergeich/index.html": {
+   "sha": "bf4ea88229597d09",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/setun-valley/index.html": {
+   "sha": "f2375b0eff30cb20",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/severnoe-tushino/index.html": {
+   "sha": "7b1e1c18a0589e59",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/severyane/index.html": {
+   "sha": "3a8f211fcc939ac2",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/shale-nagorny/index.html": {
+   "sha": "f2ac52ac7ca3f4af",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/shalyapin/index.html": {
+   "sha": "ccd5522a97ba7f48",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/shanghai/index.html": {
+   "sha": "381e1b2aa120e267",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/shanuar/index.html": {
+   "sha": "f1a101a2e5d2465f",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/shashlyk-house-himki/index.html": {
+   "sha": "3fb416bdd623c0fe",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/shchapovo/index.html": {
+   "sha": "c226f8383986b9ae",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/shelepikha-emb/index.html": {
+   "sha": "f4c826a1af7d0f4c",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/shilov-gallery/index.html": {
+   "sha": "8586182a9738964a",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/shkola-dramaticheskogo-iskusstva/index.html": {
+   "sha": "223b77b8ffb041fb",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/short-talk/index.html": {
+   "sha": "2ab34e14df908095",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/shota/index.html": {
+   "sha": "903f8776b245305e",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/shum/index.html": {
+   "sha": "f0e178e802115259",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/siberia-banya/index.html": {
+   "sha": "bba2010cc3639d4a",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/sibir-sibir/index.html": {
+   "sha": "ab28a3508595f331",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/sidur-museum/index.html": {
+   "sha": "5b5e823f41f98482",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/signora/index.html": {
+   "sha": "db777c3b60ab52a2",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/simach/index.html": {
+   "sha": "d54fd8d829e1111b",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/single/index.html": {
+   "sha": "8b8d8263e12f4133",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/siren-garden/index.html": {
+   "sha": "4a8327560c6d6ba6",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/sixty/index.html": {
+   "sha": "baa3d856a1a131fa",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/skalatoria/index.html": {
+   "sha": "d07c60440a3661fe",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/skhodnenskaya-chasha/index.html": {
+   "sha": "2c06048dfaa327c3",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/skrepka/index.html": {
+   "sha": "ffd88d884fd15f90",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/skuratov-belorusskaya/index.html": {
+   "sha": "ef37d1f14ae901f9",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/sky-padel/index.html": {
+   "sha": "f2fda69986903d6e",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/skytown/index.html": {
+   "sha": "c1520b75598c9a34",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/slava/index.html": {
+   "sha": "3214a6174ef37e94",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/soil-studio/index.html": {
+   "sha": "a1b2c2fbe015cafc",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/sokol-village/index.html": {
+   "sha": "6a21faa972c31eed",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/sokolniki/index.html": {
+   "sha": "c6b5e2d7572b0192",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/sokrovishcha-faraona/index.html": {
+   "sha": "6365bc808d20ad65",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/solovi/index.html": {
+   "sha": "b84948c5462f87ff",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/soma/index.html": {
+   "sha": "bdfc5cf21ba3cd60",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/soprano/index.html": {
+   "sha": "9da4da8a64051b92",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/south-river-station/index.html": {
+   "sha": "24da362bfdabffbf",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/sova-tekstilshchiki/index.html": {
+   "sha": "bcd9cc756bdc2c77",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/sovremennik/index.html": {
+   "sha": "036a33db557ef3fa",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/spletni/index.html": {
+   "sha": "332c446f5d765ba3",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/st-basil/index.html": {
+   "sha": "11b386679b935802",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/st-riders/index.html": {
+   "sha": "238170ba63da5efe",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/stand-up-patriki/index.html": {
+   "sha": "6b33ce0aee493d42",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/standup/index.html": {
+   "sha": "5e84250b409e99d6",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/standup-store/index.html": {
+   "sha": "d3dd0832a5371e78",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/stanislavsky-music-theatre/index.html": {
+   "sha": "f5c8016e2b70f5c7",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/stantsiya-2025/index.html": {
+   "sha": "9e38725830ba0c52",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/starlayt-dayner/index.html": {
+   "sha": "70840f269546ca25",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/stay-khamovniki/index.html": {
+   "sha": "df9a19bdcba116e1",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/still-standup-club/index.html": {
+   "sha": "4dc3a3ab118b788c",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/streat/index.html": {
+   "sha": "e7ae73a2b7a35434",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/strelba/index.html": {
+   "sha": "16168690fb9806d9",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/studiya-teatralnogo-iskusstva/index.html": {
+   "sha": "e6ca5c270ebc5f12",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/substance/index.html": {
+   "sha": "55c2b6177f31e709",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/sur/index.html": {
+   "sha": "dcd3e6883fd34280",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/surf-neglinka/index.html": {
+   "sha": "9078dd938503d76f",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/surf-torii/index.html": {
+   "sha": "7b12e106c33338e8",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/svet/index.html": {
+   "sha": "3dc0c21aa88ffa87",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/svinya-i-roza/index.html": {
+   "sha": "b3fb6fb46a14c74a",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/sweet-belka-coffee/index.html": {
+   "sha": "a1ea11ba9229bca6",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/syrovarnya/index.html": {
+   "sha": "e995b6afd53c906b",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/tabakerka/index.html": {
+   "sha": "fafff65f5a3d2607",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/taco-project/index.html": {
+   "sha": "2f3f0a384b4003c2",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/taezhnye-bani/index.html": {
+   "sha": "71b1f167f831878d",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/taganka-theatre/index.html": {
+   "sha": "492751a7718c30be",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/tantsy/index.html": {
+   "sha": "694750f0bbbcd4c3",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/tapbarrel/index.html": {
+   "sha": "740669b5b492d25f",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/tatooine/index.html": {
+   "sha": "758e78dbbbba4a6b",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/taverna-robina/index.html": {
+   "sha": "0459edd66c03f587",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/tears-of/index.html": {
+   "sha": "6388254079f0aeae",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/teatr-eleny-kamburovoy/index.html": {
+   "sha": "f36a79d0db128dc9",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/teatr-gogolya/index.html": {
+   "sha": "8637341b1e606dde",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/teatr-mayakovskogo/index.html": {
+   "sha": "9c875e9a0ddc6f02",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/teatr-modern/index.html": {
+   "sha": "3c5b6494303a50d8",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/teatr-mossoveta/index.html": {
+   "sha": "e48c3d0a2d69d0be",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/teatr-na-bronnoy/index.html": {
+   "sha": "9650f2e59ff58c33",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/teatr-na-melnikova/index.html": {
+   "sha": "c20229ae1b952f8f",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/teatr-na-trubnoy/index.html": {
+   "sha": "5d4fc6997e6b35f3",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/teatr-natsiy/index.html": {
+   "sha": "3afb6ff5016c2f5c",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/teatr-pushkina/index.html": {
+   "sha": "185a7a8b656fee3c",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/teatr-rossiyskoy-armii/index.html": {
+   "sha": "8d2da32f25668149",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/teatr-satiry/index.html": {
+   "sha": "dc806493952068e8",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/teatr-shalom/index.html": {
+   "sha": "bf144c9eb231f48e",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/teatr-yugo-zapad/index.html": {
+   "sha": "3354b7d0c2787bb9",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/teatr-zoltana/index.html": {
+   "sha": "c7a66eda24541a7c",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/temple-bar-zelenograd/index.html": {
+   "sha": "3a7268a053f4dda0",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/temu/index.html": {
+   "sha": "afe42eaa84500d51",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/tengri/index.html": {
+   "sha": "71e3e23a16829ba1",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/terletsky-park/index.html": {
+   "sha": "46c84a7e13033ce5",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/termburg/index.html": {
+   "sha": "f7274d0b4ca02e09",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/termoland-botanika/index.html": {
+   "sha": "f7230be67b196a7f",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/termy-los/index.html": {
+   "sha": "2d48d2e1135ecb98",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/tessinsky-bridge/index.html": {
+   "sha": "683bb29a8480e52d",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/that-place/index.html": {
+   "sha": "25f440b7031e2756",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/the-bix/index.html": {
+   "sha": "05a3216731958b2d",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/the-byk-brestskaya/index.html": {
+   "sha": "d82f7150862bf693",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/the-mansion/index.html": {
+   "sha": "cea5ac7e66859198",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/the-pivo/index.html": {
+   "sha": "e4c84916bdbc4ffa",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/the-wave/index.html": {
+   "sha": "6df7ab0487aa89f9",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/thebaza-altufevo/index.html": {
+   "sha": "f134273dfe418614",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/timiryazevsky-park/index.html": {
+   "sha": "6235549df25e915f",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/tipsy-pub/index.html": {
+   "sha": "3f83e99f8dc9fe15",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/tokyo/index.html": {
+   "sha": "86f4b1626f62c2ff",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/tolstoy-estate/index.html": {
+   "sha": "36de4bb9884a1b80",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/tot-gus/index.html": {
+   "sha": "146646398aa87de0",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/toto/index.html": {
+   "sha": "59639b1fd40426a3",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/transport-museum/index.html": {
+   "sha": "2ae31c3d7eed3728",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/transylvania/index.html": {
+   "sha": "413bf37885178797",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/tranzit-vremeni/index.html": {
+   "sha": "3b3ed13d7cdbaaa8",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/trekhgorka/index.html": {
+   "sha": "ec11362e7a798519",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/treli/index.html": {
+   "sha": "5f5bd3479530aa81",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/tretyakov-gallery/index.html": {
+   "sha": "5984ca64aaf8537b",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/tretyakov-kadashi/index.html": {
+   "sha": "304ec896e168ec9e",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/tri-vokzala-depo/index.html": {
+   "sha": "4de3c9ceabf2b6ba",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/troparyovo/index.html": {
+   "sha": "3c76ebaf727075df",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/trubetskoy-estate/index.html": {
+   "sha": "bc8d157c2289402b",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/true-gamers-shodnenskaya/index.html": {
+   "sha": "add49b2f49c21e46",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/truecost-osenny/index.html": {
+   "sha": "f233e2a4fd0723e5",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/tsaritsyno/index.html": {
+   "sha": "a8d54f1d26cec6b9",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/tsdm-view/index.html": {
+   "sha": "64d912c58750a496",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/tsentr-kibersporta-mayakovskaya/index.html": {
+   "sha": "818a1d179a29528a",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/tsentr-kibersporta-moskva-siti/index.html": {
+   "sha": "36ee3753152b2539",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/tsentr-kibersporta-novokuznetskaya/index.html": {
+   "sha": "88579598bd6fd4bf",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/tsentr-kibersporta-novoslobodskaya/index.html": {
+   "sha": "3a2dbee550d01b28",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/tsereteli-gallery/index.html": {
+   "sha": "131af6f5a1afe238",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/tsvetaeva-house/index.html": {
+   "sha": "d8e301d73bc14ae5",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/turandot/index.html": {
+   "sha": "61ae1b8d529bc915",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/turki-diner/index.html": {
+   "sha": "cf5743e61e831116",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/tverskaya/index.html": {
+   "sha": "b4e5f5b85161f011",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/twins-garden/index.html": {
+   "sha": "923aa820e7a50ca0",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/tyoply-stan/index.html": {
+   "sha": "ccd006d6b2ebebea",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/tyufeleva-roshcha/index.html": {
+   "sha": "b073c32d0ba8f2d5",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/ugolek/index.html": {
+   "sha": "c2e646a9fda5cf76",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/uilliams/index.html": {
+   "sha": "904a0f4ce98a8c61",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/ukhvat/index.html": {
+   "sha": "0d8382ae9b29c0d4",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/ullu/index.html": {
+   "sha": "31ceb83d03cdae44",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/underdog/index.html": {
+   "sha": "4e620dc568342ca6",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/urban-winery/index.html": {
+   "sha": "037ff907a9ca2ba1",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/usachevskie-bani/index.html": {
+   "sha": "a3b0323ef2b14367",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/usachevsky/index.html": {
+   "sha": "88f3128b12a9791f",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/usadba-bannaya/index.html": {
+   "sha": "37f7b251e917ef0c",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/uzkoe/index.html": {
+   "sha": "619cf005bc3b5f8d",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/vaffel/index.html": {
+   "sha": "87529d543cdaf63c",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/vagankovo/index.html": {
+   "sha": "1500b278b9cb4c9d",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/vakhtangov/index.html": {
+   "sha": "aa50b371179d0862",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/valdo/index.html": {
+   "sha": "b68f461e0a28155f",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/valiko-kozikha/index.html": {
+   "sha": "535534376dfb2c67",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/vamos-padel-club/index.html": {
+   "sha": "1e289f6c1d26bce6",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/varshavskie-bani/index.html": {
+   "sha": "6282d2f9bc6cefd1",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/vasnetsov-house/index.html": {
+   "sha": "5258d60462b4adf9",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/vdnh/index.html": {
+   "sha": "c2a3afb22a72c7c2",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/vedogon-teatr/index.html": {
+   "sha": "d19afdb7c3b428bb",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/venom-cyber-lounge/index.html": {
+   "sha": "a8359f76b39e4eaa",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/venom-cyber-zone-mitino/index.html": {
+   "sha": "b5671e86adff2d23",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/venom-cyber-zone-serpuhovskaya/index.html": {
+   "sha": "ece97a3306547af5",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/veriko/index.html": {
+   "sha": "d2037f7af37d35af",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/victory-museum/index.html": {
+   "sha": "f3078a039ca6a9a7",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/victory-park-zel/index.html": {
+   "sha": "dafb7551e3fc45b3",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/vinbazar/index.html": {
+   "sha": "212563d8b7787b75",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/vinovnye/index.html": {
+   "sha": "1654263ab0d67603",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/vinzavod/index.html": {
+   "sha": "ff7b3438e33ac3c7",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/vkus-riska/index.html": {
+   "sha": "53e129c63ca9df5b",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/vne-teatr/index.html": {
+   "sha": "ea73fac497e0f5dc",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/vobla/index.html": {
+   "sha": "3a347cf31d2245a7",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/vokrug-sveta/index.html": {
+   "sha": "78ec0ba2957ec924",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/vorobyovy-gory/index.html": {
+   "sha": "881ccbbfef4ceb64",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/voronezh/index.html": {
+   "sha": "c072e64afd8f9ba1",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/vorontsovskie-bani/index.html": {
+   "sha": "3a1768deca0de6ca",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/vorontsovsky-park/index.html": {
+   "sha": "9951a080880ba214",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/voskhod/index.html": {
+   "sha": "8201740301d0735e",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/vp-bearloga/index.html": {
+   "sha": "f4679b099a01c56a",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/vtemnote/index.html": {
+   "sha": "99d859846b9047bd",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/vusnedul/index.html": {
+   "sha": "0fa6a7e819e350f6",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/vysotsky-museum/index.html": {
+   "sha": "926a6868c0cc4806",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/vzaperti-na-tverskoy/index.html": {
+   "sha": "5f84266c06729337",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/water-museum/index.html": {
+   "sha": "1a75d7cfaa8ed0b0",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/white-lake/index.html": {
+   "sha": "63e7a776c2bc3970",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/whiterabbit/index.html": {
+   "sha": "28dd0419bd2e09c3",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/williams-house/index.html": {
+   "sha": "c3c8b7ee434438e2",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/wine-crab/index.html": {
+   "sha": "831ae8ee512b6adc",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/winstrike/index.html": {
+   "sha": "f433e4e94bf80e97",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/worker-kolkhoz/index.html": {
+   "sha": "922213f1a9bcdb5b",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/x-ti-pilot/index.html": {
+   "sha": "312ac198499bf9ca",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/yasenevo-estate/index.html": {
+   "sha": "5b58a20ba802050d",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/yauza-park/index.html": {
+   "sha": "db9232a25d7bcf41",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/yauza-place/index.html": {
+   "sha": "07e51523f6ba3b24",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/yuanyan/index.html": {
+   "sha": "391945f15b3846d9",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/yugen/index.html": {
+   "sha": "a4f3b148e346ab15",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/za-kryshey/index.html": {
+   "sha": "1c9d8c52e088124e",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/zakon-bernulli/index.html": {
+   "sha": "98a0f89130a44a2f",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/zareche-troitsk/index.html": {
+   "sha": "5c108e661969c3bb",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/zaryadye/index.html": {
+   "sha": "a20d23b8b2df864e",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/zaryadye-hall/index.html": {
+   "sha": "d3be6de1d6d73a11",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/zaryadye-rest/index.html": {
+   "sha": "036a3b4cd201978f",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/zatsepi-kislovsky/index.html": {
+   "sha": "3c366ea1b204b6ae",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/zel-forest/index.html": {
+   "sha": "378468602a24168a",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/zel-museum/index.html": {
+   "sha": "c164a545acaefd71",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/zhar-ptitsa/index.html": {
+   "sha": "b8e534e05c1fde12",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/zhavoronok/index.html": {
+   "sha": "03bc83e5c8f50849",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/zhivago/index.html": {
+   "sha": "67aaa240bcab5cf9",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/zhivitsa/index.html": {
+   "sha": "ccbdab95e036a3f8",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/ziamo/index.html": {
+   "sha": "26c6ef1041acc35f",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/zil-center/index.html": {
+   "sha": "11c9f35eaaec00c4",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/znamenskoe-sadki/index.html": {
+   "sha": "7e3dc90aae79eb63",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/zoe/index.html": {
+   "sha": "8d2f5a3f6107aa10",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/zoo/index.html": {
+   "sha": "5880bd8e69548741",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/zoo-museum-msu/index.html": {
+   "sha": "8dbe53cdb37c7e12",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/zorka/index.html": {
+   "sha": "3669684d31f0ed1d",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/m/zotov/index.html": {
+   "sha": "33b0c552017a8029",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/zoyka/index.html": {
+   "sha": "790106433d2cb6b6",
+   "lastmod": "2026-10-20"
+  },
+  "moskva/m/index.html": {
+   "sha": "074bb5b7a913e89f",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/podborki/kompy/index.html": {
+   "sha": "65fd517f18ab0b04",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/podborki/devichnik/index.html": {
+   "sha": "b309696b499067ce",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/podborki/halloween/index.html": {
+   "sha": "c4fdbcb07a4dafc0",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/podborki/bani/index.html": {
+   "sha": "5011ac9c580b3192",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/podborki/kofejni/index.html": {
+   "sha": "6f6206089a93d0ae",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/podborki/kryshi/index.html": {
+   "sha": "f39d2f52d2377e09",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/podborki/bary/index.html": {
+   "sha": "46aef0b94bc5949f",
+   "lastmod": "2026-10-19"
+  },
+  "moskva/podborki/index.html": {
+   "sha": "bd18f9a75200bfc7",
+   "lastmod": "2026-10-19"
   }
  },
  "static": {
   "start.html": {
-   "sha": "def0f830af807454",
-   "lastmod": "2026-10-15"
+   "sha": "cbd3b4263fbb6335",
+   "lastmod": "2026-10-20"
   },
   "start.html?m=guys": {
-   "sha": "d8447698d1dc3a69",
-   "lastmod": "2026-10-15"
+   "sha": "f428520dc1792c6e",
+   "lastmod": "2026-10-20"
   },
   "start.html?m=girls": {
-   "sha": "d8447698d1dc3a69",
-   "lastmod": "2026-10-15"
+   "sha": "f428520dc1792c6e",
+   "lastmod": "2026-10-20"
+  },
+  "start.html?city=spb": {
+   "sha": "4d285484ecf25920",
+   "lastmod": "2026-10-20"
   },
   "partners.html": {
-   "sha": "3c66dae5327569f2",
-   "lastmod": "2026-10-15"
+   "sha": "f42addfd64952c7a",
+   "lastmod": "2026-10-19"
   },
   "rules.html": {
-   "sha": "9ffa06d1618e55ce",
-   "lastmod": "2026-10-15"
+   "sha": "d58f513352074a28",
+   "lastmod": "2026-10-19"
   },
   "privacy.html": {
-   "sha": "f4bf61e4ff2f08ab",
-   "lastmod": "2026-10-15"
+   "sha": "e52894a29be09448",
+   "lastmod": "2026-10-19"
   }
  }
 }

@@ -10,7 +10,8 @@
 }
 .af-host[hidden], .af [hidden] { display: none !important; }
 .af .ic { width: 18px; height: 18px; flex: none; }
-.af-item, .af-card, .af-btn, .af-chip { position: relative; }
+/* .af-vh внутри — в пределах кнопки: иначе в ленте (overflow-x) он встаёт за правым краем и страница едет вбок */
+.af-item, .af-card, .af-btn, .af-chip, .af-mbody { position: relative; }
 .af-vh { position: absolute !important; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 .af-dim { display: block; margin-top: 3px; color: var(--af-mu); font-size: 13px; font-weight: 400; line-height: 1.45; }
 .af ul { margin: 0; padding: 0; list-style: none; }
@@ -50,9 +51,10 @@
 .af-btn.af-ghost { background: transparent; color: var(--af-tx); border: 1px solid var(--af-l2); font-weight: 600; }
 .af-btn.af-sm { min-height: 44px; font-size: 14px; }
 
-.af-chip, .af-item, .af-card, .af-btn, .af-mini, .af-more, .af-link, .af-x, .af-np-name, .af-np-go, .af-venue { -webkit-tap-highlight-color: transparent; }
+.af-chip, .af-item, .af-card, .af-btn, .af-mini, .af-more, .af-link, .af-x, .af-np-name, .af-np-go, .af-venue, .af-mbody, .af-mb { -webkit-tap-highlight-color: transparent; }
 .af-chip:focus-visible, .af-item:focus-visible, .af-card:focus-visible, .af-btn:focus-visible, .af-mini:focus-visible, .af-more:focus-visible,
-.af-link:focus-visible, .af-x:focus-visible, .af-np-name:focus-visible, .af-np-go:focus-visible, .af-venue:focus-visible, .af-pick input:focus-visible {
+.af-link:focus-visible, .af-x:focus-visible, .af-np-name:focus-visible, .af-np-go:focus-visible, .af-venue:focus-visible, .af-pick input:focus-visible,
+.af-mbody:focus-visible, .af-mb:focus-visible {
   outline: 2px solid var(--af-ac); outline-offset: 2px;
 }
 .af-title:focus { outline: none; }
@@ -67,6 +69,8 @@
 .af-chip[aria-pressed="true"] { background: var(--af-tx); color: var(--bg, #0F0E13); border-color: transparent; }
 .af-chip.af-free:not([aria-pressed="true"]) { border-color: rgba(155, 227, 180, .45); color: #C8F0D5; }
 .af-chip.af-sm { height: 34px; padding: 0 12px; font-size: 13px; }
+/* подборки: эмодзи перед названием */
+.af-ce { margin-right: 6px; font-size: 15px; line-height: 1; }
 /* «Для пацанов 21 · Все 42»: две половины, выбранная — число в списке и в заголовке */
 .af-seg { display: inline-flex; align-self: flex-start; max-width: 100%; gap: 2px; margin: 2px 0 14px; padding: 3px; border-radius: 99px; background: var(--af-s1); border: 1px solid var(--af-l1); }
 .af-sg { display: inline-flex; align-items: center; min-width: 0; height: 34px; padding: 0 14px; border-radius: 99px; border: 0; background: transparent; color: var(--af-mu2); font: 600 13px var(--af-body); white-space: nowrap; cursor: pointer; transition: background .2s, color .2s; -webkit-tap-highlight-color: transparent; }
@@ -90,6 +94,39 @@
 .af-name { font-weight: 600; font-size: 15px; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
 .af-sub { font-size: 13px; line-height: 1.35; color: var(--af-mu); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .af-more { width: 100%; min-height: 52px; margin-top: 14px; border-radius: 16px; border: 1px solid var(--af-l2); background: transparent; color: var(--af-tx); font: 600 16px var(--af-body); cursor: pointer; }
+
+/* обзор подборок: ленты одна под другой, у каждой «Все →» */
+.af-shs { display: flex; flex-direction: column; gap: 22px; }
+.af-tsh .af-shelf-head { margin-bottom: 10px; }
+.af-tsh .af-shelf-h { display: flex; align-items: center; font-size: 16px; }
+.af-tsh .af-shelf-h .af-ce { margin-right: 8px; font-size: 18px; }
+.af-shn { margin-left: 8px; color: var(--af-mu); font: 500 13px var(--af-body); letter-spacing: 0; }
+
+/* карточки матчей: лига и тур, хозяева — гости, когда, стадион и три кнопки — «Позвать», «Билеты», «Где смотреть» */
+.af .af-rail.af-mrail { grid-auto-columns: 248px; }
+.af-mcard { display: flex; flex-direction: column; height: 100%; min-width: 0; border-radius: 18px; border: 1px solid var(--af-l1); background: var(--af-s1); overflow: hidden; }
+.af-mcard:hover { border-color: var(--af-l2); }
+.af-mbody { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 0; padding: 12px 12px 10px; border: 0; background: linear-gradient(160deg, rgba(76, 179, 106, .16), rgba(76, 179, 106, 0) 60%); color: var(--af-tx); font: inherit; text-align: left; cursor: pointer; }
+.af-mbody:active { transform: scale(.99); }
+.af-mbody > .af-cwhen, .af-mbody > .af-cv { padding: 0; }
+.af-mlg { display: block; color: #9BE3B4; font: 700 11px/1.3 var(--af-body); letter-spacing: .08em; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.af-mteams { min-height: 2.5em; font: 700 16px/1.25 var(--af-body); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
+/* кнопки по ширине текста; не влезают в строку — переносятся (в карточке ленты «Позвать» — во всю ширину) */
+.af-mact { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 12px 12px; }
+.af-mact.af-mact2 { padding: 0 10px 10px; }
+.af-mact2 .af-mb-go { flex-basis: 100%; }
+.af-mact2 .af-mb-tk .ic { display: none; }   /* «Билеты» и «Где смотреть» — в одну строку */
+.af-mb { flex: 1 1 auto; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 0; min-height: 44px; padding: 0 10px; border-radius: 12px; border: 1px solid var(--af-l2); background: transparent; color: var(--af-tx); font: 600 13px var(--af-body); text-decoration: none; white-space: nowrap; cursor: pointer; transition: transform .15s; }
+.af-mb > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.af-mb .ic { width: 16px; height: 16px; color: var(--af-ac); }
+.af-mb:active { transform: scale(.97); }
+.af-mb.af-mb-go { background: var(--af-ac); border-color: transparent; color: var(--af-on); }
+.af-mb.af-mb-go .ic { color: currentColor; }
+/* строка матча в списке: та же строка события, под ней кнопки */
+.af-mrow { display: flex; flex-direction: column; height: 100%; min-width: 0; border-radius: 16px; border: 1px solid var(--af-l1); background: var(--af-s1); }
+.af-mrow:hover { border-color: var(--af-l2); }
+.af-mrow > .af-item { height: auto; flex: 1; border: 0; background: transparent; padding-bottom: 10px; }
+.af-mrow .af-mlg { margin-bottom: -2px; }
 
 /* пусто: объяснение и одна понятная кнопка */
 .af-empty { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 22px 18px; border-radius: 20px; border: 1px dashed var(--af-l2); text-align: center; }
@@ -127,6 +164,7 @@
 .af-ph figcaption a { color: inherit; text-decoration: underline; text-decoration-color: rgba(163, 158, 174, .4); }
 .af-eyebrow { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--af-ac); font: 700 12px var(--af-body); letter-spacing: .14em; text-transform: uppercase; }
 .af-eyebrow .af-tag { letter-spacing: 0; }
+.af-eyebrow .af-lg { letter-spacing: .08em; }
 /* .af .af-title — сильнее, чем «.psheet h3» шторки главной */
 .af .af-title { margin: -6px 0 0; font: 700 clamp(21px, 6.4vw, 26px)/1.15 var(--af-disp); letter-spacing: -.02em; overflow-wrap: anywhere; }
 .af .af-facts { display: grid; gap: 12px; padding: 14px 16px; border-radius: 18px; background: var(--af-s2); }
@@ -167,6 +205,11 @@
 .af-np-go { display: grid; place-items: center; flex: 0 0 44px; width: 44px; height: 44px; border-radius: 12px; border: 1px solid var(--af-l2); color: var(--af-ac); }
 .af-disc { margin: 0; color: var(--af-mu); font-size: 12px; line-height: 1.45; text-align: center; }
 .af-gone { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+/* «Где смотреть»: бары с трансляциями */
+.af .af-wsub { margin: -10px 0 0; }
+.af-watch { display: flex; flex-direction: column; gap: 8px; }
+.af-watch > .af-dim { margin: 0; }
+.af-watch .af-dim a { color: var(--af-ac); }
 .af-sheet .af-items { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
 .af-x { display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border-radius: 50%; border: 0; background: rgba(23, 22, 29, .78); color: var(--af-tx); cursor: pointer; }
 .af-x .ic { width: 18px; height: 18px; }
@@ -187,8 +230,12 @@
   .af-row .af-btn .ic { display: none; }
   .af-row .af-btn { font-size: 14px; padding: 0 8px; }
   .af .af-rail { grid-auto-columns: 180px; }
+  .af .af-rail.af-mrail { grid-auto-columns: 232px; }
+  .af-mb:not(.af-mb-go) .ic { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   .af-ov, .af-dlg { animation: none; }
-  .af-item, .af-card, .af-btn, .af-chip, .af-sg { transition: none; }
+  .af-item, .af-card, .af-btn, .af-chip, .af-sg, .af-mb { transition: none; }
 }
+
+.af-remind { margin-top: 6px; display: inline-flex; }

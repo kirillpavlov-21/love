@@ -4,7 +4,8 @@
 # Disallow им не ставим: страницу, закрытую в robots.txt, поисковик не прочитает и noindex не увидит.
 User-agent: *
 Allow: /
-# Яндекс: параметры, которые только открывают карточку или фильтр на главной, — одна страница, а не тысячи
+# Яндекс: параметры, которые только открывают карточку или фильтр на главной, — одна страница, а не тысячи.
+# city не чистим: start.html?city=spb — каталог Петербурга, это другая страница
 Clean-param: plan&place&event&f&b&cat&okr&tab&quiz /love/start.html
 # и метки рекламы и рассылок — на всём сайте
 Clean-param: utm_source&utm_medium&utm_campaign&utm_content&utm_term&yclid

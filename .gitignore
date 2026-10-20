@@ -7,3 +7,4 @@ pipeline/node_modules/
 pipeline-report.md
 deploy/vps/.env
 deploy/vps/Caddyfile
+private/

@@ -1,0 +1,1722 @@
+{
+ "note": "Список файлов, которые создаёт scripts/build-seo.mjs (для удаления устаревших и <lastmod> в sitemap.xml). Не править руками.",
+ "site": "https://kirillpavlov-21.github.io/love/",
+ "files": {
+  "spb/seo.css": {
+   "sha": "0fbd3c0cbd295fbe",
+   "lastmod": "2026-10-19"
+  },
+  "spb/weekend.ics": {
+   "sha": "a128309abc066f69",
+   "lastmod": "2026-10-19"
+  },
+  "spb/svidanie/index.html": {
+   "sha": "96d490c4e174b7de",
+   "lastmod": "2026-10-20"
+  },
+  "spb/pervoe-svidanie/index.html": {
+   "sha": "48fbb3be37178883",
+   "lastmod": "2026-10-19"
+  },
+  "spb/nedorogoe-svidanie/index.html": {
+   "sha": "87e6c1f26b1db95c",
+   "lastmod": "2026-10-19"
+  },
+  "spb/s-druzyami/index.html": {
+   "sha": "3861000a3a421fca",
+   "lastmod": "2026-10-20"
+  },
+  "spb/devichnik/index.html": {
+   "sha": "c5b211ef2afa1d4a",
+   "lastmod": "2026-10-20"
+  },
+  "spb/segodnya/index.html": {
+   "sha": "3eb30b400b088d73",
+   "lastmod": "2026-10-20"
+  },
+  "spb/vyhodnye/index.html": {
+   "sha": "ca2c5bb711ff0c5f",
+   "lastmod": "2026-10-20"
+  },
+  "spb/vecherom-posle-raboty/index.html": {
+   "sha": "4ed102bbdc77cb34",
+   "lastmod": "2026-10-20"
+  },
+  "spb/pozdno-vecherom/index.html": {
+   "sha": "55691baf94e47898",
+   "lastmod": "2026-10-20"
+  },
+  "spb/halloween/index.html": {
+   "sha": "b0d08c16782691a9",
+   "lastmod": "2026-10-20"
+  },
+  "spb/novyj-god/index.html": {
+   "sha": "1caad05e24112715",
+   "lastmod": "2026-10-20"
+  },
+  "spb/osen/index.html": {
+   "sha": "43d64f3a2286e1bf",
+   "lastmod": "2026-10-19"
+  },
+  "spb/zima/index.html": {
+   "sha": "de58742417ed326c",
+   "lastmod": "2026-10-19"
+  },
+  "spb/restorany/index.html": {
+   "sha": "6c6a89bf809ff126",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kofejni/index.html": {
+   "sha": "0dadb8ce807d4df2",
+   "lastmod": "2026-10-19"
+  },
+  "spb/bary/index.html": {
+   "sha": "e89618e68deffc8b",
+   "lastmod": "2026-10-19"
+  },
+  "spb/parki/index.html": {
+   "sha": "f85e70d77d3db066",
+   "lastmod": "2026-10-19"
+  },
+  "spb/muzei/index.html": {
+   "sha": "fcac8fb537d01f7c",
+   "lastmod": "2026-10-20"
+  },
+  "spb/teatry/index.html": {
+   "sha": "947154bf4213b418",
+   "lastmod": "2026-10-20"
+  },
+  "spb/kvesty/index.html": {
+   "sha": "a923586402c94192",
+   "lastmod": "2026-10-19"
+  },
+  "spb/bani/index.html": {
+   "sha": "5a50effe9eab13e2",
+   "lastmod": "2026-10-19"
+  },
+  "spb/karaoke/index.html": {
+   "sha": "c20421f5b6a82213",
+   "lastmod": "2026-10-19"
+  },
+  "spb/krishi-i-panoramy/index.html": {
+   "sha": "435803ce1514fb8d",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kompyuternye-kluby/index.html": {
+   "sha": "64527d8409ae47a2",
+   "lastmod": "2026-10-19"
+  },
+  "spb/koncerty/index.html": {
+   "sha": "65551aca1c1b3f86",
+   "lastmod": "2026-10-20"
+  },
+  "spb/spektakli/index.html": {
+   "sha": "f41162717757427d",
+   "lastmod": "2026-10-20"
+  },
+  "spb/vystavki/index.html": {
+   "sha": "caed4b6790b6645c",
+   "lastmod": "2026-10-20"
+  },
+  "spb/stendap/index.html": {
+   "sha": "2b27b51a31ea7c71",
+   "lastmod": "2026-10-20"
+  },
+  "spb/futbol/index.html": {
+   "sha": "ce3741b6d8f7b21e",
+   "lastmod": "2026-10-20"
+  },
+  "spb/kuda-shodit-centr/index.html": {
+   "sha": "56f15187d8e3671d",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-petrogradskaya-storona/index.html": {
+   "sha": "86f7e01d0379bb4d",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-vasilevskij-ostrov/index.html": {
+   "sha": "9a2326054e9331f9",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-sever/index.html": {
+   "sha": "09ef92b1f5bb457d",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-primorskij-rajon/index.html": {
+   "sha": "204cd0da3ba66bcd",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-yug/index.html": {
+   "sha": "e77536f42221100e",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-prigorody/index.html": {
+   "sha": "ad1277519e352f8b",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-u-metro-admiraltejskaya/index.html": {
+   "sha": "f55fe2d60c277479",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-u-metro-baltijskaya/index.html": {
+   "sha": "318b06a3974f2bdb",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-u-metro-begovaya/index.html": {
+   "sha": "479e34bfd2ddf71a",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-u-metro-vasileostrovskaya/index.html": {
+   "sha": "4cecd95b6a82b25a",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-u-metro-vladimirskaya/index.html": {
+   "sha": "600ff5e498a9b709",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-u-metro-gornyj-institut/index.html": {
+   "sha": "7a042c7a26d4ff22",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-u-metro-gorkovskaya/index.html": {
+   "sha": "c33993090c3ac040",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-u-metro-gostinyj-dvor/index.html": {
+   "sha": "32f5059b6d5da493",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-u-metro-dostoevskaya/index.html": {
+   "sha": "baf920898dbd6509",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-u-metro-mayakovskaya/index.html": {
+   "sha": "5b7d145a2bbc6b4a",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-u-metro-nevskij-prospekt/index.html": {
+   "sha": "a576e3bf11dec456",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-u-metro-petrogradskaya/index.html": {
+   "sha": "251b437c255bf075",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-u-metro-ploschad-vosstaniya/index.html": {
+   "sha": "dea659c6610b8678",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-u-metro-sadovaya/index.html": {
+   "sha": "124876b85f337d85",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-u-metro-sennaya-ploschad/index.html": {
+   "sha": "e6af8e0b06cb618a",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-u-metro-sportivnaya/index.html": {
+   "sha": "660e5fba6287702c",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-u-metro-tehnologicheskij-institut/index.html": {
+   "sha": "29de999272d17385",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-u-metro-chernyshevskaya/index.html": {
+   "sha": "dd7ec82ce1fe970f",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kuda-shodit-u-metro-chkalovskaya/index.html": {
+   "sha": "443a89289f1a650d",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kompyuternye-kluby-centr/index.html": {
+   "sha": "bd8fdd0c943565bf",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kompyuternye-kluby-u-metro-ploschad-aleksandra-nevskogo/index.html": {
+   "sha": "4cb5071e43eac786",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kompyuternye-kluby-u-metro-ploschad-vosstaniya/index.html": {
+   "sha": "5c8a927fb8315d31",
+   "lastmod": "2026-10-19"
+  },
+  "spb/kompyuternye-kluby-u-metro-pushkinskaya/index.html": {
+   "sha": "3cf6f4f9ae75ae72",
+   "lastmod": "2026-10-19"
+  },
+  "spb/index.html": {
+   "sha": "8915f45d1de9297c",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-33/index.html": {
+   "sha": "b395f5cfc36bf920",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-addict/index.html": {
+   "sha": "1b918b15240b07f8",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-af-brew/index.html": {
+   "sha": "2d21c7b1987ca041",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-akvapark-piterlend/index.html": {
+   "sha": "449655e81d471dda",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-aleksandrinskiy-teatr/index.html": {
+   "sha": "920bec7ec7fa8379",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-aleksandrovskiy-park/index.html": {
+   "sha": "6e8361512161d557",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-aleksandrovskiy-park-pushkin/index.html": {
+   "sha": "eff2b9c8940b2531",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-aleksandrovskiy-sad/index.html": {
+   "sha": "c80259347d0712d0",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-animals/index.html": {
+   "sha": "ad8bd513f7305e46",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-annenkirkhe/index.html": {
+   "sha": "321e94a0d3100552",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-art-borey/index.html": {
+   "sha": "b0ed42fb40586331",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-art-pushkinskaya/index.html": {
+   "sha": "fff701ca964ecb6b",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-artmuza/index.html": {
+   "sha": "db98976ee69921ec",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-aster/index.html": {
+   "sha": "98c25ec53351cc4a",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-atom-heart/index.html": {
+   "sha": "846def3f089daa14",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-aurora-concert/index.html": {
+   "sha": "2263f48b238c0de9",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-avcd/index.html": {
+   "sha": "ed1ed670622d2a3d",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-babka/index.html": {
+   "sha": "17ed2b690fe6c246",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-balovni-sudby/index.html": {
+   "sha": "b884e58bb31cb6e6",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-bani-yaroslavskom/index.html": {
+   "sha": "308c64ff3a3890ff",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-banschiki/index.html": {
+   "sha": "8a6cd6bf96a84484",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-banya-vodoley/index.html": {
+   "sha": "c2b491c9eefffc39",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-baski-monegaski/index.html": {
+   "sha": "6f2fcba42aa72bd7",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-bdt-tovstonogova/index.html": {
+   "sha": "9a59c7cb6168784a",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-bekitser/index.html": {
+   "sha": "0578fd0541f59d2a",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-bellevue/index.html": {
+   "sha": "9938afec81e9aab4",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-bertgold/index.html": {
+   "sha": "dba78350b2464324",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-big-wine/index.html": {
+   "sha": "ccbcad97aee71b43",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-biografiya/index.html": {
+   "sha": "fb37f449cb0f2fa1",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-bkz-oktyabrskiy/index.html": {
+   "sha": "3d3d937df58ed3c8",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-blackchops/index.html": {
+   "sha": "85b5168b9d166844",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-bolshoy-filarmonii/index.html": {
+   "sha": "9aa856196fc0ecf6",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-botanicheskiy-sad/index.html": {
+   "sha": "4d893e7a7aefb088",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-bourgeois-bohemians/index.html": {
+   "sha": "e9331690701e3aee",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-brasserie-by/index.html": {
+   "sha": "f16430bc54668a47",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-brewmen-taproom/index.html": {
+   "sha": "da02774c17c5a4a9",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-brooms/index.html": {
+   "sha": "e5345036d87bbb99",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-budem-znakomy/index.html": {
+   "sha": "2d8f8a17fecea402",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-bushe/index.html": {
+   "sha": "297e3448f5c749c2",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-buterbrodnaya/index.html": {
+   "sha": "cd9bff6ee81eb8f1",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-caf-claret/index.html": {
+   "sha": "a6a4638fdcc12e05",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-chang/index.html": {
+   "sha": "8fe56a8d814ce257",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-chao-kakao/index.html": {
+   "sha": "431704c109719c81",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-cheshskaya-pivnitsa/index.html": {
+   "sha": "a105eb9c6d9d232a",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-cin-ma/index.html": {
+   "sha": "f1e3980b905ad0f9",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-civil/index.html": {
+   "sha": "878864b7380c5c70",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-colizeum-ligov/index.html": {
+   "sha": "df1f7cef837ab55a",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-colizeum-premium/index.html": {
+   "sha": "ac972a65e21a179f",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-colizeum-premium-petrogradka/index.html": {
+   "sha": "04f6b29c992cd55c",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-colizeum-zagorodnyy/index.html": {
+   "sha": "07246657e64b5ad2",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-commode/index.html": {
+   "sha": "d39f1e64982a806a",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-community-heroes/index.html": {
+   "sha": "30b5d6c313f61a5b",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-cyberx/index.html": {
+   "sha": "480f964e88aecdbd",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-daiquiri/index.html": {
+   "sha": "222219d64291a64c",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-degtyarnye-bani/index.html": {
+   "sha": "3eb9145a04821622",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-dikkens/index.html": {
+   "sha": "154088815c2edcc6",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-divinity-space/index.html": {
+   "sha": "ab3733fbf1783e25",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-dom-kino/index.html": {
+   "sha": "5ce63e9170ae1789",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-dom-knigi/index.html": {
+   "sha": "3a642fc4e9807167",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-duo-asia/index.html": {
+   "sha": "462fe7d14b5c9b90",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-duo-gastrobar/index.html": {
+   "sha": "1af90779039e572f",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-dvorets-menshikova/index.html": {
+   "sha": "00cebd1596077158",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-dvortsovaya-naberezhnaya/index.html": {
+   "sha": "4af55e2f0e5fa0f4",
+   "lastmod": "2026-10-19"
+  },
+  "spb/m/spb-dvortsovaya-ploschad/index.html": {
+   "sha": "b3ad659bfd8f994b",
+   "lastmod": "2026-10-19"
+  },
+  "spb/m/spb-eat-market/index.html": {
+   "sha": "6e260830b8aebfc8",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-eggsellent/index.html": {
+   "sha": "f098847b961fb4e8",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-ekaterininskiy-park/index.html": {
+   "sha": "ea119947f15db222",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-el-copitas/index.html": {
+   "sha": "7849aa08f0602252",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-elagin-ostrov/index.html": {
+   "sha": "b86744112b648903",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-em/index.html": {
+   "sha": "71ac96b79748289f",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-erarta/index.html": {
+   "sha": "264a0eb9b60d9124",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-ermitazh-zimniy/index.html": {
+   "sha": "0d3c00deb49b781c",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-etazh-41/index.html": {
+   "sha": "be76a01f483d8c28",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-f11/index.html": {
+   "sha": "33992aa794196815",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-ferma-benua/index.html": {
+   "sha": "e1053649fe3af672",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-flagshtok/index.html": {
+   "sha": "b38194753a6955b6",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-fobos/index.html": {
+   "sha": "ffb8eff7aedfb70d",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-fonarnye-bani/index.html": {
+   "sha": "def30d81f43036a2",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-frameis/index.html": {
+   "sha": "3f392efebc49808f",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-frantsuza-bistrot/index.html": {
+   "sha": "49603fa8cd6d793c",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-full-focus/index.html": {
+   "sha": "525c0034d288d645",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-galereya-anna/index.html": {
+   "sha": "565cd3c32da5163d",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-galereya-mariny/index.html": {
+   "sha": "3a45de6d8c62519a",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-gazprom-arena/index.html": {
+   "sha": "7b131918e21771a2",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-giallo-bistro/index.html": {
+   "sha": "ff9518b0601957da",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-glavnyy-shtab/index.html": {
+   "sha": "84c92ca0ccaaa6b4",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-golden-strike/index.html": {
+   "sha": "aac95dd3c6227a9a",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-gorkiy/index.html": {
+   "sha": "447358735e8d79d7",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-grand-maket/index.html": {
+   "sha": "504d15f6ce01038f",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-grelka/index.html": {
+   "sha": "e33379e5159da9e7",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-grustnyy-bar/index.html": {
+   "sha": "1fe43eb5caf40658",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-harry-not/index.html": {
+   "sha": "c307a635b1862f2e",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-harvest/index.html": {
+   "sha": "decc854027500c1b",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-hat/index.html": {
+   "sha": "61b386165cdda830",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-hooligans-konyushennoy/index.html": {
+   "sha": "eb8c4eb7531ffd4a",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-hooligans-sadovoy/index.html": {
+   "sha": "f810c27a3d708bbb",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-inner/index.html": {
+   "sha": "ceca47c7a4c8b386",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-isaakievskiy-sobor/index.html": {
+   "sha": "0794d86ba82b31eb",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-jerome/index.html": {
+   "sha": "a7c313877c4bda02",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-kafe-benua/index.html": {
+   "sha": "d150d5f3c5532de3",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-kafe-khlebozavode/index.html": {
+   "sha": "41b365cad9f29942",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-kamyshi/index.html": {
+   "sha": "773c1c33f590f8fe",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-kapella/index.html": {
+   "sha": "bfe5e9ee9a46ef24",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-kazachi-bani/index.html": {
+   "sha": "ebd1eaeafbc62b45",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-kgallery/index.html": {
+   "sha": "cabf2f4105574a0a",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-khorovod/index.html": {
+   "sha": "6a31bac1d216c6b0",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-khroniki/index.html": {
+   "sha": "6bb33b5bb630e675",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-kiberprayd/index.html": {
+   "sha": "2a5105ffd895bc02",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-kibersporta/index.html": {
+   "sha": "ff787eb886e823f0",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-kiks-marata/index.html": {
+   "sha": "6d37720ae4237cc4",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-kiks-petrogradke/index.html": {
+   "sha": "6bcede0ae8991cec",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-kinoteatr-avrora/index.html": {
+   "sha": "f670f4887a0fa866",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-kinoteatr-lenfilm/index.html": {
+   "sha": "b7414687537fdb73",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-knizhnaya-lavka/index.html": {
+   "sha": "8c6188d2a3440cab",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-knizhnyy-garazh/index.html": {
+   "sha": "ee3836f47a8c38c1",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-kofeynoe/index.html": {
+   "sha": "622b84126e4726b8",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-kofeynya-barnogo/index.html": {
+   "sha": "10ab1a4e1432959d",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-kolomna-semimoste/index.html": {
+   "sha": "9539ebf0e6e9a102",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-kolonnada-isaakievskogo/index.html": {
+   "sha": "1f6cb065abaf43be",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-kona/index.html": {
+   "sha": "0a799cef470f0683",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-konets-prekrasnoy/index.html": {
+   "sha": "ac3667b50bec1117",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-konstantinovskiy-park/index.html": {
+   "sha": "2a5b4242215453fa",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-kontsertnyy-finlyandskogo/index.html": {
+   "sha": "f7e7c17d0584d461",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-kontsertnyy-mariinskogo/index.html": {
+   "sha": "9da54763849200bf",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-korpus-benua/index.html": {
+   "sha": "ee65580c3472b8bd",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-kriek-italyanskoy/index.html": {
+   "sha": "a7bbfbc17822f88c",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-kronshtadt-yakornaya/index.html": {
+   "sha": "f9128044122ff4f4",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-kruchenykh/index.html": {
+   "sha": "f1c9a9368a821f6d",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-kruglye-bani/index.html": {
+   "sha": "ca01cbb471e32e4f",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-kulturnyy-kvartal/index.html": {
+   "sha": "0f63f33cfceb0b83",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-kunstkamera/index.html": {
+   "sha": "3b9eed00288b755f",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-kusatsu/index.html": {
+   "sha": "9e675e541a13673b",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-kuznechnyy-rynok/index.html": {
+   "sha": "8c0d6f9838154bea",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-kuznya-house/index.html": {
+   "sha": "d6ae6827c766888a",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-kwakinn/index.html": {
+   "sha": "454fca9ec05cfce8",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-lakhta-obzornaya/index.html": {
+   "sha": "2052e5543c0452be",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-lakhtinskie-bani/index.html": {
+   "sha": "2eff99e1516492bf",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-larisy/index.html": {
+   "sha": "4b18e4c91d72d613",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-lavraki-bistro/index.html": {
+   "sha": "15582932fbeb7339",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-ledokol-krasin/index.html": {
+   "sha": "c7b2a599968936d6",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-leningradskiy-zoopark/index.html": {
+   "sha": "a9bbb9e0d408453c",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-letniy-sad/index.html": {
+   "sha": "1be87f91a46cf084",
+   "lastmod": "2026-10-19"
+  },
+  "spb/m/spb-limb/index.html": {
+   "sha": "5593ead3697bf1ec",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-literaturno-memorialnyy/index.html": {
+   "sha": "6960961c17f0aafe",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-literaturnoe-kafe/index.html": {
+   "sha": "a00ae7e780fe44e1",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-loft-proekt/index.html": {
+   "sha": "4b0156e60340418c",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-mad-espresso/index.html": {
+   "sha": "53df23d603fc6246",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-malaya-konyushennaya/index.html": {
+   "sha": "7075bca8f515b19e",
+   "lastmod": "2026-10-19"
+  },
+  "spb/m/spb-malyy-filarmonii/index.html": {
+   "sha": "04e56f7ae3c57161",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-mama-tata/index.html": {
+   "sha": "3c0dacef291df3c3",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-manezh/index.html": {
+   "sha": "658adb8ca4844158",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-manneken-pis/index.html": {
+   "sha": "fd292818754ae5c8",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-mansarda/index.html": {
+   "sha": "5a87618b9f8da135",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-mariinskiy-2/index.html": {
+   "sha": "56a3fee2fc98d876",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-mariinskiy-teatr/index.html": {
+   "sha": "f88f3b27bfe1ebcd",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-marsovo-pole/index.html": {
+   "sha": "66c37f1573f98b10",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-masharabi/index.html": {
+   "sha": "68a12d96f78fb756",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-mazapark-baykonurskoy/index.html": {
+   "sha": "0f0937842879dcdf",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-mazapark-bukharestskoy/index.html": {
+   "sha": "548875f27e0149c7",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-mdt-teatr/index.html": {
+   "sha": "2c0f727db839018a",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-meal/index.html": {
+   "sha": "9957651cde960de2",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-mechtateli/index.html": {
+   "sha": "6d56bfb3303f456b",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-megumi/index.html": {
+   "sha": "6a7c80858831d7c6",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-mer-kaffe/index.html": {
+   "sha": "d351b378c43053f0",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-mere/index.html": {
+   "sha": "7bca5b950f11e8c2",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-mich-le/index.html": {
+   "sha": "c97cc9c2765a1687",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-mikhaylovskiy-inzhenernyy/index.html": {
+   "sha": "3f8149ad08b73201",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-mikhaylovskiy-teatr/index.html": {
+   "sha": "879fd3d898289d60",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-mindal-cafe/index.html": {
+   "sha": "129e64fbb41c5f7a",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-mir-vr/index.html": {
+   "sha": "e0fac98d23b69fb0",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-misp-muzey/index.html": {
+   "sha": "6e5a87d0fba2b83b",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-mntn-coffee/index.html": {
+   "sha": "665ee3226cc2bae0",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-mollie-irish/index.html": {
+   "sha": "0dc1d1b741f95016",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-molodezhnyy-teatr/index.html": {
+   "sha": "99aac51844a1b419",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-monterey/index.html": {
+   "sha": "faedb987ed6b7e07",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-moskovskiy-park/index.html": {
+   "sha": "aa41bb246129c273",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-moskovskiy-rynok/index.html": {
+   "sha": "e3ae213fe2038c9c",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-moskva/index.html": {
+   "sha": "a37a4a330b326f60",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-mramornyy-dvorets/index.html": {
+   "sha": "15238560178dd9c2",
+   "lastmod": "2026-10-19"
+  },
+  "spb/m/spb-murmanchane/index.html": {
+   "sha": "abfa5149787733ae",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-must/index.html": {
+   "sha": "681c96cb5fe262b2",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-muzey-akademii/index.html": {
+   "sha": "446490565c07adbd",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-muzey-anny/index.html": {
+   "sha": "168a9a4bfcb2e0bf",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-muzey-arktiki/index.html": {
+   "sha": "6b2ebcc68304bc2b",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-muzey-brodskogo/index.html": {
+   "sha": "6891f06217e8c8c4",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-muzey-dovlatova/index.html": {
+   "sha": "3291a38b43676cbb",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-muzey-faberzhe/index.html": {
+   "sha": "02a117932b91ab1c",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-muzey-kvartira/index.html": {
+   "sha": "d2604da039ccd88c",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-muzey-kvartira-kuindzhi/index.html": {
+   "sha": "06b143097f7dca69",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-muzey-nabokova/index.html": {
+   "sha": "faa061e214bae9ae",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-muzey-oberiu/index.html": {
+   "sha": "b00d68aebc86a636",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-muzey-politicheskoy/index.html": {
+   "sha": "3cdd0e2fdc0a1a1d",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-muzey-shtiglitsa/index.html": {
+   "sha": "4bb5046448f9518d",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-muzey-sovetskikh/index.html": {
+   "sha": "9a509e223e009eac",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-muzey-usadba/index.html": {
+   "sha": "08f18ddd6a380730",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-muzey-zheleznykh/index.html": {
+   "sha": "08490758b6914694",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-mytninskie-bani/index.html": {
+   "sha": "cbe299adb7856070",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-n7-omega/index.html": {
+   "sha": "1b00b48146ef1ece",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-naberezhnaya-kanala/index.html": {
+   "sha": "4c82ef5f6cf33185",
+   "lastmod": "2026-10-19"
+  },
+  "spb/m/spb-naberezhnaya-reki/index.html": {
+   "sha": "ccb404fd17ea7e9c",
+   "lastmod": "2026-10-19"
+  },
+  "spb/m/spb-navysote/index.html": {
+   "sha": "371a8a65c622ee07",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-neolit/index.html": {
+   "sha": "f9247ebd38688788",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-nerede/index.html": {
+   "sha": "817f495d64c68d10",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-nevskiy-prospekt/index.html": {
+   "sha": "0aa89c2c33bf6352",
+   "lastmod": "2026-10-19"
+  },
+  "spb/m/spb-nil-deli/index.html": {
+   "sha": "45d74c4918b64dc3",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-nizhniy-park/index.html": {
+   "sha": "3cf79cae93384595",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-nogam-dorogu/index.html": {
+   "sha": "2fe9dc145730a8ed",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-novaya-gollandiya/index.html": {
+   "sha": "e9a242e9a4f94a4e",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-novaya-stsena/index.html": {
+   "sha": "826ddc62025aa91b",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-oggi-bistro/index.html": {
+   "sha": "97fa09c252f82666",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-oha/index.html": {
+   "sha": "e2c43f17d53e2a3b",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-okeanarium-planeta/index.html": {
+   "sha": "17a1020ac814bc20",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-ontap/index.html": {
+   "sha": "6f2c4c817c82b743",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-oranienbaum/index.html": {
+   "sha": "d2fdcbbba07a7b59",
+   "lastmod": "2026-10-19"
+  },
+  "spb/m/spb-orthodox/index.html": {
+   "sha": "6d2648817f2d76f8",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-ostrov-fortov/index.html": {
+   "sha": "e3fab25dfd25d7c3",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-otium/index.html": {
+   "sha": "270e6f46781aab60",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-oy/index.html": {
+   "sha": "5b2c6dca0cbc923b",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-padel-klub/index.html": {
+   "sha": "60a8e05c927da5a2",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-palkin/index.html": {
+   "sha": "9d9daada01a87d2c",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-papasha-klauss/index.html": {
+   "sha": "0c9e25574091762d",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-paradoks/index.html": {
+   "sha": "3ea493c2d29a381c",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-park-300/index.html": {
+   "sha": "5dc574d6407d371c",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-park-aleksandriya/index.html": {
+   "sha": "1e37add7a9824bd4",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-park-aviatorov/index.html": {
+   "sha": "12cca54ccae203f3",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-park-dubki/index.html": {
+   "sha": "b5c8ea6d399f364e",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-park-ekateringof/index.html": {
+   "sha": "3e9ec1b81aaba8a3",
+   "lastmod": "2026-10-19"
+  },
+  "spb/m/spb-park-lesotekhnicheskogo/index.html": {
+   "sha": "d04a711173095510",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-park-sosnovka/index.html": {
+   "sha": "d4798b038ca0c276",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-pavlovskiy-park/index.html": {
+   "sha": "e552c1e0d23ee2ff",
+   "lastmod": "2026-10-19"
+  },
+  "spb/m/spb-penka/index.html": {
+   "sha": "2e2f3c808b97da73",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-peremena/index.html": {
+   "sha": "ed848c385f732cad",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-peterburg-opera/index.html": {
+   "sha": "b901810e56c6c08d",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-petrikirkhe/index.html": {
+   "sha": "a0fecda8b1b662dd",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-petropavlovskaya-krepost/index.html": {
+   "sha": "3d380587d8c12b5d",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-pischa-dinastii/index.html": {
+   "sha": "4b12cead00e0dc93",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-piterparty-marata/index.html": {
+   "sha": "4fd44759572aa30e",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-pkhalikhinkali/index.html": {
+   "sha": "516ef692ae959422",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-planetariy/index.html": {
+   "sha": "6dbb5ba78224a747",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-planetariy-1/index.html": {
+   "sha": "a25c6a382126b4ec",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-plump/index.html": {
+   "sha": "42a57fb6b88b47b0",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-plyaski/index.html": {
+   "sha": "19fe8f620bd4500c",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-podpisnye-izdaniya/index.html": {
+   "sha": "aff725d91544f133",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-poltory-komnaty/index.html": {
+   "sha": "3f7426cd998aabd0",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-poryadok-slov/index.html": {
+   "sha": "b4ebcc8da92bffb2",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-prichal-anichkov/index.html": {
+   "sha": "c5bac34d1ae3dab3",
+   "lastmod": "2026-10-19"
+  },
+  "spb/m/spb-primorskie-bani/index.html": {
+   "sha": "d81f7f18a4f37880",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-primorskiy-park/index.html": {
+   "sha": "ee16edd0a3fc1644",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-priyut-komedianta/index.html": {
+   "sha": "a0a70bc267d13ff2",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-probka/index.html": {
+   "sha": "161bc937eeb456bb",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-prostovino/index.html": {
+   "sha": "4950f08fbc5ae823",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-puberty/index.html": {
+   "sha": "3dabdca76966076b",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-pyshechnaya/index.html": {
+   "sha": "6a2c9f44bfc9cce7",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-raketka/index.html": {
+   "sha": "55781bbd89def701",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-red-corner/index.html": {
+   "sha": "c00be795632b4a24",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-redrum/index.html": {
+   "sha": "20278c5f4e554039",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-rid/index.html": {
+   "sha": "bb8f5d83057c22b6",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-ring-bells/index.html": {
+   "sha": "d8bba351d4b2b289",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-ritmy/index.html": {
+   "sha": "c163ec5731335a86",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-rosfoto/index.html": {
+   "sha": "ea68bb5ae64d9680",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-ruc-heaven/index.html": {
+   "sha": "f3ef9c7776a3f93a",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-russkaya-rybalka/index.html": {
+   "sha": "3157a52a69f5f82e",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-russkaya-ryumochnaya/index.html": {
+   "sha": "f8522b87c912777b",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-russkiy-muzey/index.html": {
+   "sha": "ceebcef06acd37eb",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-salone-pasta/index.html": {
+   "sha": "fe2ebaab4abb01df",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-saviv/index.html": {
+   "sha": "f893c209b3baa5db",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-self-edge/index.html": {
+   "sha": "a5a3c7ceb0ddedf8",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-self-edge-japanese/index.html": {
+   "sha": "c4b76ab3b52821b8",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-senatskaya-ploschad/index.html": {
+   "sha": "5a08ea9228987703",
+   "lastmod": "2026-10-19"
+  },
+  "spb/m/spb-severnaya-stena/index.html": {
+   "sha": "3a4c0ccbb052b65e",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-severyanin/index.html": {
+   "sha": "b1276b3f9d0e5678",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-sevkabel-port/index.html": {
+   "sha": "78a21adab506a2c5",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-seyf-coffee/index.html": {
+   "sha": "8a3a06b3650ecbff",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-shamrock/index.html": {
+   "sha": "3b53597f0fcac6ac",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-sheremetevskiy-dvorets/index.html": {
+   "sha": "6f7acf959cd6625d",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-shuvalovskiy-park/index.html": {
+   "sha": "1370bfcad9f44bb5",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-sibaristica/index.html": {
+   "sha": "771d2e88c306d7f3",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-siberia/index.html": {
+   "sha": "dc023ade6f4a5412",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-siniy-pushkin/index.html": {
+   "sha": "b0602a00e0bafbbc",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-ska-arena/index.html": {
+   "sha": "259240331f85e629",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-smoke-bbq/index.html": {
+   "sha": "7ac91edd71216ff5",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-solids/index.html": {
+   "sha": "0ed7df7d8688e09a",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-sovremennik/index.html": {
+   "sha": "73ecac712509d3fe",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-sovremennogo-iskusstva/index.html": {
+   "sha": "40f65ef0dbc5620d",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-spas-krovi/index.html": {
+   "sha": "d88d7de4763c7eff",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-spletni-by/index.html": {
+   "sha": "2e70de5d56d7f096",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-stage-standup/index.html": {
+   "sha": "856830e08bb2da28",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-stendap-klub/index.html": {
+   "sha": "832f71999216f92a",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-stendap-klub-belinskogo/index.html": {
+   "sha": "c6ebfbc36abfb2f8",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-strelka-vasilevskogo/index.html": {
+   "sha": "b81d4bf1f921e18a",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-strit-art/index.html": {
+   "sha": "1413c4a5f3b25a03",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-stroganovskiy-dvorets/index.html": {
+   "sha": "61fe55cbddaf3919",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-svet-cafe/index.html": {
+   "sha": "f255c9be181c8eaa",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-svidane/index.html": {
+   "sha": "5934614245ec6aa4",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-sytnyy-rynok/index.html": {
+   "sha": "3982f45e8159bc6f",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-tantsploschadka/index.html": {
+   "sha": "1ee4a7a1a01272b2",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-tavricheskiy-sad/index.html": {
+   "sha": "474dc10ed139efb9",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-tchk/index.html": {
+   "sha": "32d6ec56b2befc2e",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-teatr-akademii/index.html": {
+   "sha": "1b30643fd216066a",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-teatr-estrady/index.html": {
+   "sha": "02564ae60a613f07",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-teatr-festival/index.html": {
+   "sha": "5be7e1eda8925658",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-teatr-komedii/index.html": {
+   "sha": "6b28df26f70cadf7",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-teatr-komissarzhevskoy/index.html": {
+   "sha": "67eefef40db14939",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-teatr-lensoveta/index.html": {
+   "sha": "39ed4bd0785bb090",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-teatr-liteynom/index.html": {
+   "sha": "9fa2d7f88562e021",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-teatr-masterskaya/index.html": {
+   "sha": "2df8c207b073ecdc",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-teatr-muzykalnoy/index.html": {
+   "sha": "6b3b11236d588e37",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-teatr-osobnyak/index.html": {
+   "sha": "f1f5c0db1418e292",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-teatr-subbota/index.html": {
+   "sha": "0d3dba41b85241f7",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-teatr-zazerkale/index.html": {
+   "sha": "c567a64c1b95a44c",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-tekstura/index.html": {
+   "sha": "46c0196fc5f4c7d0",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-teplo/index.html": {
+   "sha": "0a4f21551c8f7b59",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-terrassa/index.html": {
+   "sha": "31e45c73bab333b5",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-tishine/index.html": {
+   "sha": "5d6f9836718fb524",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-tolstyy-fraer/index.html": {
+   "sha": "f4383991bbf1905b",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-tolstyy-fraer-vasilevskom/index.html": {
+   "sha": "7ae99f0c53993a17",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-tron-kiber/index.html": {
+   "sha": "6f123666708e5f37",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-trubocheriya/index.html": {
+   "sha": "bc2a76a49927ac48",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-tsentralnyy-voenno/index.html": {
+   "sha": "b8a7b3f3a4dd5a06",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-tsiferblat-moyke/index.html": {
+   "sha": "844b0dc60c1c0d46",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-tsirk-fontanke/index.html": {
+   "sha": "1fb3f42a6fe1e5ca",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-tyuz-bryantseva/index.html": {
+   "sha": "23cd1a67a05e1117",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-udelnyy-park/index.html": {
+   "sha": "148571dd77e31833",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-ulitsa-zodchego/index.html": {
+   "sha": "70041470d0122a44",
+   "lastmod": "2026-10-19"
+  },
+  "spb/m/spb-union/index.html": {
+   "sha": "803e990517cd470f",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-universitetskaya-naberezhnaya/index.html": {
+   "sha": "8f1491835cebd2b1",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-upsala-tsirk/index.html": {
+   "sha": "75c7c7d9d19dc75c",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-usachevskie-bani/index.html": {
+   "sha": "de7380cb1cd4b1e3",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-varshtayner-forum/index.html": {
+   "sha": "a5f71567f737f765",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-vasileostrovskie-bani/index.html": {
+   "sha": "8aae18276100e79c",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-vasileostrovskiy-rynok/index.html": {
+   "sha": "d155d659c6f971f6",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-vchera-navsegda/index.html": {
+   "sha": "853fffaff4d14d7d",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-vo-ves/index.html": {
+   "sha": "d5dfb8ca69ed233d",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-voskresenskaya-naberezhnaya/index.html": {
+   "sha": "aa37fc232bee086c",
+   "lastmod": "2026-10-19"
+  },
+  "spb/m/spb-vse-svobodny/index.html": {
+   "sha": "cf2b4c4809cec046",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-vzaperti-kazanskoy/index.html": {
+   "sha": "e4373dc27165e8cf",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-vzaperti-solyanom/index.html": {
+   "sha": "df02e60075fa477f",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-wall/index.html": {
+   "sha": "95c87dbf06b35bc3",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-we-want/index.html": {
+   "sha": "a21d36f29dcde593",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-xander/index.html": {
+   "sha": "04b72af7b12f9da0",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-xarena/index.html": {
+   "sha": "81afe597cb5633aa",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-yaani-kirik/index.html": {
+   "sha": "a8818347238fe4fa",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-yamskie-bani/index.html": {
+   "sha": "36aec16a83eb342c",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-yarumen/index.html": {
+   "sha": "b4e9c8fd393221b5",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-yotunkheym/index.html": {
+   "sha": "cbf5245adee962d4",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-yusupovskiy-dvorets/index.html": {
+   "sha": "129931981ca1f476",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-yusupovskiy-sad/index.html": {
+   "sha": "65f8c09db0078ab9",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-zaytsy/index.html": {
+   "sha": "32a9973eb5fb7fde",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-zelenye-lyudi/index.html": {
+   "sha": "43456d52a211b7b7",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-zoologicheskiy-muzey/index.html": {
+   "sha": "c9742a98be2c2230",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/spb-zvonnitsa-smolnogo/index.html": {
+   "sha": "c1c7054df711bddd",
+   "lastmod": "2026-10-20"
+  },
+  "spb/m/index.html": {
+   "sha": "911177172926dec8",
+   "lastmod": "2026-10-19"
+  },
+  "spb/podborki/bani/index.html": {
+   "sha": "0bf95b0f215a5611",
+   "lastmod": "2026-10-19"
+  },
+  "spb/podborki/uzhin/index.html": {
+   "sha": "859c38ebdf13fa74",
+   "lastmod": "2026-10-19"
+  },
+  "spb/podborki/muzei/index.html": {
+   "sha": "279c3acd934f6821",
+   "lastmod": "2026-10-19"
+  },
+  "spb/podborki/knizhnye/index.html": {
+   "sha": "2f654018308ad7a4",
+   "lastmod": "2026-10-19"
+  },
+  "spb/podborki/pervoe/index.html": {
+   "sha": "fe4c91ff09807403",
+   "lastmod": "2026-10-19"
+  },
+  "spb/podborki/petrogradka/index.html": {
+   "sha": "f83645c68d5795ca",
+   "lastmod": "2026-10-19"
+  },
+  "spb/podborki/vasilevskiy/index.html": {
+   "sha": "088e9618d1a9b675",
+   "lastmod": "2026-10-19"
+  },
+  "spb/podborki/dozhd/index.html": {
+   "sha": "9222cbe973464db7",
+   "lastmod": "2026-10-19"
+  },
+  "spb/podborki/bary/index.html": {
+   "sha": "a493067eb00c3173",
+   "lastmod": "2026-10-19"
+  },
+  "spb/podborki/mosty/index.html": {
+   "sha": "5d8352a82771a95f",
+   "lastmod": "2026-10-19"
+  },
+  "spb/podborki/kompy/index.html": {
+   "sha": "ca27205207bcf17e",
+   "lastmod": "2026-10-19"
+  },
+  "spb/podborki/halloween/index.html": {
+   "sha": "d1304211c5d2c07a",
+   "lastmod": "2026-10-19"
+  },
+  "spb/podborki/prigorody/index.html": {
+   "sha": "74681d2a8fe080c7",
+   "lastmod": "2026-10-19"
+  },
+  "spb/podborki/vyhodnye/index.html": {
+   "sha": "b80d64727457e2e6",
+   "lastmod": "2026-10-19"
+  },
+  "spb/podborki/index.html": {
+   "sha": "22916166fb1f15bd",
+   "lastmod": "2026-10-19"
+  }
+ }
+}

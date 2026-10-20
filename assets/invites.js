@@ -78,6 +78,25 @@
     return (window.KUDA_EVENTS || []).find(e => e && e.id === id) || null;
   }
 
+  /* ---------- город ----------
+     Город приглашения — у мест и событий в нём (id spb-…, ev-spb-… или поле city): из истории (create.js пишет city)
+     или по первому пункту из каталога. Без мест из каталога города нет. */
+  const okCity = c => !!c && typeof c === 'string' && !!K.CITIES && Object.prototype.hasOwnProperty.call(K.CITIES, c);
+  const cityOf = x => (typeof K.cityOf === 'function' ? K.cityOf(x) : 'msk');
+  function invCity(x, inv) {
+    if (okCity(x && x.city)) return x.city;
+    if (!inv) return '';
+    const ids = [inv.event].concat((Array.isArray(inv.places) ? inv.places : []).map(p => p && p.plan),
+      (Array.isArray(inv.opts) ? inv.opts : []).map(o => o && (o.plan || o.event)));
+    const id = ids.find(v => typeof v === 'string' && v);
+    return id ? cityOf(id) : '';
+  }
+  /* Город в конце адреса для календаря — только не московский (в московских адресах бывают города области) */
+  const locCity = (x, addr) => {
+    const c = K.CITIES && K.CITIES[cityOf(x)];
+    return c && c.id !== 'msk' && String(addr || '').indexOf(c.addr) < 0 ? c.addr : '';
+  };
+
   /* ---------- история и голоса ---------- */
   function histList() { const l = readJson(HIST, []); return Array.isArray(l) ? l.filter(x => x && (x.code || x.link)) : []; }
   const saveHist = list => ls.set(HIST, JSON.stringify(list.slice(0, MAX)));
@@ -105,6 +124,9 @@
       id: v.id, n: String(v.n || '?').slice(0, 30), y: v.y ? 1 : 0,
       o: (Array.isArray(v.o) ? v.o : []).filter(Number.isInteger).slice(0, 20),
       d: (Array.isArray(v.d) ? v.d : []).filter(Number.isInteger).slice(0, 60),
+      s: (Array.isArray(v.s) ? v.s : []).filter(Number.isInteger).slice(0, 4),
+      m: (Array.isArray(v.m) ? v.m : []).filter(Number.isInteger).slice(0, 60),
+      p: Number.isInteger(v.p) && v.p > 0 && v.p <= 9 ? v.p : 0,
       t: +v.t || 0,
     })).sort((a, b) => a.t - b.t).slice(-60);
   }
@@ -157,7 +179,7 @@
       const prev = old.get(code) || {};
       // ссылка из истории — только обычная http(s); иначе собираем заново по коду
       const link = /^https?:\/\/[^\s"'<>]+$/.test(x.link || '') ? x.link : K.sitePath('index.html').replace(/index\.html$/, '') + '#' + code;
-      const it = Object.assign(prev, { x, code, inv, mode, group, title, link, who: inv && inv.who === 'm' ? 'm' : 'f' });
+      const it = Object.assign(prev, { x, code, inv, mode, group, title, link, who: inv && inv.who === 'm' ? 'm' : 'f', city: invCity(x, inv) });
       it.vsuf = group ? await votesSuffix(code) : '';
       return it;
     }));
@@ -213,8 +235,8 @@
     const when = day ? dayShort(day) : a.dateOther ? `«${a.dateOther}»` : '';
     const food = Array.isArray(a.food) ? (a.food.length ? a.food.map(f => (typeof f === 'string' ? f : [f.emoji, f.title].filter(Boolean).join(' '))).filter(Boolean).join(', ') : 'выбираешь ты') : '';
     let loc = '';
-    if (ev) loc = [ev.venue, ev.addr].filter(Boolean).join(', ');
-    else if (plan) { const st = K.planStops(plan)[0]; if (st) loc = [st.name, st.addr].filter(Boolean).join(', '); }
+    if (ev) loc = [ev.venue, ev.addr, locCity(ev, ev.addr)].filter(Boolean).join(', ');
+    else if (plan) { const st = K.planStops(plan)[0]; if (st) loc = [st.name, st.addr, locCity(st, st.addr)].filter(Boolean).join(', '); }
     const time = a.time || (ev && ev.time) || '';
     const rest = [place, when, time].filter(Boolean).join(', ');
     // время после полуночи (окно «22:00–02:00») — в календарь уже следующий день
@@ -258,8 +280,15 @@
     const nOpt = it.inv && Array.isArray(it.inv.opts) ? it.inv.opts.length : 100;
     yes.forEach(v => {
       new Set(Array.isArray(v.o) ? v.o : []).forEach(i => { if (Number.isInteger(i) && i >= 0 && i < nOpt) cnt.set(i, (cnt.get(i) || 0) + 1); });
-      new Set(Array.isArray(v.d) ? v.d : []).forEach(d => { if (d >= today) days.set(d, (days.get(d) || 0) + 1); });
+      const dd = new Set(Array.isArray(v.d) ? v.d : []);
+      dd.forEach(d => { if (d >= today) days.set(d, (days.get(d) || 0) + 1); });
+      // «может быть» — полголоса, как в игре
+      new Set(Array.isArray(v.m) ? v.m : []).forEach(d => { if (d >= today && !dd.has(d)) days.set(d, (days.get(d) || 0) + 0.5); });
     });
+    const SL = slotsOf(it), sc = SL.map((tm, i) => yes.filter(v => Array.isArray(v.s) && v.s.includes(i)).length);
+    const sTop = Math.max(0, ...sc);
+    const time = SL.length === 1 ? SL[0] : sTop ? `${SL[sc.indexOf(sTop)]} (${sTop})` : '';
+    const plus = yes.reduce((n, v) => n + (Number.isInteger(v.p) && v.p > 0 ? Math.min(9, v.p) : 0), 0);
     const top = Math.max(0, ...cnt.values());
     const lead = top ? Array.from(cnt.keys()).filter(i => cnt.get(i) === top).sort((a, b) => a - b) : [];
     let text = '';
@@ -270,13 +299,33 @@
     else if (lead.length > 2) text = `ничья из ${lead.length} вариантов`;
     const dTop = Math.max(0, ...days.values());
     const day = dTop ? Array.from(days.keys()).filter(d => days.get(d) === dTop).sort((a, b) => a - b)[0] : null;
-    return { text, day: day != null ? dayShort(K.numDay(day)) : '', out: votes.length - yes.length };
+    return { text, day: day != null ? dayShort(K.numDay(day)) : '', out: votes.length - yes.length, time, yes: yes.length, plus };
   }
+  /* ---------- компания: время и срок ---------- */
+  const slotsOf = it => (it.inv && Array.isArray(it.inv.slots) ? it.inv.slots : []).filter(x => /^([01]\d|2[0-3]):[0-5]\d$/.test(x)).slice(0, 4);
+  /* дедлайн в минутах эпохи: из ссылки, из истории или с сервера («Закрыть сейчас») — самый ранний */
+  function untilOf(it) {
+    const u = [it.inv && it.inv.until, it.x && it.x.until, (S[it.code] || {}).until].filter(x => Number.isInteger(x) && x > 0);
+    return u.length ? Math.min(...u) : 0;
+  }
+  function untilText(min) {
+    const d = new Date(min * 60000 + 3 * 3600e3);   // по Москве
+    return `${WD[d.getUTCDay()]} ${d.getUTCDate()} ${MON[d.getUTCMonth()]} в ${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`;
+  }
+  function deadlinePill(it) {
+    const u = untilOf(it);
+    if (!u) return '';
+    const left = u * 60000 - Date.now();
+    if (left <= 0) return '<span class="pill">🔒 Голосование закрыто</span>';
+    return `<span class="pill acc">⏳ До ${esc(untilText(u))} · осталось ${K.leftText ? K.leftText(left) : Math.ceil(left / 60000) + ' мин'}</span>`;
+  }
+  /* «Закрыть сейчас» — организатору, пока голосование открыто (сервер сам проверит ключ владельца) */
+  const canClose = it => !!(it.group && API() && S[it.code]) && (!untilOf(it) || untilOf(it) * 60000 > Date.now());
   function statusHtml(it) {
     if (!API()) {
       if (!it.group) return '';
-      return myVote(it.code) ? '<span class="pill ok">✓ Твой голос в ссылке</span>'
-        : '<span class="pill warn">Твоего голоса ещё нет</span><p>Нажми «Открыть» и отметься — твой голос попадёт в ссылку. Потом скопируй её здесь и отправь в чат заново, иначе друзья его не увидят.</p>';
+      return deadlinePill(it) + (myVote(it.code) ? '<span class="pill ok">✓ Твой голос в ссылке</span>'
+        : '<span class="pill warn">Твоего голоса ещё нет</span><p>Нажми «Открыть» и отметься — твой голос попадёт в ссылку. Потом скопируй её здесь и отправь в чат заново, иначе друзья его не увидят.</p>');
     }
     const s = S[it.code];
     if (s === undefined) return `<span class="pill">${srvErr ? 'Статус не загрузился — попробуем ещё раз' : 'Загружаю статус…'}</span>`;
@@ -287,12 +336,17 @@
     if (it.group) out.push(opened ? `<span class="pill ok">Открыли ✓${opened > 1 ? ` · ${opened} ${plural(opened, 'человек', 'человека', 'человек')}` : ''}</span>` : '<span class="pill">Ещё не открыли</span>');
     else if (!s.answer) out.push(opened ? `<span class="pill ok">${GF(it, 'Открыла', 'Открыл')} ✓${s.firstOpen ? ' · ' + esc(whenText(s.firstOpen)) : ''}</span>` : '<span class="pill">Ещё не открыли</span>');
     if (it.group) {
+      const dl = deadlinePill(it);
+      if (dl) out.push(dl);
+      if (canClose(it)) out.push('<button class="btn sm inv-close" type="button" data-a="close">🔒 Закрыть сейчас</button>');
       const n = +s.votes || 0;
       if (!n) out.push('<span class="pill">Пока никто не проголосовал</span>');
       else {
         const L = Array.isArray(it.votes) ? leaderOf(it) : null;
         out.push(`<span class="pill acc">Голосов: ${n}${L && L.text ? ', ' + esc(L.text) : ''}</span>`);
         if (L && L.day) out.push(`<span class="pill">Удобнее всего: ${esc(L.day)}</span>`);
+        if (L && L.time) out.push(`<span class="pill">Во сколько: ${esc(L.time)}</span>`);
+        if (L && L.plus) out.push(`<span class="pill">Идут ${L.yes} + ${L.plus} ${plural(L.plus, 'гость', 'гостя', 'гостей')}</span>`);
         if (L && L.out) out.push(`<span class="pill">Не смогут: ${L.out}</span>`);
       }
       if (!myVote(it.code)) out.push('<p>Твоего голоса в этом браузере ещё нет — нажми «Открыть» и отметься.</p>');
@@ -310,11 +364,14 @@
 
   /* ---------- разметка ---------- */
   const cardId = code => 'inv-' + K.hash(code);
+  const multiCity = () => new Set(items.map(it => (okCity(it.city) ? it.city : 'msk'))).size > 1;
   function card(it) {
     const MC = K.MODES[it.mode] || K.MODES.date;
     const ev = !it.group && it.inv && it.inv.event ? evById(it.inv.event) : null;
     const opts = it.group && it.inv ? (it.inv.opts || []).length : 0;
-    const sub = [it.group ? MC.label : 'Свидание', created(it.x.at)].filter(Boolean).join(' · ') +
+    // город подписываем, если приглашения в разных городах или город не Москва
+    const city = okCity(it.city) && (it.city !== 'msk' || multiCity()) ? K.CITIES[it.city].name : '';
+    const sub = [it.group ? MC.label : 'Свидание', city, created(it.x.at)].filter(Boolean).join(' · ') +
       (opts ? ` · ${opts} ${plural(opts, 'вариант', 'варианта', 'вариантов')}` : '');
     const id = cardId(it.code);
     return `<article class="inv" data-mode="${esc(it.mode)}" data-code="${esc(it.code)}" id="${id}" aria-labelledby="${id}-t">
@@ -329,7 +386,7 @@
         <button class="btn" type="button" data-a="share">${K.icon('share')}Поделиться</button>
         <a class="btn" data-a="open" href="${esc(openOf(it))}" target="_blank" rel="noopener"${it.group ? '' : ' title="Превью: ничего не сохраняется и не отправляется"'}>${K.icon(it.group ? 'ext' : 'eye')}${it.group ? 'Открыть' : 'Посмотреть'}</a>
         ${it.group ? `<a class="btn" data-a="res" href="${esc(longOf(it) + '&r=1')}" target="_blank" rel="noopener">Итоги</a>` : ''}
-        <a class="btn" href="create.html#from=${esc(it.code)}">${K.icon('pen')}В конструктор</a>
+        <a class="btn" href="create.html#again=${esc(it.code)}" title="Тот же состав, даты на неделю позже">${K.icon('pen')}Собрать снова</a>
       </div>
     </article>`;
   }
@@ -543,6 +600,17 @@
         navigator.share({ title: text, text, url }).catch(err => { if (!err || err.name !== 'AbortError') copyText(url).then(ok => toast(ok ? 'Ссылка скопирована' : 'Не получилось поделиться')); });
       } else copyText(url).then(ok => toast(ok ? 'Ссылка скопирована' : 'Не получилось скопировать'));
     } else if (a === 'ics' || a === 'gcal') calendar(it, a);
+    else if (a === 'close') {
+      if (!confirm(`Закрыть голосование «${it.title}»? Новые голоса не примем, итог станет окончательным.`)) return;
+      b.disabled = true;
+      API().closeVote(it.code, ownerSecret()).then(r => {
+        if (r && Number.isInteger(r.until)) {
+          S[it.code] = Object.assign({}, S[it.code], { until: r.until });
+          patchHist(it.code, { until: r.until }); it.x.until = r.until;
+          paint(it); toast('Голосование закрыто — итог окончательный 🔒');
+        } else { b.disabled = false; toast('Не получилось закрыть — попробуй ещё раз'); }
+      });
+    }
     else if (a === 'del') {
       if (!confirm(`Убрать «${it.title}» из списка? Сама ссылка продолжит работать.`)) return;
       saveHist(histList().filter(x => histCode(x) !== it.code));
@@ -580,6 +648,7 @@
       schedule(4000 - (Date.now() - lastPoll));
     });
     addEventListener('focus', seenAll);
+    setInterval(() => { if (!document.hidden) items.filter(it => it.group && untilOf(it)).forEach(paint); }, 30000);
     addEventListener('pageshow', e => { if (e.persisted) load(); });
     load().then(() => {
       // пришли из уведомления: invites.html#inv-<id> — показываем нужную карточку

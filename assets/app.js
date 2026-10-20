@@ -16,7 +16,7 @@
   };
   const apiErr = () => (API && typeof API.lastError === 'string' ? API.lastError : '');
   const stage = document.getElementById('stage');
-  /* ?v= этого скрипта — с тем же номером догружаем афишу (assets/events.js), когда она нужна */
+  /* ?v= этого скрипта — с тем же номером догружаем афишу (assets/events.js, events-spb.js, sport.js), когда она нужна */
   const VER = (() => { try { const m = /[?&]v=([^&#]+)/.exec((document.currentScript && document.currentScript.src) || ''); return m ? '?v=' + m[1] : ''; } catch (e) { return ''; } })();
   /* «Уменьшить движение» в настройках системы: без конфетти, сердечного дождя и плавной прокрутки */
   const RMQ = typeof window.matchMedia === 'function' ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
@@ -52,6 +52,7 @@
   let EV_PAST = null;       // событие из приглашения уже прошло
   let REV = -1;             // версия голосов на сервере
   let SPIN = null;          // итог колеса с сервера: { i, L? } — для каждой ничьей (L) первый сохранённый остаётся у всех
+  let SRV_UNTIL = null;     // дедлайн с сервера («Закрыть сейчас» организатора), минуты эпохи
   let SPINS = null;         // итоги колеса по наборам лидеров с сервера: { '0,2': { i, L } }
   let SYNC = '';            // '' — сервер не спрашивали, 'on' — голоса с сервера, 'off' — сервер не ответил
   let VOTE_STATE = '';      // мой голос на сервере: 'saving' | 'saved' | 'local'
@@ -99,7 +100,7 @@
 
   /* pre — день и время, подставленные из события (их снимаем, если выбрали другое место) */
   /* timeNext — время после полуночи в окне через полночь (22:00–02:00): встреча в ночь на следующий день */
-  const freshAnswers = () => ({ yes: false, noTries: 0, hearts: 0, place: null, placeText: '', date: '', dateOther: '', time: '', timeNext: false, food: null, note: '', coming: null, opts: [], days: [], name: '', pre: null });
+  const freshAnswers = () => ({ yes: false, noTries: 0, hearts: 0, place: null, placeText: '', date: '', dateOther: '', time: '', timeNext: false, food: null, note: '', coming: null, opts: [], days: [], maybe: [], slots: [], plus: 0, name: '', pre: null });
   const S = { step: 0, a: freshAnswers(), sent: {} };
 
   function save() {
@@ -390,6 +391,57 @@
   const isInt = (x, lo, hi) => Number.isInteger(x) && x >= lo && x <= hi;
   const hnum = s => parseInt(K.hash(s), 36) || 0;
 
+  /* ================= Город приглашения =================
+     У игры нет своего «города интерфейса»: город — у мест и событий приглашения (id spb-…, ev-spb-… или поле city).
+     По нему — регион Яндекс Карт, город в адресе для календаря и город главной в ссылках «Все планы», «Создать свой…». */
+  const cityOf = x => (typeof K.cityOf === 'function' ? K.cityOf(x) : 'msk');
+  /* Город приглашения — по первому пункту из каталога (событие, шарик-место, вариант голосования); '' — таких нет */
+  function invCity() {
+    if (!INV) return '';
+    const ids = [INV.event].concat((Array.isArray(INV.places) ? INV.places : []).map(p => p && p.plan),
+      (Array.isArray(INV.opts) ? INV.opts : []).map(o => o && (o.plan || o.event)));
+    const id = ids.find(x => typeof x === 'string' && x);
+    return id ? cityOf(id) : '';
+  }
+  /* Город в конце адреса для календаря — только не московский: в московских адресах бывают города области («Химки, …»),
+     и раньше календарь получал их без города */
+  const locCity = (x, addr) => {
+    const c = K.CITIES && K.CITIES[cityOf(x)];
+    return c && c.id !== 'msk' && String(addr || '').indexOf(c.addr) < 0 ? c.addr : '';
+  };
+  /* Метка «пришёл по приглашению» для своего приглашения гостя: 8 знаков хэша кода — без имён и самого кода */
+  const refTag = () => (CODE ? K.hash(CODE).padStart(8, '0').slice(-8) : '');
+  const refQ = () => (refTag() ? '&ref=' + refTag() : '');
+  /* create.html в городе приглашения, с меткой ref */
+  function guestCreateUrl(q) {
+    const c = invCity();
+    return 'create.html?' + q + refQ() + (c ? '&city=' + encodeURIComponent(c) : '');
+  }
+  /* Три плана рядом с тем, за что гость голосовал (другой повод — «позвать других на этот же план»), или любые три этого города */
+  function guestPlans() {
+    const items = optItems(), mine = (S.a.opts || []).map(i => items[i]).filter(Boolean);
+    const anchor = mine.concat(items).map(o => o.plan && K.planById(o.plan)).find(Boolean);
+    const c = invCity() || 'msk';
+    const taken = new Set(items.map(o => o.plan).filter(Boolean));
+    const at = anchor ? K.planStops(anchor)[0] : null;
+    const pool = (K.kuda().scenarios || []).filter(x => x && !taken.has(x.id) && x.mode !== MODE && K.cityOf(x) === c && K.planStops(x).length === x.stops.length && K.seasonOk(x));
+    const d = x => (at ? K.distM(at, K.planStops(x)[0]) : (K.hash(CODE + x.id) >>> 0));
+    return pool.map(x => [x, d(x)]).filter(x => !at || x[1] <= 2500).sort((a, b) => a[1] - b[1]).slice(0, 3).map(x => x[0]);
+  }
+  function guestBlock() {
+    let pl = [];
+    try { pl = guestPlans(); } catch (e) { pl = []; }
+    if (!pl.length) return '';
+    return `<div class="guest-box"><h3>Пока остальные голосуют</h3><p class="sub">Позови своих — на свидание или с друзьями, рядом с этим местом:</p>
+      ${pl.map(x => `<a class="chip-link guest-plan" href="${esc(guestCreateUrl('plan=' + encodeURIComponent(x.id) + '&mode=' + x.mode))}">${esc(x.emoji || '📍')} ${esc(x.title)} <small>· ${esc((K.MODES[x.mode] || {}).label || '')}</small></a>`).join('')}</div>`;
+  }
+  /* Ссылка на главную в городе приглашения: получатель из Петербурга попадёт на петербургские планы */
+  function hubUrl(q, c) {
+    if (c === undefined) c = invCity();
+    const s = [q, c ? 'city=' + encodeURIComponent(c) : ''].filter(Boolean).join('&');
+    return 'start.html' + (s ? '?' + s : '');
+  }
+
   /* ================= Дата в Москве ================= */
   let MSK_FMT = null;
   /* { today: 'YYYY-MM-DD', min: минуты от полуночи } */
@@ -482,12 +534,13 @@
     return { name: ev.venue || (pl && pl.name) || '', addr: ev.addr || (pl && pl.addr) || '', metro: ev.metro || (pl && pl.metro) || '', lat, lon, pl };
   }
   const evPlaceLine = ev => { const v = evVenue(ev); return [v.name, K.metroText(v.metro)].filter(Boolean).join(' · '); };
-  const evLoc = ev => { const v = evVenue(ev); return [v.name, v.addr].filter(Boolean).join(', '); };
+  const evLoc = ev => { const v = evVenue(ev); return [v.name, v.addr, locCity(ev, v.addr)].filter(Boolean).join(', '); };
+  /* Яндекс Карты — в регионе города события (Москва или Петербург), а не по умолчанию московском */
   function evRoute(ev) {
-    const v = evVenue(ev);
+    const v = evVenue(ev), city = cityOf(ev);
     if (v.pl) return K.routeUrl([v.pl]);
-    if (isFinite(v.lat) && isFinite(v.lon)) return K.routeUrl([{ name: v.name, addr: v.addr, lat: v.lat, lon: v.lon }]);
-    return v.addr ? K.mapUrl({ name: v.name, addr: v.addr }) : '';
+    if (isFinite(v.lat) && isFinite(v.lon)) return K.routeUrl([{ name: v.name, addr: v.addr, lat: v.lat, lon: v.lon, city }]);
+    return v.addr ? K.mapUrl({ name: v.name, addr: v.addr, city }) : '';
   }
   const evPhoto = ev => (ev.place ? K.photo(K.placeById(ev.place)) : null);
   /* Автор фото без приписок про соцсети (shared.js cleanAuthor) */
@@ -697,6 +750,72 @@
       .then(short => { if (ticket.sig !== sig) return; ticket.url = short; ticket.busy = null; if (onReady) onReady(); })
       .catch(() => { if (ticket.busy === p) ticket.busy = null; });
   }
+  /* «Откуда поедешь?» — станция метро города приглашения (необязательно): итоги покажут, кому сколько ехать */
+  function stationPick() {
+    const M = window.KudaMetro, c = invCity() || 'msk';
+    const names = M ? M.names(c) : [];
+    if (!names.length) return '';
+    return `<label class="st-row"><span>🚇 Откуда поедешь?</span><select class="field st-pick"><option value="">не скажу</option>${names.map(n => `<option${n === S.a.st ? ' selected' : ''}>${esc(n)}</option>`).join('')}</select></label>`;
+  }
+  /* «≈ 25 мин в среднем · дольше всех — Петя, 40» у варианта: голоса за него со станцией (от двух) */
+  function travelLine(x, t) {
+    const M = window.KudaMetro;
+    if (!M || !x.o.plan) return '';
+    const pl = K.planById(x.o.plan), p = pl && K.planStops(pl)[0];
+    if (!p) return '';
+    const sp = M.spread(invCity() || 'msk', p, t.inV.filter(v => v.o.includes(x.i)));
+    return sp ? ` · 🚇 ≈ ${sp.avg} мин, дольше всех — ${esc(sp.who)} (${sp.max})` : '';
+  }
+  /* «Забронировать»: готовый текст, «Позвонить» (tel:), «Скопировать», сайт или Яндекс Карты; отметка «Забронировано» */
+  function bookBox(p, o) {
+    if (!p) return '';
+    const text = K.bookText(o);
+    const done = !!(S.sent && S.sent.booked);
+    return `<div class="book-wrap"><button class="btn btn-soft btn-wide book-open" aria-expanded="false">📞 Забронировать</button>
+      <div class="book-box hidden" data-text="${esc(text)}">
+        <p class="k">Бронь · ${esc(p.name)}</p>
+        <p class="book-text">${esc(text)}</p>
+        <div class="book-acts">
+          ${p.tel ? `<a class="btn btn-primary" href="${esc(K.telHref(p.tel))}">Позвонить ${esc(K.telText(p.tel))}</a>` : ''}
+          <button class="btn btn-soft book-copy">Скопировать текст</button>
+          ${p.site ? `<a class="btn btn-soft" href="${esc(p.site)}" target="_blank" rel="noopener nofollow">Сайт места</a>` : `<a class="btn btn-soft" href="${esc(K.mapUrl(p))}" target="_blank" rel="noopener">Яндекс Карты</a>`}
+        </div>
+        <label class="book-done"><input type="checkbox"${done ? ' checked' : ''}> ${GF('Забронировала', 'Забронировал')} ✓</label>
+      </div></div>`;
+  }
+  function wireBook(root) {
+    const w = root && root.querySelector('.book-wrap');
+    if (!w) return;
+    const open = w.querySelector('.book-open'), box = w.querySelector('.book-box');
+    open.onclick = () => { Sfx.click(); const on = box.classList.toggle('hidden'); open.setAttribute('aria-expanded', String(!on)); };
+    w.querySelector('.book-copy').onclick = () => copyText(box.dataset.text).then(ok => toast(ok ? 'Текст скопирован' : 'Не получилось скопировать'));
+    w.querySelector('.book-done input').onchange = e => { S.sent = S.sent || {}; S.sent.booked = e.target.checked ? (S.a.name || INV.me || '✓') : ''; save(); toast(e.target.checked ? 'Отметили: забронировано' : 'Отметку сняли'); };
+  }
+  /* Текст через «Поделиться», а где его нет или он не сработал — в буфер обмена */
+  function sendText(text, okMsg) {
+    if (navigator.share) {
+      navigator.share({ text }).catch(e => { if (!e || e.name !== 'AbortError') copyText(text).then(ok => toast(ok ? okMsg : 'Не получилось скопировать')); });
+      return;
+    }
+    copyText(text).then(ok => toast(ok ? okMsg : 'Не получилось скопировать'));
+  }
+  /* Текст подруге: место, день, время, кто позвал (как он сам вписал имя) и маршрут */
+  function friendText(plan) {
+    const L = [GF('Иду на свидание 💕', 'Иду на свидание 💕')];
+    if (INV.me && INV.me !== '?') L.push('С кем: ' + INV.me);
+    for (const [i, , l, v] of answerRows(true)) L.push(`${i} ${l}: ${v}`);
+    if (plan) L.push('🗺 Маршрут: ' + K.goRoute(plan.id));
+    return L.join('\n');
+  }
+  /* Картинка-билет для сторис: без имён — только план, день и время; QR — на маршрут или на сайт */
+  function ticketCard(plan, ev, when) {
+    const stopOf = p => ({ emoji: p.emoji, name: p.name, meta: K.metroText(p.metro), lat: p.lat, lon: p.lon });
+    const stops = plan ? K.planStops(plan).map(stopOf) : ev ? [{ emoji: ev.emoji || '🎫', name: ev.title, meta: ev.venue || '' }]
+      : S.a.place && S.a.place.title ? [{ emoji: S.a.place.emoji || '📍', name: S.a.place.title, meta: '' }] : [];
+    const c = K.cityConf(K.cityOf(plan || ev || {}));
+    return { title: plan ? plan.title : ev ? ev.title : 'Иду на свидание', sub: when, stops, mode: 'date', city: c ? c.name : '',
+      url: plan ? K.goRoute(plan.id) : hubUrl(''), fileName: 'svidanie' };
+  }
   function shareAnswer() {
     if (PREVIEW) { toast('Это превью — ответ никуда не отправляется'); return; }
     prepareTicket();
@@ -749,6 +868,12 @@
     for (let i = 1; i < st.length; i++) walk += K.walkMin(st[i - 1], st[i]);
     return st.map(p => p.name).join(' → ') + (st.length > 1 ? ` · ${walk} мин пешком` : '');
   }
+  /* «Успеть домой»: выбранные день и время + план → до скольки вход в метро, разводка мостов в Петербурге */
+  function homeRiskBlock(plan, time, day) {
+    if (!K.homeRisk || !time) return '';
+    const r = K.homeRisk(K.planStops(plan), time, day || K.todayMsk(), K.cityOf(plan));
+    return r.length ? `<div class="home-risk">${r.map(x => `<p>${esc(x.text)}</p>`).join('')}</div>` : '';
+  }
   function planBlock(plan) {
     const st = K.planStops(plan);
     if (!st.length) return '';
@@ -758,7 +883,7 @@
     </div>`;
   }
 
-  const placeLoc = plan => { const p = K.planStops(plan)[0]; return p ? p.name + ', ' + p.addr : ''; };
+  const placeLoc = plan => { const p = K.planStops(plan)[0]; return p ? [p.name, p.addr, locCity(p, p.addr)].filter(Boolean).join(', ') : ''; };
   const planDetails = plan => {
     const st = K.planStops(plan);
     return st.length ? stopsLine(plan) + '\nМаршрут: ' + K.goRoute(plan.id) : '';
@@ -1369,7 +1494,12 @@
       const t = setTimeout(next, 0);
       return () => clearTimeout(t);
     }
-    const avail = new Set(days);
+    // свидание с выбранным планом: дни, когда какая-то остановка не работает (часы oh), — серые с подписью «выходной»
+    const pl = !GROUP && S.a.place && S.a.place.plan ? K.planById(S.a.place.plan) : null;
+    const stops = pl ? K.planStops(pl) : [];
+    const shut = d => stops.some(p => K.closedOn(p, d));
+    const open = days.filter(d => !shut(d));
+    const avail = new Set(open.length ? open : days);
     const evOn = !GROUP && evChosen();
     let cal = '';
     if (days.length) {
@@ -1382,6 +1512,7 @@
         const mon = d.getDate() === 1 || +d === +start ? `<small>${MONTHS_SHORT[d.getMonth()]}</small>` : '';
         cells.push(avail.has(s)
           ? `<button class="day avail${we ? ' we' : ''}" data-d="${s}" aria-label="${esc(K.fmtDay(s))}" aria-pressed="false"><span>${d.getDate()}</span>${mon}</button>`
+          : days.includes(s) ? `<span class="day off shut" title="Выходной у места из плана"><span>${d.getDate()}</span><small>выходной</small></span>`
           : `<span class="day off" aria-hidden="true"><span>${d.getDate()}</span>${mon}</span>`);
       }
       const months = Array.from(new Set(days.map(s => MONTHS[K.parseYmd(s).getMonth()])));
@@ -1408,7 +1539,7 @@
     const allBtn = $('.all', el);
     // в компании «Дальше» — когда отмечен хоть один день; «не знаю» — отдельной кнопкой, чтобы не путать с «любой»
     const upd = () => {
-      nextBtn.disabled = multi ? !S.a.days.length : !(S.a.date || (inp && inp.value.trim()));
+      nextBtn.disabled = multi ? !S.a.days.length && !(S.a.maybe || []).length : !(S.a.date || (inp && inp.value.trim()));
       if (allBtn) allBtn.classList.toggle('hidden', S.a.days.length === days.length);
     };
     const stampHtml = `<svg class="stamp" viewBox="0 0 24 24" aria-hidden="true"><path d="${K.markD(MODE)}"/></svg>`;
@@ -1421,6 +1552,19 @@
       S.a.days = on ? Array.from(new Set(S.a.days.concat(d))).sort() : S.a.days.filter(x => x !== d);
       line.textContent = S.a.days.length ? `Отмечено: ${S.a.days.length} ${plural(S.a.days.length, 'день', 'дня', 'дней')}` : '';
       if (!quiet) { save(); if (on) { Sfx.stamp(); vibrate(15); mood(el, 'happy', 700); } else Sfx.click(); }
+    }
+    /* компания: тап по дню — «да» → «может быть» → снято */
+    function setMaybe(b, on) {
+      const d = b.dataset.d;
+      b.classList.toggle('maybe', on);
+      S.a.maybe = on ? Array.from(new Set((S.a.maybe || []).concat(d))).sort() : (S.a.maybe || []).filter(x => x !== d);
+    }
+    function cycle(b) {
+      if (b.classList.contains('picked')) { toggle(b, true, false); setMaybe(b, true); save(); Sfx.click(); }
+      else if (b.classList.contains('maybe')) { setMaybe(b, false); save(); Sfx.click(); }
+      else toggle(b, false, true);
+      const m = (S.a.maybe || []).length;
+      line.textContent = (S.a.days.length ? `Отмечено: ${S.a.days.length} ${plural(S.a.days.length, 'день', 'дня', 'дней')}` : '') + (m ? `${S.a.days.length ? ' · ' : ''}может быть: ${m}` : '');
     }
     function mark(b, quiet) {
       $$('.day.picked', el).forEach(x => { x.classList.remove('picked'); x.setAttribute('aria-pressed', 'false'); const s = $('.stamp', x); if (s) s.remove(); });
@@ -1435,7 +1579,7 @@
     el.addEventListener('click', e => {
       const b = e.target.closest('.day.avail');
       if (!b) return;
-      if (multi) { toggle(b); upd(); return; }
+      if (multi) { cycle(b); upd(); return; }
       S.a.date = b.dataset.d; S.a.dateOther = '';
       if (inp) inp.value = '';
       save(); mark(b); upd();
@@ -1463,6 +1607,8 @@
       const keep = (S.a.days || []).filter(d => avail.has(d));
       S.a.days = [];
       keep.forEach(d => toggle($(`.day[data-d="${d}"]`, el), true));
+      S.a.maybe = (S.a.maybe || []).filter(d => avail.has(d) && !keep.includes(d));
+      S.a.maybe.forEach(d => { const b = $(`.day[data-d="${d}"]`, el); if (b) b.classList.add('maybe'); });
     } else if (S.a.date && avail.has(S.a.date)) mark($(`.day[data-d="${S.a.date}"]`, el), true);
     else S.a.date = '';
     if (S.a.dateOther && inp) { inp.value = S.a.dateOther; $('.other-box', el).classList.remove('hidden'); if (otherBtn) otherBtn.classList.add('hidden'); }
@@ -1742,7 +1888,7 @@
     const after = !!day && day < todayYmd();
     return `<div class="rate-box">
       <p class="hint">${I('sparkle')}${after ? 'Как прошло? Оцени место — так другим будет проще выбрать' : 'Как сходите — оцени место: так другим будет проще выбрать'}</p>
-      <div class="plan-links">${ids.map(id => `<a class="chip-link" href="start.html?place=${encodeURIComponent(id)}#reviews" target="_blank" rel="noopener">${I('heart')}${one ? 'Оценить место' : 'Оценить: ' + esc(K.placeById(id).name)}</a>`).join('')}</div>
+      <div class="plan-links">${ids.map(id => `<a class="chip-link" href="${esc(hubUrl('place=' + encodeURIComponent(id), cityOf(id)))}#reviews" target="_blank" rel="noopener">${I('heart')}${one ? 'Оценить место' : 'Оценить: ' + esc(K.placeById(id).name)}</a>`).join('')}</div>
     </div>`;
   }
 
@@ -1768,7 +1914,7 @@
     }) : null;
     const extra = ev
       ? `<div class="tally"><h3>${esc(ev.emoji || '🎫')} ${esc(ev.title)}</h3>${evPlaceLine(ev) ? `<p class="v-day">${I('pin')}${esc(evLoc(ev))}</p>` : ''}${evLinks(ev)}${calEv ? calBlock(calEv) : ''}</div>`
-      : plan || calEv ? `<div class="tally"><h3>${plan ? esc(plan.title) : 'Не забудь'}</h3>${plan ? planBlock(plan) : ''}${calEv ? calBlock(calEv) : ''}</div>` : '';
+      : plan || calEv ? `<div class="tally"><h3>${plan ? esc(plan.title) : 'Не забудь'}</h3>${plan ? planBlock(plan) : ''}${plan ? homeRiskBlock(plan, S.a.time, S.a.date) : ''}${calEv ? calBlock(calEv) : ''}${plan && !view ? bookBox(K.bookStop(K.planStops(plan)), { n: 2, day: S.a.date, time: S.a.time }) : ''}</div>` : '';
     el.innerHTML = `
       <div class="res-head"><p class="eyebrow">${view ? 'Ответ получен' : 'Готово'}</p>
         <h2 class="final-title">${view ? `${esc(INV.her)} ${GF('ответила', 'ответил')} «да»` : 'Твой билет на свидание'}</h2></div>
@@ -1787,16 +1933,19 @@
       ${rateBlock(rateIds(plan, ev), S.a.date)}
       <div class="send-state" role="status"></div>
       <div class="final-cat"><div class="cat-slot">${K.catSVG(LOVE())}</div><div class="bubble b-left">${esc(view ? 'Осталось только встретиться 😉' : T(INV.finale))}</div></div>
-      ${view ? `<div class="actions"><a class="btn btn-primary btn-wide" href="start.html">Все планы «${esc((CFG.site && CFG.site.name) || 'Куда идём?')}»${I('arrow')}</a></div>` : ''}
+      ${view ? `<div class="actions"><a class="btn btn-primary btn-wide" href="${esc(hubUrl(''))}">Все планы «${esc((CFG.site && CFG.site.name) || 'Куда идём?')}»${I('arrow')}</a></div>` : ''}
       <div class="actions${view ? ' hidden' : ''}">
         <button class="btn btn-primary btn-wide share">${I('share')}${tgUser ? 'Отправить ответ в Telegram' : 'Отправить ответ'}</button>
         <button class="btn btn-soft btn-wide note-open">${I('pen')}Написать пару слов</button>
+        <button class="btn btn-soft btn-wide friend">💬 ${GF('Скинуть подруге', 'Скинуть другу')}</button>
+        ${window.KudaShareCard ? `<button class="btn btn-soft btn-wide card-story">🖼️ Картинка для сторис</button>` : ''}
         <div class="note-box hidden">
           <textarea class="field" rows="3" maxlength="500" placeholder="Пожелание, вопрос или просто что-то милое…"></textarea>
           <button class="btn btn-primary note-send">Отправить</button>
         </div>
         <button class="link-btn replay">${I('redo')}Пройти заново</button>
-        <a class="link-btn viral" href="start.html?from=invite">${I('sparkle')}Сделать своё приглашение</a>
+        <a class="btn btn-soft btn-wide surprise-back" href="${esc(guestCreateUrl('mode=date'))}">${I('sparkle')}Сделай ответный сюрприз</a>
+        <a class="link-btn viral" href="${esc(hubUrl('from=invite' + refQ()))}">${I('sparkle')}Сделать своё приглашение</a>
       </div>`;
 
     const ticket = $('.ticket', el), cut = $('.t-cut', el);
@@ -1809,6 +1958,20 @@
     }
 
     const state = $('.send-state', el), shareBtn = $('.share', el);
+    wireBook(el);
+    // «Скинуть подруге»: куда, когда и с кем — текстом, без сети и без геолокации; маршрут — ссылкой go.html
+    const fr = $('.friend', el);
+    if (fr) fr.onclick = () => { Sfx.click(); sendText(friendText(plan), GF('Скопировано — отправь подруге', 'Скопировано — отправь другу')); };
+    const cs = $('.card-story', el);
+    if (cs) cs.onclick = () => {
+      Sfx.click();
+      cs.disabled = true;
+      window.KudaShareCard.share(Object.assign(ticketCard(plan, ev, topInfo), { size: 'story' })).then(r => {
+        cs.disabled = false;
+        if (r === 'saved') toast('Картинка сохранена — выкладывай');
+        else if (r === 'error') toast('Не получилось нарисовать картинку');
+      });
+    };
     const noteOpen = $('.note-open', el), noteBox = $('.note-box', el), noteArea = $('textarea', noteBox);
     const sig = JSON.stringify(Object.assign({}, S.a, { note: '' }));
     const setState = (txt, ok) => { state.innerHTML = (ok ? I('check') : '') + esc(txt); state.classList.toggle('ok', !!ok); };
@@ -1933,6 +2096,10 @@
         id: v.id, n: String(v.n == null || v.n === '' ? '?' : v.n).slice(0, 30), y: v.y ? 1 : 0,
         o: uniq((Array.isArray(v.o) ? v.o : []).filter(x => isInt(x, 0, 99))).slice(0, 20),
         d: uniq((Array.isArray(v.d) ? v.d : []).filter(x => isInt(x, 0, 40000))).slice(0, 60),
+        s: uniq((Array.isArray(v.s) ? v.s : []).filter(x => isInt(x, 0, 3))).slice(0, 4),
+        m: uniq((Array.isArray(v.m) ? v.m : []).filter(x => isInt(x, 0, 40000))).slice(0, 60),
+        p: isInt(v.p, 0, 9) ? v.p : 0,
+        st: typeof v.st === 'string' ? v.st.slice(0, 40) : '',
         t: t > 0 ? t : 0,
       };
     });
@@ -1963,7 +2130,12 @@
   function addVotes(...lists) { if (mergeIn(...lists)) votesChanged(); }
   const myVote = () => PRIOR.find(v => v.id === VOTER_ID) || null;
   /* Отпечаток голоса без времени: «этот голос уже на сервере / уже отправлен ссылкой» */
-  const voteSig = v => (v ? JSON.stringify([v.n, v.y, v.o, v.d]) : '');
+  const voteSig = v => {
+    if (!v) return '';
+    const a = [v.n, v.y, v.o, v.d];
+    if ((v.s || []).length || (v.m || []).length || v.p || v.st) a.push(v.s || [], v.m || [], v.p || 0, v.st || '');
+    return JSON.stringify(a);
+  };
   const voteSaved = () => { const my = myVote(); return !!my && S.sent.api === voteSig(my); };
   const voteSent = () => { const my = myVote(); return !!my && S.sent.vote === voteSig(my); };
 
@@ -1974,6 +2146,7 @@
     if (Number.isInteger(r.rev)) REV = r.rev;
     if (r.spin && Number.isInteger(r.spin.i)) SPIN = r.spin;
     if (r.spins && typeof r.spins === 'object' && !Array.isArray(r.spins)) SPINS = r.spins;
+    if (Number.isInteger(r.until)) SRV_UNTIL = r.until;
     SYNC = 'on';
     const remote = cleanVotes(r.votes);
     REMOTE_IDS = new Set(remote.map(v => v.id));
@@ -1982,6 +2155,11 @@
     const my = myVote();
     // мой голос на сервере такой же, как здесь, — значит, он сохранён
     if (rm && my && voteSig(rm) === voteSig(my) && S.sent.api !== voteSig(my)) { S.sent.api = voteSig(my); save(); }
+    if (GROUP && !PREVIEW && isClosed() && current && !current.classList.contains('s-results')) {
+      showResults(false);
+      toast('Голосование уже закрыто — вот итог');
+      return true;
+    }
     votesChanged();
     return true;
   }
@@ -2021,7 +2199,9 @@
       }
       let r = await api('vote', CODE, mine, voteSecret(), seed);
       // сервер отверг какой-то голос из старой ссылки — сохраняем хотя бы свой
-      if (!r && seed.length && !/^(rate|net|timeout|off|owner|full)$/.test(apiErr())) r = await api('vote', CODE, mine, voteSecret(), []);
+      if (!r && seed.length && !/^(rate|net|timeout|off|owner|full|closed)$/.test(apiErr())) r = await api('vote', CODE, mine, voteSecret(), []);
+      // организатор закрыл голосование или прошёл дедлайн — голос не принят, итог окончательный
+      if (!r && apiErr() === 'closed') { SRV_UNTIL = SRV_UNTIL || Math.floor(Date.now() / 60000); toast('Голосование уже закрыто — твой голос не попал в итог'); }
       if (r && Array.isArray(r.votes)) {
         if (ADOPT && ADOPT.id === mine.id) ADOPT = null;
         if (voteSig(myVote()) === voteSig(mine)) { S.sent.api = voteSig(mine); save(); }
@@ -2067,17 +2247,17 @@
     SH.sig = sig;
     SH.link = linkWith(votes.length ? encSync(votes) : '', w);
     clearTimeout(SH.timer);
-    if (!votes.length) return;
     SH.timer = setTimeout(async () => {
       try {
-        const long = linkWith(await K.encodeData(votes), w);
+        const long = votes.length ? linkWith(await K.encodeData(votes), w) : SH.link;
         if (SH.sig !== sig) return;
         SH.link = long;
-        // только своя короткая ссылка: clck.ru и другие сокращатели «Объединить» раскрыть не может
-        const short = await ownShort(long);
-        if (SH.sig === sig && short) SH.link = short;
+        // сначала своя короткая ссылка; без своего сервера — любой сокращатель (clck.ru):
+        // человек откроет её как обычно, а «Объединить» про такие ссылки честно предупреждает
+        const short = await shortAny(long);
+        if (SH.sig === sig && short && short.length < long.length) SH.link = short;
       } catch (e) { /* остаётся длинная ссылка */ }
-    }, 400);
+    }, votes.length ? 400 : 0);
   }
   const shareLink = () => { prepareShare(); return SH.link || baseUrl() + '#' + CODE; };
   const shareText = () => `${MC.emoji} ${groupTitle()}\nГолосуем, куда и когда идём! Уже отметились: ${PRIOR.map(v => v.n).join(', ') || '—'}\n👉 ${shareLink()}`;
@@ -2090,11 +2270,16 @@
     const opt = items.map((o, i) => ({ o, i, who: inV.filter(v => v.o.includes(i)).map(v => v.n) }))
       .sort((a, b) => b.who.length - a.who.length || a.i - b.i);
     // прошедшие дни не считаем; пустой список дней — «пока не знаю»
-    const dIn = inV.filter(v => v.d.some(d => d >= today));
+    const dIn = inV.filter(v => v.d.some(d => d >= today) || (v.m || []).some(d => d >= today));
     const dm = new Map();
-    dIn.forEach(v => v.d.forEach(d => { if (d >= today) dm.set(d, (dm.get(d) || []).concat(v.n)); }));
-    const days = Array.from(dm.entries()).map(([d, who]) => ({ d, who })).sort((a, b) => b.who.length - a.who.length || a.d - b.d);
-    return { opt, days, inV, dIn, idk: inV.filter(v => !v.d.length).map(v => v.n), any: inV.filter(v => !v.o.length).map(v => v.n) };
+    // «может быть» — полголоса: в списке имя с «?»
+    dIn.forEach(v => { v.d.forEach(d => { if (d >= today) { const x = dm.get(d) || { who: [], w: 0, yes: 0 }; x.who.push(v.n); x.w += 1; x.yes++; dm.set(d, x); } });
+      (v.m || []).forEach(d => { if (d >= today && !v.d.includes(d)) { const x = dm.get(d) || { who: [], w: 0, yes: 0 }; x.who.push(v.n + '?'); x.w += 0.5; dm.set(d, x); } }); });
+    const days = Array.from(dm.entries()).map(([d, x]) => ({ d, who: x.who, w: x.w, yes: x.yes })).sort((a, b) => b.w - a.w || b.yes - a.yes || a.d - b.d);
+    const SL = slotList();
+    const slots = SL.length > 1 ? SL.map((tm, i) => ({ i, tm, who: inV.filter(v => (v.s || []).includes(i)).map(v => v.n) })).sort((a, b) => b.who.length - a.who.length || a.i - b.i) : [];
+    const plus = inV.reduce((n, v) => n + (v.p || 0), 0);
+    return { opt, days, inV, dIn, slots, plus, idk: inV.filter(v => !v.d.length && !(v.m || []).length).map(v => v.n), any: inV.filter(v => !v.o.length).map(v => v.n) };
   }
   const leadersOf = t => { const top = t.opt.length ? t.opt[0].who.length : 0; return t.opt.filter(x => top > 0 && x.who.length === top); };
   const leadSig = L => L.map(x => x.i).sort((a, b) => a - b).join(',');
@@ -2128,6 +2313,46 @@
     if (sub.length > WHEEL_MAX) sub = sub.slice().sort((a, b) => hnum(CODE + '|w|' + a) - hnum(CODE + '|w|' + b) || a - b).slice(0, WHEEL_MAX).sort((a, b) => a - b);
     return { sub, win: sub[hnum(CODE + '|' + sub.join(',')) % sub.length] };
   }
+  /* Слоты времени из приглашения: 1–4 значения 'ЧЧ:ММ' (один — время фиксировано) */
+  function slotList() { return (Array.isArray(INV.slots) ? INV.slots : []).filter(x => /^([01]\d|2[0-3]):[0-5]\d$/.test(x)).slice(0, 4); }
+  /* Дедлайн: until из ссылки или с сервера (организатор закрыл раньше), минуты эпохи → {closed, text} или null */
+  function deadline() {
+    const u = [INV.until, SRV_UNTIL].filter(x => Number.isInteger(x) && x > 0);
+    if (!u.length) return null;
+    const ms = Math.min(...u) * 60000;
+    const d = new Date(ms + 3 * 3600e3);
+    const wd = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'][d.getUTCDay()];
+    const text = `${wd} ${d.getUTCDate()}.${String(d.getUTCMonth() + 1).padStart(2, '0')} в ${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`;
+    const left = ms - Date.now();
+    return { closed: left <= 0, text, left };
+  }
+  const isClosed = () => { const d = deadline(); return !!(d && d.closed); };
+  function deadlineHtml() {
+    const d = deadline();
+    if (!d) return '';
+    if (d.closed) return '<p class="deadline closed">🔒 Голосование закрыто — итог ниже окончательный</p>';
+    return `<p class="deadline">⏳ Голосуем до ${esc(d.text)} — осталось ${K.leftText(d.left)}</p>`;
+  }
+  /* Шаг «Во сколько»: можно отметить несколько слотов */
+  function lvlSlot(el, next, step) {
+    const SL = slotList();
+    S.a.slots = (S.a.slots || []).filter(i => i < SL.length);
+    el.innerHTML = `
+      ${head(step, 'Во сколько удобно?', 'Отметь всё, что подходит')}
+      <div class="slots">${SL.map((tm, i) => `<button type="button" class="slot${S.a.slots.includes(i) ? ' picked' : ''}" data-i="${i}" aria-pressed="${S.a.slots.includes(i)}">${esc(tm)}</button>`).join('')}</div>
+      <button class="link-btn any-time" type="button">Мне всё равно, во сколько</button>
+      <div class="actions"><button class="btn btn-primary btn-wide next">Дальше${I('arrow')}</button></div>`;
+    $('.slots', el).addEventListener('click', e => {
+      const b = e.target.closest('.slot');
+      if (!b) return;
+      const i = +b.dataset.i, on = !S.a.slots.includes(i);
+      S.a.slots = on ? S.a.slots.concat(i).sort() : S.a.slots.filter(x => x !== i);
+      b.classList.toggle('picked', on); b.setAttribute('aria-pressed', String(on));
+      save(); if (on) { Sfx.stamp(); vibrate(12); } else Sfx.click();
+    });
+    $('.any-time', el).onclick = () => { Sfx.click(); S.a.slots = []; save(); next(); };
+    $('.next', el).onclick = () => { Sfx.click(); next(); };
+  }
   function verdict(votes, forced, t) {
     t = t || tally(votes);
     const leaders = leadersOf(t);
@@ -2135,13 +2360,16 @@
     const ev = win && win.o.event ? eventById(win.o.event) : null;
     let day = t.days.length ? t.days[0] : null;
     if (ev) { const ok = new Set(evDaysAll(ev).map(K.dayNum)); day = t.days.find(x => ok.has(x.d)) || null; }
-    return { t, win, leaders, ev, day, wheel: forced != null && !!win, plan: win && win.o.plan ? K.planById(win.o.plan) : null };
+    const SL = slotList();
+    const slot = SL.length === 1 ? { tm: SL[0], who: [] } : t.slots.length && t.slots[0].who.length ? t.slots[0] : null;
+    return { t, win, leaders, ev, day, slot, people: t.inV.length + t.plus, wheel: forced != null && !!win, plan: win && win.o.plan ? K.planById(win.o.plan) : null };
   }
-  /* «могут все» — только когда про дни ответили хотя бы двое */
+  /* «могут все» — только когда про дни ответили хотя бы двое и все — твёрдым «да»; «может быть» считаем отдельно */
   function canLine(v, names) {
-    const n = v.day.who.length, m = v.t.dIn.length;
-    if (n === m && m >= 2) return 'могут все';
-    return names ? `могут ${v.day.who.join(', ')} (${n} из ${m})` : `могут ${n} из ${m}`;
+    const m = v.t.dIn.length, yes = v.day.yes == null ? v.day.who.length : v.day.yes, maybe = v.day.who.length - yes;
+    if (yes === m && m >= 2) return 'могут все';
+    const may = maybe ? ` + ${maybe} «может»` : '';
+    return names ? `могут ${v.day.who.join(', ')} (${yes} из ${m}${may})` : `могут ${yes} из ${m}${may}`;
   }
   /* «A, B, C и ещё 4» — чтобы ничья из десяти планов не превращалась в простыню */
   const someTitles = (list, n) => list.slice(0, n).map(x => x.o.title).join(', ') + (list.length > n ? ` и ещё ${list.length - n}` : '');
@@ -2155,8 +2383,13 @@
       if (st.length > 1 || (st[0] && st[0].name !== v.win.o.title)) L.push('   ' + st.map(p => p.name).join(' → '));
       if (v.ev && evPlaceLine(v.ev)) L.push('   ' + evPlaceLine(v.ev));
     } else if (v.leaders.length > 1) L.push(`📍 Пока ничья: ${someTitles(v.leaders, 3)}`);
-    if (v.day) L.push(`📅 ${shortDay(v.day.d)}${v.ev && v.ev.time ? ', ' + v.ev.time : ''} — ${canLine(v, true)}`);
+    if (v.day) L.push(`📅 ${shortDay(v.day.d)}${v.ev && v.ev.time ? ', ' + v.ev.time : v.slot ? ', ' + v.slot.tm : ''} — ${canLine(v, true)}`);
+    else if (v.slot && !(v.ev && v.ev.time)) L.push(`🕗 Во сколько: ${v.slot.tm}${v.slot.who.length ? ' (' + v.slot.who.length + ')' : ''}`);
+    if (v.t.plus) L.push(`👥 Идут: ${v.t.inV.length} + ${v.t.plus} ${plural(v.t.plus, 'гость', 'гостя', 'гостей')}`);
+    const dl = deadline();
+    if (dl) L.push(dl.closed ? '🔒 Голосование закрыто' : `⏳ Голосуем до ${dl.text}`);
     if (v.plan) L.push(`🗺 Маршрут: ${K.goRoute(v.plan.id)}`);
+    if (S.sent && S.sent.booked) L.push(`✅ Забронировано — ${S.sent.booked}`);
     if (v.ev && evUrl(v.ev)) L.push(`🎫 Билеты: ${evUrl(v.ev)}`);
     L.push(`🗳 ${v.win ? 'Итоги и голосование' : 'Голосуем тут'}: ${shareLink()}`);
     return L.join('\n');
@@ -2169,7 +2402,7 @@
     const evNext = v.ev && !v.day ? evDaysAll(v.ev)[0] || '' : '';
     const calDay = v.day ? K.numDay(v.day.d) : evNext;
     const cal = calDay ? {
-      title: groupTitle() + (v.win ? ' · ' + v.win.o.title : ''), day: calDay, time: (v.ev && v.ev.time) || '', minutes: v.ev ? EV_MIN[v.ev.cat] : undefined,
+      title: groupTitle() + (v.win ? ' · ' + v.win.o.title : ''), day: calDay, time: (v.ev && v.ev.time) || (v.slot && v.slot.tm) || '', minutes: v.ev ? EV_MIN[v.ev.cat] : undefined,
       location: v.plan ? placeLoc(v.plan) : v.ev ? evLoc(v.ev) : '', details: v.plan ? planDetails(v.plan) : v.ev ? evUrl(v.ev) : '',
     } : null;
     const title = v.win ? esc(v.win.o.title)
@@ -2181,37 +2414,43 @@
       ${tie && v.leaders.length > 2 ? `<div class="v-tie">${v.leaders.slice(0, 4).map(x => `<span>${esc(x.o.emoji || '📍')} ${esc(x.o.title)}</span>`).join('')}${v.leaders.length > 4 ? `<span class="more">+${v.leaders.length - 4}</span>` : ''}</div>` : ''}
       ${tie ? `<p class="v-day">${v.t.inV.length < 2 ? 'Подожди голоса остальных или крутани колесо ниже' : 'Крутани колесо ниже — оно решит'}</p>` : ''}
       ${v.ev && evPlaceLine(v.ev) ? `<p class="v-day">${I('pin')}${esc(evPlaceLine(v.ev))}</p>` : ''}
-      ${v.day ? `<p class="v-day">${I('calendar')}${esc(shortDay(v.day.d))}${v.ev && v.ev.time ? ' · ' + esc(v.ev.time) : ''} · ${esc(canLine(v))}</p>`
+      ${v.day ? `<p class="v-day">${I('calendar')}${esc(shortDay(v.day.d))}${v.ev && v.ev.time ? ' · ' + esc(v.ev.time) : v.slot ? ' · ' + esc(v.slot.tm) : ''} · ${esc(canLine(v))}</p>`
         : evNext ? `<p class="v-day">${I('calendar')}Ближайший показ: ${esc(dayShort(evNext))}${v.ev.time ? ' · ' + esc(v.ev.time) : ''}</p>` : ''}
+      ${!v.day && v.slot && !(v.ev && v.ev.time) ? `<p class="v-day">${I('clock')}Во сколько: ${esc(v.slot.tm)}${v.slot.who.length ? ' · ' + v.slot.who.length + ' ' + plural(v.slot.who.length, 'голос', 'голоса', 'голосов') : ''}</p>` : ''}
+      ${v.t.plus ? `<p class="v-day">${I('users')}Идут ${v.t.inV.length} + ${v.t.plus} ${plural(v.t.plus, 'гость', 'гостя', 'гостей')}</p>` : ''}
       ${v.plan ? planBlock(v.plan) : ''}
       ${v.ev ? evLinks(v.ev) : ''}
       ${cal ? calBlock(cal) : ''}
       ${PREVIEW ? '' : `<button class="btn btn-soft btn-wide verdict-share">${I('send')}Отправить итог в чат</button>`}
+      ${PREVIEW || !window.KudaShareCard || !v.win ? '' : `<button class="btn btn-soft btn-wide verdict-card">🖼️ Картинка с итогом</button>`}
+      ${PREVIEW || !v.plan ? '' : bookBox(K.bookStop(K.planStops(v.plan)), { n: v.t.inV.length + v.t.plus, day: v.day ? K.numDay(v.day.d) : '', time: v.slot ? v.slot.tm : '', name: S.a.name || '' })}
     </div>`;
   }
   function tallyHtml(votes, forced, t) {
     t = t || tally(votes);
     const max = Math.max(1, t.inV.length);
     const leaders = leadersOf(t);
-    const dTop = t.days.length ? t.days[0].who.length : 0;
     const row = (cls, title, who, n, attr) => `<div class="t-item${cls}"${attr || ''}><i class="bar" style="width:${(n / max * 100).toFixed(0)}%"></i>
       <span class="n">${esc(title)}<small>${who}</small></span><span class="c">${n}<span class="vh"> ${plural(n, 'голос', 'голоса', 'голосов')}</span></span></div>`;
     const liveOn = live() && SYNC === 'on';
-    return `${verdictHtml(votes, forced, t)}
+    const slotsHtml = t.slots.length && t.slots.some(x => x.who.length) ? `<div class="tally"><h3>Во сколько</h3>
+        ${t.slots.map(x => row(x.who.length && x.who.length === t.slots[0].who.length ? ' lead' : '', x.tm, x.who.length ? esc(x.who.join(', ')) : 'пока никто', x.who.length)).join('')}</div>` : '';
+    return `${deadlineHtml()}${verdictHtml(votes, forced, t)}
       <div class="tally">
         <h3>Проголосовали: ${votes.length}</h3>
         <div class="voters">${votes.length ? votes.map(v => `<span class="${v.y ? '' : 'out'}">${esc(v.n)}${v.y ? '' : '<span class="vh"> — не сможет</span>'}</span>`).join('') : '<span>пока никого</span>'}</div>
         ${votes.length && !PREVIEW ? `<p class="hint">${liveOn ? 'Кого нет в списке — те ещё не отметились.' : 'Здесь голоса из ссылок, которые дошли до тебя.'}</p>` : ''}
       </div>
       ${t.opt.length ? `<div class="tally"><h3>Куда</h3>
-        ${t.opt.map(x => row(leaders.includes(x) ? ' lead' : '', x.o.title, x.who.length ? esc(x.who.join(', ')) : x.o.when ? esc(x.o.when) : 'пока никто', x.who.length, ` data-i="${x.i}"`)).join('')}
+        ${t.opt.map(x => row(leaders.includes(x) ? ' lead' : '', x.o.title, (x.who.length ? esc(x.who.join(', ')) : x.o.when ? esc(x.o.when) : 'пока никто') + travelLine(x, t), x.who.length, ` data-i="${x.i}"`)).join('')}
         ${t.any.length ? `<p class="hint">Подойдёт любой вариант: ${esc(t.any.join(', '))}</p>` : ''}
         ${leaders.length > 1 && forced == null ? `<button class="btn btn-soft dashed btn-wide wheel">${I('wheel')}Ничья — крутить колесо</button>` : ''}
       </div>` : ''}
       ${t.days.length || t.idk.length ? `<div class="tally"><h3>Когда</h3>
-        ${t.days.slice(0, 6).map(x => row(x.who.length === dTop ? ' lead' : '', shortDay(x.d), esc(x.who.join(', ')), x.who.length)).join('')}
+        ${t.days.slice(0, 6).map(x => row(x.w === t.days[0].w ? ' lead' : '', shortDay(x.d), esc(x.who.join(', ')), x.w)).join('')}
+        ${t.days.some(x => x.who.some(n => /\?$/.test(n))) ? '<p class="hint">«?» — может быть, считается за полголоса.</p>' : ''}
         ${t.idk.length ? `<p class="hint">Пока не знают, когда смогут: ${esc(t.idk.join(', '))}</p>` : ''}
-      </div>` : ''}`;
+      </div>` : ''}${slotsHtml}`;
   }
 
   /* ---------- финал компании: имя и голос ---------- */
@@ -2223,11 +2462,18 @@
       <div class="final-cat"><div class="cat-slot">${K.catSVG(out ? 'sad' : 'happy')}</div><div class="bubble b-left">Как тебя записать в голосовании?</div></div>
       <form class="name-box" novalidate>
         <input class="field nm" maxlength="30" placeholder="Например: Петя" value="${esc(name)}" aria-label="Твоё имя" autocomplete="given-name" enterkeyhint="done">
+        ${out ? '' : stationPick()}
+        ${out ? '' : `<div class="plus-row" role="group" aria-label="Сколько человек приведёшь с собой"><span>Со мной ещё</span><button type="button" class="btn btn-soft sq pl-dec" aria-label="Меньше">−</button><b class="pl-n" aria-live="polite">+${S.a.plus || 0}</b><button type="button" class="btn btn-soft sq pl-inc" aria-label="Больше">+</button></div>`}
         <button class="btn btn-primary btn-wide send" type="submit">Готово${I('check')}</button>
       </form>
       ${!out && myVote() ? `<button class="link-btn decline" type="button">Планы поменялись — не смогу</button>` : ''}
       <div class="vstate warn twin hidden" role="group" aria-labelledby="twin-t"></div>`;
     const form = $('.name-box', el), inp = $('.nm', el), btn = $('.send', el), twinBox = $('.twin', el);
+    const plusN = $('.pl-n', el);
+    const stp = $('.st-pick', el);
+    if (stp) stp.onchange = () => { S.a.st = stp.value; save(); };
+    const setPlus = n => { S.a.plus = Math.max(0, Math.min(5, n)); save(); if (plusN) plusN.textContent = '+' + S.a.plus; };
+    if (plusN) { $('.pl-dec', el).onclick = () => { Sfx.click(); setPlus((S.a.plus || 0) - 1); }; $('.pl-inc', el).onclick = () => { Sfx.click(); setPlus((S.a.plus || 0) + 1); }; }
     // «Изменить голос» ведёт сразу к вариантам, мимо письма с «Не смогу» — отказаться можно здесь
     const decline = $('.decline', el);
     if (decline) decline.onclick = () => {
@@ -2259,6 +2505,13 @@
         id: voterId(), n: S.a.name, y: out ? 0 : 1, o: out ? [] : (S.a.opts || []),
         d: out ? [] : (S.a.days || []).map(K.dayNum).filter(n => n >= today), t: Math.max(Date.now(), prev ? prev.t + 1 : 0),
       };
+      if (!out) {
+        const m = (S.a.maybe || []).map(K.dayNum).filter(n => n >= today && !mine.d.includes(n));
+        if (m.length) mine.m = m;
+        if ((S.a.slots || []).length && slotList().length > 1) mine.s = S.a.slots.slice(0, 4);
+        if (S.a.plus > 0) mine.p = Math.min(5, S.a.plus | 0);
+        if (S.a.st) mine.st = S.a.st;
+      }
       addVotes([mine]);
       notify('vote');
       goal('vote', out ? 'no' : 'yes');
@@ -2349,8 +2602,9 @@
         </div>`}
         <div class="actions">
           <button class="link-btn revote">${myVote() ? I('redo') + 'Изменить мой голос' : I('check') + 'Проголосовать'}</button>
-          <a class="link-btn" href="start.html?m=${MODE}&from=invite">Создать свой сбор${I('arrow')}</a>
-        </div>`;
+          <a class="link-btn" href="${esc(hubUrl('m=' + MODE + '&from=invite' + refQ()))}">Создать свой сбор${I('arrow')}</a>
+        </div>
+        ${justVoted && !PREVIEW && !OWN ? guestBlock() : ''}`;
       const wrap = $('.tally-wrap', el), box = $('.vstate', el), liveNote = $('.live-note', el), sr = $('.vs-live', el);
 
       /* Поделиться: текст готов заранее, вызываем сразу по нажатию */
@@ -2469,6 +2723,21 @@
         });
         const vs = $('.verdict-share', wrap);
         if (vs) vs.onclick = () => { Sfx.click(); shareNow(verdictText(PRIOR, FORCED), 'Итог скопирован — вставь в общий чат'); };
+        wireBook(wrap);
+        const vc = $('.verdict-card', wrap);
+        if (vc) vc.onclick = () => {
+          Sfx.click();
+          const v = verdict(PRIOR, FORCED);
+          if (!v.win) return;
+          const st = v.plan ? K.planStops(v.plan) : [];
+          const when = [v.day ? shortDay(v.day.d) : '', v.ev && v.ev.time ? v.ev.time : v.slot ? v.slot.tm : ''].filter(Boolean).join(' · ');
+          const ppl = v.t.plus ? `идут ${v.t.inV.length} + ${v.t.plus}` : `идут ${v.t.inV.length}`;
+          vc.disabled = true;
+          window.KudaShareCard.share({ title: v.win.o.title, sub: [when, ppl].filter(Boolean).join(' · '), mode: MODE, size: 'square', fileName: 'itog',
+            city: (K.cityConf(K.cityOf(v.plan || v.ev || {})) || {}).name || '', url: shareLink(),
+            stops: st.length ? st.map(p => ({ emoji: p.emoji, name: p.name, meta: K.metroText(p.metro), lat: p.lat, lon: p.lon })) : [{ emoji: v.win.o.emoji || '📍', name: v.win.o.title, meta: v.ev ? v.ev.venue || '' : '' }] })
+            .then(r => { vc.disabled = false; if (r === 'saved') toast('Картинка сохранена — кидай в общий чат'); else if (r === 'error') toast('Не получилось нарисовать картинку'); });
+        };
         restoreFocus(wrap, fk, '.v-title');
         renderState();
         liveNote.classList.toggle('hidden', !(live() && SYNC === 'on'));
@@ -2642,14 +2911,14 @@
     }
     S.a.pre = null;
   }
-  const RUNNERS = { hearts: lvlHearts, letter: lvlLetter, place: lvlPlace, date: lvlDate, time: lvlTime, food: lvlFood, vote: lvlVote };
+  const RUNNERS = { hearts: lvlHearts, letter: lvlLetter, place: lvlPlace, date: lvlDate, time: lvlTime, food: lvlFood, vote: lvlVote, slot: lvlSlot };
   function buildSteps() {
     const on = INV.levels || {};
     const list = [{ id: 'intro', run: scrIntro }];
     let n = 0;
     const ev = !GROUP && evChosen();
     if (ev) applyEvent();
-    const ids = GROUP ? ['hearts', 'letter', 'vote', 'date'] : ['hearts', 'letter', 'place', 'date', 'time', 'food'];
+    const ids = GROUP ? ['hearts', 'letter', 'vote', 'date', 'slot'] : ['hearts', 'letter', 'place', 'date', 'time', 'food'];
     for (const id of ids) {
       if (on[id] === false && !(GROUP && id === 'letter')) continue;
       if (id === 'vote' && !(INV.opts || []).length) continue;
@@ -2658,6 +2927,7 @@
       if (id === 'date' && ev && EV_DAYS.length === 1) continue;
       if (id === 'time' && ev && EVENT.time) continue;
       if (id === 'food' && !(INV.food || []).some(f => f && f.title)) continue;
+      if (id === 'slot' && slotList().length < 2) continue;
       list.push({ id, level: ++n, run: RUNNERS[id] });
     }
     list.push({ id: 'final', run: scrFinal });
@@ -2697,23 +2967,26 @@
     if (+m[1] === wheelPlan(L.map(x => x.i)).win) saveLocalSpin(+m[1], leadSig(L));
   }
 
-  /* Афиша (assets/events.js, ~130 КБ) нужна только приглашениям с событием — её грузим тогда, остальные открываются без неё.
-     events.js записывает window.KUDA_EVENTS заново: события из auto.js (он уже выполнен) возвращаем, если таких id в афише нет */
+  /* Афиша нужна только приглашениям с событием — её грузим тогда, остальные открываются без неё:
+     assets/events.js (Москва, ~130 КБ), events-spb.js (Петербург) и sport.js (футбольные матчи обоих городов).
+     Качаются параллельно, выполняются по порядку (async = false): events.js записывает window.KUDA_EVENTS заново,
+     events-spb.js и sport.js дописывают в него свои. События из auto.js (он уже выполнен) возвращаем, если таких id в афише нет */
+  const EV_FILES = ['assets/events.js', 'assets/events-spb.js', 'assets/sport.js'];
   const needsEvents = inv => !!inv.event || (Array.isArray(inv.opts) && inv.opts.some(o => o && o.event));
   function loadEvents() {
-    if (document.querySelector('script[src*="assets/events.js"]')) return Promise.resolve();
+    const files = EV_FILES.filter(f => !document.querySelector('script[src*="' + f + '"]'));
+    if (!files.length) return Promise.resolve();
     const before = Array.isArray(window.KUDA_EVENTS) ? window.KUDA_EVENTS.slice() : [];
-    return new Promise(ok => {
+    return Promise.all(files.map(f => new Promise(ok => {
       const s = document.createElement('script');
-      s.src = 'assets/events.js' + VER;
-      s.onload = () => {
-        const E = Array.isArray(window.KUDA_EVENTS) ? window.KUDA_EVENTS : (window.KUDA_EVENTS = []);
-        const seen = new Set(E.map(e => e && e.id));
-        before.forEach(e => { if (e && !seen.has(e.id)) { seen.add(e.id); E.push(e); } });
-        ok();
-      };
-      s.onerror = () => ok();   // без сети — откроется как приглашение без события
+      s.src = f + VER;
+      s.async = false;
+      s.onload = s.onerror = () => ok();   // без сети — откроется как приглашение без события
       document.head.appendChild(s);
+    }))).then(() => {
+      const E = Array.isArray(window.KUDA_EVENTS) ? window.KUDA_EVENTS : (window.KUDA_EVENTS = []);
+      const seen = new Set(E.map(e => e && e.id));
+      before.forEach(e => { if (e && !seen.has(e.id)) { seen.add(e.id); E.push(e); } });
     });
   }
 
@@ -2788,7 +3061,8 @@
     // «открыли приглашение» — для «Моих приглашений» создателя (с этого устройства один раз; итоги по &r=1 смотрит сам создатель)
     if (live() && !h.results && !OWN) api('opened', CODE);
     if (GROUP) pullRemote();
-    if (GROUP && h.results) { showResults(false); return; }
+    // дедлайн прошёл — голосовать поздно, сразу итог
+    if (GROUP && (h.results || isClosed())) { showResults(false); return; }
 
     if (canNotify() && TG.notifyOpen !== false && !S.sent.open) {
       notify('open').then(ok => { if (ok) { S.sent.open = true; save(); } });

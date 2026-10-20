@@ -4,9 +4,10 @@
    или IAM-токен сервисного аккаунта функции (context.token) — заголовок «Authorization: Bearer».
 
    Таблицы (префикс YDB_TABLE_PREFIX, по умолчанию kuda_):
-   inv   (pk = ключ приглашения, sk): 'm' — общее (rev, cnt, spin, spins, owner, mode, title, answer, opened, fo, upd, e;
+   inv   (pk = ключ приглашения, sk): 'm' — общее (rev, cnt, spin, spins, owner, mode, title, answer, opened, fo, upd, e,
+                                      until — дедлайн в минутах эпохи, ref — метка «пришёл по приглашению», city, cre — когда зарегистрировали;
                                       spins — JSON-список итогов колеса по наборам лидеров, spin — последний из них),
-                                      'v#<id>' — голос (n, y, o, d, t, h), 'o#<dev>' — «открыл» с устройства.
+                                      'v#<id>' — голос (n, y, o, d, t, h, x — JSON доп. полей {s, m, p}), 'o#<dev>' — «открыл» с устройства.
    rev   (pk, sk): 'r'/<id> — отзыв целиком; 'p#<place>'/<id> — опубликованная копия для списка;
                    'q'/<id> — очередь модерации; 'u#<place>'/<d:dev|y:uid> — «один отзыв на устройство / Яндекс ID»;
                    'x#<id>'/<dev> — жалобы; 'a'/<place> — суммы для рейтинга; 'snap'/<name> — снимки; 'f'/<id> — ошибки в каталоге.
@@ -51,7 +52,15 @@ const isCond = e => e && (e.name === 'ConditionalCheckFailedException' || e.__ty
 const parse = (s, d = null) => { if (typeof s !== 'string' || !s) return d; try { return JSON.parse(s); } catch (e) { return d; } };
 const chunk = (a, n) => { const out = []; for (let i = 0; i < a.length; i += n) out.push(a.slice(i, i + n)); return out; };
 
-const voterOut = it => ({ id: it.sk.slice(2), n: it.n || '', y: it.y ? 1 : 0, o: parse(it.o, []), d: parse(it.d, []), t: it.t || 0 });
+/* x — необязательные поля голоса компании: s (слоты времени), m (дни «может быть»), p (+N); пустых нет */
+const voterX = v => { const x = {}; if (v.s && v.s.length) x.s = v.s; if (v.m && v.m.length) x.m = v.m; if (v.p) x.p = v.p; return Object.keys(x).length ? JSON.stringify(x) : undefined; };
+function voterOut(it) {
+  const v = { id: it.sk.slice(2), n: it.n || '', y: it.y ? 1 : 0, o: parse(it.o, []), d: parse(it.d, []), t: it.t || 0 };
+  const x = parse(it.x, null);
+  if (x && typeof x === 'object') { if (x.s) v.s = x.s; if (x.m) v.m = x.m; if (x.p) v.p = x.p; }
+  return v;
+}
+const untilOf = m => (m && m.until != null && Number.isFinite(Number(m.until)) ? Number(m.until) : null);
 const reviewOut = it => it && ({
   id: it.sk, place: it.place, stars: it.stars, text: it.text || '', tags: parse(it.tags, []), name: it.name || '', fit: it.fit || '',
   at: it.at, status: it.status, why: it.why || '', dev: it.dev || '', yuid: it.yuid || '', ver: it.ver ? 1 : 0,
@@ -229,12 +238,15 @@ export async function createYdbStore(o = {}) {
     /* ---------- голоса ----------
        Владение голосом — условной записью: новый голос (нет sk), голос из ссылки без хозяина (нет h) или тот же h. */
     async vote(key, voter, h, seeds, o) {
+      // дедлайн (минуты эпохи) прошёл или организатор закрыл голосование
+      const until = untilOf(await meta(key));
+      if (until != null && o.now >= until * 60000) return { status: 'closed' };
       const cur = new Map((await voters(key)).map(it => [it.sk.slice(2), it]));
       const mine = cur.get(voter.id);
       if (mine && mine.h && mine.h !== h) return { status: 'owner' };
       if (!mine && cur.size >= o.max) return { status: 'full' };
       try {
-        await put(T.inv, { pk: key, sk: 'v#' + voter.id, n: voter.n, y: voter.y, o: JSON.stringify(voter.o), d: JSON.stringify(voter.d), t: voter.t, h },
+        await put(T.inv, { pk: key, sk: 'v#' + voter.id, n: voter.n, y: voter.y, o: JSON.stringify(voter.o), d: JSON.stringify(voter.d), t: voter.t, h, x: voterX(voter) },
           'attribute_not_exists(#sk) OR attribute_not_exists(#h) OR #h = :h', { ':h': h });
       } catch (e) {
         if (isCond(e)) return { status: 'owner' };
@@ -245,18 +257,18 @@ export async function createYdbStore(o = {}) {
         if (cur.size >= o.max) break;
         if (cur.has(s.id)) continue;
         try {
-          await put(T.inv, { pk: key, sk: 'v#' + s.id, n: s.n, y: s.y, o: JSON.stringify(s.o), d: JSON.stringify(s.d), t: s.t }, 'attribute_not_exists(#sk)');
+          await put(T.inv, { pk: key, sk: 'v#' + s.id, n: s.n, y: s.y, o: JSON.stringify(s.o), d: JSON.stringify(s.d), t: s.t, x: voterX(s) }, 'attribute_not_exists(#sk)');
         } catch (e) { if (!isCond(e)) throw e; }
         cur.set(s.id, true);
       }
       const a = await update(T.inv, { pk: key, sk: 'm' }, 'SET #cnt = :cnt, #upd = :now, #e = :exp ADD #rev :one',
         { ':cnt': cur.size, ':now': o.now, ':exp': o.exp, ':one': 1 });
-      return { status: 'ok', votes: sortVotes(await voters(key)), rev: Number(a.rev), ...spinView(spinList(a.spins, a.spin)) };
+      return { status: 'ok', votes: sortVotes(await voters(key)), rev: Number(a.rev), ...spinView(spinList(a.spins, a.spin)), until: untilOf(a) };
     },
     async votes(key) {
       const m = await meta(key);
       if (!m) return null;
-      return { votes: sortVotes(await voters(key)), rev: Number(m.rev) || 0, ...spinView(spinList(m.spins, m.spin)) };
+      return { votes: sortVotes(await voters(key)), rev: Number(m.rev) || 0, ...spinView(spinList(m.spins, m.spin)), until: untilOf(m) };
     },
     async rev(key) {
       const m = await get(T.inv, { pk: key, sk: 'm' }, { ProjectionExpression: '#rev', ExpressionAttributeNames: { '#rev': 'rev' } });
@@ -290,14 +302,36 @@ export async function createYdbStore(o = {}) {
 
     /* ---------- приглашения ---------- */
     async invite(key, x, o) {
+      // until, ref, city и время регистрации (cre) — с первой регистрации: повтор их не меняет
+      const m0 = await meta(key);
+      const first = !m0 || m0.cre == null;
+      const once = [['#cre', ':now']].concat(first && x.until != null ? [['#until', ':until']] : [], first && x.ref ? [['#ref', ':ref']] : [], first && x.city ? [['#city', ':city']] : [])
+        .map(([n, v]) => `${n} = if_not_exists(${n}, ${v}), `).join('');
       try {
-        await update(T.inv, { pk: key, sk: 'm' }, 'SET #owner = :owner, #mode = :mode, ' + (x.title ? '#title = :title, ' : '') + TOUCH + (x.title ? '' : ' REMOVE #title'),
-          { ':owner': x.owner, ':mode': x.mode, ':title': x.title, ':now': o.now, ':exp': o.exp, ':zero': 0 },
+        await update(T.inv, { pk: key, sk: 'm' }, 'SET #owner = :owner, #mode = :mode, ' + (x.title ? '#title = :title, ' : '') + once + TOUCH + (x.title ? '' : ' REMOVE #title'),
+          { ':owner': x.owner, ':mode': x.mode, ':title': x.title, ':until': x.until, ':ref': x.ref, ':city': x.city, ':now': o.now, ':exp': o.exp, ':zero': 0 },
           'attribute_not_exists(#owner) OR #owner = :owner', 'NONE');
         return 'ok';
       } catch (e) {
         if (isCond(e)) return 'taken';
         throw e;
+      }
+    },
+    /* «Закрыть сейчас»: дедлайн = o.until (минуты), если он раньше прежнего; только владелец (условная запись) */
+    async closeVote(key, owner, o) {
+      const m = await meta(key);
+      if (!m || !m.owner) return { status: 'nf' };
+      if (m.owner !== owner) return { status: 'owner' };
+      const cur = untilOf(m);
+      if (cur != null && cur <= o.until) return { status: 'ok', until: cur, rev: Number(m.rev) || 0 };
+      try {
+        const a = await update(T.inv, { pk: key, sk: 'm' }, 'SET #until = :u, #upd = :now, #e = :exp ADD #rev :one',
+          { ':u': o.until, ':now': o.now, ':exp': o.exp, ':one': 1, ':owner': owner }, '#owner = :owner AND (attribute_not_exists(#until) OR #until > :u)');
+        return { status: 'ok', until: o.until, rev: Number(a.rev) };
+      } catch (e) {
+        if (!isCond(e)) throw e;
+        const m2 = await meta(key);   // кто-то закрыл раньше — отдаём, что записано
+        return { status: 'ok', until: untilOf(m2), rev: Number(m2 && m2.rev) || 0 };
       }
     },
     async opened(key, dev, o) {
@@ -320,7 +354,7 @@ export async function createYdbStore(o = {}) {
       for (const it of await batchGet(T.inv, keys.map(k => ({ pk: k, sk: 'm' })))) {
         out[it.pk] = {
           owner: it.owner || '', mode: it.mode || '', title: it.title || '', opened: Number(it.opened) || 0,
-          firstOpen: it.fo ? Number(it.fo) : null, cnt: Number(it.cnt) || 0, answer: it.answer || '', upd: Number(it.upd) || 0,
+          firstOpen: it.fo ? Number(it.fo) : null, cnt: Number(it.cnt) || 0, answer: it.answer || '', upd: Number(it.upd) || 0, until: untilOf(it),
         };
       }
       return out;
@@ -518,13 +552,23 @@ export async function createYdbStore(o = {}) {
       for (const it of revs) by[it.status] = (by[it.status] || 0) + 1;
       const places = await queryAll({ TableName: T.rev, KeyConditionExpression: '#pk = :pk', ProjectionExpression: '#sk, #n' }, { ':pk': 'a' }, CAP);
       const fixes = await queryAll({ TableName: T.rev, KeyConditionExpression: '#pk = :pk', ProjectionExpression: '#sk' }, { ':pk': 'f' }, CAP);
-      const inv = await scanAll({ TableName: T.inv, FilterExpression: '#sk = :m', ProjectionExpression: '#pk, #cnt, #answer' }, { ':m': 'm' }, CAP);
+      const inv = await scanAll({ TableName: T.inv, FilterExpression: '#sk = :m', ProjectionExpression: '#pk, #cnt, #answer, #owner, #cre, #ref, #city' }, { ':m': 'm' }, CAP);
+      // гость → автор: приглашения, зарегистрированные за 7 дней, — все и с меткой ref, по городам
+      const wk = new Map();
+      for (const it of inv.items) {
+        if (!it.owner || !(Number(it.cre) >= now - 7 * 864e5)) continue;
+        const c = it.city || '', x = wk.get(c) || { city: c, all: 0, ref: 0 };
+        x.all++;
+        if (it.ref) x.ref++;
+        wk.set(c, x);
+      }
       const shorts = await scanAll({ TableName: T.short, FilterExpression: 'begins_with(#pk, :s) AND #e > :now', ProjectionExpression: '#pk' }, { ':s': 's|', ':now': now }, CAP);
       return {
         invites: inv.items.length, voters: inv.items.reduce((s, it) => s + (Number(it.cnt) || 0), 0),
         answers: inv.items.filter(it => it.answer).length,
         reviews: by.ok || 0, pending: by.pending || 0, hidden: by.hidden || 0,
         places: places.filter(it => Number(it.n) > 0).length, fixes: fixes.length, shorts: shorts.items.length,
+        week: Array.from(wk.values()),
         approx: inv.more || shorts.more || revs.length >= CAP,
       };
     },

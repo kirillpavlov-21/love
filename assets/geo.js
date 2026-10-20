@@ -1,40 +1,50 @@
 /* «Рядом со мной»: где человек находится.
    1) Геолокация браузера. На компьютере её часто нет: Chrome и Edge определяют место через сетевой сервис,
       и без Wi-Fi он может молчать, даже когда доступ разрешён. Поэтому ждём подольше и пробуем второй раз.
-   2) Если не вышло — человек выбирает станцию метро (координаты — таблица FIXED ниже)
+   2) Если не вышло — человек выбирает станцию метро (координаты — таблицы FIXED и FIXED_SPB ниже)
       или ставит точку на карте. Точка запоминается только в этом браузере: геопозиция (GPS) — до закрытия
-      вкладки (sessionStorage), выбранные станция метро или точка на карте — дольше (localStorage). */
+      вкладки (sessionStorage), выбранные станция метро или точка на карте — дольше (localStorage).
+   Города — K.CITIES в shared.js. У каждого города своя точка: 'kuda-near' — Москва (как раньше), 'kuda-near:spb' — Петербург.
+   Город по умолчанию во всех функциях — город интерфейса K.city(). */
 (function () {
   'use strict';
 
+  const K = () => window.DateKit;
+  const cityId = c => { const k = K(); return k && k.CITIES && Object.prototype.hasOwnProperty.call(k.CITIES, c) ? c : (k && k.city ? k.city() : 'msk'); };
   const KEY = 'kuda-near';
+  const keyOf = c => (c === 'msk' ? KEY : KEY + ':' + c);
   const box = s => { try { return s === 'session' ? window.sessionStorage : window.localStorage; } catch (e) { return null; } };
-  const read = s => { try { const b = box(s); return b ? JSON.parse(b.getItem(KEY) || 'null') : null; } catch (e) { return null; } };
-  const drop = s => { try { const b = box(s); if (b) b.removeItem(KEY); } catch (e) { /* приватный режим */ } };
-  const ls = {
-    get() { return read('session') || read('local'); },
-    set(v) {
-      drop('session'); drop('local');
-      if (!v) return;
-      try { box(v.src === 'gps' ? 'session' : 'local').setItem(KEY, JSON.stringify(v)); } catch (e) { /* приватный режим */ }
-    },
-  };
+  const read = (s, k) => { try { const b = box(s); return b ? JSON.parse(b.getItem(k) || 'null') : null; } catch (e) { return null; } };
+  const drop = (s, k) => { try { const b = box(s); if (b) b.removeItem(k); } catch (e) { /* приватный режим */ } };
+  /* Сохранённая точка города; точка вне города (старая запись, точка на карте далеко) — не считается */
+  function saved(c) {
+    c = cityId(c);
+    const v = read('session', keyOf(c)) || read('local', keyOf(c));
+    return v && Number.isFinite(v.lat) && Number.isFinite(v.lon) && inArea(v, c) ? v : null;
+  }
+  function save(v, c) {
+    c = cityId(c);
+    drop('session', keyOf(c)); drop('local', keyOf(c));
+    if (!v) return;
+    try { box(v.src === 'gps' ? 'session' : 'local').setItem(keyOf(c), JSON.stringify(v)); } catch (e) { /* приватный режим */ }
+  }
   /* Старые версии сохраняли GPS навсегда — такую точку забываем */
-  (() => { const old = read('local'); if (old && old.src === 'gps') drop('local'); })();
+  (() => { const k = K(); (k && k.CITIES ? Object.keys(k.CITIES) : ['msk']).forEach(c => { const old = read('local', keyOf(c)); if (old && old.src === 'gps') drop('local', keyOf(c)); }); })();
 
-  /* Москва и ближнее Подмосковье: точку дальше ~70 км от центра считаем ошибкой (VPN, чужой город) */
-  const CENTER = { lat: 55.751, lon: 37.618 };
-  function inArea(p) {
-    const K = window.DateKit;
-    return !!p && K.distM(CENTER, p) < 70000;
+  /* Город и ближние пригороды: точку дальше maxKm от центра города (Москва — 70 км, Петербург — 60) считаем не этим городом */
+  function inArea(p, c) {
+    const k = K(), conf = k.cityConf(cityId(c));
+    return !!p && Number.isFinite(p.lat) && Number.isFinite(p.lon) && k.distM({ lat: conf.center[0], lon: conf.center[1] }, p) < conf.maxKm * 1000;
   }
 
   function once(opts) {
     return new Promise((res, rej) => navigator.geolocation.getCurrentPosition(
       pos => res({ lat: pos.coords.latitude, lon: pos.coords.longitude, acc: pos.coords.accuracy }), rej, opts));
   }
-  /* Возвращает точку или бросает ошибку с кодом: denied | unavailable | timeout | unsupported | far */
-  async function locate() {
+  /* Возвращает точку в городе c или бросает ошибку с кодом: denied | unavailable | timeout | unsupported | far.
+     У far — point и city: другой город из K.CITIES, где человек сейчас (или null — ни в одном) */
+  async function locate(c) {
+    c = cityId(c);
     if (!('geolocation' in navigator)) throw Object.assign(new Error('unsupported'), { code: 'unsupported' });
     if (!window.isSecureContext) throw Object.assign(new Error('unsupported'), { code: 'unsupported' });
     let p;
@@ -48,8 +58,18 @@
         throw Object.assign(new Error('unavailable'), { code: e2 && e2.code === 3 ? 'timeout' : 'unavailable' });
       }
     }
-    if (!inArea(p)) throw Object.assign(new Error('far'), { code: 'far', point: p });
+    if (!inArea(p, c)) throw Object.assign(new Error('far'), { code: 'far', point: p, city: K().cityByPoint(p.lat, p.lon) });
     return Object.assign(p, { label: 'Ты здесь', src: 'gps' });
+  }
+  /* Где человек — только если доступ к геопозиции УЖЕ разрешён: разрешения не спрашиваем, окна браузера не будет.
+     Нет Permissions API, доступ не дан или браузер молчит — null */
+  async function peek() {
+    try {
+      if (!('geolocation' in navigator) || !window.isSecureContext || !navigator.permissions || typeof navigator.permissions.query !== 'function') return null;
+      const st = await navigator.permissions.query({ name: 'geolocation' });
+      if (!st || st.state !== 'granted') return null;
+      return await once({ enableHighAccuracy: false, timeout: 8000, maximumAge: 1800000 });
+    } catch (e) { return null; }
   }
 
   /* Координаты станций метро и МЦК (центр станции по OpenStreetMap, октябрь 2026). Медиана мест каталога
@@ -116,34 +136,80 @@
     'Юго-Западная': [55.6636, 37.4832], 'Южная': [55.6223, 37.6092], 'Ясенево': [55.6063, 37.5334],
     'Яхромская': [55.8799, 37.5454],
   };
-  /* Станции: из таблицы FIXED, для остальных — медиана координат мест с этой станцией (точные координаты, ≥ 5 знаков, важнее) */
-  let STATIONS = null;
-  function stations() {
-    if (STATIONS) return STATIONS;
-    const K = window.DateKit, by = {};
+  /* Петербургское метро: [широта, долгота, линия] — центр станции (Википедия / OpenStreetMap, октябрь 2026), 6 линий, 73 станции.
+     «Технологический институт» (линии 1 и 2) и «Площадь Александра Невского» (3 и 4) — по одной записи.
+     Названия станций в двух городах совпадают (Маяковская, Спортивная…), поэтому таблицы раздельные. */
+  const FIXED_SPB = {
+    'Автово': [59.8673, 30.2615, 1], 'Адмиралтейская': [59.9359, 30.3151, 5], 'Академическая': [60.0127, 30.3960, 1],
+    'Балтийская': [59.9073, 30.2997, 1], 'Беговая': [59.9883, 30.2031, 3], 'Бухарестская': [59.8840, 30.3687, 5],
+    'Василеостровская': [59.9427, 30.2783, 3], 'Владимирская': [59.9277, 30.3480, 1],
+    'Волковская': [59.8961, 30.3580, 5], 'Выборгская': [59.9712, 30.3478, 1], 'Горный институт': [59.9325, 30.2611, 4],
+    'Горьковская': [59.9561, 30.3189, 2], 'Гостиный двор': [59.9338, 30.3330, 3],
+    'Гражданский проспект': [60.0350, 30.4181, 1], 'Девяткино': [60.0504, 30.4424, 1],
+    'Достоевская': [59.9283, 30.3464, 4], 'Дунайская': [59.8397, 30.4111, 5], 'Елизаровская': [59.8968, 30.4235, 3],
+    'Звёздная': [59.8333, 30.3495, 2], 'Звенигородская': [59.9224, 30.3358, 5], 'Зенит': [59.9722, 30.2117, 3],
+    'Кировский завод': [59.8796, 30.2618, 1], 'Комендантский проспект': [60.0084, 30.2588, 5],
+    'Крестовский остров': [59.9718, 30.2594, 5], 'Купчино': [59.8297, 30.3755, 2], 'Ладожская': [59.9324, 30.4391, 4],
+    'Ленинский проспект': [59.8518, 30.2683, 1], 'Лесная': [59.9850, 30.3442, 1],
+    'Лиговский проспект': [59.9207, 30.3549, 4], 'Ломоносовская': [59.8775, 30.4419, 3],
+    'Маяковская': [59.9315, 30.3549, 3], 'Международная': [59.8703, 30.3789, 5], 'Московская': [59.8522, 30.3220, 2],
+    'Московские ворота': [59.8916, 30.3180, 2], 'Нарвская': [59.9011, 30.2749, 1],
+    'Невский проспект': [59.9352, 30.3284, 2], 'Новочеркасская': [59.9290, 30.4119, 4],
+    'Обводный канал': [59.9146, 30.3496, 5], 'Обухово': [59.8488, 30.4577, 3], 'Озерки': [60.0371, 30.3217, 2],
+    'Парк Победы': [59.8664, 30.3217, 2], 'Парнас': [60.0670, 30.3339, 2], 'Петроградская': [59.9662, 30.3117, 2],
+    'Пионерская': [60.0027, 30.2967, 2], 'Площадь Александра Невского': [59.9244, 30.3859, 3],
+    'Площадь Восстания': [59.9313, 30.3608, 1], 'Площадь Ленина': [59.9557, 30.3559, 1],
+    'Площадь Мужества': [59.9999, 30.3667, 1], 'Политехническая': [60.0089, 30.3709, 1],
+    'Приморская': [59.9485, 30.2344, 3], 'Пролетарская': [59.8653, 30.4702, 3],
+    'Проспект Большевиков': [59.9200, 30.4666, 4], 'Проспект Ветеранов': [59.8419, 30.2518, 1],
+    'Проспект Просвещения': [60.0516, 30.3325, 2], 'Проспект Славы': [59.8586, 30.3935, 5],
+    'Путиловская': [59.8792, 30.2653, 6], 'Пушкинская': [59.9205, 30.3298, 1], 'Рыбацкое': [59.8309, 30.5001, 3],
+    'Садовая': [59.9267, 30.3175, 5], 'Сенная площадь': [59.9272, 30.3204, 2], 'Спасская': [59.9268, 30.3196, 4],
+    'Спортивная': [59.9518, 30.2906, 5], 'Старая Деревня': [59.9892, 30.2551, 5],
+    'Технологический институт': [59.9164, 30.3185, 1], 'Удельная': [60.0167, 30.3157, 2],
+    'Улица Дыбенко': [59.9075, 30.4833, 4], 'Фрунзенская': [59.9062, 30.3174, 2], 'Чёрная речка': [59.9853, 30.3011, 2],
+    'Чернышевская': [59.9445, 30.3600, 1], 'Чкаловская': [59.9611, 30.2920, 5], 'Шушары': [59.8200, 30.4328, 5],
+    'Электросила': [59.8791, 30.3187, 2], 'Юго-Западная': [59.8592, 30.2303, 6],
+  };
+  /* Станции города: из таблицы города (FIXED — Москва, FIXED_SPB — Петербург), для остальных — медиана координат мест
+     этой станции в этом же городе (точные координаты, ≥ 5 знаков, важнее). Только станции, у которых есть места каталога.
+     У петербургских станций есть line — номер линии (цвет значка). Список кэшируется по городу */
+  const TABLE = { msk: FIXED, spb: FIXED_SPB };
+  const STATIONS = {};
+  function stations(c) {
+    c = cityId(c);
+    if (STATIONS[c]) return STATIONS[c];
+    const k = K(), by = {}, fx = TABLE[c] || {};
     const prec = x => (String(x).split('.')[1] || '').length;
     // точные координаты (≥ 5 знаков) важнее; станции только с примерными точками тоже попадают в список
     const rough = {};
-    Object.values(K.kuda().places).forEach(p => {
-      if (!p.metro || p.adult || p.closed || !window.DateKit.isMetro(p.metro)) return;   // МЦД и электрички — не метро; закрытые не считаем
-      const box = prec(p.lat) >= 5 ? by : rough;
-      (box[p.metro] = box[p.metro] || []).push(p);
+    Object.entries(k.kuda().places).forEach(([id, p]) => {
+      if (!p || !p.metro || p.adult || p.closed || !k.isMetro(p.metro)) return;   // МЦД и электрички — не метро; закрытые не считаем
+      if (k.cityOf(Object.assign({ id }, p)) !== c) return;   // одноимённые станции другого города (Спортивная, Маяковская…) — не наши
+      const b = prec(p.lat) >= 5 ? by : rough;
+      (b[p.metro] = b[p.metro] || []).push(p);
     });
     Object.keys(rough).forEach(m => { if (!by[m]) by[m] = rough[m]; });
     const med = a => { const s = a.slice().sort((x, y) => x - y); return s[s.length >> 1]; };
-    STATIONS = Object.entries(by).map(([name, ps]) => FIXED[name] ? { name, lat: FIXED[name][0], lon: FIXED[name][1], n: ps.length }
+    const own = n => Object.prototype.hasOwnProperty.call(fx, n);
+    STATIONS[c] = Object.entries(by).map(([name, ps]) => own(name)
+      ? Object.assign({ name, lat: fx[name][0], lon: fx[name][1], n: ps.length }, fx[name][2] ? { line: fx[name][2] } : null)
       : { name, lat: med(ps.map(p => p.lat)), lon: med(ps.map(p => p.lon)), n: ps.length })
       .sort((a, b) => a.name.localeCompare(b.name, 'ru'));
-    return STATIONS;
+    return STATIONS[c];
   }
 
+  /* Подсказки к ошибкам locate(); far — про текущий город интерфейса («Похоже, ты не в Петербурге») */
   const MSG = {
     denied: 'Доступ к геопозиции запрещён для этого сайта. Разреши его в настройках браузера (значок слева от адреса) или выбери метро.',
     unavailable: 'Браузер не смог определить, где ты. На компьютере так бывает без Wi-Fi. Выбери станцию метро или точку на карте.',
     timeout: 'Браузер слишком долго определял место. Выбери станцию метро или точку на карте.',
     unsupported: 'Этот браузер не умеет определять место. Выбери станцию метро или точку на карте.',
-    far: 'Похоже, ты не в Москве (или включён VPN). Выбери станцию метро или точку на карте.',
+    get far() { return farMsg(); },
   };
+  const farMsg = c => 'Похоже, ты не ' + K().cityConf(cityId(c)).in + ' (или включён VPN). Выбери станцию метро или точку на карте.';
 
-  window.KudaGeo = { locate, stations, inArea, saved: ls.get, save: ls.set, MSG };
+  /* все станции города из таблицы: { name: [lat, lon, line?] } — для графа метро (assets/metro.js) */
+  const table = c => TABLE[cityId(c)] || {};
+  window.KudaGeo = { locate, peek, stations, table, inArea, saved, save, MSG, farMsg };
 })();

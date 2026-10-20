@@ -161,6 +161,11 @@ details ol { padding-left: 20px; line-height: 1.55; font-weight: 500; font-size:
 .modeseg button.on { background: var(--accent); color: var(--on-accent); }
 body[data-mode="date"] .only-group, body:not([data-mode="date"]) .only-date { display: none !important; }
 .plan-pick { margin-bottom: 12px; }
+/* Город каталога: в приглашении — места одного города */
+.pk-city { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 10px; }
+.pk-city-l { font-size: 15px; line-height: 1; }
+.pk-city button { min-height: 34px; border: 1px solid var(--line-2); border-radius: 99px; background: transparent; padding: 6px 13px; font: inherit; font-size: 13px; font-weight: 600; color: var(--muted-2); cursor: pointer; }
+.pk-city button.on { background: var(--surface-3); border-color: var(--surface-3); color: var(--text); }
 .pk-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: 100%; gap: 4px; margin-bottom: 10px; }
 .pk-tabs.two { grid-template-columns: 1fr 1fr; }
 .pk-tabs button { border: 0; border-radius: 10px; padding: 8px 6px; background: transparent; font: inherit; font-weight: 600; font-size: 14px; line-height: 1.25; color: var(--muted); cursor: pointer; min-width: 0; }
@@ -351,3 +356,12 @@ a.btn { text-decoration: none; }
   body.inv-page .toast { bottom: calc(24px + env(safe-area-inset-bottom)); }
 }
 @media (prefers-reduced-motion: reduce) { .inv.fresh { animation: none; } .tgbox > summary::after { transition: none; } }
+
+/* компания: варианты времени и «Решаем до» */
+.preset-now { border-style: solid; border-color: rgba(var(--rgb), .45); }
+.slot-ed { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 10px 0 12px; }
+.slot-ed input { margin: 0; padding-left: 8px; padding-right: 8px; min-width: 0; }
+.slot-ed.off { display: none; }
+.seg.seg-wrap { display: flex; flex-wrap: wrap; gap: 2px; }
+#untilAt { margin-bottom: 8px; }
+@media (max-width: 420px) { .slot-ed { grid-template-columns: repeat(2, 1fr); } }

@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Места 18+ — Куда идём?</title>
   <meta name="robots" content="noindex, nofollow">
-  <meta name="description" content="Стриптиз-клубы, мужской стриптиз и бурлеск-шоу в Москве. Только для взрослых.">
+  <meta name="description" content="Стриптиз-клубы, мужской стриптиз и бурлеск-шоу в Москве и Петербурге. Только для взрослых.">
   <meta name="theme-color" content="#0F0E13">
   <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="assets/icon-180.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="assets/hub.css?v=28">
+  <link rel="stylesheet" href="assets/hub.css?v=32">
 </head>
 <body>
   <header class="top">
@@ -25,7 +25,8 @@
     <div class="block-head">
       <h1 class="page-h1" id="adultTitle">Места 18+ <span class="count" id="acount"></span></h1>
     </div>
-    <p class="block-note">Стриптиз-клубы, мужской стриптиз и бурлеск-шоу в Москве. Только для взрослых: перед походом проверь условия входа и дресс-код.</p>
+    <p class="block-note">Стриптиз-клубы, мужской стриптиз и бурлеск-шоу <span id="acityIn">в Москве</span>. Только для взрослых: перед походом проверь условия входа и дресс-код.</p>
+    <div class="filters" id="acity" role="group" aria-label="Город"></div>
     <div class="filters" id="afilters" role="group" aria-label="Разделы 18+"></div>
     <div class="plist" id="alist"></div>
   </main>
@@ -44,14 +45,17 @@
   </div></div>
   <noscript><p class="block-note" style="text-align:center">Для этой страницы нужен JavaScript.</p></noscript>
 
-  <script src="config.js?v=28"></script>
-  <script src="assets/shared.js?v=28"></script>
-  <script src="assets/places.js?v=28"></script>
-  <script src="assets/auto.js?v=28"></script>
-  <script src="assets/photos.js?v=28"></script>
+  <script src="config.js?v=32"></script>
+  <script src="assets/shared.js?v=32"></script>
+  <script src="assets/places.js?v=32"></script>
+  <script src="assets/places-spb.js?v=32"></script>
+  <script src="assets/places-info.js?v=32"></script>
+  <script src="assets/auto.js?v=32"></script>
+  <script src="assets/photos.js?v=32"></script>
   <script>
   /* Места 18+: отдельная страница (noindex), ссылка — только в подвале главной.
      Сначала подтверждение возраста (запоминается до закрытия вкладки), потом список с разделами.
+     Список — только города главной (K.city(): ?city= или выбранный раньше), над разделами — переключатель городов.
      Ни в журнал действий, ни в Метрику эти места не попадают. */
   (function () {
     'use strict';
@@ -65,9 +69,23 @@
     var qs = new URLSearchParams(location.search);
     var mode = Object.prototype.hasOwnProperty.call(BY_MODE, qs.get('m') || '') ? qs.get('m') : 'guys';   // только свои ключи: ?m=constructor — не режим
     document.documentElement.dataset.mode = mode;
-    var ADULT = (D.adult || []).map(function (id) { var p = K.placeById(id); return p && p.adult ? Object.assign({ id: id }, p) : null; }).filter(Boolean);
-    var cats = ORDER.filter(function (c) { return ADULT.some(function (p) { return p.a18 === c; }); });
-    var cat = qs.get('cat') && cats.indexOf(qs.get('cat')) >= 0 ? qs.get('cat') : cats.indexOf(BY_MODE[mode]) >= 0 ? BY_MODE[mode] : cats[0];
+    var ALL = (D.adult || []).map(function (id) { var p = K.placeById(id); return p && p.adult ? Object.assign({ id: id }, p) : null; }).filter(Boolean);
+    var cityOf = function (p) { return K.cityOf(p.id); };
+    // город: у карточки из ссылки (?place=) — её город, иначе город главной
+    var pid = qs.get('place');
+    var city = pid && ALL.some(function (p) { return p.id === pid; }) ? K.cityOf(pid) : K.city();
+    // город из ссылки запоминаем, как на главной: в адресе списка Москва идёт без ?city=
+    if (city !== K.city() || qs.get('city') === city) K.setCity(city);
+    var ADULT = [], cats = [], cat = '';
+    /* Места и разделы города; раздел — из ссылки (?cat=) или по поводу, если он есть в этом городе */
+    function setCity(c, want) {
+      city = c;
+      ADULT = ALL.filter(function (p) { return cityOf(p) === city; });
+      cats = ORDER.filter(function (x) { return ADULT.some(function (p) { return p.a18 === x; }); });
+      cat = want && cats.indexOf(want) >= 0 ? want : cats.indexOf(BY_MODE[mode]) >= 0 ? BY_MODE[mode] : cats[0] || '';
+      $('#acityIn').textContent = K.CITIES[city].in;
+    }
+    setCity(city, qs.get('cat'));
     var plural = function (n, one, few, many) { var a = Math.abs(n) % 100, b = a % 10; return a > 10 && a < 20 ? many : b === 1 ? one : b >= 2 && b <= 4 ? few : many; };
     var CV = { strip: 'cv-bar', men: 'cv-books', show: 'cv-culture' };
     var tile = function (p) {
@@ -77,8 +95,18 @@
     };
     var price = function (n) { return '<span class="price" title="' + esc(K.priceHint(n)) + '">' + K.priceText(n) + '</span>'; };
 
+    /* Переключатель городов — если места 18+ есть больше чем в одном городе (свой город показываем всегда) */
+    function renderCities() {
+      var n = {};
+      ALL.forEach(function (p) { var c = cityOf(p); n[c] = (n[c] || 0) + 1; });
+      var list = Object.keys(K.CITIES).filter(function (c) { return c === city || n[c]; });
+      $('#acity').innerHTML = list.length < 2 ? '' : list.map(function (c) {
+        return '<button type="button" data-city="' + c + '" class="' + (c === city ? 'on' : '') + '" aria-pressed="' + (c === city) + '">📍 ' + esc(K.CITIES[c].name) + ' · ' + (n[c] || 0) + '</button>';
+      }).join('');
+    }
     function render() {
       var list = ADULT.filter(function (p) { return p.a18 === cat; });
+      renderCities();
       $('#acount').textContent = ADULT.length + ' ' + plural(ADULT.length, 'место', 'места', 'мест');
       $('#afilters').innerHTML = cats.map(function (c) {
         var n = ADULT.filter(function (p) { return p.a18 === c; }).length;
@@ -88,7 +116,7 @@
         return '<button type="button" class="pl-item" data-pid="' + esc(p.id) + '">' + tile(p) +
           '<span class="pl-main"><span class="pl-name"><span class="nm">' + esc(p.name) + '</span></span><span class="pl-sub">' + esc(K.metroText(p.metro)) + ' · ' + esc(String(p.kind).replace(' · 18+', '')) + '</span></span>' +
           price(p.price) + '</button>';
-      }).join('') || '<p class="pl-empty">В этом разделе пока пусто.</p>';
+      }).join('') || '<p class="pl-empty">' + (ADULT.length ? 'В этом разделе пока пусто.' : 'Мест 18+ ' + esc(K.CITIES[city].in) + ' пока нет.') + '</p>';
     }
 
     /* «Вперёд» на запись карточки, которую закрыли «Назад», — открываем её снова */
@@ -111,10 +139,11 @@
         '<div class="stop solo"><span class="k">' + esc(K.metroText(p.metro)) + '</span><span class="addr">' + esc(p.addr) + '</span>' +
         '<a class="ya-link" href="' + K.mapUrl(p) + '" target="_blank" rel="noopener"><span class="ya-ic" aria-hidden="true">' + I('photo') + '</span><span><b>Фото, часы и отзывы</b><small>в Яндекс Картах</small></span>' + I('ext') + '</a></div>' +
         '<div class="sheet-actions"><a class="btn primary wide" href="' + K.routeUrl([p]) + '" target="_blank" rel="noopener">' + I('route') + 'Как добраться</a></div>',
-        { url: '?m=' + mode + '&cat=' + cat + '&place=' + encodeURIComponent(p.id), adopt: !!adopt });
+        { url: listUrl() + '&place=' + encodeURIComponent(p.id), adopt: !!adopt });
       return true;
     }
-    var listUrl = function () { return '?m=' + mode + '&cat=' + cat; };
+    // город в адресе — только не Москва (как на главной); Москва — без ?city=
+    var listUrl = function () { return '?m=' + mode + (city !== 'msk' ? '&city=' + city : '') + (cat ? '&cat=' + cat : ''); };
     var ownEntry = function () { return !!(history.state && history.state.kudaSheet); };
 
     function start() {
@@ -126,6 +155,17 @@
       if (id && openPlace(id, restoring)) return;
       if (restoring) { try { history.replaceState(null, '', listUrl()); } catch (e) { /* ок */ } }
     }
+    $('#acity').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-city]');
+      if (!b || b.dataset.city === city || !K.CITIES[b.dataset.city]) return;
+      K.setCity(b.dataset.city);
+      setCity(b.dataset.city, cat);
+      render();
+      $('#backHome').href = homeUrl();
+      try { history.replaceState(history.state, '', listUrl()); } catch (er) { /* ок */ }
+      var on = $('#acity [data-city="' + city + '"]');
+      if (on) on.focus({ preventScroll: true });
+    });
     $('#afilters').addEventListener('click', function (e) {
       var b = e.target.closest('[data-ac]');
       if (!b || b.dataset.ac === cat) return;
@@ -137,7 +177,9 @@
       var b = e.target.closest('.pl-item[data-pid]');
       if (b) openPlace(b.dataset.pid);
     });
-    $('#backHome').href = 'start.html?m=' + mode;
+    // на главную — в тот же город
+    var homeUrl = function () { return 'start.html?m=' + mode + '&city=' + city; };
+    $('#backHome').href = homeUrl();
 
     /* Подтверждение возраста: «Да» — до закрытия вкладки, «Нет» — обратно на главную */
     var ok = false;
@@ -148,13 +190,13 @@
     document.documentElement.classList.add('sheet-lock');
     $('#ageTitle').focus({ preventScroll: true });
     gate.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') { e.preventDefault(); location.replace('start.html?m=' + mode); return; }
+      if (e.key === 'Escape') { e.preventDefault(); location.replace(homeUrl()); return; }
       if (e.key !== 'Tab') return;
       // в окне две кнопки: Tab и Shift+Tab переключают между ними
       e.preventDefault();
       (document.activeElement === $('#ageNo') ? $('#ageYes') : $('#ageNo')).focus();
     });
-    $('#ageNo').onclick = function () { location.replace('start.html?m=' + mode); };
+    $('#ageNo').onclick = function () { location.replace(homeUrl()); };
     $('#ageYes').onclick = function () {
       try { sessionStorage.setItem('kuda-18', '1'); } catch (e) { /* ок */ }
       gate.classList.add('hidden');

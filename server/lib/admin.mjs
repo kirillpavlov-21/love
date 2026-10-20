@@ -13,6 +13,17 @@ const TAG = {
   pricey: 'Дорого', view: 'Красивый вид', service: 'Хороший сервис', queue: 'Очереди',
 };
 const STATUS = { ok: 'опубликован', pending: 'на проверке', hidden: 'скрыт' };
+const CITY = { msk: 'Москва', spb: 'Петербург', '': 'город не указан' };
+/* Гость → автор: k = приглашения с меткой ref / все приглашения, зарегистрированные за 7 дней, — по городам */
+function guestStats(week) {
+  const list = (Array.isArray(week) ? week : []).filter(x => x && x.all > 0).sort((a, b) => b.all - a.all);
+  if (!list.length) return '<p class="empty">За 7 дней новых приглашений нет.</p>';
+  const all = list.reduce((s, x) => s + x.all, 0), ref = list.reduce((s, x) => s + x.ref, 0);
+  const k = (r, n) => (n ? (r / n).toFixed(2).replace('.', ',') : '0');
+  const card = (n, label) => `<div class="stat"><b>${esc(n)}</b><span>${esc(label)}</span></div>`;
+  return `<div class="stats">${card('k = ' + k(ref, all), `всего: ${ref} из ${all}`)}${list.map(x => card('k = ' + k(x.ref, x.all), `${CITY[x.city] || x.city}: ${x.ref} из ${x.all}`)).join('')}</div>
+<p class="empty">Доля приглашений за неделю, созданных теми, кого позвали через сайт (метка ref — 8 знаков хэша исходного приглашения, без имён и кодов).</p>`;
+}
 const DONE = {
   approve: 'Отзыв опубликован.', hide: 'Отзыв скрыт.', reply: 'Ответ сохранён.', fixdone: 'Сообщение закрыто.',
   recompute: 'Рейтинги пересчитаны.', cleanup: 'Старые данные удалены.', delete: 'Отзыв удалён навсегда.',
@@ -84,6 +95,9 @@ ${DONE[done] ? `<p class="note">${esc(DONE[done])}</p>` : ''}
 ${stat(s.reviews || 0, 'опубликовано отзывов')}${stat(s.pending || 0, 'ждут проверки')}${stat(s.hidden || 0, 'скрыто')}${stat(s.places || 0, 'мест с оценками')}
 ${stat(s.invites || 0, 'приглашений')}${stat(s.voters || 0, 'голосов')}${stat(s.answers || 0, 'ответов')}${stat(s.shorts || 0, 'коротких ссылок')}${stat(s.fixes || 0, 'сообщений об ошибках')}
 </div>${s.approx ? '<p class="empty">Цифры приблизительные: данных много, посчитаны не все.</p>' : ''}
+
+<h2>Гость → автор, 7 дней</h2>
+${guestStats(s.week)}
 
 <h2>Ждут проверки (${pending.length})</h2>
 ${pending.length ? pending.map(r => reviewCard(ctx, r, button(ctx, 'approve', r.id, 'Опубликовать', 'ok') + button(ctx, 'hide', r.id, 'Скрыть', 'no'))).join('') : '<p class="empty">Очередь пуста.</p>'}

@@ -1,8 +1,10 @@
-/* Каталог сайта глазами конвейера: читает assets/places.js, events.js, auto.js и таблицу станций из geo.js,
-   ищет совпадения новых мест с уже известными, придумывает id и проверяет планы по правилам из README. */
+/* Каталог сайта глазами конвейера: читает assets/places.js (+ places-spb.js), events.js (+ events-spb.js, sport.js),
+   auto.js и таблицы станций из geo.js (FIXED — Москва, FIXED_SPB — Петербург),
+   ищет совпадения новых мест с уже известными (только в том же городе), придумывает id и проверяет планы по правилам из README. */
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import vm from 'node:vm';
+import { CITIES, regionOf } from './geo.mjs';
 
 /* ---------- загрузка ---------- */
 
@@ -24,7 +26,7 @@ function runFile(ctx, code, name) {
   }
 }
 
-export const emptyAuto = () => ({ updated: '', places: {}, scenarios: [], events: [], closed: [] });
+export const emptyAuto = () => ({ updated: '', places: {}, scenarios: [], events: [], closed: [], buzz: {} });
 
 /* Данные из assets/auto.js. Файл пишет конвейер: постоянный код слияния и данные аргументом —
    `(function (A) {…})({…});`. Код слияния не запускаем, а достаём сам аргумент. */
@@ -52,14 +54,21 @@ export function parseAutoJs(text) {
   throw new Error('assets/auto.js: не нашёл данные (ожидается `(function (A) {…})({…});`)');
 }
 
-/* Таблица FIXED из assets/geo.js: { 'Станция': [lat, lon] } */
-export function parseStations(geoJs) {
-  const m = /const\s+FIXED\s*=\s*(\{[\s\S]*?\})\s*;/.exec(geoJs);
-  if (!m) throw new Error('assets/geo.js: не нашёл таблицу FIXED');
+/* Таблица станций из assets/geo.js: FIXED — Москва { 'Станция': [lat, lon] },
+   FIXED_SPB — Петербург { 'Станция': [lat, lon, линия] } (city = 'spb'). Названия в городах совпадают — таблицы раздельные */
+const STATION_TABLE = { msk: 'FIXED', spb: 'FIXED_SPB' };
+export function parseStations(geoJs, city = 'msk') {
+  const name = STATION_TABLE[city] || STATION_TABLE.msk;
+  const m = new RegExp(`const\\s+${name}\\s*=\\s*(\\{[\\s\\S]*?\\})\\s*;`).exec(geoJs);
+  if (!m) throw new Error(`assets/geo.js: не нашёл таблицу ${name}`);
   const st = plain(vm.runInNewContext('(' + m[1] + ')', {}, { timeout: 2000 }));
-  if (!Object.keys(st).length) throw new Error('assets/geo.js: таблица FIXED пустая');
+  if (!Object.keys(st).length) throw new Error(`assets/geo.js: таблица ${name} пустая`);
   return st;
 }
+
+/* Файлы данных по порядку подключения на сайте: Москва, потом Петербург и матчи — они только добавляют своё */
+const PLACE_FILES = ['places.js', 'places-spb.js'];
+const EVENT_FILES = ['events.js', 'events-spb.js', 'sport.js'];
 
 export async function loadCatalog(repoDir) {
   const A = path.join(repoDir, 'assets');
@@ -68,8 +77,10 @@ export async function loadCatalog(repoDir) {
   if (placesJs == null) throw new Error(`нет файла ${path.join(A, 'places.js')}`);
   runFile(ctx, placesJs, 'assets/places.js');
   if (!ctx.KUDA || !ctx.KUDA.places) throw new Error('assets/places.js: нет window.KUDA.places');
-  const eventsJs = await readOpt(path.join(A, 'events.js'));
-  if (eventsJs != null) runFile(ctx, eventsJs, 'assets/events.js');
+  for (const f of [...PLACE_FILES.slice(1), ...EVENT_FILES]) {
+    const js = await readOpt(path.join(A, f));
+    if (js != null) runFile(ctx, js, 'assets/' + f);
+  }
 
   const K = plain(ctx.KUDA);
   const places = K.places || {};
@@ -79,7 +90,12 @@ export async function loadCatalog(repoDir) {
 
   const autoJs = await readOpt(path.join(A, 'auto.js'));
   const auto = autoJs != null ? parseAutoJs(autoJs) : emptyAuto();
-  const stations = parseStations(await fs.readFile(path.join(A, 'geo.js'), 'utf8'));
+  const geoJs = await fs.readFile(path.join(A, 'geo.js'), 'utf8');
+  const stations = parseStations(geoJs);
+  // таблицы Петербурга может ещё не быть — тогда петербургские адреса не пройдут проверку метро, а Москва работает как раньше
+  let spbStations = {};
+  try { spbStations = parseStations(geoJs, 'spb'); } catch (e) { /* нет FIXED_SPB */ }
+  const cityStations = { msk: stations, spb: spbStations };
 
   // слияние — как это делает сам auto.js на сайте
   for (const [id, p] of Object.entries(auto.places || {})) if (!places[id]) places[id] = plain(p);
@@ -95,7 +111,36 @@ export async function loadCatalog(repoDir) {
   const liveScenarios = scenarios.filter(s => !(s.stops || []).some(isClosed));
   const liveAdult = adult.filter(id => !isClosed(id));
 
-  return { updated: K.updated || '', places, scenarios: liveScenarios, events, adult: liveAdult, auto, stations };
+  // stations — Москва (как раньше), cityStations — по городам
+  return { updated: K.updated || '', places, scenarios: liveScenarios, events, adult: liveAdult, auto, stations, cityStations };
+}
+
+/* ---------- город ---------- */
+
+const SPB_ID = /^(spb-|ev-spb-|p-spb-)/;
+const isCityId = c => typeof c === 'string' && Object.prototype.hasOwnProperty.call(CITIES, c);
+/* Город места по id и полям — как K.cityOf на сайте: поле city → префикс id (spb-…) → точка → Москва */
+export function placeCity(id, p) {
+  if (p && isCityId(p.city)) return p.city;
+  if (typeof id === 'string' && SPB_ID.test(id)) return 'spb';
+  if (p && Number.isFinite(p.lat) && Number.isFinite(p.lon)) return regionOf(p.lat, p.lon) || 'msk';
+  return 'msk';
+}
+/* Город места, плана, события или id (places — словарь мест или каталог, чтобы найти место по id):
+   поле city → префикс id → первая остановка плана → площадка события → точка → Москва */
+export function cityOf(x, places) {
+  if (x == null) return 'msk';
+  if (typeof x === 'string') {
+    if (SPB_ID.test(x)) return 'spb';
+    const P = places ? placesOf(places) : null;
+    return P && P[x] ? placeCity(x, P[x]) : 'msk';
+  }
+  if (isCityId(x.city)) return x.city;
+  if (typeof x.id === 'string' && SPB_ID.test(x.id)) return 'spb';
+  if (Array.isArray(x.stops) && x.stops.length) return cityOf(String(x.stops[0]), places);
+  if (typeof x.place === 'string' && x.place && places) return cityOf(x.place, places);
+  if (Number.isFinite(x.lat) && Number.isFinite(x.lon)) return regionOf(x.lat, x.lon) || 'msk';
+  return 'msk';
 }
 
 /* ---------- имена и адреса ---------- */
@@ -180,7 +225,9 @@ function tokensIn(na, nb) {
   return s.every(w => l.has(w)) && s.some(w => w.length >= 4 && !GENERIC.has(w));
 }
 
-const CITY_RX = /^(г\.?\s*)?(москва|химки|зеленоград|мытищи|люберцы|красногорск|балашиха|королев|одинцово|реутов|долгопрудный|котельники|видное|троицк|московский|коммунарка)$/;
+const CITY_RX = new RegExp('^(г\\.?\\s*)?(москва|химки|зеленоград|мытищи|люберцы|красногорск|балашиха|королев|одинцово|реутов|долгопрудный|котельники|видное|троицк|московский|коммунарка'
+  + '|санкт-петербург|с\\.?-петербург|петербург|спб|пушкин|павловск|петергоф|новый петергоф|стрельна|ломоносов|кронштадт|сестрорецк|зеленогорск'
+  + '|колпино|шушары|парголово|мурино|кудрово|всеволожск|сертолово)$');
 const STREET_TYPES = new Set(['ул', 'улица', 'пер', 'переулок', 'просп', 'проспект', 'пр', 'пр-т', 'пр-кт', 'ш', 'шоссе',
   'бул', 'бульвар', 'б-р', 'наб', 'набережная', 'пл', 'площадь', 'проезд', 'туп', 'тупик', 'аллея', 'линия', 'тракт']);
 const AREA_TYPES = new Set(['мкр', 'микрорайон', 'кв-л', 'квартал', 'тер', 'территория', 'пос', 'поселок', 'п', 'дер', 'деревня', 'село']);
@@ -209,7 +256,7 @@ export function parseAddr(addr) {
   if (!addr) return null;
   const s = String(addr).toLowerCase().replace(/ё/g, 'е').replace(/\([^)]*\)/g, ' ').replace(/[«»"“”]/g, '');
   const parts = s.split(/[,;]/).map(x => x.trim()).filter(Boolean);
-  const isCity = p => CITY_RX.test(p) || /^(россия|московская обл\S*|\d{6})$/.test(p);
+  const isCity = p => CITY_RX.test(p) || /^(россия|московская обл\S*|ленинградская обл\S*|\d{6})$/.test(p);
   const named = p => words(p).some(w => /[а-яa-z]{2}/.test(w) && !STREET_TYPES.has(w) && !AREA_TYPES.has(w) && !/^(корп|корпус|стр|строение)$/.test(w));
   const ok = p => !isCity(p) && named(p) && (!/^\d/.test(p) || ORD_RX.test(p));
   let si = parts.findIndex(p => ok(p) && words(p).some(w => STREET_TYPES.has(w)));
@@ -279,6 +326,8 @@ const groupOf = c => (c ? GROUP[c] || c : '');
    похожее имя (≥ 0,85) в пределах 120 м;
    без координат и адреса — только точное имя, если в каталоге оно одно (score 0,6).
    Филиал и похожее имя не считаются, если разделы явно разные (бистро и падел-клуб в одном комплексе).
+   Только в том же городе: cand.city ('msk' | 'spb') или город по координатам кандидата — «Кофемания» в Москве
+   и в Петербурге разные места, даже на одноимённой улице. Без города и координат — по всему каталогу.
    Возвращает { id, score, by } лучшего совпадения или null. */
 export function findMatch(cand, catalog) {
   if (!cand || !cand.name) return null;
@@ -286,6 +335,7 @@ export function findMatch(cand, catalog) {
   const cn = normName(cand.name), cw = skeletonWords(cand.name), ck = nameSkeleton(cand.name);
   const ca = parseAddr(cand.addr);
   const hasLL = Number.isFinite(cand.lat) && Number.isFinite(cand.lon);
+  const city = isCityId(cand.city) ? cand.city : hasLL ? regionOf(cand.lat, cand.lon) : '';
   const cg = groupOf(CATS.includes(cand.cat) ? cand.cat : cand.kind ? catOf(cand.kind) : '');
   let best = null;
   let ck2 = 1;
@@ -293,6 +343,7 @@ export function findMatch(cand, catalog) {
   const exact = [];
   for (const [id, p] of Object.entries(places)) {
     if (!p || !p.name) continue;
+    if (city && placeCity(id, p) !== city) continue;
     const { pn, pw, pk, pa } = keysOf(p);
     const same = pn === cn;
     const skel = !same && ck.length >= 4 && pk === ck;
@@ -325,8 +376,9 @@ export function findMatch(cand, catalog) {
 
 /* ---------- id мест ---------- */
 
-/* Латинский kebab-case id из названия, уникальный относительно taken (Set, массив или объект с id-ключами) */
-export function slugId(name, taken) {
+/* Латинский kebab-case id из названия, уникальный относительно taken (Set, массив или объект с id-ключами).
+   prefix — начало id: 'spb-' у мест Петербурга (по нему сайт понимает город) */
+export function slugId(name, taken, prefix = '') {
   const has = !taken ? () => false
     : taken instanceof Set || taken instanceof Map ? x => taken.has(x)
       : Array.isArray(taken) ? x => taken.includes(x)
@@ -336,9 +388,17 @@ export function slugId(name, taken) {
     .replace(/['’`"«»]/g, '')
     .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
   if (base.length > 40) base = base.slice(0, 40).replace(/-[^-]*$/, '') || base.slice(0, 40);
-  base = base.replace(/-+$/, '') || 'place';
+  base = prefix + (base.replace(/-+$/, '') || 'place');
   if (!has(base)) return base;
   for (let i = 2; ; i++) if (!has(`${base}-${i}`)) return `${base}-${i}`;
+}
+
+/* id нового места города: в Петербурге — spb-<название>; московское место с названием «SPB …»
+   не должно начинаться с spb- (иначе сайт решит, что оно петербургское) — тогда msk-<название> */
+export function placeId(name, taken, city = 'msk') {
+  if (city === 'spb') return slugId(name, taken, 'spb-');
+  const id = slugId(name, taken);
+  return SPB_ID.test(id) ? slugId(name, taken, 'msk-') : id;
 }
 
 /* ---------- разделы каталога ---------- */
@@ -363,13 +423,17 @@ const catOfPlace = p => (p && CATS.includes(p.cat) ? p.cat : catOf(p && p.kind))
 
 /* ---------- индекс для промпта ---------- */
 
-/* Компактный список «id|name|kind|addr», отсортированный по id — стабилен между запусками (кеш промпта) */
-export function catalogIndex(catalog) {
+/* Компактный список «id|name|kind|addr», отсортированный по id — стабилен между запусками (кеш промпта).
+   Оба города в одном списке: у мест Петербурга адрес начинается с «Санкт-Петербург, » (и id — с spb-),
+   у московских адрес как есть. city — только места этого города */
+export function catalogIndex(catalog, city) {
   const places = placesOf(catalog);
   const f = s => String(s == null ? '' : s).replace(/[|\r\n]+/g, ' ').replace(/\s+/g, ' ').trim();
-  return Object.keys(places).sort().map(id => {
+  return Object.keys(places).sort().filter(id => !city || placeCity(id, places[id]) === city).map(id => {
     const p = places[id];
-    return [id, f(p.name), f(p.kind) + (p.closed ? ' (закрыто)' : ''), f(p.addr)].join('|');
+    const c = placeCity(id, p);
+    const addr = c === 'msk' ? f(p.addr) : `${CITIES[c].full}, ${f(p.addr)}`;
+    return [id, f(p.name), f(p.kind) + (p.closed ? ' (закрыто)' : ''), addr].join('|');
   }).join('\n');
 }
 
@@ -418,6 +482,15 @@ export function validatePlan(plan, places, opts = {}) {
   }
   if (ps.length !== stops.length) return { ok: false, errors };
 
+  // один город на план — даже с тегом drive; петербургский план (spb-… или city) — только с местами Петербурга
+  const cities = [...new Set(ps.map(([id, p]) => placeCity(id, p)))];
+  if (cities.length > 1) {
+    errors.push(`места из разных городов: ${ps.map(([id, p]) => `${id} (${CITIES[placeCity(id, p)].name})`).join(', ')}`);
+  } else if (cities.length === 1) {
+    const declared = isCityId(plan.city) ? plan.city : typeof plan.id === 'string' && SPB_ID.test(plan.id) ? 'spb' : '';
+    if (declared && declared !== cities[0]) errors.push(`план города «${CITIES[declared].name}», а места — ${CITIES[cities[0]].in}`);
+  }
+
   for (let i = 1; i < ps.length; i++) {
     const [ia, a] = ps[i - 1], [ib, b] = ps[i];
     const d = distM(a, b);
@@ -446,14 +519,16 @@ export function validatePlan(plan, places, opts = {}) {
 
 /* ---------- соседи ---------- */
 
-/* Места рядом с точкой (для подборок вокруг нового места): без закрытых и 18+, ближайшие первыми */
+/* Места рядом с точкой (для подборок вокруг нового места): без закрытых и 18+, только того же города, ближайшие первыми */
 export function nearbyPlaces(place, catalog, radiusM = 1200, limit = 25) {
   const P = placesOf(catalog);
   const adultIds = catalog && Array.isArray(catalog.adult) ? new Set(catalog.adult) : new Set();
+  const city = place ? placeCity(place.id, place) : 'msk';
   const out = [];
   for (const [id, p] of Object.entries(P)) {
     if (place && place.id === id) continue;
     if (p.closed || p.adult || adultIds.has(id)) continue;
+    if (placeCity(id, p) !== city) continue;
     const d = distM(place, p);
     if (!(d <= radiusM)) continue;
     if (d < 1 && place && place.name && normName(place.name) === normName(p.name)) continue;   // это само место

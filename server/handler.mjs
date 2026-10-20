@@ -18,6 +18,9 @@ export const REPORTS_TO_HIDE = 3;
 export const TAGS = ['talk', 'cozy', 'loud', 'first', 'group', 'cheap', 'pricey', 'view', 'service', 'queue'];
 const MODES = ['date', 'guys', 'girls'];
 const FITS = ['date', 'group', ''];
+const CITIES = ['msk', 'spb'];
+/* Дедлайн голосования (until, минуты эпохи) — не дальше 14 дней вперёд (+5 минут на спешащие часы телефона) */
+export const UNTIL_MAX_MS = 14 * DAY;
 
 /* [сколько, окно в секундах]. Счётчики хранятся в базе (с TTL), в памяти — только быстрый отсев. */
 export const LIMITS = {
@@ -28,6 +31,7 @@ export const LIMITS = {
   voter: [20, 600],        // на одного голосующего
   spin: [30, 600],         // на одно приглашение: у каждой новой ничьей свой итог колеса
   invite: [30, 600],       // по IP
+  close: [20, 600],        // «Закрыть сейчас» — на одно приглашение
   opened: [60, 600],       // на одно приглашение
   answer: [20, 600],       // на одно приглашение
   mine: [60, 600],         // по IP
@@ -65,6 +69,7 @@ const CODE_RE = /^[A-Za-z0-9]{4,16}$/;
 const YMD_RE = /^\d{4}-\d{2}-\d{2}$/;
 const HM_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
 const LEADERS_RE = /^(0|[1-9]\d{0,2})(,(0|[1-9]\d{0,2}))*$/;
+const REF_RE = /^[a-z0-9]{8}$/;          // метка «пришёл по приглашению»: 8 знаков хэша кода исходного приглашения
 
 class HttpError extends Error {
   constructor(status, code) { super(code); this.status = status; this.code = code; }
@@ -115,11 +120,25 @@ function cleanVoter(v, now) {
   if (!(v.y === 0 || v.y === 1 || v.y === true || v.y === false)) throw bad('voter');
   const o = intList(v.o, 20, 0, 99, 'voter');
   const d = intList(v.d, 60, 0, 40000, 'voter');
+  // необязательные поля компании: s — номера слотов времени (до 4), m — дни «может быть» (как d), p — «со мной ещё +N».
+  // У старых клиентов их нет; пустые не храним и не отдаём — голос выглядит как раньше
+  const s = intList(v.s, 4, 0, 3, 'voter');
+  const m = intList(v.m, 60, 0, 40000, 'voter').filter(x => !d.includes(x));
+  const p = v.p == null ? 0 : reqInt(v.p, 0, 9, 'voter');
+  // st — станция метро, откуда поедет («Встретимся посередине»): только название, до 40 знаков
+  const st = v.st == null || v.st === '' ? '' : cleanLine(optStr(v.st, 60, 'voter'), 40);
   // t из ссылок — в минутах (старый формат) или мс; будущее не принимаем
   let t = Number(v.t) || 0;
   if (t > 0 && t < 1e11) t *= 60000;
   if (!(t > 0) || t > now) t = now - 1;
-  return { id, n, y: v.y ? 1 : 0, o, d, t };
+  const out = { id, n, y: v.y ? 1 : 0, o, d, t };
+  if (out.y) {
+    if (s.length) out.s = s;
+    if (m.length) out.m = m;
+    if (p) out.p = p;
+    if (st) out.st = st;
+  }
+  return out;
 }
 /* Итог колеса: i — вариант, d — день, L — набор лидеров ничьей ('0,3,5': номера по возрастанию, без повторов,
    i среди них). Без L — как у старых клиентов: один итог на приглашение. */
@@ -288,7 +307,9 @@ export function createHandler(opts) {
       const r = await store.vote(key, voter, voteHash(key, secret), seeds, { now: t, exp: exp(), max: MAX_VOTERS });
       if (r.status === 'owner') throw new HttpError(403, 'owner');
       if (r.status === 'full') throw new HttpError(409, 'full');
-      return { votes: r.votes, rev: r.rev, spin: r.spin, spins: r.spins };
+      // дедлайн прошёл (или организатор закрыл голосование) — голос не принимаем
+      if (r.status === 'closed') throw new HttpError(409, 'closed');
+      return { votes: r.votes, rev: r.rev, spin: r.spin, spins: r.spins, until: r.until == null ? null : r.until };
     },
     /* Ответ: spin — итог для этого L (первый остаётся), spins — все итоги по наборам лидеров */
     async spin(b, ip) {
@@ -299,15 +320,33 @@ export function createHandler(opts) {
       const r = await store.spin(key, { ...spin, t }, { now: t, exp: exp(), max: MAX_SPINS });
       return { spin: r.spin, spins: r.spins, rev: r.rev };
     },
+    /* until — дедлайн голосования (минуты эпохи), ref — метка «пришёл по приглашению», city — 'msk' | 'spb'.
+       Всё необязательно; запоминается при первой регистрации (повтор их не меняет, «Закрыть сейчас» — меняет until) */
     async invite(b, ip) {
       const key = reqStr(b.key, KEY_RE, 'key');
       const owner = reqStr(b.owner, KEY_RE, 'owner');
       if (!MODES.includes(b.mode)) throw bad('mode');
       const title = cleanLine(optStr(b.title, 300, 'title'), 80);
+      const t = now();
+      const until = b.until == null ? null : reqInt(b.until, 1, Math.floor((t + UNTIL_MAX_MS) / 60000) + 5, 'until');
+      const ref = b.ref == null || b.ref === '' ? '' : reqStr(b.ref, REF_RE, 'ref');
+      if (b.city != null && b.city !== '' && !CITIES.includes(b.city)) throw bad('city');
+      const city = b.city || '';
       await guard([['ipWrite', ip], ['allWrite', '*'], ['invite', ip]]);
-      const r = await store.invite(key, { owner, mode: b.mode, title }, { now: now(), exp: exp() });
+      const r = await store.invite(key, { owner, mode: b.mode, title, until, ref, city }, { now: t, exp: exp() });
       if (r === 'taken') throw new HttpError(409, 'taken');
       return {};
+    },
+    /* «Закрыть сейчас»: только создатель (его секрет), дедлайн становится «сейчас»; уже закрытое — как было */
+    async close(b, ip) {
+      const key = reqStr(b.key, KEY_RE, 'key');
+      const secret = reqStr(b.ownerSecret, SECRET_RE, 'secret');
+      await guard([['ipWrite', ip], ['allWrite', '*'], ['close', key]]);
+      const t = now();
+      const r = await store.closeVote(key, ownerHash(secret), { now: t, until: Math.floor(t / 60000), exp: exp() });
+      if (r.status === 'nf') throw new HttpError(404, 'nf');
+      if (r.status === 'owner') throw new HttpError(403, 'owner');
+      return { until: r.until, rev: r.rev };
     },
     async opened(b, ip) {
       const key = reqStr(b.key, KEY_RE, 'key');
@@ -336,7 +375,7 @@ export function createHandler(opts) {
         if (!m.owner || !safeEqual(m.owner, owner)) continue;
         let answer = null;
         try { answer = m.answer ? JSON.parse(m.answer) : null; } catch (e) { answer = null; }
-        items[k] = { mode: m.mode, title: m.title, opened: m.opened, firstOpen: m.firstOpen, votes: m.cnt, answer, updated: m.upd };
+        items[k] = { mode: m.mode, title: m.title, opened: m.opened, firstOpen: m.firstOpen, votes: m.cnt, answer, updated: m.upd, until: m.until == null ? null : m.until };
       }
       return { items };
     },
@@ -429,7 +468,9 @@ export function createHandler(opts) {
         if ((cur === null ? 0 : cur) === rev) return { same: true };
       }
       const v = await store.votes(key);
-      return v ? { votes: v.votes, rev: v.rev, spin: v.spin, spins: v.spins } : { votes: [], rev: 0, spin: null, spins: {} };
+      // until — дедлайн голосования (минуты эпохи) или null: «Закрыть сейчас» видят все, кто опрашивает итоги
+      // неизвестное приглашение — прежний ответ без until (старые клиенты), у существующего until есть всегда (null — без дедлайна)
+      return v ? { votes: v.votes, rev: v.rev, spin: v.spin, spins: v.spins, until: v.until == null ? null : v.until } : { votes: [], rev: 0, spin: null, spins: {} };
     }
     if (p.has('ratings')) {
       const r = await ratings();

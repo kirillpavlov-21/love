@@ -1,6 +1,12 @@
 {
-  "_help": "Замените заглушки на настоящие имена (без @ и без ссылок): в именах Telegram и Instagram не бывает дефиса, поэтому заглушки с дефисом конвейер пропускает. Instagram читается только с IG_ACCESS_TOKEN и IG_USER_ID. inbox — читать issues с меткой «источник». Подробно — pipeline/README.md.",
+  "_help": "Замените заглушки на настоящие имена (без @ и без ссылок): в именах Telegram и Instagram не бывает дефиса, поэтому заглушки с дефисом конвейер пропускает. Списки telegram и instagram верхнего уровня — Москва. Источники Петербурга — в cities.spb. Канал про оба города можно вписать в оба списка: тогда город каждого поста определит модель. Instagram читается только с IG_ACCESS_TOKEN и IG_USER_ID. inbox — читать issues с меткой «источник». Подробно — pipeline/README.md.",
   "telegram": ["channel-one", "channel-two"],
   "instagram": ["account-one"],
+  "cities": {
+    "spb": {
+      "telegram": ["spb-channel-one"],
+      "instagram": ["spb-account-one"]
+    }
+  },
   "inbox": true
 }

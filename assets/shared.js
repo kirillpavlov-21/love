@@ -80,7 +80,7 @@
   const KEYS = ('her:a me:b catName:c cat:d theme:e greeting:f question:g signature:h finale:i levels:j heartsGoal:k ' +
     'noButton:l places:m placeSurprise:n placeCustom:o dates:p dateOther:q time:r food:s emoji:t title:u note:v mode:w ' +
     'start:x days:y skipWeekdays:z list:A from:B to:C step:D def:E hearts:F letter:G place:H date:I opts:J plan:K tg:L tgu:M ' +
-    'event:N').split(' ').map(x => x.split(':'));   // новые ключи — только в конец, старые буквы не переиспользуем
+    'event:N slots:O until:P').split(' ').map(x => x.split(':'));   // новые ключи — только в конец, старые буквы не переиспользуем
   const SHORT = Object.fromEntries(KEYS), LONG = Object.fromEntries(KEYS.map(([l, sh]) => [sh, l]));
   function rekey(v, map) {
     if (Array.isArray(v)) return v.map(x => rekey(x, map));
@@ -180,6 +180,103 @@
     let h = 5381;
     for (let i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) | 0;
     return (h >>> 0).toString(36);
+  }
+
+  /* ---------- часы работы (поле oh, подмножество OSM opening_hours) ----------
+     'Mo-Th 12:00-24:00; Fr,Sa 12:00-02:00; Su off', '24/7', перерыв — 'Mo-Su 11:00-15:00,16:00-20:00'.
+     Дни, которых нет в строке, — выходные; правило ниже перекрывает правило выше; праздники (PH) не учитываем.
+     ohDays(oh) → 7 списков интервалов [от, до] в минутах (0 — воскресенье; до > 1440 — через полночь) или null */
+  const OH_D = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+  const OH_CACHE = new Map();
+  function ohDays(oh) {
+    if (typeof oh !== 'string' || !oh.trim()) return null;
+    if (OH_CACHE.has(oh)) return OH_CACHE.get(oh);
+    let out = [[], [], [], [], [], [], []];
+    try {
+      if (oh.trim() === '24/7') out.forEach(d => d.push([0, 1440]));
+      else for (const rule of oh.split(';').map(x => x.trim()).filter(Boolean)) {
+        const m = /^([A-Za-z,-]+)\s+(.+)$/.exec(rule);
+        if (!m) throw new Error('rule');
+        const days = new Set();
+        for (const part of m[1].split(',')) {
+          const r = /^(Mo|Tu|We|Th|Fr|Sa|Su)(?:-(Mo|Tu|We|Th|Fr|Sa|Su))?$/.exec(part);
+          if (!r) throw new Error('days');
+          const a = OH_D.indexOf(r[1]), b = r[2] ? OH_D.indexOf(r[2]) : a;
+          for (let i = a, k = 0; k < 7; i = (i + 1) % 7, k++) { days.add(i); if (i === b) break; }
+        }
+        const iv = [];
+        if (m[2].trim() !== 'off') for (const t of m[2].split(',')) {
+          const r = /^(\d\d):(\d\d)-(\d\d):(\d\d)$/.exec(t.trim());
+          if (!r) throw new Error('time');
+          const a = +r[1] * 60 + +r[2];
+          let b = +r[3] * 60 + +r[4];
+          if (a >= 1440 || b > 1440) throw new Error('range');
+          if (b <= a) b += 1440;   // через полночь (12:00-02:00)
+          iv.push([a, b]);
+        }
+        days.forEach(d => { out[d] = iv.slice(); });
+      }
+    } catch (e) { out = null; }
+    OH_CACHE.set(oh, out);
+    return out;
+  }
+  const hmOf = m => { m = ((m % 1440) + 1440) % 1440; return pad(Math.floor(m / 60)) + ':' + pad(m % 60); };
+  /* Открыто ли место в момент when (мс; по Москве): { open, until, opens, inDays, dayOff, allDay } или null без часов.
+     until — до скольки (при open), opens и inDays — когда откроется (0 — сегодня, 1 — завтра) */
+  function openState(p, when) {
+    const D = p && ohDays(p.oh);
+    if (!D) return null;
+    const d = new Date((when == null ? Date.now() : +when) + 3 * 3600e3);
+    const wd = d.getUTCDay(), t = d.getUTCHours() * 60 + d.getUTCMinutes();
+    if (D.every(x => x.length === 1 && x[0][0] === 0 && x[0][1] >= 1440)) return { open: true, allDay: true, until: '', dayOff: false };
+    const prev = D[(wd + 6) % 7].find(([, b]) => b > 1440 && t + 1440 < b);
+    const cur = D[wd].find(([a, b]) => a <= t && t < b);
+    if (prev || cur) return { open: true, until: hmOf((cur || prev)[1]), allDay: false, dayOff: false };
+    for (let k = 0; k < 7; k++) {
+      const next = D[(wd + k) % 7].filter(([a]) => k > 0 || a > t).sort((x, y) => x[0] - y[0])[0];
+      if (next) return { open: false, opens: hmOf(next[0]), inDays: k, dayOff: !D[wd].length };
+    }
+    return { open: false, opens: '', inDays: -1, dayOff: true };
+  }
+  /* Выходной в этот день (ГГГГ-ММ-ДД): часы известны, а интервалов нет */
+  function closedOn(p, ymdStr) {
+    const D = p && ohDays(p.oh), dt = parseYmd(ymdStr);
+    return !!(D && dt && !D[dt.getDay()].length);
+  }
+  /* «Открыто до 02:00» / «Закрыто · откроется в 11:00» / «Сегодня выходной · откроется завтра в 10:00»; без часов — '' */
+  function openText(st) {
+    if (!st) return '';
+    if (st.open) return st.allDay ? 'Открыто круглосуточно' : `Открыто до ${st.until === '00:00' ? '00:00' : st.until}`;
+    if (!st.opens) return 'Закрыто';
+    const when = st.inDays === 0 ? `в ${st.opens}` : st.inDays === 1 ? `завтра в ${st.opens}` : `через ${st.inDays} дн. в ${st.opens}`;
+    return (st.dayOff ? 'Сегодня выходной' : 'Закрыто') + ' · откроется ' + when;
+  }
+
+  /* ---------- бронь (A8) ---------- */
+  /* Где бронировать в плане: первое место с едой или баром, у которого есть телефон или сайт; иначе первое с телефоном */
+  function bookStop(stops) {
+    const list = (stops || []).filter(Boolean);
+    const eat = p => ['food', 'bar'].includes(catOf(p));
+    return list.find(p => eat(p) && (p.tel || p.site)) || list.find(p => p.tel || p.site) || list.find(eat) || null;
+  }
+  /* «Здравствуйте! Хотим стол на 6 человек на пт, 24 октября, в 20:00. Имя — Аня» */
+  function bookText(o) {
+    o = o || {};
+    const n = Math.max(1, Math.min(40, +o.n || 2));
+    const d = parseYmd(o.day);
+    const WD = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'], MON = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+    const when = d ? ` на ${WD[d.getDay()]}, ${d.getDate()} ${MON[d.getMonth()]}` : '';
+    const ppl = n === 2 ? 'на двоих' : `на ${n} ${n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? 'человека' : 'человек'}`;
+    return `Здравствуйте! Хотим стол ${ppl}${when}${o.time ? ', в ' + o.time : ''}.${o.name ? ' Имя — ' + o.name + '.' : ''}`;
+  }
+  const telHref = t => (/^\+7\d{10}$/.test(t || '') ? 'tel:' + t : '');
+  const telText = t => (/^\+7(\d{3})(\d{3})(\d{2})(\d{2})$/.test(t || '') ? t.replace(/^\+7(\d{3})(\d{3})(\d{2})(\d{2})$/, '+7 $1 $2-$3-$4') : '');
+
+  /* Сколько осталось до срока: «45 мин», «2 ч 10 мин», «3 дн 4 ч» */
+  function leftText(ms) {
+    const min = Math.max(1, Math.ceil(ms / 60000)), h = Math.floor(min / 60), d = Math.floor(h / 24);
+    if (d) return d + ' дн' + (h % 24 ? ' ' + (h % 24) + ' ч' : '');
+    return [h ? h + ' ч' : '', min % 60 ? (min % 60) + ' мин' : ''].filter(Boolean).join(' ');
   }
 
   /* ---------- даты ---------- */
@@ -341,6 +438,56 @@
     return p && !p.adult ? { id, mode: '', emoji: p.emoji, title: p.name, stops: [id.slice(2)], when: '', why: p.note, single: true } : null;
   };
   const planStops = plan => (plan ? plan.stops.map(placeById).filter(Boolean) : []);
+
+  /* ---------- города ----------
+     У старых данных поля city нет — это Москва. Петербург: места spb-…, планы spb-d-/spb-g-/spb-w-…, события ev-spb-…;
+     матчи из sport.js несут city сами. Город интерфейса: ?city= → localStorage 'kuda-city' → Москва. */
+  const CITIES = {
+    msk: { id: 'msk', name: 'Москва', full: 'Москва', in: 'в Москве', gen: 'Москвы', center: [55.751, 37.618], zoom: 11, maxKm: 70,
+      ya: { id: 213, slug: 'moscow' }, addr: 'Москва', seo: 'moskva', all: 'Вся Москва',
+      okrs: [['center', 'Центр'], ['north', 'Север'], ['ne', 'Северо-Восток'], ['east', 'Восток'], ['se', 'Юго-Восток'], ['south', 'Юг'],
+        ['sw', 'Юго-Запад'], ['west', 'Запад'], ['nw', 'Северо-Запад'], ['khimki', 'Химки · Левобережный'], ['zel', 'Зеленоград'], ['new', 'Новая Москва'], ['mo', 'Подмосковье']] },
+    spb: { id: 'spb', name: 'Петербург', full: 'Санкт-Петербург', in: 'в Петербурге', gen: 'Петербурга', center: [59.939167, 30.315833], zoom: 11, maxKm: 60,
+      ya: { id: 2, slug: 'saint-petersburg' }, addr: 'Санкт-Петербург', seo: 'spb', all: 'Весь Петербург',
+      okrs: [['center', 'Центр'], ['petrograd', 'Петроградка'], ['vo', 'Васильевский'], ['north', 'Север'], ['nw', 'Приморский'], ['south', 'Юг'],
+        ['sw', 'Юго-Запад'], ['east', 'Правый берег'], ['out', 'Пригороды']] },
+  };
+  const CITY_KEY = 'kuda-city';
+  const SPB_ID = /^(spb-|ev-spb-|p-spb-)/;
+  const isCity = c => typeof c === 'string' && Object.prototype.hasOwnProperty.call(CITIES, c);
+  function city() {
+    try { const q = new URLSearchParams(location.search).get('city'); if (isCity(q)) return q; } catch (e) { /* нет location */ }
+    try { const s = localStorage.getItem(CITY_KEY); if (isCity(s)) return s; } catch (e) { /* приватный режим */ }
+    return 'msk';
+  }
+  function setCity(c) {
+    if (!isCity(c)) return;
+    try { localStorage.setItem(CITY_KEY, c); } catch (e) { /* приватный режим */ }
+  }
+  const cityConf = c => CITIES[isCity(c) ? c : city()];
+  /* Город места, плана, события или id; у точки без id и города — по координатам */
+  function cityOf(x) {
+    if (x == null) return 'msk';
+    if (typeof x === 'string') {
+      if (SPB_ID.test(x)) return 'spb';
+      const p = placeById(x); if (p) return cityOf(p);
+      const s = kuda().scenarios.find(y => y.id === x); if (s) return cityOf(s);
+      const e = eventById(x); if (e) return cityOf(e);
+      return 'msk';
+    }
+    if (isCity(x.city)) return x.city;
+    if (typeof x.id === 'string' && SPB_ID.test(x.id)) return 'spb';
+    if (Array.isArray(x.stops) && x.stops.length) return cityOf(String(x.stops[0]));
+    if (typeof x.place === 'string' && x.place) return cityOf(x.place);
+    if (Number.isFinite(x.lat) && Number.isFinite(x.lon)) return cityByPoint(x.lat, x.lon) || 'msk';
+    return 'msk';
+  }
+  const inCity = (x, c) => cityOf(x) === (isCity(c) ? c : city());
+  /* Город по точке: в пределах maxKm от центра, иначе null */
+  function cityByPoint(lat, lon) {
+    for (const c of Object.values(CITIES)) if (distM({ lat, lon }, { lat: c.center[0], lon: c.center[1] }) <= c.maxKm * 1000) return c.id;
+    return null;
+  }
   /* Раздел каталога: поле cat, а у старых мест — по типу места */
   const CAT_BY_KIND = [
     ['pc', /компьютерн|кибер/i],
@@ -435,11 +582,16 @@
 
   /* ---------- афиша: события из assets/events.js и assets/auto.js (window.KUDA_EVENTS) ----------
      Даты — строки 'YYYY-MM-DD' по Москве. Прошедшие события (end раньше сегодняшнего дня) в списки не попадают,
-     но eventById находит и их — чтобы старые приглашения на событие открывались. */
+     но eventById находит и их — чтобы старые приглашения на событие открывались. Находит и по прежнему id из поля aka
+     (футбольные матчи переехали из events.js в sport.js с новыми id, у перенесённого матча меняется дата в id). */
   const RX_YMD = /^\d{4}-\d{2}-\d{2}$/;
   const evAll = () => (Array.isArray(window.KUDA_EVENTS) ? window.KUDA_EVENTS : []).filter(e => e && e.id && e.title && RX_YMD.test(e.start || ''));
   const evEnd = ev => (RX_YMD.test(ev.end || '') && ev.end >= ev.start ? ev.end : ev.start);
-  const eventById = id => (id ? evAll().find(e => e.id === id) || null : null);
+  const eventById = id => {
+    if (!id) return null;
+    const all = evAll();
+    return all.find(e => e.id === id) || all.find(e => Array.isArray(e.aka) && e.aka.includes(id)) || null;
+  };
   const EV_MAX_DAYS = 90;   // у долгих выставок — не больше 90 дней вперёд, как в listDates
   /* Дни события начиная с сегодняшнего (или from): явные dates либо каждый день от start до end */
   function eventDays(ev, from) {
@@ -492,6 +644,102 @@
     return 2 * R * Math.asin(Math.sqrt(h));
   }
   const walkMin = (a, b) => Math.max(1, Math.round(distM(a, b) * 1.3 / 75));
+
+  /* ---------- «Успеть домой»: последний вход в метро и разводка мостов Петербурга ----------
+     Всё «около»: станции закрывают вход в разное время, мосты разводят по графику СПб ГБУ «Мостотрест» на 2026 год
+     (навигация по Неве и Малой Неве — 10.04–30.11, по Большой Невке — 20.04–15.11; в ночи после 1 и 9 мая, 12 июня
+     и 4 ноября мосты не разводят). Перед навигацией 2027 года сверить с официальным графиком. */
+  const LAST_METRO = { msk: '01:00', spb: '00:00' };
+  const BRIDGES = {
+    season: { neva: ['04-10', '11-30'], nevka: ['04-20', '11-15'] },
+    skip: ['05-01', '05-09', '06-12', '11-04'],   // вечер, после которого мосты не разводят
+    list: [
+      { name: 'Дворцовый', banks: ['center', 'vo'], water: 'neva', open: [['01:10', '02:50'], ['03:10', '04:55']] },
+      { name: 'Благовещенский', banks: ['center', 'vo'], water: 'neva', open: [['01:25', '02:45'], ['03:10', '05:00']] },
+      { name: 'Троицкий', banks: ['center', 'petrograd'], water: 'neva', open: [['01:20', '04:50']] },
+      { name: 'Литейный', banks: ['center', 'north'], water: 'neva', open: [['01:40', '04:45']] },
+      { name: 'Большеохтинский', banks: ['center', 'east'], water: 'neva', open: [['02:00', '05:00']] },
+      { name: 'Володарский', banks: ['center', 'east'], water: 'neva', open: [['02:00', '03:45'], ['04:15', '05:45']] },
+      { name: 'Александра Невского', banks: ['center', 'east'], water: 'neva', open: [['02:20', '05:10']] },
+      { name: 'Биржевой', banks: ['vo', 'petrograd'], water: 'neva', open: [['02:00', '02:55'], ['03:35', '04:55']] },
+      { name: 'Тучков', banks: ['vo', 'petrograd'], water: 'neva', open: [['02:00', '02:55'], ['03:35', '04:55']] },
+      { name: 'Сампсониевский', banks: ['petrograd', 'north'], water: 'nevka', open: [['02:10', '02:45'], ['03:20', '04:25']] },
+      { name: 'Гренадерский', banks: ['petrograd', 'north'], water: 'nevka', open: [['02:45', '03:45']] },
+      { name: 'Кантемировский', banks: ['petrograd', 'north'], water: 'nevka', open: [['02:45', '03:45']] },
+    ],
+  };
+  const BANK_NAME = { center: 'центр', vo: 'Васильевский', petrograd: 'Петроградку', north: 'Выборгскую сторону', east: 'правый берег' };
+  const BANK_FROM = { center: 'из центра', vo: 'с Васильевского', petrograd: 'с Петроградки', north: 'с Выборгской стороны', east: 'с правого берега' };
+  /* Берег по району места: Васильевский, Петроградка, север (Выборгская сторона и Приморский), правый берег, остальное — центр */
+  const bankOf = p => !p || p.okr === 'out' ? null : p.okr === 'vo' ? 'vo' : p.okr === 'petrograd' ? 'petrograd'
+    : p.okr === 'north' || p.okr === 'nw' ? 'north' : p.okr === 'east' ? 'east' : 'center';
+  /* Минуты от полудня: 23:30 → 690, 01:10 → 790 — так ночь не перескакивает через ноль */
+  const nightMin = t => { const m = toMin(t); return m < 12 * 60 ? m + 24 * 60 - 12 * 60 : m - 12 * 60; };
+  const clock = m => { const x = ((m + 12 * 60) % (24 * 60) + 24 * 60) % (24 * 60); return Math.floor(x / 60) + ':' + pad(x % 60); };
+  /* Сколько обычно длится остановка, минут */
+  const STAY = { culture: 90, food: 90, bar: 120, walk: 60, coffee: 45, fun: 90, spa: 150, pc: 120, books: 40 };
+  const START = { 'закат': '18:30', 'вечер': '19:00', 'ночь': '22:00' };
+  /* Мосты, разведённые в эту ночь (по дате вечера 'YYYY-MM-DD'), — с учётом навигации и праздничных ночей */
+  function bridgesTonight(day) {
+    const md = String(day || todayMsk()).slice(5);
+    if (BRIDGES.skip.includes(md)) return [];
+    return BRIDGES.list.filter(b => { const [a, z] = BRIDGES.season[b.water]; return md >= a && md <= z; });
+  }
+  /* Путь по берегам: прямые мосты, а если их нет — через Петроградку или центр */
+  function hops(a, b) {
+    const direct = x => (y => bridgesTonight.cache.filter(r => r.banks.includes(x) && r.banks.includes(y)));
+    const d = direct(a)(b);
+    if (d.length) return [[a, b, d]];
+    for (const via of ['petrograd', 'center']) {
+      const h1 = direct(a)(via), h2 = direct(via)(b);
+      if (via !== a && via !== b && h1.length && h2.length) return [[a, via, h1], [via, b, h2]];
+    }
+    return [];
+  }
+  /* Предупреждения «успеть домой» для плана: stops — места по порядку, start — 'HH:MM' (или по when), day — дата вечера.
+     [{ kind: 'metro' | 'bridge', text }] — пусто, если до закрытия метро и разводки далеко */
+  function homeRisk(stops, start, day, c, when) {
+    stops = (stops || []).filter(Boolean);
+    if (!stops.length) return [];
+    c = isCity(c) ? c : cityOf(stops[0]);
+    const t0 = start || START[when];
+    if (!t0) return [];
+    // когда освобождаемся с каждой остановки (минуты от полудня)
+    let t = nightMin(t0);
+    const ends = stops.map((p, i) => { if (i) t += walkMin(stops[i - 1], p); t += STAY[catOf(p)] || 90; return t; });
+    const out = [];
+    const last = nightMin(LAST_METRO[c] || '00:00');
+    if (ends[ends.length - 1] >= last - 45) out.push({ kind: 'metro', text: `🚇 Вход в метро — примерно до ${LAST_METRO[c].replace(/^0/, '')}. План закончится около ${clock(ends[ends.length - 1])}` });
+    if (c !== 'spb') return out;
+    bridgesTonight.cache = bridgesTonight(day);
+    if (!bridgesTonight.cache.length) return out;
+    const firstRaise = list => list.map(b => ({ b, m: nightMin(b.open[0][0]) })).sort((x, y) => x.m - y.m);
+    const warn = (from, to, at) => {
+      for (const [a, b, list] of hops(from, to)) {
+        const r = firstRaise(list);
+        if (at >= r[0].m - 20) {
+          const names = r.slice(0, 2).map((x, i) => (i ? x.b.name + ' — около ' : x.b.name + ' разводят около ') + x.b.open[0][0].replace(/^0/, '')).join(', ');
+          out.push({ kind: 'bridge', text: `🌉 ${names}: ${BANK_FROM[a]} на ${BANK_NAME[b]} — до ${clock(r[0].m - 10)}` });
+          return true;
+        }
+      }
+      return false;
+    };
+    // переходы внутри плана
+    for (let i = 1; i < stops.length; i++) {
+      const a = bankOf(stops[i - 1]), b = bankOf(stops[i]);
+      if (a && b && a !== b && warn(a, b, ends[i - 1])) return out;
+    }
+    // домой: если план закончится на острове или на другом берегу — подсказка про мосты в центр
+    const b = bankOf(stops[stops.length - 1]);
+    if (b && b !== 'center') warn(b, 'center', ends[ends.length - 1]);
+    return out;
+  }
+  /* «Мосты сегодня: первым разводят Дворцовый — около 1:10» (null — мосты не разводят) */
+  function bridgesToday(day) {
+    const list = bridgesTonight(day).map(b => ({ b, m: nightMin(b.open[0][0]) })).sort((x, y) => x.m - y.m);
+    return list.length ? { first: list[0].b.name, at: list[0].b.open[0][0].replace(/^0/, ''), n: list.length } : null;
+  }
   const priceText = n => '₽'.repeat(Math.max(1, Math.min(3, n || 1)));
   /* Что значат ₽ — подсказка к значку цены (как в places.js) */
   const PRICE_HINT = ['', 'до ~1 500 ₽ на человека', '~1 500–3 000 ₽ на человека', 'от ~3 000 ₽ на человека'];
@@ -500,12 +748,19 @@
      «Переделкино (МЦД-4)», «Мытищи (ж/д)» → «ж/д Мытищи» */
   const isMetro = m => !!m && !/\((ж\/д|МЦД[^)]*)\)$/.test(m);
   const metroText = m => !m ? '' : /\(ж\/д\)$/.test(m) ? 'ж/д ' + m.replace(/\s*\(ж\/д\)$/, '') : isMetro(m) ? 'м. ' + m : m;
-  const mapUrl = p => 'https://yandex.ru/maps/213/moscow/?text=' + encodeURIComponent(p.name + ', ' + p.addr);
+  /* Регион Яндекс Карт — по городу самого места (у приглашения своего «города интерфейса» нет) */
+  const yaBase = c => { const y = CITIES[c].ya; return `https://yandex.ru/maps/${y.id}/${y.slug}/`; };
+  const mapUrl = p => yaBase(cityOf(p)) + '?text=' + encodeURIComponent(p.name + ', ' + p.addr);
   /* Точка маршрута: адрес с номером дома — текстом (Яндекс находит тот же дом, что и ссылка на место),
      парки, набережные и адреса без номера — координатами */
   const MO_CITY = /^(Химки|Красногорск|Мытищи|Королёв|Балашиха|Люберцы|Реутов|Одинцово|Долгопрудный|Котельники|Видное|Лобня|Дзержинский|Лыткарино|Подольск|Щёлково|Пушкино|Ивантеевка|Фрязино|Домодедово|Жуковский|Раменское|Истра|Дмитров|Звенигород|Апрелевка|Наро-Фоминск|Сергиев Посад|Электросталь|Ногинск|Солнечногорск|Ступино|Чехов|Серпухов|Коломна|Клин|Голицыно|Нахабино|Мытищинский|Красногорский)(?=[,\s])/;
   function routePt(p) {
     const a = String(p.addr || '').replace(/\s*\([^)]*\)/g, '').trim();
+    if (cityOf(p) === 'spb') {
+      // пригороды пишем с городом в начале адреса («Пушкин, Садовая ул., 7») — им префикс Петербурга не мешает
+      if (/\d/.test(a) && !/^(у|рядом|напротив)\s/i.test(a) && !/(^|, )Санкт-Петербург(,|$)/.test(a)) return encodeURIComponent('Санкт-Петербург, ' + a);
+      return p.lat.toFixed(6) + ',' + p.lon.toFixed(6);
+    }
     if (/\d/.test(a) && !/^(у|рядом|напротив)\s/i.test(a) && !/(^|, )Москва(,|$)/.test(a)) {
       // города области: иначе Яндекс найдёт одноимённую улицу в Москве (Комсомольский просп. в Люберцах и в Хамовниках)
       const city = /^Московская обл/.test(a) ? '' : MO_CITY.test(a) ? 'Московская область, ' : 'Москва, ';
@@ -516,7 +771,7 @@
   /* Маршрут: первая точка пустая — откуда ехать, человек укажет сам в Яндекс Картах,
      дальше — места плана по порядку. Общественный транспорт: короткие отрезки Яндекс сам проложит пешком */
   function routeUrl(stops) {
-    return 'https://yandex.ru/maps/213/moscow/?rtext=~' + stops.map(routePt).join('~') + '&rtt=mt';
+    return yaBase(cityOf(stops[0] || null)) + '?rtext=~' + stops.map(routePt).join('~') + '&rtt=mt';
   }
 
   /* ---------- Telegram-ник владельца и календарь ---------- */
@@ -868,11 +1123,12 @@
 
   window.DateKit = {
     BASE, merge, defaults, diffInvite, encodeInvite, decodeInvite, encodeData, decodeData, readHash, esc, fill, hash,
-    ymd, parseYmd, addDays, listDates, fmtDay, dayNum, numDay, toMin, fromMin, relaySend, relayRegister, relayTest, shortLink, goRoute, sitePath, toB64url,
+    leftText, bookStop, bookText, telHref, telText, ohDays, openState, closedOn, openText, ymd, parseYmd, addDays, listDates, fmtDay, dayNum, numDay, toMin, fromMin, relaySend, relayRegister, relayTest, shortLink, goRoute, sitePath, toB64url,
     CATS, catVars, catSVG, HEART_D, STAR_D, markD, ICONS, icon, MODE_ICON, tgUser, tgLink, calendarLinks,
     MODES, modeOf, kuda, placeById, planById, planStops, catOf, photo, planPhoto, photoCredit, cleanAuthor, HINTS, placeHints, planHints, hintChip, seasonHints,
-    todayMsk, seasonNow, seasonOk, eventById, events, eventDays, sheet,
+    todayMsk, seasonNow, seasonOk, eventById, events, eventDays, sheet, homeRisk, bridgesToday, BRIDGES, LAST_METRO,
     distM, walkMin, priceText, priceHint, isMetro, metroText, mapUrl, routeUrl,
+    CITIES, city, setCity, cityOf, cityConf, inCity, cityByPoint,
     THEMES: ['pink', 'lavender', 'peach', 'mint', 'sport'],
   };
 })();

@@ -1,0 +1,400 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//kuda-idem//scripts/build-seo.mjs//RU
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:Куда идём? · Петербург: выходные и 
+ бесплатно
+X-WR-CALDESC:Бесплатные события Петербурга и н
+ аш выбор на выходные — на две недели впе
+ рёд. Календарь обновляется сам.
+X-WR-TIMEZONE:Europe/Moscow
+REFRESH-INTERVAL;VALUE=DURATION:PT12H
+X-PUBLISHED-TTL:PT12H
+BEGIN:VTIMEZONE
+TZID:Europe/Moscow
+BEGIN:STANDARD
+DTSTART:19700101T000000
+TZOFFSETFROM:+0300
+TZOFFSETTO:+0300
+TZNAME:MSK
+END:STANDARD
+END:VTIMEZONE
+BEGIN:VEVENT
+UID:ev-spb-yablochko-na-neve-20261024-20261024@kirillpavlov-21.github.io
+DTSTAMP:20261019T000000Z
+DTSTART;TZID=Europe/Moscow:20261024T120000
+DTEND;TZID=Europe/Moscow:20261024T160000
+SUMMARY:Яблочко на Неве
+LOCATION:Севкабель Порт\, Кожевенная линия\, 40
+GEO:59.924954;30.241044
+DESCRIPTION:Сидровый фестиваль в Севкабеле: кр
+ афтовые сидры и пиво от производителей с
+ о всей России\, дегустации и закуски у за
+ лива. Берите друзей и пробуйте всё понем
+ ногу.\n1 500–2 500 ₽\, 18+\nБилеты и подробнос
+ ти: https://afisha.yandex.ru/saint-petersburg/festival/yablochko-na-neve
+ -2026\nПозвать друзей — в «Куда идём?»: https://
+ kirillpavlov-21.github.io/love/start.html?event=ev-spb-yablochko-na-neve-2
+ 0261024&m=guys&city=spb
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-spb-yablochk
+ o-na-neve-20261024&m=guys&city=spb
+CATEGORIES:Фестиваль
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ev-spb-revizor-s-prodolzheniem-20261024-20261024@kirillpavlov-21.github
+ .io
+DTSTAMP:20261019T000000Z
+DTSTART;TZID=Europe/Moscow:20261024T180000
+DTEND;TZID=Europe/Moscow:20261024T203000
+SUMMARY:Ревизор с продолжением
+LOCATION:Александринский театр\, пл. Островск
+ ого\, 6
+GEO:59.931796;30.336182
+DESCRIPTION:Новый «Ревизор» Валерия Фокина на 
+ сцене\, где гоголевскую комедию впервые 
+ сыграли в 1836 году. Большой вечер — около 
+ 3 ч 20 мин\, начало в 18:00.\n500–12 000 ₽\, 18+\nБил
+ еты и подробности: https://afisha.yandex.ru/saint-petersbur
+ g/theatre_show/revizor-s-prodolzheniem\nПозвать друзей — в
+  «Куда идём?»: https://kirillpavlov-21.github.io/love/start.html
+ ?event=ev-spb-revizor-s-prodolzheniem-20261024&m=date&city=spb
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-spb-revizor-
+ s-prodolzheniem-20261024&m=date&city=spb
+CATEGORIES:Спектакль
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ev-spb-dzhordzh-kaplan-20261023-20261024@kirillpavlov-21.github.io
+DTSTAMP:20261019T000000Z
+DTSTART;TZID=Europe/Moscow:20261024T190000
+DTEND;TZID=Europe/Moscow:20261024T213000
+SUMMARY:Джордж Каплан
+LOCATION:БДТ им. Товстоногова\, Малая сцена\, н
+ аб. реки Фонтанки\, 65
+GEO:59.927548;30.330669
+DESCRIPTION:Головоломка по пьесе Фредерика Со
+ ннтага: активисты\, сценаристы и тайное п
+ равительство спорят о человеке\, которог
+ о\, возможно\, никогда не было. Отсылка к Х
+ ичкоку.\nОт 2 000 ₽\, 18+\nБилеты и подробнос
+ ти: https://afisha.yandex.ru/saint-petersburg/theatre_show/dzhordzh-kapl
+ an-bdt-im-g-a-tovstonogova\nПозвать друзей — в «Куда 
+ идём?»: https://kirillpavlov-21.github.io/love/start.html?event=ev-sp
+ b-dzhordzh-kaplan-20261023&m=date&city=spb
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-spb-dzhordzh
+ -kaplan-20261023&m=date&city=spb
+CATEGORIES:Спектакль
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ev-spb-maksim-fadeev-20261024-20261024@kirillpavlov-21.github.io
+DTSTAMP:20261019T000000Z
+DTSTART;TZID=Europe/Moscow:20261024T190000
+DTEND;TZID=Europe/Moscow:20261024T210000
+SUMMARY:Максим Фадеев
+LOCATION:СКА Арена\, просп. Юрия Гагарина\, 8
+GEO:59.869228;30.341148
+DESCRIPTION:Большой сольник продюсера и автор
+ а хитов нулевых на арене СКА. Ностальгия 
+ по «Танцам на стёклах» и масштабное шоу 
+ — для компании подруг или вдвоём.\n6 000–30
+  000 ₽\, 6+\nБилеты и подробности: https://afisha.ya
+ ndex.ru/saint-petersburg/concert/maksim-fadeev-2026\nПозвать дру
+ зей — в «Куда идём?»: https://kirillpavlov-21.github.io/lo
+ ve/start.html?event=ev-spb-maksim-fadeev-20261024&m=girls&city=spb
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-spb-maksim-f
+ adeev-20261024&m=girls&city=spb
+CATEGORIES:Концерт
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ev-spb-dva-kapitana-20261024-20261025@kirillpavlov-21.github.io
+DTSTAMP:20261019T000000Z
+DTSTART;VALUE=DATE:20261025
+DTEND;VALUE=DATE:20261026
+SUMMARY:Два капитана
+LOCATION:Театр музыкальной комедии\, Итальян
+ ская ул.\, 13
+GEO:59.936017;30.332937
+DESCRIPTION:Рок-мюзикл по роману Каверина на п
+ есни Вадима Самойлова и «Агаты Кристи». 
+ Субботы в 19:00\, по воскресеньям два показ
+ а — в 13:00 и 19:00.\n1 000–18 750 ₽\, 12+\nБилеты и п
+ одробности: https://afisha.yandex.ru/saint-petersburg/musical/dv
+ a-kapitana-teatr-muzykalnoi-komedii\nПозвать друзей — в «
+ Куда идём?»: https://kirillpavlov-21.github.io/love/start.html?ev
+ ent=ev-spb-dva-kapitana-20261024&m=date&city=spb
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-spb-dva-kapi
+ tana-20261024&m=date&city=spb
+CATEGORIES:Спектакль
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ev-spb-tri-mushketera-20261024-20261025@kirillpavlov-21.github.io
+DTSTAMP:20261019T000000Z
+DTSTART;VALUE=DATE:20261025
+DTEND;VALUE=DATE:20261026
+SUMMARY:Три мушкетёра\, или Подвески королев
+ ы
+LOCATION:Театр им. Комиссаржевской\, Итальянс
+ кая ул.\, 19
+GEO:59.936094;30.335049
+DESCRIPTION:Дюма в постановке Романа Габриа: п
+ одвески королевы\, интриги Ришелье и бол
+ ьшой актёрский ансамбль. Обычно в 19:00\, а 3
+ 1 декабря — в 18:00.\n1 000–10 000 ₽\, 12+\nБилеты 
+ и подробности: https://afisha.yandex.ru/saint-petersburg/theat
+ re_show/tri-mushketiora-ili-podveski-korolevy\nПозвать друзей
+  — в «Куда идём?»: https://kirillpavlov-21.github.io/love/sta
+ rt.html?event=ev-spb-tri-mushketera-20261024&m=date&city=spb
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-spb-tri-mush
+ ketera-20261024&m=date&city=spb
+CATEGORIES:Спектакль
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ev-spb-ska-tsska-20261025-20261025@kirillpavlov-21.github.io
+DTSTAMP:20261019T000000Z
+DTSTART;TZID=Europe/Moscow:20261025T170000
+DTEND;TZID=Europe/Moscow:20261025T190000
+SUMMARY:СКА — ЦСКА
+LOCATION:СКА Арена\, просп. Юрия Гагарина\, 8
+GEO:59.869228;30.341148
+DESCRIPTION:Армейское дерби КХЛ — Петербург п
+ ротив Москвы\, самый жаркий матч осени на
+  СКА Арене. Воскресная игра днём: после н
+ её ещё успеваете на ужин.\n720–10 000 ₽\, 0+\nБ
+ илеты и подробности: https://afisha.yandex.ru/saint-peter
+ sburg/sport/hockey-khl-ska-cska\nПозвать друзей — в «Ку
+ да идём?»: https://kirillpavlov-21.github.io/love/start.html?event=
+ ev-spb-ska-tsska-20261025&m=guys&city=spb
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-spb-ska-tssk
+ a-20261025&m=guys&city=spb
+CATEGORIES:Спорт
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ev-spb-profsoyuz-rabotnikov-ada-20261017-20261025@kirillpavlov-21.githu
+ b.io
+DTSTAMP:20261019T000000Z
+DTSTART;TZID=Europe/Moscow:20261025T190000
+DTEND;TZID=Europe/Moscow:20261025T213000
+SUMMARY:Профсоюз работников ада
+LOCATION:The Red Corner Pub (старт маршрута)\, ул. Некр
+ асова\, 6
+GEO:59.939151;30.350642
+DESCRIPTION:Аудиоспектакль-бархоппинг: в науш
+ никах конспирологическая история алког
+ оля\, маршрут ведёт через четыре бара у Н
+ екрасова и Рубинштейна. Каждый вечер в 19:
+ 00.\nОт 2 500 ₽\, 18+\nБилеты и подробности: https
+ ://afisha.yandex.ru/saint-petersburg/immersive-theatre/profsoiuz-rabotniko
+ v-ada\nПозвать друзей — в «Куда идём?»: https://
+ kirillpavlov-21.github.io/love/start.html?event=ev-spb-profsoyuz-rabotniko
+ v-ada-20261017&m=guys&city=spb
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-spb-profsoyu
+ z-rabotnikov-ada-20261017&m=guys&city=spb
+CATEGORIES:Спектакль
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ev-spb-chernyy-stendap-20261017-20261031@kirillpavlov-21.github.io
+DTSTAMP:20261019T000000Z
+DTSTART;TZID=Europe/Moscow:20261031T183000
+DTEND;TZID=Europe/Moscow:20261031T200000
+SUMMARY:Чёрный стендап топовых комиков СПб и
+  МСК
+LOCATION:Стендап-клуб на Белинского\, ул. Бели
+ нского\, 9
+GEO:59.938061;30.346694
+DESCRIPTION:Четыре опытных комика с самым жёст
+ ким и мрачным материалом\, состав держат 
+ в секрете. Маленький клуб у Литейного — 
+ для тех\, кто не обижается на шутки.\n990–1 
+ 590 ₽\, 18+\nБилеты и подробности: https://afisha.yan
+ dex.ru/saint-petersburg/standup/chiornyi-stendap-topovykh-komikov-spb-i-ms
+ k\nПозвать друзей — в «Куда идём?»: https://kiri
+ llpavlov-21.github.io/love/start.html?event=ev-spb-chernyy-stendap-2026101
+ 7&m=guys&city=spb
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-spb-chernyy-
+ stendap-20261017&m=guys&city=spb
+CATEGORIES:Стендап
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ev-spb-khitraya-vdova-20261031-20261031@kirillpavlov-21.github.io
+DTSTAMP:20261019T000000Z
+DTSTART;TZID=Europe/Moscow:20261031T190000
+DTEND;TZID=Europe/Moscow:20261031T213000
+SUMMARY:Хитрая вдова
+LOCATION:Театр Комедии им. Акимова\, Невский п
+ р.\, 56
+GEO:59.934195;30.337950
+DESCRIPTION:Гольдони у Татьяны Казаковой: вене
+ цианский карнавал\, четыре жениха разных
+  наций и вдова Розаура\, которая не спеши
+ т выбирать. Роскошные костюмы\, 3 ч 10 мин.\n
+ 500–4 000 ₽\, 12+\nБилеты и подробности: https://a
+ fisha.yandex.ru/saint-petersburg/theatre_show/khitraia-vdova-teatr-komedii
+ -im-akimova\nПозвать друзей — в «Куда идём?»: ht
+ tps://kirillpavlov-21.github.io/love/start.html?event=ev-spb-khitraya-vdov
+ a-20261031&m=date&city=spb
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-spb-khitraya
+ -vdova-20261031&m=date&city=spb
+CATEGORIES:Спектакль
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ev-spb-peterburg-gogolya-20261017-20261031@kirillpavlov-21.github.io
+DTSTAMP:20261019T000000Z
+DTSTART;TZID=Europe/Moscow:20261031T190000
+DTEND;TZID=Europe/Moscow:20261031T213000
+SUMMARY:Петербург Гоголя
+LOCATION:Замок на Невском\, Невский пр.\, 74–76
+GEO:59.933010;30.347167
+DESCRIPTION:Иммерсивное мистическое шоу: геро
+ и «Шинели»\, «Носа» и «Вия» в одном сюжет
+ е\, а зритель может вмешаться в ход дейст
+ вия. По пятницам и субботам в 19:00\, недоро
+ го.\nОт 1 600 ₽\, 12+\nБилеты и подробности: htt
+ ps://afisha.yandex.ru/saint-petersburg/immersive-theatre/peterburg-gogolia
+ \nПозвать друзей — в «Куда идём?»: https://kiril
+ lpavlov-21.github.io/love/start.html?event=ev-spb-peterburg-gogolya-202610
+ 17&m=date&city=spb
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-spb-peterbur
+ g-gogolya-20261017&m=date&city=spb
+CATEGORIES:Спектакль
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ev-spb-ruki-vverkh-30-nam-uzhe-20261031-20261031@kirillpavlov-21.github
+ .io
+DTSTAMP:20261019T000000Z
+DTSTART;TZID=Europe/Moscow:20261031T190000
+DTEND;TZID=Europe/Moscow:20261031T210000
+SUMMARY:Руки Вверх! «30 нам уже!»
+LOCATION:Газпром Арена\, Футбольная аллея\, 1
+GEO:59.972377;30.221061
+DESCRIPTION:Тур «30 нам уже!» добирается до Газп
+ ром Арены: Сергей Жуков и все песни со шк
+ ольных дискотек на целом стадионе. Танцу
+ ют даже скептики.\n5 700–36 000 ₽\, 12+\nБилеты
+  и подробности: https://afisha.yandex.ru/saint-petersburg/conc
+ ert/ruki-vverkh-stadionnyi-tour\nПозвать друзей — в «Ку
+ да идём?»: https://kirillpavlov-21.github.io/love/start.html?event=
+ ev-spb-ruki-vverkh-30-nam-uzhe-20261031&m=girls&city=spb
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-spb-ruki-vve
+ rkh-30-nam-uzhe-20261031&m=girls&city=spb
+CATEGORIES:Концерт
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ev-spb-bratya-safronovy-20261031-20261101@kirillpavlov-21.github.io
+DTSTAMP:20261019T000000Z
+DTSTART;TZID=Europe/Moscow:20261101T190000
+DTEND;TZID=Europe/Moscow:20261101T210000
+SUMMARY:Братья Сафроновы
+LOCATION:СК «Юбилейный»\, просп. Добролюбова\,
+  18
+GEO:59.950091;30.290428
+DESCRIPTION:Самые известные иллюзионисты стра
+ ны привозят большое шоу с исчезновениям
+ и и левитацией. Шесть сеансов за выходны
+ е — можно выбрать вечерний.\n2 000–12 000 ₽\
+ , 6+\nБилеты и подробности: https://afisha.yandex.ru/sai
+ nt-petersburg/show/bratya-safronovi\nПозвать друзей — в «
+ Куда идём?»: https://kirillpavlov-21.github.io/love/start.html?ev
+ ent=ev-spb-bratya-safronovy-20261031&m=date&city=spb
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-spb-bratya-s
+ afronovy-20261031&m=date&city=spb
+CATEGORIES:Шоу
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ev-spb-stendap-ekskursiya-po-peterburgu-20261017-20261101@kirillpavlov-
+ 21.github.io
+DTSTAMP:20261019T000000Z
+DTSTART;TZID=Europe/Moscow:20261101T190000
+DTEND;TZID=Europe/Moscow:20261101T203000
+SUMMARY:Стендап-экскурсия по Санкт-Петербур
+ гу
+LOCATION:Сбор у памятника Сергею Довлатову\, 
+ ул. Рубинштейна\, 23
+GEO:59.927806;30.342885
+DESCRIPTION:Пешая прогулка по центру\, которую 
+ ведёт комик: городские байки\, импровиза
+ ция и шутки на ходу. Сбор у памятника Дов
+ латову на Рубинштейна.\n1 290–3 870 ₽\, 16+\nБ
+ илеты и подробности: https://afisha.yandex.ru/saint-peter
+ sburg/excursions/stand-up-ekskursiia-spb\nПозвать друзей — 
+ в «Куда идём?»: https://kirillpavlov-21.github.io/love/start.ht
+ ml?event=ev-spb-stendap-ekskursiya-po-peterburgu-20261017&m=date&city=spb
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-spb-stendap-
+ ekskursiya-po-peterburgu-20261017&m=date&city=spb
+CATEGORIES:Стендап
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ev-spb-zhenitba-20261101-20261101@kirillpavlov-21.github.io
+DTSTAMP:20261019T000000Z
+DTSTART;TZID=Europe/Moscow:20261101T190000
+DTEND;TZID=Europe/Moscow:20261101T213000
+SUMMARY:Женитьба
+LOCATION:Александринский театр\, пл. Островск
+ ого\, 6
+GEO:59.931796;30.336182
+DESCRIPTION:Агафья Тихоновна выбирает из шест
+ и женихов\, а Подколесин всё колеблется: 
+ Гоголь у Валерия Фокина смешной\, абсурд
+ ный и почти цирковой. Начало в 19:00.\n500–8 00
+ 0 ₽\, 12+\nБилеты и подробности: https://afisha.yande
+ x.ru/saint-petersburg/theatre_show/zhenitba-aleksandrinskii-teatr\nПоз
+ вать друзей — в «Куда идём?»: https://kirillpavlov-
+ 21.github.io/love/start.html?event=ev-spb-zhenitba-20261101&m=date&city=sp
+ b
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-spb-zhenitba
+ -20261101&m=date&city=spb
+CATEGORIES:Спектакль
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ev-spb-stendap-po-zhenski-20261017-20261101@kirillpavlov-21.github.io
+DTSTAMP:20261019T000000Z
+DTSTART;TZID=Europe/Moscow:20261101T193000
+DTEND;TZID=Europe/Moscow:20261101T210000
+SUMMARY:Стендап по-женски
+LOCATION:Commode\, Невский пр.\, 47
+GEO:59.932507;30.347550
+DESCRIPTION:У микрофона только девушки-комики 
+ из Петербурга и Москвы: про бывших\, свид
+ ания и всё наболевшее. Идёт почти каждый 
+ вечер на Невском — готовый план для деви
+ чника.\n390–1 990 ₽\, 18+\nБилеты и подробност
+ и: https://afisha.yandex.ru/saint-petersburg/standup/stand-up-po-zhenski-
+ spb\nПозвать друзей — в «Куда идём?»: https://ki
+ rillpavlov-21.github.io/love/start.html?event=ev-spb-stendap-po-zhenski-20
+ 261017&m=girls&city=spb
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-spb-stendap-
+ po-zhenski-20261017&m=girls&city=spb
+CATEGORIES:Стендап
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+END:VCALENDAR

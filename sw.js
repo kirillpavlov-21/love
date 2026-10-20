@@ -12,7 +12,7 @@
    Поменял логику этого файла или хочешь сбросить кэши у всех — подними VERSION. */
 'use strict';
 
-const VERSION = '2026-10-15.1';
+const VERSION = '2026-10-16.2';
 const PAGES = 'kuda-pages-' + VERSION, ASSETS = 'kuda-assets-' + VERSION, IMAGES = 'kuda-img-' + VERSION;
 const MAX_PAGES = 60, MAX_IMAGES = 300, NET_WAIT = 4000;
 

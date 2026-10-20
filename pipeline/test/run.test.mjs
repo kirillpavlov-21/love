@@ -116,7 +116,7 @@ const BASE = { match_id: '', name: '', kind: '', cat: '', address: '', area: '',
 
 function extractItems(content) {
   const items = [];
-  for (const [, ref, text] of content.matchAll(/<post key="(p\d+)" date="[^"]*">\n([\s\S]*?)\n<\/post>/g)) {
+  for (const [, ref, text] of content.matchAll(/<post key="(p\d+)" date="[^"]*"(?: city="[^"]*")?>\n([\s\S]*?)\n<\/post>/g)) {
     const it = o => items.push({ ...BASE, post_key: ref, ...o });
     if (/Тестовое зерно/.test(text)) {
       it({ type: 'new_place', name: 'Тестовое зерно', kind: 'Кофейня', cat: 'coffee', address: 'ул. Покровка, 99', area: 'Китай-город',
@@ -124,7 +124,7 @@ function extractItems(content) {
         fit: ['date', 'girls'], hints: ['first', 'night'], confidence: 0.92, reason: 'открытие кофейни с адресом' });
     } else if (/Черновик/.test(text)) {
       it({ type: 'closure', match_id: 'chernovik', name: 'Черновик', kind: 'Кофейня', cat: 'coffee', address: 'Примерная ул., 5',
-        confidence: 0.95, reason: 'прямо сказано, что закрылась навсегда' });
+        confidence: 0.95, reason: 'прямо сказано, что закрылась навсегда', confirm_url: 'https://chernovik-coffee.ru/' });
     } else if (/камерной музыки/.test(text)) {
       it({ type: 'event', name: 'Условный дом', kind: 'Особняк', cat: 'culture', address: 'Малый Примерный пер., 3',
         note_ru: 'Камерный концерт при свечах в старом особняке — тихий вечер на двоих.', fit: ['date'], reason: 'концерт с датой',
@@ -606,7 +606,7 @@ test('закрытие: без названия или без слов о зак
   const both = content => {
     const out = extract(content);
     const ref = (/<post key="(p\d+)"[^>]*>\nОткрытие недели/.exec(content) || [])[1];
-    if (ref) out.push({ ...BASE, post_key: ref, type: 'closure', match_id: 'chernovik', name: 'Черновик', confidence: 0.95 });
+    if (ref) out.push({ ...BASE, post_key: ref, type: 'closure', match_id: 'chernovik', name: 'Черновик', confidence: 0.95, confirm_url: 'https://chernovik-coffee.ru/' });
     return out;
   };
   const r = await run(['--no-photos'], { ...X, llmClient: stubWith(both) });

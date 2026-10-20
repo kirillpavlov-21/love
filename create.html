@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Конструктор — Куда идём?</title>
   <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Приглашение-игра на свидание или голосование компании: готовые планы, места и афиша в Москве и Петербурге. Без регистрации.">
   <meta name="theme-color" content="#0F0E13">
   <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="assets/icon-180.png">
@@ -12,8 +13,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="assets/create.css?v=28">
-  <link rel="stylesheet" href="assets/reviews.css?v=28">
+  <link rel="stylesheet" href="assets/create.css?v=32">
+  <link rel="stylesheet" href="assets/reviews.css?v=32">
 </head>
 <body data-mode="date">
   <header class="top">
@@ -83,7 +84,7 @@
         <h2>4. Места <small>(шарики)</small></h2>
         <div id="evBox" class="ev-box hidden"></div>
         <div id="placesEd">
-          <p class="hint">Выбери готовый план, любое из <span id="placeCount">960+</span> мест каталога или событие из афиши — каждое место станет шариком. Подсказки помогут: 🍂 красиво осенью, 💘 для первого свидания, ☔ если дождь.</p>
+          <p class="hint">Выбери готовый план, любое из <span id="placeCount">960+</span> мест <span id="placeCity">Москвы</span> или событие из афиши — каждое место станет шариком. Подсказки помогут: 🍂 красиво осенью, 💘 для первого свидания, ☔ если дождь.</p>
           <div class="plan-pick" id="datePlans"></div>
           <div class="list" id="places"></div>
           <button class="btn-add" type="button" data-add="places">+ Добавить место</button>
@@ -120,6 +121,27 @@
         <div class="toggles compact only-date" id="dateOtherBox">
           <label class="tg"><input type="checkbox" id="dateOther"><span></span><b>Кнопка «Ни один день не подходит»</b><i>можно будет написать свой вариант</i></label>
         </div>
+      </section>
+
+      <section class="card only-group">
+        <h2>6. Во сколько и до когда решаем</h2>
+        <button class="btn-add preset-now" type="button" id="presetNow">⚡ Сегодня, решаем за час</button>
+        <div class="toggles compact">
+          <label class="tg"><input type="checkbox" id="slotAsk" checked><span></span><b>Спросить, во сколько</b><i>до 4 вариантов; один — время уже решено</i></label>
+        </div>
+        <div class="slot-ed" id="slotEd" role="group" aria-label="Варианты времени">
+          <input type="time" class="slot-in" aria-label="Время 1"><input type="time" class="slot-in" aria-label="Время 2"><input type="time" class="slot-in" aria-label="Время 3"><input type="time" class="slot-in" aria-label="Время 4">
+        </div>
+        <div class="field-label" id="untilLabel">Решаем до</div>
+        <div class="seg seg-wrap" id="untilMode" role="radiogroup" aria-labelledby="untilLabel">
+          <label><input type="radio" name="umode" value="" checked><span>Без срока</span></label>
+          <label><input type="radio" name="umode" value="hour"><span>Через час</span></label>
+          <label><input type="radio" name="umode" value="today"><span id="uToday">Сегодня 18:00</span></label>
+          <label><input type="radio" name="umode" value="thu"><span id="uThu">Чт 18:00</span></label>
+          <label><input type="radio" name="umode" value="own"><span>Своё</span></label>
+        </div>
+        <input type="datetime-local" id="untilAt" class="hidden" aria-label="Решаем до (по Москве)">
+        <p class="hint" id="untilInfo" aria-live="polite">После срока голосование закроется, итог у всех будет одинаковый.</p>
       </section>
 
       <section class="card only-date">
@@ -219,17 +241,23 @@
   </div>
   <div class="toast hidden" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="config.js?v=28"></script>
-  <script src="assets/shared.js?v=28"></script>
-  <script src="assets/places.js?v=28"></script>
-  <script src="assets/events.js?v=28"></script>
-  <script src="assets/auto.js?v=28"></script>
-  <script src="assets/photos.js?v=28"></script>
-  <script src="assets/api.js?v=28"></script>
-  <script src="assets/reviews.js?v=28"></script>
-  <script src="assets/track.js?v=28"></script>
-  <script src="assets/auth.js?v=28"></script>
-  <script src="assets/create.js?v=28"></script>
-  <script src="assets/pwa.js?v=28"></script>
+  <script src="config.js?v=32"></script>
+  <script src="assets/shared.js?v=32"></script>
+  <script src="assets/places.js?v=32"></script>
+  <script src="assets/places-spb.js?v=32"></script>
+  <script src="assets/places-info.js?v=32"></script>
+  <script src="assets/events.js?v=32"></script>
+  <script src="assets/events-spb.js?v=32"></script>
+  <script src="assets/sport.js?v=32"></script>
+  <script src="assets/auto.js?v=32"></script>
+  <script src="assets/photos.js?v=32"></script>
+  <script src="assets/collections.js?v=32"></script>
+  <script src="assets/cols.js?v=32"></script>
+  <script src="assets/api.js?v=32"></script>
+  <script src="assets/reviews.js?v=32"></script>
+  <script src="assets/track.js?v=32"></script>
+  <script src="assets/auth.js?v=32"></script>
+  <script src="assets/create.js?v=32"></script>
+  <script src="assets/pwa.js?v=32"></script>
 </body>
 </html>

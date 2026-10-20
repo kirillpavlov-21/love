@@ -157,10 +157,18 @@
   const safe = fn => async function () {
     try { return await fn.apply(null, arguments); } catch (e) { api.lastError = 'client'; return null; }
   };
-  const pickVoter = v => ({ id: String(v.id || ''), n: String(v.n == null ? '' : v.n), y: v.y ? 1 : 0, o: Array.isArray(v.o) ? v.o : [], d: Array.isArray(v.d) ? v.d : [], t: +v.t || 0 });
+  const pickVoter = v => {
+    const o = { id: String(v.id || ''), n: String(v.n == null ? '' : v.n), y: v.y ? 1 : 0, o: Array.isArray(v.o) ? v.o : [], d: Array.isArray(v.d) ? v.d : [], t: +v.t || 0 };
+    // компания: слоты времени, дни «может быть», «со мной ещё +N» — только если есть (старый сервер их не ждёт)
+    if (Array.isArray(v.s) && v.s.length) o.s = v.s;
+    if (Array.isArray(v.m) && v.m.length) o.m = v.m;
+    if (v.p > 0) o.p = v.p;
+    if (typeof v.st === 'string' && v.st) o.st = v.st.slice(0, 40);
+    return o;
+  };
   /* spins — итоги колеса по наборам лидеров {'0,2': {i, d, t, L}} (сервер с L); у старого сервера — {} */
   const spinsOut = j => (j.spins && typeof j.spins === 'object' && !Array.isArray(j.spins) ? j.spins : {});
-  const votesOut = j => ({ votes: Array.isArray(j.votes) ? j.votes : [], rev: j.rev | 0, spin: j.spin || null, spins: spinsOut(j) });
+  const votesOut = j => ({ votes: Array.isArray(j.votes) ? j.votes : [], rev: j.rev | 0, spin: j.spin || null, spins: spinsOut(j), until: Number.isInteger(j.until) ? j.until : null });
 
   /* ---------- голоса компании ---------- */
   /* voter: {id, n, y, o:[индексы вариантов], d:[номера дней]}; seed — голоса из старой ссылки (&v=) */
@@ -226,12 +234,22 @@
   });
 
   /* ---------- приглашения ---------- */
-  /* meta: {mode: 'date'|'guys'|'girls', title} */
+  /* meta: {mode: 'date'|'guys'|'girls', title, until? (дедлайн, минуты эпохи), ref? (8 знаков хэша приглашения, по которому позвали), city?} */
   const invite = safe(async (code, ownerSecret, meta) => {
     if (!on || !code || !ownerSecret) return fail();
     meta = meta || {};
-    const j = await call(null, { action: 'invite', key: await key(code), owner: await ownerKey(ownerSecret), mode: meta.mode || 'date', title: String(meta.title || '').slice(0, 80) });
+    const body = { action: 'invite', key: await key(code), owner: await ownerKey(ownerSecret), mode: meta.mode || 'date', title: String(meta.title || '').slice(0, 80) };
+    if (Number.isInteger(meta.until) && meta.until > 0) body.until = meta.until;
+    if (/^[a-z0-9]{8}$/.test(meta.ref || '')) body.ref = meta.ref;
+    if (meta.city === 'msk' || meta.city === 'spb') body.city = meta.city;
+    const j = await call(null, body);
     return j ? true : null;
+  });
+  /* «Закрыть сейчас»: только создатель приглашения (его секрет); ответ — {until, rev} */
+  const closeVote = safe(async (code, ownerSecret) => {
+    if (!on || !code || !ownerSecret) return fail();
+    const j = await call(null, { action: 'close', key: await key(code), ownerSecret });
+    return j && { until: Number.isInteger(j.until) ? j.until : null, rev: j.rev | 0 };
   });
   /* «Приглашение открыли» — один раз с устройства */
   const opened = safe(async code => {
@@ -335,6 +353,7 @@
   });
 
   const api = {
+    closeVote,
     on, lastError: on ? '' : 'off',
     key, ownerKey, dev, voteSecret,
     vote, votes, poll, spin, invite, opened, answer, mine,

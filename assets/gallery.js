@@ -13,8 +13,8 @@
   const cget = id => { try { const v = JSON.parse(localStorage.getItem(cacheKey(id)) || 'null'); return v && Date.now() - v.ts < TTL ? v.items : null; } catch (e) { return null; } };
   const cset = (id, items) => { try { localStorage.setItem(cacheKey(id), JSON.stringify({ ts: Date.now(), items })); } catch (e) { /* ок */ } };
 
-  /* Категории, которые ничего не говорят об объекте: годы, камеры, лицензии, «Москва» целиком… */
-  const GENERIC = /^(Category:)?(\d{3,4}|.*\b(19|20)\d\d\b.*|Moscow|Москва|Russia|.*photographs? (by|taken)|Taken with.*|.*(CC[- ]BY|GFDL|Free Art|license|Public domain).*|Quality images.*|Featured pictures.*|Valued images.*|Uploaded .*|Files .*|Images .*|Media .*|Pages .*|.*panoramio.*|.*Wiki Loves.*|Self-published work|.*\bcountry\b.*|Streets in Moscow|Parks in Moscow|Museums in Moscow|Restaurants in Moscow)$/i;
+  /* Категории, которые ничего не говорят об объекте: годы, камеры, лицензии, город целиком (Москва, Петербург, области)… */
+  const GENERIC = /^(Category:)?(\d{3,4}|.*\b(19|20)\d\d\b.*|Moscow|Москва|Saint Petersburg|Санкт-Петербург|Leningrad Oblast|Ленинградская область|Moscow Oblast|Московская область|Russia|.*photographs? (by|taken)|Taken with.*|.*(CC[- ]BY|GFDL|Free Art|license|Public domain).*|Quality images.*|Featured pictures.*|Valued images.*|Uploaded .*|Files .*|Images .*|Media .*|Pages .*|.*panoramio.*|.*Wiki Loves.*|Self-published work|.*\bcountry\b.*|(Streets|Parks|Museums|Restaurants|Bridges|Canals|Embankments|Buildings|Squares|Gardens|Churches|Theatres|Monuments) in (Moscow|Saint Petersburg))$/i;
 
   function qs(o) { return Object.entries(Object.assign({ format: 'json', origin: '*', formatversion: 2 }, o)).map(([k, v]) => k + '=' + encodeURIComponent(v)).join('&'); }
   async function api(params) {

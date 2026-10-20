@@ -38,9 +38,10 @@
        #r=<id плана, p-<id места> или ev-<id события>> — маршрут в Яндекс Картах;
        #s=<код> — длинная ссылка: сначала спрашиваем свой сервер (config.js → api.url, GET ?s=),
        потом посредника (config.js → telegram.relayUrl) — там лежат коды, выданные до сервера.
-       Данные грузятся только для маршрутов и только нужные (каталог places.js — больше 600 КБ — для плана или места,
-       афиша events.js — для события), с тем же ?v=, что у config.js. -->
-  <script src="config.js?v=28"></script>
+       Данные грузятся только для маршрутов и только нужные, с тем же ?v=, что у config.js: для плана или места —
+       каталоги Москвы (places.js, больше 600 КБ) и Петербурга (places-spb.js), для события — афиши Москвы (events.js),
+       Петербурга (events-spb.js) и футбольные матчи (sport.js); auto.js — последним, он дописывает новое в оба города. -->
+  <script src="config.js?v=32"></script>
   <script>
   (async function () {
     'use strict';
@@ -116,11 +117,15 @@
     }
     const withParam = (base, k, v) => base + (base.indexOf('?') >= 0 ? '&' : '?') + k + '=' + encodeURIComponent(v);
 
-    /* Маршрут: план из подборки, место (p-<id>) или площадка события (ev-<id>) */
+    /* Файлы для маршрута: порядок важен — places-spb.js дописывает в каталог places.js, events-spb.js и sport.js —
+       в афишу events.js (она записывает её заново), auto.js — после всех */
+    const routeFiles = isEvent => ['assets/shared.js'].concat(isEvent
+      ? ['assets/events.js', 'assets/events-spb.js', 'assets/sport.js'] : ['assets/places.js', 'assets/places-spb.js'], ['assets/auto.js']);
+    /* Маршрут: план из подборки, место (p-<id>) или площадка события (ev-<id>); регион Яндекс Карт — по городу места */
     async function route(id) {
       const isEvent = /^ev-/.test(id);
       try {
-        await load(isEvent ? ['assets/shared.js', 'assets/events.js', 'assets/auto.js'] : ['assets/shared.js', 'assets/places.js', 'assets/auto.js']);
+        await load(routeFiles(isEvent));
       } catch (e) {
         return show('Не получилось загрузить маршрут — проверь интернет.', true);
       }

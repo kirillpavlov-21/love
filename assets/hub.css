@@ -28,7 +28,7 @@ a { color: var(--accent); }
 .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: calc(16px + env(safe-area-inset-top)) 0 4px; }
 .logo { display: flex; align-items: center; gap: 10px; color: var(--text); text-decoration: none; font-family: var(--display); font-weight: 700; font-size: 20px; letter-spacing: -.02em; }
 .logo svg { color: var(--accent); width: 22px; height: 22px; }
-.city { display: inline-flex; align-items: center; height: 36px; padding: 0 14px; border-radius: 99px; border: 1px solid var(--line-2); font-size: 14px; font-weight: 500; color: var(--text); }
+.city { display: inline-flex; align-items: center; gap: 5px; height: 36px; padding: 0 10px 0 11px; border-radius: 99px; border: 1px solid var(--line-2); background: transparent; font: 500 14px var(--body); color: var(--text); white-space: nowrap; cursor: pointer; transition: border-color .2s; }
 
 /* режимы */
 .modes { position: sticky; top: 10px; z-index: 5; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin: 16px 0 18px; padding: 5px; border-radius: 18px; background: rgba(26, 25, 32, .86); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border: 1px solid var(--line); }
@@ -338,7 +338,6 @@ html[data-acc="shades"] .cat .acc-shades, html[data-acc="bow"] .cat .acc-bow { d
 @keyframes pulse { to { opacity: .25; transform: scale(.7); } }
 .psheet > * { flex-shrink: 0; }
 @media (max-width: 420px) {
-  .top .city { display: none; }
   .logo { font-size: 18px; }
   .tabs a { padding: 0 11px; font-size: 13px; }
 }
@@ -385,6 +384,9 @@ html[data-acc="shades"] .cat .acc-shades, html[data-acc="bow"] .cat .acc-bow { d
 .promo-box .ad-mark { margin-top: 8px; color: var(--muted); font-size: 11px; }
 .pl-main .ad-mark { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .plist + .promo-biz { margin-top: 4px !important; text-align: center; }
+.home-risk { display: grid; gap: 6px; padding: 10px 14px; border-radius: 14px; background: rgba(61, 139, 255, .1); border: 1px solid rgba(61, 139, 255, .3); }
+.home-risk p { margin: 0; font-size: 14px; line-height: 1.4; color: var(--muted-2); }
+.bridges-line { margin: 0 0 12px; padding: 10px 14px; border-radius: 14px; background: rgba(61, 139, 255, .1); color: var(--muted-2); font-size: 14px; line-height: 1.4; }
 /* плашка про аналитику не закрывает открытую карточку */
 body.sheet-open .consent { display: none; }
 
@@ -655,3 +657,83 @@ button.rate-line:focus-visible { outline: 2px solid var(--accent); outline-offse
   .wx-go { padding: 0; width: 32px; height: 32px; justify-content: center; }
   .wx-go .wx-gt { display: none; }
 }
+
+/* ---------- город: переключатель в шапке, плашка «Похоже, ты в Петербурге», подсказка про сохранённое ---------- */
+.city-sw { position: relative; flex: none; }
+.city:hover, .city[aria-expanded="true"] { border-color: var(--accent); }
+.city:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.city .city-pin { font-size: 13px; line-height: 1; }
+.city .chev { width: 14px; height: 14px; color: var(--muted); transition: transform .2s; }
+.city[aria-expanded="true"] .chev { transform: rotate(180deg); }
+.city .l-short { display: none; }
+.city-menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 30; display: grid; gap: 2px; min-width: 180px; padding: 6px; border-radius: 16px; background: #1E1D25; border: 1px solid var(--line-2); box-shadow: 0 18px 40px rgba(0, 0, 0, .45); animation: fade .15s; }
+.city-menu[hidden] { display: none; }
+.city-menu button { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; padding: 0 12px; border: 0; border-radius: 11px; background: transparent; color: var(--text); font: 600 15px var(--body); text-align: left; cursor: pointer; }
+.city-menu button:hover, .city-menu button:focus-visible { background: var(--surface-3); outline: none; }
+.city-menu button[aria-checked="true"] { color: var(--accent); }
+.city-menu .ic { width: 16px; height: 16px; }
+.city-ask { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin: 10px 0 0; padding: 8px 8px 8px 14px; border-radius: 16px; border: 1px solid var(--accent); background: var(--surface); font-size: 14px; color: var(--text); animation: fade .3s; }
+.city-ask .ca-t { flex: 1 1 180px; min-width: 0; line-height: 1.35; }
+.city-ask .mini { flex: none; }
+.ca-x { flex: none; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--line-2); background: transparent; color: var(--text); cursor: pointer; }
+.ca-x .ic { width: 16px; height: 16px; }
+.ca-x:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.city-hint { grid-column: 1 / -1; margin: 4px 0 0; padding: 12px 14px; border-radius: 16px; border: 1px dashed var(--line-2); color: var(--muted-2); font-size: 14px; line-height: 1.45; text-align: center; }
+.city-hint .link { padding: 0; border: 0; background: none; color: var(--accent); font: 600 14px var(--body); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.city-hint .link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+/* значок метро Петербурга — синий, у станции из таблицы — цвет её линии */
+html[data-city="spb"] .metro { background: #0078C9; }
+html[data-city="spb"] .metro.l1 { background: #D6083B; }
+html[data-city="spb"] .metro.l2 { background: #0078C9; }
+html[data-city="spb"] .metro.l3 { background: #009A49; }
+html[data-city="spb"] .metro.l4 { background: #EA7125; }
+html[data-city="spb"] .metro.l5 { background: #702785; }
+html[data-city="spb"] .metro.l6 { background: #7B4B2A; }
+/* узкий экран: в переключателе — «МСК» / «СПб», шапка не переносится */
+@media (max-width: 400px) {
+  .city { gap: 4px; padding: 0 8px 0 9px; }
+  .city .l-long { display: none; }
+  .city .l-short { display: inline; }
+  .top { gap: 8px; }
+}
+/* 320 px: логотип, город и «Мои приглашения» в одну строку — без значка булавки и с логотипом чуть мельче */
+@media (max-width: 340px) {
+  .city .city-pin { display: none; }
+  .logo { font-size: 17px; }
+  .top, .top-r { gap: 6px; }
+}
+
+/* подборки: полка над планами и шторка */
+.cols { display: flex; gap: 8px; overflow-x: auto; scroll-snap-type: x proximity; margin: 0 -16px 2px; padding: 0 16px 4px; scrollbar-width: none; }
+.cols::-webkit-scrollbar { display: none; }
+.col-tile { flex: 0 0 auto; width: 172px; scroll-snap-align: start; display: grid; gap: 4px; align-content: start; padding: 12px 14px; border-radius: 20px; border: 1px solid var(--line-2); background: var(--surface); color: var(--text); font: inherit; text-align: left; cursor: pointer; transition: transform .15s, border-color .2s; }
+.col-tile:active { transform: scale(.98); }
+.col-tile:hover { border-color: var(--accent); }
+.col-tile .e { font-size: 24px; line-height: 1; }
+.col-tile b { font: 700 14.5px/1.25 var(--display, inherit); overflow-wrap: break-word; }
+.col-tile small { color: var(--muted); font-size: 12.5px; }
+.col-tile:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.col-list { display: grid; gap: 6px; margin: 8px 0 14px; }
+.col-it { display: flex; gap: 10px; align-items: center; width: 100%; padding: 10px 12px; border-radius: 14px; border: 1px solid var(--line-1); background: var(--surface-2, transparent); color: var(--text); font: inherit; text-align: left; cursor: pointer; }
+.col-it:hover { border-color: var(--accent); }
+.col-it .ce { flex: none; font-size: 20px; }
+.col-it b { display: block; font-size: 14.5px; font-weight: 600; }
+.col-it small { display: block; color: var(--muted); font-size: 12.5px; line-height: 1.35; }
+.share-list { margin: 10px auto 0; display: block; }
+
+/* часы работы */
+.oh-line { margin: 4px 0 8px; font-size: 14px; font-weight: 600; }
+.oh-line.on { color: var(--ok, #9be3b4); }
+.oh-line.off { color: var(--muted-2, #a39eae); }
+.stop .oh-line { margin: 2px 0 4px; font-size: 13px; }
+.pl-sub .oh { font-weight: 600; }
+.pl-sub .oh.on { color: var(--ok, #9be3b4); }
+.pl-sub .oh.off { color: var(--muted); }
+
+.guest-strip { display: flex; align-items: center; gap: 10px; margin: 10px 0 4px; padding: 10px 12px; border-radius: 16px; border: 1px solid rgba(var(--rgb, 255,122,154), .4); background: rgba(var(--rgb, 255,122,154), .1); }
+.guest-strip p { flex: 1; margin: 0; font-size: 14px; font-weight: 600; line-height: 1.35; }
+.guest-strip .btn.sm { min-height: 36px; padding: 0 14px; flex: none; }
+.guest-strip .icon-btn { flex: none; background: transparent; cursor: pointer; }
+.buzz-line { margin: 4px 0; font-size: 14px; font-weight: 700; color: #ffb36b; }
+.mid-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0 4px; }
+.mid-grid select { margin: 0; min-width: 0; }

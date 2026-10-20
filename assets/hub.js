@@ -9,8 +9,10 @@
    ─ «Подобрать за 10 секунд» (?quiz=1), бюджет на человека (?b=1|2), «Новое», погода от Open-Meteo.
    Тяжёлое (лента событий, вкладка афиши, погода) рисуем после первой отрисовки страницы.
    Места для модулей: #plansActions — кнопки рядом с «Удиви меня», .sheet-slot[data-slot="rating|reviews|events"]
-   в карточках; событие document 'kuda-mode' — смена режима; KudaHub.addOpener(param, fn) — свой параметр адреса,
-   по которому сразу открывается карточка. */
+   в карточках; событие document 'kuda-mode' — смена режима, 'kuda-city' — смена города; KudaHub.addOpener(param, fn) —
+   свой параметр адреса, по которому сразу открывается карточка.
+   ─ Города (K.CITIES в shared.js): переключатель «📍 Москва ▾» в шапке. Планы, места, промокоды, афиша, карта, погода,
+     квиз и счётчики — только текущего города; карточка по ссылке из другого города сначала переключает город. */
 (function () {
   'use strict';
 
@@ -49,11 +51,14 @@
      «Реклама · рекламодатель · erid: …» (adLine) */
   const PROMO_MIN = 5;
   const str = v => (typeof v === 'string' ? v.trim() : typeof v === 'number' ? String(v) : '');
-  const PROMOS = (Array.isArray(window.KUDA_PROMOS) ? window.KUDA_PROMOS : []).filter(x => {
+  /* PROMOS_ALL — все действующие (значок 🎁 по id места), PROMOS — текущего города: раздел, вкладка, чип и легенда карты;
+     PROMO_MIN считаем по городу. Город промокода — город его места */
+  const PROMOS_ALL = (Array.isArray(window.KUDA_PROMOS) ? window.KUDA_PROMOS : []).filter(x => {
     const p = x && typeof x.place === 'string' && K.placeById(x.place);
     return p && !p.adult && (!x.until || x.until >= todayYmd) && str(x.title) && str(x.erid) && str(x.advertiser);
   });
-  const promoOf = id => PROMOS.find(x => x.place === id) || null;
+  let PROMOS = [];
+  const promoOf = id => PROMOS_ALL.find(x => x.place === id) || null;
   /* «Реклама · ООО «Ромашка», ИНН 7700000000 · erid: 2SDnje…» */
   const adText = x => {
     const inn = str(x.inn).replace(/\s+/g, '');
@@ -96,6 +101,57 @@
   if (!ORDER.includes(mode)) mode = 'date';
   document.documentElement.style.cssText += ';' + K.catVars('line');
 
+  /* ---------- город: Москва или Петербург ----------
+     Город: карточка из ссылки (?plan=, ?place=, ?event= — город самой карточки) → ?city= → localStorage 'kuda-city' → Москва.
+     В адресе — ?city=spb, у Москвы параметра нет. Явный город из ссылки запоминаем — как выбор в переключателе */
+  const CITY_IDS = Object.keys(K.CITIES);
+  const isCity = c => typeof c === 'string' && CITY_IDS.includes(c);
+  /* Тексты страницы, которых нет в K.CITIES: «по Москве», подпись каталога, округа или районы, сезонные плашки */
+  const CITY_TXT = {
+    msk: { po: 'по Москве', acc: 'Москву', okrs: 'Округа', okr: 'округ',
+      note: 'Места по всей Москве и ближнему Подмосковью — от парков до ресторанов из гида Michelin (2021). Часы работы и адреса лучше уточнить перед выходом.',
+      halloween: 'Готика, бункеры, Булгаков и квесты', autumn: 'Парки, усадьбы и бульвары в листьях', pc: 'Компьютерные клубы по всей Москве и еда рядом' },
+    spb: { po: 'по Петербургу', acc: 'Петербург', okrs: 'Районы', okr: 'район',
+      note: 'Места по всему Петербургу и пригородам — от садов и музеев до баров и ресторанов. Часы работы и адреса лучше уточнить перед выходом.',
+      halloween: 'Достоевский, дворы-колодцы и квесты', autumn: 'Сады, парки пригородов и набережные', pc: 'Компьютерные клубы по всему Петербургу и еда рядом' },
+  };
+  const QS0 = new URLSearchParams(location.search);
+  /* Город карточки из адреса — в том же порядке, что OPENERS ниже (первый найденный параметр); нет карточки — '' */
+  function linkCity(q) {
+    for (const k of ['plan', 'place', 'quiz', 'event']) {
+      const v = q.get(k);
+      if (!v) continue;
+      const x = k === 'plan' ? K.planById(v) : k === 'place' ? K.placeById(v) : k === 'event' && A ? K.eventById(v) : null;
+      const c = x ? K.cityOf(k === 'place' ? Object.assign({ id: v }, x) : x) : '';
+      return isCity(c) ? c : '';
+    }
+    return '';
+  }
+  const LINK_CITY = linkCity(QS0);
+  let city = LINK_CITY || K.city();
+  if (!isCity(city)) city = 'msk';
+  if (LINK_CITY || isCity(QS0.get('city'))) K.setCity(city);
+  const cityConf = () => K.cityConf(city);
+  const ctxt = k => (CITY_TXT[city] || CITY_TXT.msk)[k];
+  /* «Переключить на Москву» / «на Петербург» */
+  const toCity = c => 'Переключить на ' + ((CITY_TXT[c] || {}).acc || K.cityConf(c).name);
+  /* Нужен ли ?city= в адресе: у Москвы — нет, если и хранилище говорит «Москва» (иначе K.city() вернул бы чужой город) */
+  function cityParam() {
+    if (city !== 'msk') return true;
+    try { const s = localStorage.getItem('kuda-city'); return isCity(s) && s !== 'msk'; } catch (e) { return false; }
+  }
+  /* Город в текущем адресе — сразу, не дожидаясь syncUrl (он молчит, пока открыта карточка): афиша и другие модули
+     читают город через K.city(), а он смотрит в адрес первым. Остальной адрес и запись истории не трогаем */
+  function cityToUrl() {
+    try {
+      const q = new URLSearchParams(location.search);
+      if (cityParam()) q.set('city', city); else q.delete('city');
+      const qs = q.toString();
+      if ((qs ? '?' + qs : '') !== location.search) history.replaceState(history.state, '', (qs ? '?' + qs : location.pathname) + location.hash);
+    } catch (e) { /* file:// и песочницы */ }
+  }
+  cityToUrl();
+
   function toast(t) {
     const el = $('#toast');
     el.textContent = t;
@@ -105,9 +161,9 @@
   }
 
   /* ---------- каталог: какие планы и места показываем ---------- */
-  /* План в каталоге: все остановки на месте (не закрыты) и сейчас его сезон (поле season) */
-  const PLAN_OK = new Set(D.scenarios.filter(s => s && Array.isArray(s.stops) && s.stops.length &&
-    s.stops.every(id => K.placeById(id)) && K.seasonOk(s)).map(s => s.id));
+  /* План в каталоге: все остановки на месте (не закрыты), сейчас его сезон (поле season) и он из текущего города.
+     PLAN_OK, PLACES, PROMOS, OKRS — по городу: пересчитывает cityData() (при загрузке и при смене города) */
+  let PLAN_OK = new Set();
   const modePlans = m => D.scenarios.filter(s => s.mode === (m || mode) && PLAN_OK.has(s.id));
   /* Тип места после названия: «ансамбль XVII века», «кафе в ГУМе» — строчной только первая буква, аббревиатуры («VR-арена») не трогаем */
   const kindLow = s => { const t = String(s || '').split(' · ')[0];
@@ -147,7 +203,8 @@
   /* ---------- «Под крышей»: все остановки — в помещении (еда, кофе, бары, культура, развлечения, бани, книжные, компы),
      кроме парков, усадеб, катков и прочего под открытым небом ---------- */
   const INDOOR_CATS = ['food', 'coffee', 'bar', 'culture', 'fun', 'spa', 'books', 'pc'];
-  const OUT_KIND = /парк|сад|усадьб|набережн|бульвар|заповедник|заказник|смотров|каток|теплоход|канатн|открытым небом|монастыр|обител|некропол|стадион|квартал|автоквест|пейнтбол|конноспорт|петанк|архитектур|дизайн-завод/i;
+  // и петербургское под открытым небом: крыши, кораблики и катера, разводка мостов, форты, залив, пляжи, острова, фонтаны
+  const OUT_KIND = /парк|сад|усадьб|набережн|бульвар|заповедник|заказник|смотров|каток|теплоход|канатн|открытым небом|монастыр|обител|некропол|стадион|квартал|автоквест|пейнтбол|конноспорт|петанк|архитектур|дизайн-завод|крыш|кораблик|катер|водн(ая|ые) прогулк|развод|форт|залив|пляж|остров|фонтан/i;
   function indoorPlace(p) {
     const c = K.catOf(p);
     if (!INDOOR_CATS.includes(c)) return false;
@@ -159,6 +216,21 @@
   const indoorPlan = p => { if (!INDOOR.has(p.id)) { const st = K.planStops(p); INDOOR.set(p.id, st.length > 0 && st.every(indoorPlace)); } return INDOOR.get(p.id); };
 
   /* Отрезок между остановками: пешком, а если план на транспорте (тег drive) или идти дольше получаса — «на транспорте» */
+  /* «Успеть домой»: у вечерних и ночных планов — до скольки вход в метро, в Петербурге в навигацию — разводка мостов */
+  function homeRiskHtml(plan, st) {
+    if (!['закат', 'вечер', 'ночь'].includes(plan.when)) return '';
+    const r = K.homeRisk(st, null, K.todayMsk(), K.cityOf(plan), plan.when);
+    return r.length ? `<div class="home-risk">${r.map(x => `<p class="hr-${x.kind}">${esc(x.text)}</p>`).join('')}</div>` : '';
+  }
+  /* Главная Петербурга вечером в навигацию: «Мосты сегодня: первым разводят Дворцовый — около 1:10» */
+  function renderBridges() {
+    const box = $('#bridges');
+    if (!box) return;
+    const h = new Date(Date.now() + 3 * 3600e3).getUTCHours();
+    const b = K.city() === 'spb' && h >= 20 ? K.bridgesToday(K.todayMsk()) : null;
+    box.classList.toggle('hidden', !b);
+    box.textContent = b ? `🌉 Мосты сегодня: первым разводят ${b.first} — около ${b.at}. Планируй, как вернуться домой` : '';
+  }
   const legText = (min, plan) => hasTag(plan, 'drive') || min > 30 ? 'на транспорте' : `${min} мин пешком`;
   const priceTag = n => `<span class="price" title="${esc(K.priceHint(n))}">${K.priceText(n)}</span>`;
 
@@ -185,24 +257,50 @@
   let flt = 'all';
 
   /* ---------- каталог «Все места» ---------- */
-  const PCATS = [['all', 'Все'], ['saved', '🔖 Сохранённые'], ['new', '✨ Новое'], ['promo', '🎁 С промокодом'], ['pc', '🎮 Компы'],
+  const PCATS = [['all', 'Все'], ['open', '🕐 Открыто сейчас'], ['saved', '🔖 Сохранённые'], ['new', '✨ Новое'], ['promo', '🎁 С промокодом'], ['pc', '🎮 Компы'],
     ...SEASON.filter(h => SEASON_LABEL[h]).map(h => [h, SEASON_LABEL[h]]),
     ['first', '💘 Для первого свидания'], ['walk', 'Прогулки'], ['culture', 'Культура'], ['food', 'Рестораны'], ['michelin', 'Michelin'],
     ['coffee', 'Кофе'], ['bar', 'Бары'], ['fun', 'Развлечения'], ['spa', 'Бани и спа'], ['books', 'Книжные']];
-  /* Округа Москвы (поле okr у места) */
-  const OKRS = [['all', 'Вся Москва'], ['center', 'Центр'], ['north', 'Север'], ['ne', 'Северо-Восток'], ['east', 'Восток'],
-    ['se', 'Юго-Восток'], ['south', 'Юг'], ['sw', 'Юго-Запад'], ['west', 'Запад'], ['nw', 'Северо-Запад'],
-    ['khimki', 'Химки · Левобережный'], ['zel', 'Зеленоград'], ['new', 'Новая Москва'], ['mo', 'Подмосковье']];
-  const OKR_NAME = Object.fromEntries(OKRS);
+  /* Округа Москвы или районы Петербурга (поле okr у места) — из K.CITIES[город].okrs, первым — «Вся Москва» / «Весь Петербург» */
+  let OKRS = [], OKR_NAME = {};
   const MICH = { 2: 'Две звезды Michelin 2021', 1: 'Звезда Michelin 2021', bib: 'Bib Gourmand Michelin 2021', rec: 'В гиде Michelin 2021' };
   // места 18+ — на adult.html; закрытые (closed: true ставит assets/auto.js) — ни в каталоге, ни на карте, ни в «похожих»
-  const PLACES = Object.entries(D.places).filter(([, p]) => p && !p.adult && !p.closed && K.seasonOk(p)).map(([id, p]) => Object.assign({ id, c: K.catOf(p) }, p))
+  const placeOk = p => p && !p.adult && !p.closed && K.seasonOk(p);
+  const PLACES_ALL = Object.entries(D.places).filter(([, p]) => placeOk(p)).map(([id, p]) => Object.assign({ id, c: K.catOf(p) }, p))
     .sort((a, b) => (!!b.ph - !!a.ph) || a.name.replace(/^[^A-Za-zА-Яа-яЁё0-9]+/, '').localeCompare(b.name.replace(/^[^A-Za-zА-Яа-яЁё0-9]+/, ''), 'ru'));
+  PLACES_ALL.forEach(p => { p.city = K.cityOf(p); });
+  let PLACES = [];
+  /* Место в разделе каталога (чипы «Все места»): 'saved', 'new', 'promo', 'michelin', подсказка (🎃, 🍂, 💘…) или раздел (cat) */
+  const inPcat = (id, p) => id === 'all' || (id === 'open' ? !!(safe(() => K.openState(p), null) || {}).open : id === 'michelin' ? !!p.mich : id === 'saved' ? T.isFav('place:' + p.id) : id === 'new' ? isNew(p)
+    : id === 'promo' ? !!promoOf(p.id) : K.HINTS[id] ? K.placeHints(p).includes(id) : p.c === id);
+  /* Разделы, где в городе есть хоть одно место (у Петербурга нет Michelin — нет и чипа) */
+  let PCAT_HAS = new Set();
+  /* Линия метро у станции (Петербург: цвет значка «М»); у Москвы линий в таблице нет — значок обычный */
+  let LINE = new Map();
+  /* Округа для «Где удобнее?» в квизе: у Москвы — девять округов без дальних (Химки, Зеленоград, Новая Москва, область),
+     у Петербурга — все районы; только те, где есть места */
+  const QZ_SKIP = ['khimki', 'zel', 'new', 'mo'];
+  let QZ_OKRS = [];
+  function cityData() {
+    const conf = cityConf();
+    PLAN_OK = new Set(D.scenarios.filter(s => s && Array.isArray(s.stops) && s.stops.length &&
+      s.stops.every(id => K.placeById(id)) && K.seasonOk(s) && K.cityOf(s) === city).map(s => s.id));
+    PLACES = PLACES_ALL.filter(p => p.city === city);
+    PROMOS = PROMOS_ALL.filter(x => K.inCity(x.place, city));
+    OKRS = [['all', conf.all]].concat(conf.okrs);
+    OKR_NAME = Object.fromEntries(OKRS);
+    const has = new Set(PLACES.map(p => p.okr));
+    QZ_OKRS = conf.okrs.map(o => o[0]).filter(o => !QZ_SKIP.includes(o) && has.has(o));
+    PCAT_HAS = new Set(PCATS.map(c => c[0]).filter(id => !['all', 'saved', 'new', 'promo'].includes(id) && PLACES.some(p => inPcat(id, p))));
+    // «Открыто сейчас» — только если часы известны хотя бы у пятой части мест города (иначе фильтр почти пустой)
+    if (PLACES.filter(p => p.oh).length < PLACES.length / 5) PCAT_HAS.delete('open');
+    LINE = new Map(safe(() => G.stations(city), []).filter(x => x && x.line).map(x => [x.name, x.line]));
+  }
   const PSTEP = 24;
   /* psort: '' — как обычно (с фото — выше), 'rating' — по сглаженной оценке гостей (только со своим сервером) */
   let pcat = 'all', pokr = 'all', pq = '', plimit = PSTEP, pview = 'list', psort = '';
-  /* «Рядом со мной»: координаты берём из браузера только по нажатию и никуда не отправляем */
-  let near = G.saved();
+  /* «Рядом со мной»: координаты берём из браузера только по нажатию и никуда не отправляем. Точка — своя у каждого города (geo.js) */
+  let near = null;
   const distText = m => m < 950 ? `${Math.max(100, Math.round(m / 50) * 50)} м` : `${(m / 1000).toFixed(m < 9950 ? 1 : 0).replace('.', ',')} км`;
   const norm = t => String(t || '').toLowerCase().replace(/ё/g, 'е');
 
@@ -228,23 +326,27 @@
   const heroPh = (ph, alt) => `<figure class="hero-ph"><img src="${esc(ph.s)}" alt="${esc(alt)}" decoding="async"><figcaption>${K.photoCredit(ph)}</figcaption></figure>`;
   const placeCover = p => `<div class="hero-cv cover ${cvOf(p)}" aria-hidden="true"><span class="cv-e">${esc(p.emoji)}</span><span class="cv-k">${esc(String(p.kind || '').split(' · ')[0])}</span></div>`;
 
-  const createUrl = (m, planId) => `create.html?mode=${m}` + (planId ? `&plan=${encodeURIComponent(planId)}` : '');
-  /* Демо-приглашение для каждого режима: открывается как превью — ничего не отправляется.
+  // город — и в конструктор: его выбор мест откроется на том же городе (без ?city= — Москва или город из хранилища)
+  const createUrlQ = q => `create.html?mode=${mode}&${q}` + (cityParam() ? '&city=' + city : '');
+  const createUrl = (m, planId) => `create.html?mode=${m}` + (planId ? `&plan=${encodeURIComponent(planId)}` : '') + (cityParam() ? '&city=' + city : '');
+  /* Демо-приглашение для каждого режима и города: открывается как превью — ничего не отправляется.
      Ссылки собираем заранее, при загрузке: пока ссылки нет, кнопка неактивна (раньше ранний тап открывал копию главной) */
   const DEMO_URL = {}, DEMO_P = {};
   function demoUrl(m) {
-    if (!DEMO_P[m]) {
+    const key = city + ':' + m;
+    if (!DEMO_P[key]) {
       const inv = m === 'date' ? {} : { mode: m, theme: K.MODES[m].theme, opts: modePlans(m).slice(0, 3).map(s => ({ plan: s.id })) };
-      DEMO_P[m] = K.encodeInvite(inv).then(code => (DEMO_URL[m] = 'index.html#' + code + '&p=1')).catch(() => '');
+      DEMO_P[key] = K.encodeInvite(inv).then(code => (DEMO_URL[key] = 'index.html#' + code + '&p=1')).catch(() => '');
     }
-    return DEMO_P[m];
+    return DEMO_P[key];
   }
 
   /* ---------- адрес страницы: режим и фильтры в строке браузера, чтобы ссылку можно было переслать ---------- */
-  const OWN_PARAMS = ['m', 'f', 'b', 'cat', 'okr', 'tab', 'place', 'plan', 'event', 'quiz'];
+  const OWN_PARAMS = ['m', 'city', 'f', 'b', 'cat', 'okr', 'tab', 'place', 'plan', 'event', 'quiz', 'col', 'list', 't'];
   function baseQuery() {
     const q = new URLSearchParams();
     q.set('m', mode);
+    if (cityParam()) q.set('city', city);   // округ без города не имеет смысла: okr — после city
     if (flt !== 'all' && flt !== 'saved') q.set('f', flt);
     if (bud) q.set('b', String(bud));
     if (pcat !== 'all' && pcat !== 'saved') q.set('cat', pcat);
@@ -262,8 +364,8 @@
     try { history.replaceState(clean ? null : history.state, '', '?' + baseQuery() + h); } catch (e) { /* file:// и песочницы */ }
   }
   const sheetUrl = q => '?' + baseQuery() + '&' + q;
-  /* Ссылка на место или план: start.html?m=guys&place=roku — открывается сразу с карточкой */
-  const shareUrl = q => location.origin + location.pathname + '?m=' + mode + '&' + q;
+  /* Ссылка на место или план: start.html?m=guys&place=roku — открывается сразу с карточкой (и в городе карточки) */
+  const shareUrl = q => location.origin + location.pathname + '?m=' + mode + (city !== 'msk' ? '&city=' + city : '') + '&' + q;
 
   /* ---------- шторка ---------- */
   const SH = K.sheet($('#sheetBg'), $('#sheet'), {
@@ -295,7 +397,7 @@
     }).join('');
   }
   function renderHero() {
-    const h = HERO[mode], url = DEMO_URL[mode], m = mode;
+    const h = HERO[mode], url = DEMO_URL[city + ':' + mode], m = mode, c = city;
     $('#heroMode').innerHTML = `
       <p class="hero-hook"><b>${esc(h.hook)}</b>${esc(h.text)}</p>
       <div class="hero-actions">
@@ -304,7 +406,7 @@
       </div>`;
     if (!url) demoUrl(m).then(u => {
       const a = $('#heroMode .demo');
-      if (!u || m !== mode || !a) return;
+      if (!u || m !== mode || c !== city || !a) return;
       a.href = u;
       a.removeAttribute('aria-disabled');
     });
@@ -314,12 +416,16 @@
   /* Текст в элемент, если он есть на странице (старая копия start.html из кэша не должна ломать скрипт) */
   const setText = (sel, t) => { const el = $(sel); if (el) el.textContent = t; };
   const setHtml = (sel, h) => { const el = $(sel); if (el) el.innerHTML = h; };
+  /* «960+» — с округлением вниз до десятков, когда мест 20 и больше */
+  const roundN = n => (n >= 20 ? Math.floor(n / 10) * 10 : n);
   function renderCounts() {
     // планов — с округлением, как мест («450+»): тогда текст совпадает с start.html и строки героя не перескакивают
-    const np = PLAN_OK.size, rp = np >= 20 ? Math.floor(np / 10) * 10 : np;
+    const np = PLAN_OK.size, rp = roundN(np);
     setText('#planCount', `${np >= 20 ? rp + '+' : np} ${plural(rp, 'готовый план', 'готовых плана', 'готовых планов')}`);
-    const n = PLACES.length, round = n >= 20 ? Math.floor(n / 10) * 10 : n, txt = n >= 20 ? round + '+' : String(n);
-    setText('#faqPlaces', txt);
+    const n = PLACES.length, round = roundN(n), txt = n >= 20 ? round + '+' : String(n);
+    // в ответе «В каких городах?» — все города вместе
+    const na = PLACES_ALL.length;
+    setText('#faqPlaces', na >= 20 ? roundN(na) + '+' : String(na));
     // «проверены в октябре»: самый частый месяц проверки (chk), если он не старше прошлого месяца
     // и так проверен почти весь каталог (95%) — иначе обещание было бы неправдой
     const cnt = {};
@@ -328,7 +434,7 @@
     const months = ym => +ym.slice(0, 4) * 12 + +ym.slice(5, 7);
     const fresh = top && months(todayYmd.slice(0, 7)) - months(top) <= 1 && cnt[top] >= PLACES.length * 0.95;
     // «по Москве» — как в start.html: строка и со шрифтом Onest, и с системным переносится одинаково (страница не прыгает, когда шрифт догрузится)
-    setText('#uspPlaces', `${txt} ${plural(round, 'место', 'места', 'мест')}` + (fresh ? `, проверены в ${MONTH_IN[+top.slice(5, 7) - 1]}` : ' по Москве'));
+    setText('#uspPlaces', `${txt} ${plural(round, 'место', 'места', 'мест')}` + (fresh ? `, проверены в ${MONTH_IN[+top.slice(5, 7) - 1]}` : ' ' + ctxt('po')));
     // галочки уже есть в start.html; дорисовываем, где их нет (в #uspPlaces текст только что заменили)
     $$('#hero .usp span').forEach(s => { if (!s.querySelector('.ic')) s.insertAdjacentHTML('afterbegin', I('check')); });
   }
@@ -360,7 +466,7 @@
   /* на карточке — до трёх подсказок; «недорого» и так видно по цене */
   const cardHints = p => K.planHints(p).filter(h => h !== 'budget').slice(0, 3).map(h => K.hintChip(h, 'short')).join('');
   const sheetHints = hs => hs.length ? `<p class="hints-line">${hs.map(h => K.hintChip(h)).join('')}</p>` : '';
-  /* Сезонные плашки над планами: Хэллоуин, Новый год, осень — только в свой срок */
+  /* Сезонные плашки над планами: Хэллоуин, Новый год, осень — только в свой срок (подписи под город — CITY_TXT) */
   const SEASON_TILES = {
     halloween: ['🎃', 'Тематично на Хэллоуин', 'Готика, бункеры, Булгаков и квесты'],
     newyear: ['🎄', 'Новогоднее настроение', 'Катки, ярмарки и огоньки'],
@@ -372,15 +478,118 @@
   function renderSeason(all) {
     const fnOf = id => (FILTERS.find(f => f[0] === id) || [])[2] || (p => hasHint(p, id));
     const promo = PROMO_TILE[mode] || [];
-    const ids = promo.concat(SEASON.filter(h => SEASON_TILES[h] && !promo.includes(h)));
+    const cols = colShelf();
+    const covered = new Set(cols.map(x => x.col.filter).filter(Boolean));
+    const ids = promo.concat(SEASON.filter(h => SEASON_TILES[h] && !promo.includes(h))).filter(h => !covered.has(h));
     const tiles = ids.map(h => [h, all.filter(fnOf(h)).length]).filter(x => x[1]);
-    $('#season').innerHTML = tiles.map(([h, n]) => { const [e, t, d] = SEASON_TILES[h];
+    $('#season').innerHTML = (cols.length ? `<div class="cols" role="list" aria-label="Подборки">${cols.map(colTile).join('')}</div>` : '') + tiles.map(([h, n]) => { const [e, t, d0] = SEASON_TILES[h], d = ctxt(h) || d0;
       return `<button type="button" class="season-tile s-${h}${flt === h ? ' on' : ''}" data-f="${h}" aria-pressed="${flt === h}"><span class="e" aria-hidden="true">${e}</span><span><b>${t}</b><small>${d} · ${n} ${plural(n, 'план', 'плана', 'планов')}</small></span></button>`; }).join('');
-    $('#season').classList.toggle('hidden', !tiles.length);
+    $('#season').classList.toggle('hidden', !tiles.length && !cols.length);
   }
-  function renderFilters(all) {
+
+  /* ---------- картинка для чата и сторис (assets/share-card.js): план или подборка ---------- */
+  const SC = window.KudaShareCard || null;
+  const cardBtns = (kind, id) => (SC ? `<div class="row two card-row"><button type="button" class="btn ghost" data-card="${kind}" data-card-id="${esc(id)}" data-size="story">🖼️ Картинка для сторис</button><button type="button" class="btn ghost" data-card="${kind}" data-card-id="${esc(id)}" data-size="square">💬 Для чата</button></div>` : '');
+  const stopOf = p => ({ emoji: p.emoji, name: p.name, meta: [kindLow(p.kind), K.metroText(p.metro)].filter(Boolean).join(' · '), lat: p.lat, lon: p.lon });
+  async function shareCard(kind, id, size, btn) {
+    if (!SC) return;
+    let o = null;
+    if (kind === 'plan') {
+      const plan = K.planById(id);
+      if (!plan) return;
+      o = { title: plan.title, sub: [K.MODES[plan.mode] ? K.MODES[plan.mode].label : '', plan.when].filter(Boolean).join(' · '), stops: K.planStops(plan).map(stopOf), url: shareUrl('plan=' + encodeURIComponent(id)), fileName: id };
+    } else if (kind === 'col' && CO) {
+      const col = CO.find(id);
+      if (!col) return;
+      const rows = CO.items(col, { city, mode });
+      o = { title: col.emoji + ' ' + col.title, sub: CO.summary(rows), stops: rows.slice(0, 4).map(r => (r.kind === 'place' ? stopOf(r.x) : r.kind === 'plan' ? { emoji: r.x.emoji, name: r.x.title, meta: K.planStops(r.x).map(p => p.name).join(' → ') } : { emoji: r.x.emoji || '📅', name: r.x.title, meta: r.x.venue || '' })),
+        url: shareUrl('col=' + encodeURIComponent(id)), fileName: id };
+    }
+    if (!o) return;
+    Object.assign(o, { mode, size, city: cityConf().name });
+    if (btn) btn.disabled = true;
+    const r = await SC.share(o);
+    if (btn) btn.disabled = false;
+    if (r === 'saved') toast('Картинка сохранена — отправь её в чат');
+    else if (r === 'error') toast('Не получилось нарисовать картинку');
+    T.ev('share_card', { kind, id, mode });
+  }
+
+  /* ---------- подборки (assets/collections.js + cols.js): полка над планами, шторка ?col= и свой список ?list= ---------- */
+  const CO = window.KudaCols || null;
+  const colShelf = () => (CO ? safe(() => CO.shelf({ city, mode, wet: !!wxHint(WX) }), []) : []).slice(0, 10);
+  const colTile = x => `<button type="button" class="col-tile" role="listitem" data-col="${esc(x.col.id)}"><span class="e" aria-hidden="true">${esc(x.col.emoji)}</span><b>${esc(x.col.title)}</b><small>${esc(CO.summary(x.items))}</small></button>`;
+  /* Пункт подборки в шторке — открывает свою карточку */
+  function colRow(r) {
+    const x = r.x;
+    if (r.kind === 'place') return `<button type="button" class="col-it" data-open-place="${esc(r.id)}"><span class="ce" aria-hidden="true">${esc(x.emoji || '📍')}</span><span><b>${esc(x.name)}</b><small>${esc(x.kind)} · ${esc(K.metroText(x.metro))} · ${K.priceText(x.price)}</small></span></button>`;
+    if (r.kind === 'plan') return `<button type="button" class="col-it" data-open-plan="${esc(r.id)}"><span class="ce" aria-hidden="true">${esc(x.emoji || '🗺️')}</span><span><b>${esc(x.title)}</b><small>${esc(K.planStops(x).map(p => p.name).join(' → '))}</small></span></button>`;
+    return `<button type="button" class="col-it" data-open-event="${esc(r.id)}"><span class="ce" aria-hidden="true">${esc(x.emoji || '📅')}</span><span><b>${esc(x.title)}</b><small>${esc(evWhen(x))}${x.venue ? ' · ' + esc(x.venue) : ''}</small></span></button>`;
+  }
+  /* Шторка подборки: вступление, пункты (у 'trip' — по разделам), «Позвать по подборке» и «Поделиться» */
+  function colSheet(o) {
+    const { col, rows, call, share: sq, kind, id, url } = o;
+    const live = new Set(rows.map(r => r.kind + ':' + r.id));
+    const secs = col.sections && col.sections.length ? col.sections.map(sc => [sc.t, CO.items({ id: '', items: sc.items, city: CO.cityOf(col) || city }, { city, mode }).filter(r => live.has(r.kind + ':' + r.id))]).filter(x => x[1].length) : [];
+    const body = secs.length ? secs.map(([t, rs]) => `<p class="k">${esc(t)}</p><div class="col-list">${rs.map(colRow).join('')}</div>`).join('')
+      : `<div class="col-list">${rows.map(colRow).join('')}</div>`;
+    openSheet(`
+      <p class="eyebrow">${col.auto ? 'Подборка дня' : 'Подборка'} · ${esc(CO.summary(rows))}</p>
+      <div class="ttl-row"><h3>${esc(col.emoji || '📌')} ${esc(col.title)}</h3></div>
+      ${col.lead ? `<p class="why">${esc(col.lead)}</p>` : ''}
+      ${body}
+      <div class="sheet-actions">
+        <a class="btn primary wide" data-act="create" href="${esc(call)}">${o.callText || 'Позвать по подборке'}${I('arrow')}</a>
+        <div class="row two">
+          <button type="button" class="btn ghost" data-share="${esc(sq)}" data-title="${esc(col.title)}">${I('share')}Поделиться</button>
+          <button type="button" class="btn ghost" data-close-sheet>Закрыть</button>
+        </div>
+        ${kind === 'col' ? cardBtns('col', id) : ''}
+      </div>`, Object.assign({ kind, id, url }, o.so));
+  }
+  /* start.html?col=<id>: подборка этого города (иначе — её город); живых пунктов меньше 4 — подборки нет */
+  function openCol(id, so) {
+    if (!CO) return false;
+    const col = CO.find(id);
+    if (!col) return false;
+    const c = CO.cityOf(col);
+    if (c) ensureCity(c);
+    const rows = CO.items(col, { city, mode });
+    if (rows.length < CO.MIN) { toast('Эта подборка сейчас пустая — загляни позже'); return false; }
+    colSheet({ col, rows, kind: 'col', id, url: sheetUrl('col=' + encodeURIComponent(id)), share: 'col=' + encodeURIComponent(id),
+      call: createUrlQ('col=' + encodeURIComponent(id)), so });
+    T.ev('open_col', { id, mode });
+    return true;
+  }
+  /* start.html?list=<base64url id>&t=название — свой список из «Сохранённых»; без сервера */
+  function openList(v, so) {
+    if (!CO) return false;
+    const ids = CO.decodeList(v);
+    const c = CO.listCity(ids);
+    if (!c) return false;
+    ensureCity(c);
+    // название — из адреса, с которым открыли страницу (syncUrl к этому моменту уже убрал t из строки)
+    const t = CO.cleanTitle((so && so.t) || QS.get('t') || new URLSearchParams(location.search).get('t')) || 'Список мест';
+    const rows = CO.items({ id: 'list', items: ids, city: c }, { city: c, mode });
+    if (!rows.length) return false;
+    const q = 'list=' + v + '&t=' + encodeURIComponent(t);
+    colSheet({ col: { id: 'list', title: t, emoji: '🔖', lead: '' }, rows, kind: 'list', id: 'list', url: sheetUrl(q), share: q,
+      call: createUrlQ(q), callText: 'Голосовать за эти места', so });
+    return true;
+  }
+  /* «Поделиться списком» в «Сохранённых»: места этого города, до LIST_MAX */
+  function shareSaved() {
+    if (!CO) return;
+    const ids = safe(() => T.favs(), []).map(String).filter(k => k.startsWith('place:')).map(k => k.slice(6)).filter(id => { const p = K.placeById(id); return p && placeOk(p) && K.cityOf(Object.assign({ id }, p)) === city; });
+    const v = CO.encodeList(ids);
+    if (!v) { toast('Сохрани хотя бы одно место этого города'); return; }
+    share('Мои места', shareUrl('list=' + v + '&t=' + encodeURIComponent('Мои места')));
+    T.ev('share', { kind: 'list', id: String(ids.length), mode });
+  }
+  function renderFilters(all, fe) {
     renderSeason(all);
-    const avail = FILTERS.filter(([id, , fn]) => id === 'all' || all.some(fn));
+    // «🔖 Сохранённые» — и когда сохранённые планы есть только в другом городе: в фильтре будет подсказка переключиться
+    const avail = FILTERS.filter(([id, , fn]) => id === 'all' || all.some(fn) || (id === 'saved' && fe));
     if (!avail.some(([id]) => id === flt)) flt = 'all';
     $('#filters').innerHTML = avail.map(([id, label]) =>
       `<button type="button" data-f="${id}" class="${id === flt ? 'on' : ''}" aria-pressed="${id === flt}">${label}</button>`).join('');
@@ -419,9 +628,11 @@
           <b>${esc(p.title)}</b><small>${esc(st.map(x => x.name).join(' → '))}</small></button>`; }).join('')}</div>
     </section>`;
   }
+  /* Значок «М» у станции: у Петербурга — цвет линии (LINE), у Москвы — обычный красный */
+  const metroBadge = name => `<span class="metro${LINE.get(name) ? ' l' + LINE.get(name) : ''}" aria-hidden="true">М</span>`;
   function renderCards() {
-    const all = modePlans();
-    renderFilters(all);
+    const all = modePlans(), fe = favElsewhere('plan');
+    renderFilters(all, fe);
     const fn = (FILTERS.find(f => f[0] === flt) || FILTERS[0])[2];
     // в сезон — подборки про Хэллоуин, Новый год и осень, потом планы с фото, порядок внутри групп — как в подборке
     const inSeason = p => (p.tags || []).some(t => SEASON.includes(t));
@@ -438,12 +649,13 @@
         <span class="route">${routeHtml(p, st, legs)}</span>
         <span class="chips">
           <span class="chip">${I('clock')}${esc(p.when)}</span>
-          <span class="chip">${st[0] && K.isMetro(st[0].metro) ? '<span class="metro" aria-hidden="true">М</span>' + esc(st[0].metro) : esc(st[0] ? K.metroText(st[0].metro) : '')}</span>
+          <span class="chip">${st[0] && K.isMetro(st[0].metro) ? metroBadge(st[0].metro) + esc(st[0].metro) : esc(st[0] ? K.metroText(st[0].metro) : '')}</span>
           ${cardHints(p)}${planPromo(p) ? '<span class="chip promo-tag">🎁 промокод</span>' : ''}
         </span>
       </button>` + (i === NEW_AT - 1 ? rail : '');
     });
-    $('#cards').innerHTML = html.join('') || `<p class="pl-empty">${bud ? 'В этом бюджете таких планов нет — попробуй «любой» или другой фильтр.' : 'Таких планов пока нет — попробуй другой фильтр.'}</p>`;
+    const hint = flt === 'saved' ? favHint('plan', fe) : '';
+    $('#cards').innerHTML = (html.join('') || (hint && !plans.length ? '' : `<p class="pl-empty">${bud ? 'В этом бюджете таких планов нет — попробуй «любой» или другой фильтр.' : 'Таких планов пока нет — попробуй другой фильтр.'}</p>`)) + hint;
     watchCards();
     renderWx();
   }
@@ -451,6 +663,9 @@
   /* ---------- большая карта мест: Яндекс Карты (assets/maps.js), грузится при первом открытии ----------
      На карте — все места под текущими фильтрами, рядом стоящие собираются в кластеры. */
   let PLIST = [], MAP = null, OM = null, ME = null, picking = false;
+  /* Центр и масштаб города (maps.js); старый maps.js из кэша без center() — из K.CITIES */
+  const mapCenter = () => (KM && typeof KM.center === 'function' ? KM.center(city) : cityConf().center.slice());
+  const mapZoom = () => (KM && typeof KM.zoom === 'function' ? KM.zoom(city) : cityConf().zoom);
   const COARSE = !!(window.matchMedia && matchMedia('(pointer: coarse)').matches);
   function balloonProps(p) {
     const pr = promoOf(p.id);
@@ -471,7 +686,7 @@
     KM.load().then(ym => {
       if (!MAP) {
         box.innerHTML = '';
-        MAP = new ym.Map(box, { center: KM.CENTER, zoom: KM.ZOOM, controls: ['zoomControl', 'fullscreenControl'] }, { suppressMapOpenBlock: true });
+        MAP = new ym.Map(box, { center: mapCenter(), zoom: mapZoom(), controls: ['zoomControl', 'fullscreenControl'] }, { suppressMapOpenBlock: true });
         MAP.behaviors.disable('scrollZoom');   // колесо мыши листает страницу, а карту приближают кнопки и щипок
         // на телефоне одним пальцем листаем страницу, а карту двигаем двумя пальцами или во весь экран
         if (COARSE) {
@@ -498,11 +713,11 @@
       ME = near ? new ym.Placemark([near.lat, near.lon], { hintContent: esc(near.label || 'Ты здесь') }, { preset: 'islands#geolocationIcon', iconColor: '#3D8BFF' }) : null;
       if (ME) MAP.geoObjects.add(ME);
       MAP.container.fitToViewport();
-      // рядом со мной — вокруг точки; мест немного — показываем все; много — центр Москвы (иначе карта отъезжает на всю область)
+      // рядом со мной — вокруг точки; мест немного — показываем все; много (или нет) — центр города (иначе карта отъезжает на всю область)
       if (near) MAP.setCenter([near.lat, near.lon], 14);
       else if (PLIST.length === 1) MAP.setCenter([PLIST[0].lat, PLIST[0].lon], 15);
       else if (PLIST.length && PLIST.length <= 150) MAP.setBounds(ym.util.bounds.fromPoints(PLIST.map(p => [p.lat, p.lon])), { checkZoomRange: true, zoomMargin: 30 });
-      else MAP.setCenter(KM.CENTER, KM.ZOOM);
+      else MAP.setCenter(mapCenter(), mapZoom());
     }).catch(() => {
       MAP = null;
       box.innerHTML = `<div class="map-fail"><p>Яндекс Карты не загрузились — проверь интернет или отключи блокировщик рекламы для этого сайта.</p><button type="button" class="btn ghost" data-map-retry>Попробовать ещё раз</button></div>`;
@@ -521,11 +736,19 @@
     syncTabs();
   }
   const LEGEND = [['walk', 'прогулки'], ['culture', 'культура'], ['food', 'еда'], ['coffee', 'кофе'], ['bar', 'бары'], ['fun', 'развлечения'], ['pc', 'компы'], ['spa', 'бани'], ['books', 'книжные']];
-  $('#mapLegend').innerHTML = LEGEND.map(([c, t]) => `<span><i style="background:${KM.CAT_COLOR[c]}"></i>${t}</span>`).join('') +
-    (PROMOS.length ? `<span><i style="background:${KM.PROMO_COLOR}"></i>с промокодом</span>` : '') +
-    (COARSE ? '<span class="map-hint">Карту двигают двумя пальцами или во весь экран — кнопкой в углу.</span>' : '');
+  // «с промокодом» — когда в городе есть промокоды: перерисовываем при смене города
+  function renderLegend() {
+    $('#mapLegend').innerHTML = LEGEND.map(([c, t]) => `<span><i style="background:${KM.CAT_COLOR[c]}"></i>${t}</span>`).join('') +
+      (PROMOS.length ? `<span><i style="background:${KM.PROMO_COLOR}"></i>с промокодом</span>` : '') +
+      (COARSE ? '<span class="map-hint">Карту двигают двумя пальцами или во весь экран — кнопкой в углу.</span>' : '');
+  }
 
   /* ---------- список мест ---------- */
+  /* Часы работы (поле oh): строка в карточке и короткий бейдж в списке; без часов — пусто, как раньше */
+  const ohLine = p => { const st = safe(() => K.openState(p), null); return st ? `<p class="oh-line ${st.open ? 'on' : 'off'}">🕐 ${esc(K.openText(st))}</p>` : ''; };
+  const ohBadge = p => { const st = safe(() => K.openState(p), null); return !st ? '' : st.open ? `<b class="oh on">${st.allDay ? '24/7' : 'до ' + esc(st.until)}</b> · ` : '<b class="oh off">закрыто</b> · '; };
+  const isoWk = ms => { const d = new Date(ms + 3 * 3600e3); const wd = d.getUTCDay() || 7; d.setUTCDate(d.getUTCDate() + 4 - wd); const y = d.getUTCFullYear(); return y + '-W' + String(Math.ceil(((d - Date.UTC(y, 0, 1)) / 864e5 + 1) / 7)).padStart(2, '0'); };
+  const buzzOn = p => !!p && typeof p.buzz === 'string' && [isoWk(Date.now()), isoWk(Date.now() - 7 * 864e5)].includes(p.buzz);
   const listHints = p => { const e = K.placeHints(p).filter(h => ['halloween', 'newyear', 'autumn', 'night'].includes(h) || (h === 'first' && mode === 'date')).map(h => K.HINTS[h][0]).join(''); return e ? e + ' ' : ''; };
   const favBtn = key => { const on = T.isFav(key);
     return `<button type="button" class="fav${on ? ' on' : ''}" data-fav="${esc(key)}" aria-pressed="${on}" title="${on ? 'Убрать из сохранённых' : 'Сохранить'}">${I('bookmark')}<span>${on ? 'Сохранено' : 'Сохранить'}</span></button>`; };
@@ -576,10 +799,31 @@
     if (rated === undefined) rated = hasRatings();
     renderBudget('#ptools', 'places', rated ? `<button type="button" class="mini sort${psort === 'rating' ? ' on' : ''}" data-psort aria-pressed="${psort === 'rating'}"><span class="rv-st" aria-hidden="true">★</span>По рейтингу</button>` : '');
   }
+  /* Сохранённое (🔖) в другом городе: { c, n } — город, где его больше, и сколько; нет — null.
+     kind: 'place' | 'plan' (планы — только текущего режима: их и покажет «Сохранённые» после переключения) */
+  function favElsewhere(kind) {
+    const by = {};
+    safe(() => T.favs(), []).forEach(key => {
+      const i = String(key).indexOf(':');
+      if (i < 0 || key.slice(0, i) !== kind) return;
+      const id = key.slice(i + 1), x = kind === 'place' ? K.placeById(id) : K.planById(id);
+      if (!x || (kind === 'place' ? !placeOk(x) : x.single || x.mode !== mode)) return;
+      const c = K.cityOf(kind === 'place' ? Object.assign({ id }, x) : x);
+      if (c !== city && isCity(c)) by[c] = (by[c] || 0) + 1;
+    });
+    const c = Object.keys(by).sort((a, b) => by[b] - by[a])[0];
+    return c ? { c, n: by[c] } : null;
+  }
+  /* «Ещё 3 сохранённых места в Петербурге · Переключить» — сохранённое из другого города не прячем молча */
+  function favHint(kind, fe) {
+    if (!fe) return '';
+    const cf = K.cityConf(fe.c), n = fe.n;
+    const what = kind === 'place' ? plural(n, 'сохранённое место', 'сохранённых места', 'сохранённых мест') : plural(n, 'сохранённый план', 'сохранённых плана', 'сохранённых планов');
+    return `<p class="city-hint">Ещё ${n} ${what} ${esc(cf.in)} <button type="button" class="link" data-city-go="${fe.c}" data-city-for="${kind}">${esc(toCity(fe.c))}</button></p>`;
+  }
   function renderPlaces() {
     const q = norm(pq).trim();
-    const inCat = p => pcat === 'all' || (pcat === 'michelin' ? !!p.mich : pcat === 'saved' ? T.isFav('place:' + p.id) : pcat === 'new' ? isNew(p)
-      : pcat === 'promo' ? !!promoOf(p.id) : K.HINTS[pcat] ? K.placeHints(p).includes(pcat) : p.c === pcat);
+    const inCat = p => inPcat(pcat, p);
     // компьютерные клубы в «Все» и «Новое» — только у пацанов (иначе «рядом со мной» на окраине — сплошь компы); в поиске и в «🎮 Компы» — всегда
     const pcHidden = (pcat === 'all' || pcat === 'new') && mode !== 'guys' && !q;
     const inQ = p => !q || norm(p.name + ' ' + p.kind + ' ' + p.metro + ' ' + p.addr + ' ' + (OKR_NAME[p.okr] || '')).includes(q);
@@ -592,12 +836,17 @@
     if (psort === 'rating') list = list.map((p, i) => [p, safe(() => +RV.score(p.id), 0) || 0, i]).sort((a, b) => (b[1] - a[1]) || a[2] - b[2]).map(x => x[0]);
     const hasSaved = PLACES.some(p => T.isFav('place:' + p.id));
     const hasNew = PLACES.some(isNew);
-    $('#pfilters').innerHTML = PCATS.filter(([id]) => id === pcat || (id === 'saved' ? hasSaved : id === 'new' ? hasNew : id === 'promo' ? PROMOS.length : id === 'first' ? mode === 'date' : true)).map(([id, label]) =>
+    // сохранённые в другом городе: чип «🔖 Сохранённые» есть, а в нём — подсказка переключиться
+    const fe = favElsewhere('place');
+    // разделы без мест в этом городе не показываем (у Петербурга нет Michelin)
+    $('#pfilters').innerHTML = PCATS.filter(([id]) => id === pcat || id === 'all' || (id === 'saved' ? hasSaved || !!fe : id === 'new' ? hasNew : id === 'promo' ? PROMOS.length
+      : id === 'first' ? mode === 'date' && PCAT_HAS.has(id) : PCAT_HAS.has(id))).map(([id, label]) =>
       `<button type="button" data-pc="${id}" class="${id === pcat ? 'on' : ''}" aria-pressed="${id === pcat}">${label}</button>`).join('');
     renderPTools(rated);
     const cnt = {};
     base.forEach(p => { cnt[p.okr] = (cnt[p.okr] || 0) + 1; });
     const nl = near ? esc(near.label || 'Рядом') : '';
+    $('#pokrs').setAttribute('aria-label', ctxt('okrs'));
     $('#pokrs').innerHTML = (near ? `<button type="button" data-near class="near on" aria-pressed="true" aria-label="Рядом: ${nl}. Нажми, чтобы сбросить">📍 ${nl} <span aria-hidden="true">✕</span></button>`
       : '<button type="button" data-near class="near" aria-pressed="false">📍 Рядом со мной</button>') + OKRS.filter(([id]) => id === 'all' || cnt[id] || id === pokr).map(([id, label]) =>
       `<button type="button" data-po="${id}" class="${id === pokr ? 'on' : ''}" aria-pressed="${id === pokr}">${label}<span class="n">${id === 'all' ? base.length : (cnt[id] || 0)}</span></button>`).join('');
@@ -611,10 +860,10 @@
     $('#plist').innerHTML = list.length ? list.slice(0, plimit).map((p, i) => `
       <button type="button" class="pl-item${promoOf(p.id) ? ' has-promo' : ''}" data-pid="${esc(p.id)}">
         ${emoTile(p)}
-        <span class="pl-main"><span class="pl-name"><span class="nm">${esc(p.name)}</span>${p.mich ? '<span class="mich" title="' + MICH[p.mich] + '">M</span>' : ''}${promoOf(p.id) ? '<span class="promo-tag" title="Есть промокод">🎁</span>' : ''}${placeRate(p.id)}</span><span class="pl-sub">${p.dist != null ? `<b class="dist">${distText(p.dist)}</b> · ` : ''}${esc(K.metroText(p.metro))} · ${listHints(p)}${esc(p.kind)}</span></span>
+        <span class="pl-main"><span class="pl-name"><span class="nm">${esc(p.name)}</span>${p.mich ? '<span class="mich" title="' + MICH[p.mich] + '">M</span>' : ''}${promoOf(p.id) ? '<span class="promo-tag" title="Есть промокод">🎁</span>' : ''}${placeRate(p.id)}</span><span class="pl-sub">${p.dist != null ? `<b class="dist">${distText(p.dist)}</b> · ` : ''}${esc(K.metroText(p.metro))} · ${buzzOn(p) ? '🔥 ' : ''}${ohBadge(p)}${listHints(p)}${esc(p.kind)}</span></span>
         ${priceTag(p.price)}
-      </button>` + (i === NEWP_AT - 1 ? rail : '')).join('')
-      : pcat === 'saved' ? '<p class="pl-empty">Здесь появятся места, которые ты сохранишь значком 🔖 в карточке.</p>'
+      </button>` + (i === NEWP_AT - 1 ? rail : '')).join('') + (pcat === 'saved' ? favHint('place', fe) + (CO ? '<button type="button" class="mini share-list" data-share-list>🔗 Поделиться списком</button>' : '') : '')
+      : pcat === 'saved' ? (fe ? favHint('place', fe) : '<p class="pl-empty">Здесь появятся места, которые ты сохранишь значком 🔖 в карточке.</p>')
       : bud ? '<p class="pl-empty">В этом бюджете ничего не нашлось — попробуй «любой» или другую категорию.</p>'
       : '<p class="pl-empty">Ничего не нашлось. Попробуй другое слово или категорию.</p>';
     const rest = list.length - Math.min(plimit, list.length);
@@ -638,9 +887,13 @@
      .sheet-slot — места для блоков, которые добавляются отдельно: data-slot="rating" (оценка под заголовком),
      "reviews" (отзывы), "events" (события в этом месте). Пустые слоты не видны. */
   /* so — параметры шторки (adopt: занять текущую запись истории) */
+  const placeCols = id => { const cs = CO ? safe(() => CO.ofPlace(id, { city, mode }), []).slice(0, 3) : [];
+    return cs.length ? `<div class="in-plans"><p class="k">Входит в подборки</p>${cs.map(c => `<button type="button" class="chip" data-open-col="${esc(c.id)}">${esc(c.emoji)} ${esc(c.title)}</button>`).join('')}</div>` : ''; };
   function openPlace(id, so) {
     const p = K.placeById(id);
     if (!p || p.adult) return false;
+    // место другого города (по ссылке) — сначала его город: «Похожие рядом», планы и округ — оттуда
+    ensureCity(K.cityOf(Object.assign({ id }, p)));
     const similar = similarPlaces(id, 4);
     // планы только текущего режима: у чужих — другие кнопки и другой конструктор
     const inPlans = modePlans().filter(s => s.stops.includes(id));
@@ -653,6 +906,8 @@
       <div class="ttl-row"><h3>${esc(p.name)}</h3>${favBtn('place:' + id)}</div>
       ${p.mich ? `<p class="mich-line"><span class="mich">M</span>${MICH[p.mich]}</p>` : ''}
       ${sheetHints(K.placeHints(p).filter(h => h !== 'michelin' && !(h === 'first' && mode !== 'date')))}
+      ${buzzOn(p) ? '<p class="buzz-line">🔥 Обсуждают на этой неделе</p>' : ''}
+      ${ohLine(p)}
       <div class="sheet-slot" data-slot="rating">${ratingLine('place', id)}</div>
       ${promoBox(promoOf(id))}
       <p class="why">${esc(p.note)}</p>
@@ -665,6 +920,7 @@
       <div class="sheet-slot" data-slot="events">${placeEvents(id)}</div>
       ${inPlans.length ? `<div class="in-plans"><p class="k">Есть в готовых планах</p>${inPlans.map(s =>
         `<button type="button" class="chip" data-open-plan="${esc(s.id)}">${esc(s.title)}</button>`).join('')}</div>` : ''}
+      ${placeCols(id)}
       ${similar.length ? `<div class="in-plans"><p class="k">Похожие рядом</p>${similar.map(x =>
         `<button type="button" class="chip" data-open-place="${esc(x.id)}">${esc(x.emoji)} ${esc(x.name)}</button>`).join('')}</div>` : ''}
       <div class="sheet-actions">
@@ -673,6 +929,7 @@
           <a class="btn ghost" data-act="route" href="${K.routeUrl([p])}" target="_blank" rel="noopener">${I('route')}Как добраться</a>
           <button type="button" class="btn ghost" data-share="place=${encodeURIComponent(id)}" data-title="${esc(p.name)}">${I('share')}Поделиться</button>
         </div>
+        ${p.tel || p.site ? `<div class="row two">${p.tel ? `<a class="btn ghost" data-act="call" href="${esc(K.telHref(p.tel))}">📞 Позвонить</a>` : ''}${p.site ? `<a class="btn ghost" data-act="site" href="${esc(p.site)}" target="_blank" rel="noopener nofollow">🌐 Сайт</a>` : ''}</div>` : ''}
       </div>
       <div class="sheet-slot" data-slot="reviews"></div>
       ${reportBox('place', id, p.name)}`, Object.assign({ kind: 'place', id, url: sheetUrl('place=' + encodeURIComponent(id)) }, so));
@@ -714,7 +971,7 @@
   /* «Скоро здесь»: ближайшие события в этом месте (афиша) */
   function placeEvents(id) {
     if (!A || typeof A.upcoming !== 'function') return '';
-    const evs = safe(() => A.upcoming({}), []).filter(e => e.place === id).slice(0, 3);
+    const evs = safe(() => A.upcoming({ city: K.cityOf(id) }), []).filter(e => e.place === id).slice(0, 3);
     return evs.length ? `<div class="in-plans"><p class="k">Скоро здесь</p>${evs.map(e =>
       `<button type="button" class="chip ev-row" data-open-event="${esc(e.id)}"><span class="ev-e" aria-hidden="true">${esc(e.emoji || '📅')}</span><span><b>${esc(e.title)}</b> <small>${esc(evWhen(e))}</small></span></button>`).join('')}</div>` : '';
   }
@@ -784,7 +1041,8 @@
     // «план» из одного места каталога (p-<id>) — это просто карточка места
     if (plan.single) return openPlace(plan.stops[0], so);
     opened.add(plan.id);
-    // план другого режима (например, по ссылке из чужого режима) — открываем в его режиме, чтобы кнопки совпадали
+    // план другого города — в его городе, другого режима (например, по ссылке из чужого режима) — в его режиме, чтобы кнопки совпадали
+    ensureCity(K.cityOf(plan));
     if (plan.mode && plan.mode !== mode && ORDER.includes(plan.mode)) setMode(plan.mode);
     const { st, legs, price } = planMeta(plan);
     if (!st.length) return false;
@@ -799,6 +1057,7 @@
         ${stopPh(p)}
         <b>${esc(p.name)}${pr ? ' <span class="promo-tag">🎁 промокод</span>' : ''}</b>
         <span class="k">${esc(p.kind)} · ${esc(K.metroText(p.metro))} · <span title="${esc(K.priceHint(p.price))}">${K.priceText(p.price)}</span></span>
+        ${ohLine(p)}
         ${RV ? `<span class="stop-rate"><span data-rate-place="${esc(ids[i])}">${safe(() => RV.badge(ids[i]), '')}</span><button type="button" class="stop-rv" data-open-place="${esc(ids[i])}" data-rv>Отзывы<span class="vh"> о месте «${esc(p.name)}»</span></button></span>` : ''}
         <p>${esc(p.note)}</p>
         ${promoBox(pr)}
@@ -813,6 +1072,7 @@
       ${sheetHints(K.planHints(plan).filter(h => !(h === 'first' && mode !== 'date')))}
       <div class="sheet-slot" data-slot="rating">${ratingLine('plan', plan.id)}</div>
       <p class="why">${esc(plan.why)}</p>
+      ${homeRiskHtml(plan, st)}
       ${st.some(p => K.catOf(p) !== 'walk') ? budgetEst(price) : ''}
       <div class="itin">${parts}</div>
       <div class="sheet-actions">
@@ -821,18 +1081,22 @@
           <a class="btn ghost" data-act="route" href="${K.routeUrl(st)}" target="_blank" rel="noopener">${I('route')}${st.length > 1 ? 'Маршрут' : 'Как добраться'}</a>
           <button type="button" class="btn ghost" data-share="plan=${encodeURIComponent(plan.id)}" data-title="${esc(plan.title)}">${I('share')}Поделиться</button>
         </div>
+        ${cardBtns('plan', plan.id)}
       </div>
       ${reportBox('plan', plan.id, plan.title)}`, Object.assign({ kind: 'plan', id: plan.id, url: sheetUrl('plan=' + encodeURIComponent(plan.id)) }, so));
     T.ev('open_plan', { kind: 'plan', id: plan.id, mode });
     return true;
   }
 
-  function apply() {
+  function renderMain() {
     document.documentElement.dataset.mode = mode;
     document.documentElement.dataset.acc = K.MODES[mode].acc || '';
     renderModes(); renderHero(); renderForYou(); renderCards();
     renderAfTab(); renderAfisha();
-    $('#adultLink').href = 'adult.html?m=' + mode;
+    $('#adultLink').href = 'adult.html?m=' + mode + (cityParam() ? '&city=' + city : '');
+  }
+  function apply() {
+    renderMain();
     // модули страницы (афиша и др.) подстраиваются под режим по этому событию
     try { document.dispatchEvent(new CustomEvent('kuda-mode', { detail: { mode } })); } catch (e) { /* старый браузер */ }
   }
@@ -852,6 +1116,164 @@
     const b = e.target.closest('button[data-m]');
     if (b) setMode(b.dataset.m);
   });
+
+  /* ---------- город: переключатель в шапке, смена города, «Похоже, ты в Петербурге» ---------- */
+  /* Смена города — как перезагрузка с ?city=: всё на странице заново для нового города. Сбрасываем округ, точку «Рядом»
+     (у города своя, geo.js), квиз и подборку из него; раздел каталога — если в новом городе в нём пусто.
+     Режим, фильтр планов, бюджет и поиск остаются. Возвращает true, если город сменился */
+  function setCity(c) {
+    if (!isCity(c) || c === city) return false;
+    city = c;
+    K.setCity(c);
+    cityToUrl();
+    pokr = 'all'; plimit = PSTEP; climit = CSTEP;
+    near = safe(() => G.saved(city), null);
+    setPicking(false);
+    locating++;   // ответ геолокации для прежнего города уже не нужен
+    Q = null;
+    if (quizRes) { quizRes = null; renderQuizRes(); }
+    hideCityAsk();
+    cityData();
+    if (!['all', 'saved'].includes(pcat) && !PLACES.some(p => inPcat(pcat, p))) pcat = 'all';
+    WX = wxCached();
+    renderCityUi();
+    renderCounts();
+    renderMain();
+    renderPlaces();
+    renderPromo();
+    renderLegend();
+    syncUrl();
+    if (!WX) loadWx();
+    try { document.dispatchEvent(new CustomEvent('kuda-city', { detail: { city } })); } catch (e) { /* старый браузер */ }
+    return true;
+  }
+  /* Карточка из другого города (по ссылке, из истории «Вперёд») — сначала её город */
+  const ensureCity = c => { if (isCity(c) && c !== city) setCity(c); };
+
+  const CHEV = '<svg class="ic chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+  const CITY_SHORT = { msk: 'МСК', spb: 'СПб' };
+  /* Шапка «📍 Москва ▾» с меню городов и всё, что в тексте страницы зависит от города */
+  function renderCityUi() {
+    const conf = cityConf();
+    document.documentElement.dataset.city = city;
+    let sw = $('#citySw');
+    if (!sw) {   // старая копия start.html из кэша — на месте статичной подписи «Москва»
+      const host = $('.top .top-r'), old = $('.top .city');
+      if (host) {
+        sw = document.createElement('div');
+        sw.className = 'city-sw';
+        sw.id = 'citySw';
+        if (old) old.replaceWith(sw); else host.insertBefore(sw, host.firstChild);
+      }
+    }
+    if (sw) sw.innerHTML = `<button type="button" class="city" id="cityBtn" aria-haspopup="menu" aria-expanded="false" aria-controls="cityMenu" aria-label="Город: ${esc(conf.name)}. Сменить город" title="Сменить город">` +
+      `<span class="city-pin" aria-hidden="true">📍</span><span class="l-long">${esc(conf.name)}</span><span class="l-short">${esc(CITY_SHORT[city] || conf.name)}</span>${CHEV}</button>` +
+      `<div class="city-menu" id="cityMenu" role="menu" aria-label="Город" hidden>${CITY_IDS.map(c => { const x = K.cityConf(c);
+        return `<button type="button" role="menuitemradio" aria-checked="${c === city}" data-city="${c}" tabindex="-1"><span>${esc(x.name)}</span>${c === city ? I('check') : ''}</button>`; }).join('')}</div>`;
+    setText('#heroCity', conf.in);
+    setText('#placesNote', ctxt('note'));
+    const seo = $('#seoLink');
+    if (seo) { seo.href = conf.seo + '/'; seo.textContent = 'Подборки ' + ctxt('po'); }
+    // заголовок вкладки и описание — под город; поисковикам без JavaScript — общий текст про оба города из start.html
+    const tail = document.title.split(' | ').slice(1).join(' | ') || 'Куда идём?';
+    document.title = `Куда сходить ${conf.in}: готовые планы на вечер, свидание, с друзьями | ${tail}`;
+    const md = $('meta[name="description"]');
+    if (md) md.setAttribute('content', `Готовые планы на вечер ${conf.in}: место, ужин рядом и маршрут. Для свидания, друзей и девичника. Скинь ссылку — решите голосованием за пару минут.`);
+  }
+  /* Меню городов: открыть (фокус — на текущий город) или закрыть */
+  function cityMenu(open, last) {
+    const btn = $('#cityBtn'), menu = $('#cityMenu');
+    if (!btn || !menu) return;
+    menu.hidden = !open;
+    btn.setAttribute('aria-expanded', String(!!open));
+    if (!open) return;
+    const items = $$('[data-city]', menu);
+    const it = last ? items[items.length - 1] : items.find(x => x.getAttribute('aria-checked') === 'true') || items[0];
+    if (it) it.focus();
+  }
+  function chooseCity(c) {
+    cityMenu(false);
+    const changed = setCity(c);
+    // город выбран в переключателе сам — плашку «Похоже, ты в …» про другой город не показываем (как после ×)
+    hideCityAsk();
+    CITY_IDS.forEach(x => { if (x !== c) rememberAsk(x); });
+    const b = $('#cityBtn');
+    if (b) b.focus({ preventScroll: true });
+    if (changed) { toast('Город: ' + K.cityConf(c).name); T.ev('city', { v: c }); }
+  }
+  const topBar = $('.top');
+  if (topBar) {
+    topBar.addEventListener('click', e => {
+      if (e.target.closest('#cityBtn')) { const m = $('#cityMenu'); cityMenu(!!(m && m.hidden)); return; }
+      const it = e.target.closest('#cityMenu [data-city]');
+      if (it) chooseCity(it.dataset.city);
+    });
+    topBar.addEventListener('keydown', e => {
+      const menu = $('#cityMenu');
+      if (!menu) return;
+      if (e.target.closest('#cityBtn')) {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); cityMenu(true, e.key === 'ArrowUp'); }
+        else if (e.key === 'Escape' && !menu.hidden) { e.preventDefault(); cityMenu(false); }
+        return;
+      }
+      if (!e.target.closest('#cityMenu')) return;
+      const items = $$('[data-city]', menu), i = items.indexOf(document.activeElement);
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); items[(i + (e.key === 'ArrowDown' ? 1 : items.length - 1)) % items.length].focus(); }
+      else if (e.key === 'Home' || e.key === 'End') { e.preventDefault(); items[e.key === 'Home' ? 0 : items.length - 1].focus(); }
+      else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); cityMenu(false); const b = $('#cityBtn'); if (b) b.focus(); }
+      else if (e.key === 'Tab') cityMenu(false);
+    });
+  }
+  // нажали мимо меню — закрываем
+  document.addEventListener('click', e => {
+    const m = $('#cityMenu');
+    if (m && !m.hidden && !e.target.closest('#citySw')) cityMenu(false);
+  });
+  /* «Переключить на Петербург»: из подсказки про сохранённое в другом городе и из плашки «Похоже, ты в Петербурге» */
+  document.addEventListener('click', e => {
+    const b = e.target.closest('[data-city-go]');
+    if (!b) return;
+    const c = b.dataset.cityGo, kind = b.dataset.cityFor;
+    if (!setCity(c)) return;
+    toast('Город: ' + K.cityConf(c).name);
+    T.ev('city', { v: c });
+    // фокус — туда, откуда пришли: «Сохранённые» мест или планов, иначе на переключатель
+    const f = kind === 'place' ? $('#pfilters [data-pc="saved"]') : kind === 'plan' ? $('#filters [data-f="saved"]') : $('#cityBtn');
+    if (f) f.focus({ preventScroll: true });
+  });
+
+  /* Плашка «Похоже, ты в Петербурге — переключить?»: только если доступ к геопозиции УЖЕ разрешён (geo.js → peek(),
+     разрешения ради этого не спрашиваем), человек в другом городе из K.CITIES и не отказался от этого города за последние 30 дней.
+     По ссылке с городом или карточкой — не спрашиваем: человек пришёл именно туда */
+  const ASK_KEY = 'kuda-city-ask', ASK_DAYS = 30;
+  function askedRecently(c) {
+    try { const v = JSON.parse(localStorage.getItem(ASK_KEY) || 'null'); return !!v && v.c === c && Date.now() - v.at < ASK_DAYS * 864e5; } catch (e) { return false; }
+  }
+  function rememberAsk(c) { try { localStorage.setItem(ASK_KEY, JSON.stringify({ c, at: Date.now() })); } catch (e) { /* приватный режим */ } }
+  function hideCityAsk() { const b = $('#cityAsk'); if (b) b.remove(); }
+  function showCityAsk(c) {
+    hideCityAsk();
+    const top = $('.top');
+    if (!top) return;
+    const conf = K.cityConf(c), el = document.createElement('div');
+    el.className = 'city-ask';
+    el.id = 'cityAsk';
+    el.setAttribute('role', 'status');
+    el.innerHTML = `<span class="ca-t"><span aria-hidden="true">📍</span> Похоже, ты ${esc(conf.in)} — переключить?</span>` +
+      `<button type="button" class="mini accent" data-city-go="${c}" data-city-for="ask">Переключить</button>` +
+      `<button type="button" class="ca-x" data-ask-x="${c}" aria-label="Не переключать, остаться: ${esc(cityConf().name)}">${I('x')}</button>`;
+    top.insertAdjacentElement('afterend', el);
+    el.querySelector('[data-ask-x]').addEventListener('click', () => { rememberAsk(c); hideCityAsk(); const b = $('#cityBtn'); if (b) b.focus({ preventScroll: true }); });
+  }
+  function cityAsk() {
+    if (LINK_CITY || isCity(QS0.get('city')) || !G || typeof G.peek !== 'function') return;
+    const was = city;
+    G.peek().then(p => {
+      if (!p || city !== was) return;
+      const c = K.cityByPoint(p.lat, p.lon);
+      if (isCity(c) && c !== city && !askedRecently(c)) showCityAsk(c);
+    }, () => { /* нет геопозиции — нет и плашки */ });
+  }
   $('#pfilters').addEventListener('click', e => {
     const b = e.target.closest('button[data-pc]');
     if (!b || b.dataset.pc === pcat) return;
@@ -878,7 +1300,7 @@
   /* ---------- «Рядом со мной» ---------- */
   function setNear(p) {
     near = p;
-    G.save(p);
+    G.save(p, city);
     setPicking(false);
     pokr = 'all'; plimit = PSTEP;
     // прокручиваем, когда шторка закрылась и история вернулась назад — иначе браузер вернёт старую прокрутку
@@ -890,25 +1312,33 @@
     });
   }
   /* Окно выбора открывается сразу; геолокация идёт параллельно и сама подставит точку, если успеет */
-  let locating = 0;
+  let locating = 0, farPt = null;
   function toggleNear() {
     setPicking(false);
-    if (near) { near = null; G.save(null); renderPlaces(); return; }
+    if (near) { near = null; G.save(null, city); renderPlaces(); return; }
     openNearPicker('Определяем, где ты… Можно не ждать — выбери станцию метро или точку на карте.', true);
     const run = ++locating;
-    G.locate().then(p => {
+    G.locate(city).then(p => {
       if (run !== locating || $('#sheet').dataset.kind !== 'near' || !SH.isOpen()) return;
       setNear(p);
     }).catch(e => {
       if (run !== locating) return;
       const m = $('#nearMsg');
-      if (m) { m.textContent = G.MSG[e.code] || G.MSG.unavailable; m.classList.remove('busy'); }
+      if (!m) return;
+      m.classList.remove('busy');
+      // человек в другом городе из каталога — предлагаем переключиться (и сразу искать рядом с ним)
+      const other = e && e.code === 'far' && e.point && isCity(e.city) && e.city !== city ? e.city : '';
+      if (other) {
+        farPt = e.point;
+        const oc = K.cityConf(other);
+        m.innerHTML = `Похоже, ты ${esc(oc.in)}, а сейчас город — ${esc(cityConf().name)}. <button type="button" class="link" data-near-city="${other}">${esc(toCity(other))}</button> или выбери станцию метро.`;
+      } else m.textContent = (e && e.code === 'far' && typeof G.farMsg === 'function' ? G.farMsg(city) : G.MSG[e && e.code]) || G.MSG.unavailable;
     });
   }
   /* Запасной путь: станция метро или точка на карте */
   function openNearPicker(msg, busy) {
     setPicking(false);   // окно выбора открыли заново — прежний режим «точка на карте» больше не действует
-    const st = G.stations();
+    const st = safe(() => G.stations(city), []);
     openSheet(`
       <h3>Откуда искать?</h3>
       <p class="muted${busy ? ' busy' : ''}" id="nearMsg" role="status">${esc(msg)}</p>
@@ -921,7 +1351,7 @@
     const draw = q => {
       const nq = norm(q).trim();
       const list = st.filter(x => !nq || norm(x.name).includes(nq)).slice(0, nq ? 40 : 24);
-      $('#mlist').innerHTML = list.map(x => `<button type="button" class="chip" data-metro="${esc(x.name)}"><span class="metro" aria-hidden="true">М</span>${esc(x.name)}</button>`).join('') || '<p class="muted">Такой станции нет в каталоге — поставь точку на карте.</p>';
+      $('#mlist').innerHTML = list.map(x => `<button type="button" class="chip" data-metro="${esc(x.name)}"><span class="metro${x.line ? ' l' + x.line : ''}" aria-hidden="true">М</span>${esc(x.name)}</button>`).join('') || '<p class="muted">Такой станции нет в каталоге — поставь точку на карте.</p>';
     };
     draw('');
     $('#mq').addEventListener('input', e => draw(e.target.value));
@@ -966,6 +1396,7 @@
     if (e.target.closest('[data-map-retry]')) { $('#pmap').innerHTML = ''; renderMap(); }
   });
   $('#plist').addEventListener('click', e => {
+    if (e.target.closest('[data-share-list]')) { shareSaved(); return; }
     if (e.target.closest('[data-pc-new]')) { pcat = 'new'; plimit = PSTEP; renderPlaces(); syncUrl(); $('#pfilters').scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
     const b = e.target.closest('[data-pid]');
     if (b) openPlace(b.dataset.pid);
@@ -1015,10 +1446,23 @@
     if (op) { openPlace(op.dataset.openPlace, op.hasAttribute('data-rv') ? { reviews: true } : null); return; }
     const oe = e.target.closest('[data-open-event]');
     if (oe) { openEvent(oe.dataset.openEvent); return; }
+    const oc = e.target.closest('[data-open-col]');
+    if (oc) { openCol(oc.dataset.openCol); return; }
+    if (e.target.closest('[data-close-sheet]')) { closeSheet(); return; }
+    if (e.target.closest('[data-mid-go]')) { midwayGo(); return; }
+    const cd = e.target.closest('[data-card]');
+    if (cd) { shareCard(cd.dataset.card, cd.dataset.cardId, cd.dataset.size, cd); return; }
     const b = e.target.closest('[data-open-plan]');
     if (b) { openPlan(b.dataset.openPlan); return; }
     const qz = e.target.closest('[data-qz]');
-    if (qz) quizAnswer(qz.dataset.qz, qz.dataset.v);
+    if (qz) { quizAnswer(qz.dataset.qz, qz.dataset.v); return; }
+    // «Рядом со мной» из другого города: переключаем город и ищем рядом с найденной точкой
+    const nc = e.target.closest('[data-near-city]');
+    if (nc) {
+      const pt = farPt;
+      farPt = null;
+      if (pt && setCity(nc.dataset.nearCity)) { toast('Город: ' + cityConf().name); setNear(Object.assign({}, pt, { label: 'Ты здесь', src: 'gps' })); }
+    }
   });
   /* Сообщение об ошибке в месте или плане — модератору на свой сервер.
      Ошибку в форме пишем текстом (role="alert") и отмечаем поле; после отправки фокус — на «Спасибо», а не в пустоту */
@@ -1065,6 +1509,8 @@
     syncUrl();
   });
   $('#season').addEventListener('click', e => {
+    const ct = e.target.closest('button[data-col]');
+    if (ct) { openCol(ct.dataset.col); return; }
     const b = e.target.closest('button[data-f]');
     if (!b) return;
     flt = b.dataset.f === flt ? 'all' : b.dataset.f; climit = CSTEP;
@@ -1145,15 +1591,17 @@
   }
 
   /* ---------- погода (Open-Meteo, без ключа): дождь, снег или мороз — плашка «вот планы под крышей» ----------
-     В запросе только координаты центра Москвы — ничего о человеке; ответ живёт час в sessionStorage. Не ответил — плашки нет. */
-  const WX_URL = 'https://api.open-meteo.com/v1/forecast?latitude=55.75&longitude=37.62&current=temperature_2m,precipitation,weather_code' +
-    '&daily=weather_code,temperature_2m_max,precipitation_probability_max,precipitation_sum&timezone=Europe%2FMoscow&forecast_days=7';
-  const WX_KEY = 'kuda-wx', WX_TTL = 3600e3;
+     В запросе только координаты центра города (K.CITIES: center) — ничего о человеке; ответ живёт час в sessionStorage
+     ('kuda-wx:msk', 'kuda-wx:spb'). Не ответил — плашки нет. Часовой пояс у обоих городов — московский */
+  const wxUrl = c => { const [la, lo] = K.cityConf(c).center;
+    return `https://api.open-meteo.com/v1/forecast?latitude=${la.toFixed(2)}&longitude=${lo.toFixed(2)}&current=temperature_2m,precipitation,weather_code` +
+      '&daily=weather_code,temperature_2m_max,precipitation_probability_max,precipitation_sum&timezone=Europe%2FMoscow&forecast_days=7'; };
+  const wxKey = c => 'kuda-wx:' + c, WX_TTL = 3600e3;
   let WX = null;
-  function wxCached() {
+  function wxCached(c) {
     try {
-      const c = JSON.parse(sessionStorage.getItem(WX_KEY) || 'null'), age = c ? Date.now() - c.at : -1;
-      if (c && c.d && c.d.day === todayYmd && age >= 0 && age < WX_TTL) return c.d;
+      const x = JSON.parse(sessionStorage.getItem(wxKey(c || city)) || 'null'), age = x ? Date.now() - x.at : -1;
+      if (x && x.d && x.d.day === todayYmd && age >= 0 && age < WX_TTL) return x.d;
     } catch (e) { /* хранилище недоступно */ }
     return null;
   }
@@ -1166,18 +1614,20 @@
     dl.time.forEach((d, i) => { days[d] = { code: num(col('weather_code')[i]), pp: num(col('precipitation_probability_max')[i]), ps: num(col('precipitation_sum')[i]), t: num(col('temperature_2m_max')[i]) }; });
     return { day: todayYmd, t: num(c.temperature_2m), code: num(c.weather_code), days };
   }
-  async function wxLoad() {
+  async function wxLoad(c) {
     if (typeof fetch !== 'function') return null;
     const ctl = typeof AbortController === 'function' ? new AbortController() : null;
     const timer = setTimeout(() => { if (ctl) ctl.abort(); }, 5000);
     try {
-      const r = await fetch(WX_URL, { signal: ctl ? ctl.signal : undefined, credentials: 'omit', referrerPolicy: 'no-referrer' });
+      const r = await fetch(wxUrl(c), { signal: ctl ? ctl.signal : undefined, credentials: 'omit', referrerPolicy: 'no-referrer' });
       if (!r.ok) return null;
       const d = wxParse(await r.json());
-      if (d) { try { sessionStorage.setItem(WX_KEY, JSON.stringify({ at: Date.now(), d })); } catch (e) { /* ок */ } }
+      if (d) { try { sessionStorage.setItem(wxKey(c), JSON.stringify({ at: Date.now(), d })); } catch (e) { /* ок */ } }
       return d;
     } catch (e) { return null; } finally { clearTimeout(timer); }
   }
+  /* Погода текущего города; пока грузилась, город сменили — ответ не нужен */
+  function loadWx() { const c = city; wxLoad(c).then(d => { if (d && c === city) { WX = d; renderWx(); } }); }
   /* Коды WMO: 51–57 морось, 61–67 дождь, 71–77 снег, 80–82 ливень, 85–86 снегопад, 95–99 гроза → [эмодзи, что, обещают что] */
   function wxWord(c) {
     if (c == null) return null;
@@ -1209,6 +1659,7 @@
     return [K.numDay(sat), K.numDay(sat + 1)];
   }
   function renderWx() {
+    renderBridges();
     const box = $('#wx');
     if (!box) return;
     const h = wxHint(WX), n = h ? modePlans().filter(indoorPlan).length : 0;
@@ -1250,7 +1701,7 @@
      «Вся афиша» и «Готовые планы» — прокрутка, когда шторка закрылась; место рядом с событием — карточка места */
   function afOpts(id, so) {
     return {
-      mode,
+      mode, city,
       openSheet: (html, o) => {
         const eid = (o && o.id) || id;
         return openSheet(html, Object.assign({}, o, { url: eid ? sheetUrl('event=' + encodeURIComponent(eid)) : undefined }, so && so.adopt ? { adopt: true } : null));
@@ -1263,12 +1714,17 @@
   /* Открыть событие (по ссылке — через handleDeepLink). Прошедшее — афиша сама покажет «уже прошло» с подсказками */
   function openEvent(id, so) {
     if (!A || !id) return false;
+    // событие другого города — сначала его город (афиша показывает события города интерфейса)
+    const ev = K.eventById(id);
+    if (ev) ensureCity(K.cityOf(ev));
     const o = afOpts(id, so);
     if (so && so.deep && typeof A.handleDeepLink === 'function') safe(() => A.handleDeepLink(new URLSearchParams('event=' + encodeURIComponent(id)), o));
     else safe(() => A.open(id, o));
     return SH.isOpen() && $('#sheet').dataset.kind === 'event';
   }
-  const afCount = (m, when) => safe(() => (when ? A.upcoming({ mode: m, when }).length : A.count({ mode: m })), 0);
+  /* Афиша сама берёт события города интерфейса (K.city()); списки ещё раз сверяем с городом страницы — на всякий случай */
+  const here = list => (Array.isArray(list) ? list : []).filter(e => e && K.inCity(e, city));
+  const afCount = (m, when) => safe(() => (when ? here(A.upcoming({ mode: m, when, city })).length : A.count({ mode: m, city })), 0);
   /* Вкладка «Афиша» — когда есть хоть одно событие; на ней число событий этой недели под текущий повод */
   function renderAfTab() {
     const tab = $('#tabEvents'), blk = $('#eventsBlock');
@@ -1304,7 +1760,6 @@
     { k: 'when', q: 'Когда?', o: [['eve', '🌆', 'Сегодня вечером'], ['day', '☀️', 'На выходных днём'], ['late', '🌙', 'Поздно, после 22:00']] },
     { k: 'where', q: 'Где удобнее?', o: [['any', '🗺️', 'Неважно'], ['near', '📍', 'Рядом со мной']] },
   ];
-  const QZ_OKRS = ['center', 'north', 'ne', 'east', 'se', 'south', 'sw', 'west', 'nw'];
   const WHEN_SUM = { eve: 'сегодня вечером', day: 'на выходных днём', late: 'поздно вечером' };
   /* Время дня плана под ответ «когда» */
   const WHEN_W = {
@@ -1320,7 +1775,7 @@
       <h3 id="qzQ" tabindex="-1">${s.q}</h3>
       <div class="qz-opts" role="group" aria-labelledby="qzQ">${s.o.map(([v, e, t]) =>
         `<button type="button" class="qz-opt" data-qz="${s.k}" data-v="${v}"><span class="qz-e" aria-hidden="true">${e}</span><span>${t}</span></button>`).join('')}</div>
-      ${s.k === 'where' ? `<div class="qz-okrs" role="group" aria-label="Или округ">${QZ_OKRS.map(o =>
+      ${s.k === 'where' && QZ_OKRS.length ? `<div class="qz-okrs" role="group" aria-label="Или ${ctxt('okr')}">${QZ_OKRS.map(o =>
         `<button type="button" class="chip" data-qz="where" data-v="${o}">${OKR_NAME[o]}</button>`).join('')}</div>` : ''}
       <p class="muted qz-msg${Q.busy ? ' busy' : ''}" role="status">${esc(msg || '')}</p>
       ${Q.step ? `<button type="button" class="link qz-back" data-qz="back">${I('arrow')}Назад</button>` : ''}`;
@@ -1347,7 +1802,7 @@
     else if (k === 'when' && WHEN_SUM[v]) Q.when = v;
     else if (k === 'where') {
       if (v === 'near') { quizNear(); return; }
-      Q.where = OKR_NAME[v] && v !== 'all' ? v : 'any';
+      Q.where = QZ_OKRS.includes(v) ? v : 'any';
       Q.near = null;
     } else return;
     if (k === 'where') { quizFinish(); return; }
@@ -1357,11 +1812,12 @@
   /* «Рядом со мной»: точка уже выбрана в каталоге — сразу; иначе спрашиваем браузер, а пока можно выбрать округ */
   function quizNear() {
     if (near) { Q.where = 'near'; Q.near = near; quizFinish(); return; }
-    if (!G || typeof G.locate !== 'function') { quizStep('Не получилось узнать, где ты. Выбери округ или «Неважно».'); return; }
+    const okr = QZ_OKRS.length ? ctxt('okr') + ' или ' : '';
+    if (!G || typeof G.locate !== 'function') { quizStep(`Не получилось узнать, где ты. Выбери ${okr}«Неважно».`); return; }
     const run = ++Q.loc;
     Q.busy = true;
-    quizStep('Определяем, где ты… Можно не ждать — выбери округ или «Неважно».');
-    G.locate().then(p => {
+    quizStep(`Определяем, где ты… Можно не ждать — выбери ${okr}«Неважно».`);
+    G.locate(city).then(p => {
       if (!Q || Q.loc !== run || !SH.isOpen() || $('#sheet').dataset.kind !== 'quiz') return;
       Q.where = 'near'; Q.near = p;
       quizFinish();
@@ -1369,7 +1825,7 @@
       if (!Q || Q.loc !== run || !SH.isOpen() || $('#sheet').dataset.kind !== 'quiz') return;
       Q.busy = false;
       // подсказки geo.js зовут выбрать метро или точку на карте — в квизе их нет, тут свои
-      quizStep((QZ_GEO[err && err.code] || QZ_GEO.unavailable) + ' Выбери округ или «Неважно».');
+      quizStep((QZ_GEO[err && err.code] || QZ_GEO.unavailable) + ` Выбери ${okr}«Неважно».`);
     });
   }
   const QZ_GEO = {
@@ -1377,7 +1833,7 @@
     unavailable: 'Браузер не смог определить, где ты.',
     timeout: 'Браузер слишком долго определял место.',
     unsupported: 'Этот браузер не умеет определять место.',
-    far: 'Похоже, ты не в Москве (или включён VPN).',
+    get far() { return 'Похоже, ты не ' + cityConf().in + ' (или включён VPN).'; },
   };
   /* Лучшие планы: время дня, бюджет, где, сезон, погода, оценки гостей и «Для тебя»; три разных — без общих мест */
   function quizPick(q) {
@@ -1404,8 +1860,8 @@
      в бюджете (если цена известна) и ближе к человеку */
   function quizEvents(q) {
     if (!A || typeof A.upcoming !== 'function') return [];
-    let list = safe(() => A.upcoming({ mode: q.who, when: q.when === 'day' ? 'weekend' : 'today' }), []);
-    if (list.length < 2 && q.when !== 'day') list = list.concat(safe(() => A.upcoming({ mode: q.who, when: 'week' }), []).filter(e => !list.some(x => x.id === e.id)));
+    let list = here(safe(() => A.upcoming({ mode: q.who, when: q.when === 'day' ? 'weekend' : 'today', city }), []));
+    if (list.length < 2 && q.when !== 'day') list = list.concat(here(safe(() => A.upcoming({ mode: q.who, when: 'week', city }), [])).filter(e => !list.some(x => x.id === e.id)));
     const maxRub = q.bud === 1 ? 1500 : q.bud === 2 ? 3000 : Infinity;
     const fit = e => { const t = e.time || '';
       if (q.when === 'day') return e.long || !t || t < '18:00';
@@ -1487,7 +1943,36 @@
   const qzBtn = $('#quiz');
   if (qzBtn) qzBtn.onclick = () => openQuiz();
 
-  /* ---------- промокоды: раздел — когда партнёров PROMO_MIN и больше ---------- */
+  /* ---------- «Нас несколько: откуда едем?» (A11): 2–6 станций → 5 планов с наименьшим «дольше всех» ---------- */
+  const MW = window.KudaMetro || null;
+  function midwayHtml() {
+    const names = MW ? MW.names(city) : [];
+    const sel = i => `<select class="field mid-st" aria-label="Станция ${i + 1}"><option value="">${i < 2 ? 'станция' : 'ещё станция'}</option>${names.map(n => `<option>${esc(n)}</option>`).join('')}</select>`;
+    return `<p class="eyebrow">Встретимся посередине</p><h3>Откуда едете?</h3>
+      <p class="why">Отметь станции метро, откуда поедет каждый, — подберём планы, куда всем ехать недолго.</p>
+      <div class="mid-grid">${[0, 1, 2, 3, 4, 5].map(sel).join('')}</div>
+      <div class="sheet-actions"><button type="button" class="btn primary wide" data-mid-go>Подобрать планы${I('arrow')}</button></div>
+      <div class="mid-res" aria-live="polite"></div>`;
+  }
+  function midwayGo() {
+    const st = Array.from(new Set($$('#sheet .mid-st').map(x => x.value).filter(Boolean)));
+    const box = $('#sheet .mid-res');
+    if (st.length < 2) { box.innerHTML = '<p class="pl-empty">Выбери хотя бы две станции.</p>'; return; }
+    const rows = modePlans().map(pl => {
+      const p = K.planStops(pl)[0];
+      const t = p ? st.map(s => MW.minutes(city, s, p)) : [];
+      if (!t.length || t.some(x => x == null)) return null;
+      const max = Math.max(...t), i = t.indexOf(max);
+      return { pl, max, avg: Math.round(t.reduce((a, b) => a + b, 0) / t.length), far: st[i] };
+    }).filter(Boolean).sort((a, b) => a.max - b.max || a.avg - b.avg).slice(0, 5);
+    box.innerHTML = rows.length ? `<div class="col-list">${rows.map(r => `<button type="button" class="col-it" data-open-plan="${esc(r.pl.id)}"><span class="ce" aria-hidden="true">${esc(r.pl.emoji || '📍')}</span><span><b>${esc(r.pl.title)}</b><small>🚇 ≈ ${r.avg} мин в среднем · дольше всех — от «${esc(r.far)}», ${r.max} мин</small></span></button>`).join('')}</div>`
+      : '<p class="pl-empty">Не нашли подходящих планов — попробуй другой повод.</p>';
+    T.ev('midway', { n: String(st.length), mode });
+  }
+  const mwBtn = $('#midway');
+  if (mwBtn && MW) { mwBtn.classList.remove('hidden'); mwBtn.onclick = () => openSheet(midwayHtml(), { kind: 'midway', label: 'Откуда едем?' }); }
+
+  /* ---------- промокоды: раздел — когда партнёров в городе PROMO_MIN и больше ---------- */
   function renderPromo() {
     const on = PROMOS.length >= PROMO_MIN;
     $('#promoBlock').classList.toggle('hidden', !on);
@@ -1630,6 +2115,7 @@
   /* start.html?place=<id>#reviews («Оцени место» из игры) — карточка места сразу на «Отзывах гостей» */
   const OPENERS = [['plan', openPlan], ['place', (v, so) => openPlace(v, so && so.rv ? Object.assign({ reviews: 'land' }, so) : so)], ['quiz', (v, so) => openQuiz(so)]];
   if (A) OPENERS.push(['event', (v, so) => openEvent(v, Object.assign({ deep: true }, so))]);
+  if (CO) OPENERS.push(['col', openCol], ['list', openList]);
   const addOpener = (param, fn) => { if (typeof fn === 'function' && !OPENERS.some(o => o[0] === param)) { OPENERS.push([param, fn]); OWN_PARAMS.push(param); } };
   function openFromQuery(q, so) {
     for (const [param, fn] of OPENERS) {
@@ -1637,6 +2123,23 @@
       if (v) return !!fn(v, so);
     }
     return false;
+  }
+
+  /* Пришли по приглашению (?from=invite): полоска «своё — за 30 секунд», пока человек не создал своё или не закрыл её.
+     Метка ref (8 знаков хэша исходного приглашения) живёт в sessionStorage — конструктор возьмёт её с любой кнопки */
+  function guestStrip() {
+    const q = new URLSearchParams(location.search);
+    const ref = q.get('ref');
+    if (/^[a-z0-9]{8}$/.test(ref || '')) safe(() => sessionStorage.setItem('kuda-ref', ref));
+    if (q.get('from') !== 'invite') return;
+    const hist = safe(() => JSON.parse(localStorage.getItem('date-constructor-history') || '[]'), []);
+    if ((Array.isArray(hist) && hist.length) || safe(() => localStorage.getItem('kuda-guest-off'), null)) return;
+    const top = $('.top');
+    if (!top || $('#guestStrip')) return;
+    top.insertAdjacentHTML('afterend', `<div class="guest-strip" id="guestStrip" role="note"><p>Тебя позвали через «${esc((CFG.site && CFG.site.name) || 'Куда идём?')}». Своё приглашение — за 30 секунд</p>
+      <a class="btn primary sm" href="${createUrl(mode)}">Сделать</a><button type="button" class="icon-btn" aria-label="Скрыть">✕</button></div>`);
+    $('#guestStrip button').onclick = () => { safe(() => localStorage.setItem('kuda-guest-off', '1')); $('#guestStrip').remove(); };
+    T.ev('guest_cta', { mode });
   }
 
   /* «Установить приложение» (assets/pwa.js подключается после этого файла): кнопка в подвале видна, только когда установка возможна */
@@ -1651,28 +2154,35 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mountPwa); else setTimeout(mountPwa, 0);
 
   /* Для модулей страницы и проверок: та же шторка, режим, уведомление */
-  window.KudaHub = { openSheet, closeSheet, mode: () => mode, toast, openPlace, openPlan, openEvent, openQuiz, addOpener };
+  window.KudaHub = { openSheet, closeSheet, mode: () => mode, city: () => city, setCity, toast, openPlace, openPlan, openEvent, openQuiz, openCol, addOpener };
 
-  /* Параметры ссылки: m — режим, f — фильтр планов (f=cheap из старых ссылок — то же, что b=1), b — бюджет на человека (1 | 2),
-     cat/okr — раздел каталога, tab — вкладка (plans | events | places | map | promo), plan/place/event — сразу открыть карточку
-     (place=…#reviews — сразу на отзывах), quiz=1 — «Подобрать за 10 секунд» */
+  /* Параметры ссылки: m — режим, city — город (spb; у Москвы нет), f — фильтр планов (f=cheap из старых ссылок — то же, что b=1),
+     b — бюджет на человека (1 | 2), cat/okr — раздел каталога (okr — округ или район этого города), tab — вкладка
+     (plans | events | places | map | promo), plan/place/event — сразу открыть карточку (и в её городе; place=…#reviews — сразу на отзывах),
+     quiz=1 — «Подобрать за 10 секунд» */
   const QS = new URLSearchParams(location.search);
+  cityData();
+  near = safe(() => G.saved(city), null);
   if (FILTERS.some(f => f[0] === QS.get('f'))) flt = QS.get('f');
   if (['1', '2'].includes(QS.get('b'))) bud = +QS.get('b');
   else if (QS.get('f') === 'cheap') bud = 1;   // старый фильтр «Недорого»
-  WX = wxCached();                             // погода из кэша — сразу, без сдвига страницы
+  WX = wxCached(city);                         // погода из кэша — сразу, без сдвига страницы
   // лента событий появится после первой отрисовки — держим под неё место, чтобы планы не прыгали
   if (A && $('#shelf') && afCount(mode) > 0) { $('#shelf').classList.remove('hidden'); $('#shelf').classList.add('wait'); }
   if (PCATS.some(c => c[0] === QS.get('cat'))) pcat = QS.get('cat');
+  // раздел, где в этом городе пусто (?cat=michelin у Петербурга), — не держим; округ — только из списка этого города
+  if (!['all', 'saved'].includes(pcat) && !PLACES.some(p => inPcat(pcat, p))) pcat = 'all';
   if (OKRS.some(o => o[0] === QS.get('okr'))) pokr = QS.get('okr');
   $('#heroCat').innerHTML = K.catSVG('normal');
+  renderCityUi();
+  renderLegend();
   renderCounts();
   applyLiveCopy();
   apply();
   renderPlaces();
   renderPromo();
   renderLogin();
-  ORDER.forEach(m => { demoUrl(m); });   // ссылки «Посмотреть пример» готовим заранее
+  ORDER.forEach(m => { demoUrl(m); });   // ссылки «Посмотреть пример» готовим заранее (для текущего города)
   // перезагрузка с открытой карточкой: эта запись истории — уже её, новую не добавляем (иначе «Назад» придётся жать дважды)
   const restoring = !!(history.state && history.state.kudaSheet);
   const toRv = location.hash === '#reviews';   // читаем до syncUrl: он уберёт якорь из адреса
@@ -1683,8 +2193,10 @@
   if (!restoring) syncUrl();             // в адресе остаются режим и фильтры, без plan/place/tab
   if (landTab) goTab(landTab, true);
   if (!openFromQuery(QS, { adopt: restoring, rv: toRv }) && restoring) syncUrl(true);
+  guestStrip();
   afterPaint(() => {
     bootAfisha();
-    if (!WX) wxLoad().then(d => { if (d) { WX = d; renderWx(); } });
+    if (!WX) loadWx();
+    cityAsk();
   });
 })();

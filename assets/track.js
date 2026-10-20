@@ -1,6 +1,6 @@
 /* Подстройка под человека: что он открывает, сохраняет и куда зовёт.
    ─ Журнал действий и модель живут только в этом браузере (localStorage), на сервер не уходят.
-   ─ Модель — логистическая регрессия по признакам мест и планов (категория, подсказки, округ, цена,
+   ─ Модель — логистическая регрессия по признакам мест и планов (категория, подсказки, округ с городом, цена,
      время дня, теги). Учится онлайн: открыл/сохранил/позвал — положительный пример, карточку видел
      и пролистал — слабый отрицательный. По весам ранжируем блок «Для тебя».
      Сильные действия (сохранить, позвать, поделиться, маршрут) по одному месту или плану учитываются
@@ -26,9 +26,13 @@
   /* Категория места: по умолчанию — из shared.js (поле cat или тип места) */
   let catOf = p => K().catOf(p);
   const setCat = fn => { catOf = fn; };
+  /* Округ — с городом: коды районов Петербурга (center, north, sw…) совпадают с московскими, а веса у них должны быть свои.
+     Москва — без префикса ('o:center'), как раньше: модель, выученная до Петербурга, не теряется; Петербург — 'o:spb:center' */
+  const okrFeat = p => { const c = cityOf(p); return 'o:' + (c && c !== 'msk' ? c + ':' : '') + (p.okr || '-'); };
+  const cityOf = p => { try { return typeof K().cityOf === 'function' ? K().cityOf(p) : 'msk'; } catch (e) { return 'msk'; } };
   function placeFeats(p) {
     if (!p) return [];
-    const f = ['c:' + catOf(p), 'o:' + (p.okr || '-'), 'p:' + (p.price || 1)];
+    const f = ['c:' + catOf(p), okrFeat(p), 'p:' + (p.price || 1)];
     K().placeHints(p).forEach(h => f.push('h:' + h));
     return f;
   }
@@ -124,7 +128,8 @@
     if (log.length > MAX_LOG) log.splice(0, log.length - MAX_LOG);
     LS.set(K_LOG, log);
     if (data.kind && data.id && POS[type] && firstTime(type, data.kind, data.id)) learn(featsOf(data.kind, data.id), 1, POS[type]);
-    if (ym) ym('reachGoal', type, { kind: data.kind, id: data.id, mode: data.mode, v: data.v });
+    // город — по самой карточке (место, план, событие), без карточки — не передаём
+    if (ym) ym('reachGoal', type, { kind: data.kind, id: data.id, mode: data.mode, v: data.v, city: data.id ? cityOf(String(data.id)) : undefined });
   }
   /* Приглашение из конструктора: учим модель по каждому выбранному плану или месту (p-<id места>) */
   function invited(planIds, mode) {

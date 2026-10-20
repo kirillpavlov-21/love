@@ -265,6 +265,117 @@ export function suite(kind) {
     });
   });
 
+  describe(`[${kind}] компания: время, «может быть», +N, дедлайн, гость → автор`, () => {
+    let w;
+    beforeEach(async () => { w = await world(kind); });
+    afterEach(() => w.cleanup());
+    const nowMin = () => Math.floor(w.clock.t / MIN);
+
+    it('слоты, дни «может быть» и +N сохраняются; без них голос — как раньше', async () => {
+      const r = await w.post({ action: 'vote', key: KEY, voter: V('a1', { s: [2, 0, 2], m: [2481, 2480], p: 2 }), secret: 'secret-of-a1' });
+      assert.equal(r.status, 200);
+      assert.equal(r.until, null);
+      // повтор в s убран, день из d в m не дублируется
+      assert.deepEqual(r.votes[0], { id: 'a1', n: 'Имя a1', y: 1, o: [0], d: [2480], s: [2, 0], m: [2481], p: 2, t: w.clock.t });
+      w.tick(1000);
+      const b = await w.post({ action: 'vote', key: KEY, voter: V('b2', { s: [], m: [], p: 0 }), secret: 'secret-of-b2' });
+      // пустые поля не хранятся и не отдаются: старые клиенты видят привычный голос
+      assert.deepEqual(Object.keys(b.votes.find(v => v.id === 'b2')).sort(), ['d', 'id', 'n', 'o', 't', 'y']);
+      // «не смогу» — без времени, дней «может» и гостей
+      const no = await w.post({ action: 'vote', key: KEY, voter: V('c3', { y: 0, o: [], d: [], s: [1], m: [2482], p: 3 }), secret: 'secret-of-c3' });
+      assert.deepEqual(Object.keys(no.votes.find(v => v.id === 'c3')).sort(), ['d', 'id', 'n', 'o', 't', 'y']);
+      const g = await w.get('votes=' + KEY);
+      assert.deepEqual([g.votes[0].s, g.votes[0].m, g.votes[0].p], [[2, 0], [2481], 2]);
+      // переголосовал без доп. полей — они пропали
+      w.tick(1000);
+      const again = await w.post({ action: 'vote', key: KEY, voter: V('a1'), secret: 'secret-of-a1' });
+      assert.deepEqual(Object.keys(again.votes.find(v => v.id === 'a1')).sort(), ['d', 'id', 'n', 'o', 't', 'y']);
+      // голос из старой ссылки (seed) — со своими полями
+      const sd = await w.post({ action: 'vote', key: KEY, voter: V('d4'), secret: 'secret-of-d4', seed: [V('e5', { m: [2483], p: 1, t: 29_000_000 })] });
+      const e5 = sd.votes.find(v => v.id === 'e5');
+      assert.deepEqual([e5.m, e5.p, e5.s], [[2483], 1, undefined]);
+    });
+
+    it('проверка новых полей голоса', async () => {
+      const bads = [{ s: [4] }, { s: [0, 1, 2, 3, 0, 1] }, { s: 'x' }, { m: [-1] }, { m: Array.from({ length: 61 }, (_, i) => i) }, { p: 10 }, { p: 1.5 }, { p: '2' }, { p: -1 }];
+      for (const extra of bads) {
+        const r = await w.post({ action: 'vote', key: KEY, voter: V('a', extra), secret: 'secret-123' });
+        assert.deepEqual([r.status, r.error], [400, 'voter'], JSON.stringify(extra));
+      }
+    });
+
+    it('дедлайн: после until голос — 409 closed, опрос отдаёт until, повтор регистрации его не меняет', async () => {
+      const owner = ownerOf('creator-secret-1');
+      const until = nowMin() + 60;
+      assert.equal((await w.post({ action: 'invite', key: KEY, owner, mode: 'guys', title: 'Пятница', until })).status, 200);
+      assert.equal((await w.post({ action: 'invite', key: KEY, owner, mode: 'guys', title: 'Пятница', until: until + 600 })).status, 200);
+      const ok = await w.post({ action: 'vote', key: KEY, voter: V('a1'), secret: 'secret-of-a1' });
+      assert.deepEqual([ok.status, ok.until], [200, until]);
+      assert.equal((await w.get('votes=' + KEY)).until, until);
+      w.tick(60 * MIN);
+      const late = await w.post({ action: 'vote', key: KEY, voter: V('b2'), secret: 'secret-of-b2', seed: [V('c3')] });
+      assert.deepEqual([late.status, late.error], [409, 'closed']);
+      const after = await w.get('votes=' + KEY);
+      assert.deepEqual(after.votes.map(v => v.id), ['a1']);
+      // переголосовать тоже нельзя
+      assert.equal((await w.post({ action: 'vote', key: KEY, voter: V('a1', { o: [1] }), secret: 'secret-of-a1' })).error, 'closed');
+      // until: целое, не дальше 14 дней вперёд
+      assert.equal((await w.post({ action: 'invite', key: KEY2, owner, mode: 'guys', until: nowMin() + 15 * 1440 })).error, 'until');
+      assert.equal((await w.post({ action: 'invite', key: KEY2, owner, mode: 'guys', until: 1.5 })).error, 'until');
+      assert.equal((await w.post({ action: 'invite', key: KEY2, owner, mode: 'guys', until: '100' })).error, 'until');
+      assert.equal((await w.post({ action: 'invite', key: KEY2, owner, mode: 'guys', until: nowMin() + 14 * 1440 })).status, 200);
+    });
+
+    it('«Закрыть сейчас»: только владелец, rev растёт, опрос и mine видят until', async () => {
+      const secret = 'creator-secret-1';
+      await w.post({ action: 'invite', key: KEY, owner: ownerOf(secret), mode: 'girls', title: 'Девичник' });
+      await w.post({ action: 'vote', key: KEY, voter: V('a1'), secret: 'secret-of-a1' });
+      assert.equal((await w.get('votes=' + KEY)).until, null);
+      const bad = await w.post({ action: 'close', key: KEY, ownerSecret: 'not-the-owner' });
+      assert.deepEqual([bad.status, bad.error], [403, 'owner']);
+      assert.deepEqual([(await w.post({ action: 'close', key: KEY2, ownerSecret: secret })).status], [404]);
+      assert.equal((await w.post({ action: 'close', key: KEY, ownerSecret: 'x' })).error, 'secret');
+      w.tick(30 * 1000);
+      const c = await w.post({ action: 'close', key: KEY, ownerSecret: secret });
+      assert.deepEqual([c.status, c.until, c.rev], [200, nowMin(), 2]);
+      // опрос с прежним rev видит изменение
+      const g = await w.get('votes=' + KEY + '&rev=1');
+      assert.deepEqual([g.same, g.until, g.rev], [undefined, c.until, 2]);
+      assert.equal((await w.post({ action: 'vote', key: KEY, voter: V('b2'), secret: 'secret-of-b2' })).error, 'closed');
+      // повторное закрытие ничего не меняет
+      w.tick(5 * MIN);
+      const c2 = await w.post({ action: 'close', key: KEY, ownerSecret: secret });
+      assert.deepEqual([c2.until, c2.rev], [c.until, 2]);
+      const m = await w.post({ action: 'mine', ownerSecret: secret, keys: [KEY] });
+      assert.equal(m.items[KEY].until, c.until);
+      assert.ok(!w.bodies.some(b => b.includes(secret)));
+    });
+
+    it('гость → автор: ref и город запоминаются, /admin показывает k за неделю по городам', async () => {
+      const owner = ownerOf('creator-secret-1');
+      const K3 = 'M'.repeat(21) + 'c', K4 = 'N'.repeat(21) + 'd';
+      assert.equal((await w.post({ action: 'invite', key: KEY, owner, mode: 'guys', ref: 'abcd1234', city: 'spb' })).status, 200);
+      assert.equal((await w.post({ action: 'invite', key: KEY2, owner, mode: 'date', city: 'spb' })).status, 200);
+      assert.equal((await w.post({ action: 'invite', key: K3, owner, mode: 'girls', ref: '', city: 'msk' })).status, 200);
+      // повтор с другой меткой не меняет первую
+      assert.equal((await w.post({ action: 'invite', key: KEY2, owner, mode: 'date', ref: 'zzzz9999', city: 'msk' })).status, 200);
+      assert.equal((await w.post({ action: 'invite', key: K4, owner, mode: 'date', ref: 'ABCD1234' })).error, 'ref');
+      assert.equal((await w.post({ action: 'invite', key: K4, owner, mode: 'date', ref: 'abc' })).error, 'ref');
+      assert.equal((await w.post({ action: 'invite', key: K4, owner, mode: 'date', city: 'kzn' })).error, 'city');
+      // голос и открытие без регистрации — не приглашение автора, в k не считается
+      await w.post({ action: 'vote', key: K4, voter: V('a1'), secret: 'secret-of-a1' });
+      const { r } = await w.login();
+      assert.match(r.body, /Гость → автор/);
+      assert.match(r.body, /k = 0,33/);
+      assert.match(r.body, /Петербург: 1 из 2/);
+      assert.match(r.body, /Москва: 0 из 1/);
+      assert.ok(!r.body.includes('abcd1234'));
+      w.tick(8 * DAY);
+      const { r: later } = await w.login({ ip: '10.0.0.7' });
+      assert.match(later.body, /За 7 дней новых приглашений нет/);
+    });
+  });
+
   describe(`[${kind}] отзывы и рейтинги`, () => {
     let w;
     const uids = { 'yandex-token-aaaaaa': '1001', 'yandex-token-bbbbbb': '1001', 'yandex-token-cccccc': '2002' };

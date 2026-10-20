@@ -12,7 +12,7 @@
   const DRAFT = 'kuda-draft-v2';
   const OLD_DRAFTS = ['date-constructor-draft'];
   /* История отправленных приглашений — её же читает invites.html («Мои приглашения»).
-     Запись: { code, link (полная ссылка без голосов), short?, mode, title, label, ev?, at, upd, reg? } */
+     Запись: { code, link (полная ссылка без голосов), short?, mode, title, label, ev?, city? ('spb' | 'msk' — город мест из каталога), at, upd, reg? } */
   const HIST = 'date-constructor-history';
   const HIST_MAX = 50;
   /* Приглашения, созданные в этом браузере (K.hash(code)): игра не засчитывает создателю «открыли»,
@@ -72,6 +72,8 @@
   const MON = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
 
   const DEF = K.defaults();
+  // пришли по чужому приглашению (?ref= — 8 знаков хэша его кода): метка уйдёт на сервер вместе с регистрацией
+  const REF = (/^[a-z0-9]{8}$/.exec(new URLSearchParams(location.search).get('ref') || (() => { try { return sessionStorage.getItem('kuda-ref') || ''; } catch (e) { return ''; } })()) || [''])[0];
   const state = {
     mode: 'date', cat: 'line', theme: 'pink', who: 'f',
     texts: {},                          // тексты других режимов: {guys: {greeting, question, title}, …}
@@ -81,6 +83,7 @@
     optsBy: { guys: null, girls: null }, // свои варианты каждого режима компании (в #opts — варианты lastGroup)
     lastGroup: 'guys',
     event: '', evOther: false,          // событие из афиши (свидание) и «предложить и другие места»
+    city: K.city(),                     // город каталога: в приглашении — места и события одного города
   };
   let pvStep = 0;
   let pvCounter = 0;
@@ -175,17 +178,42 @@
     return out;
   }
   const evAlive = ev => !!ev && evDays(ev).length > 0;
+
+  /* ---------- город каталога ----------
+     В одном приглашении — места одного города. Каталог показывает город state.city: из ?city=, из плана или события
+     в ссылке (?plan=, ?event=), из уже выбранного (черновик, «В конструктор»), иначе — город главной (K.city()).
+     Город пункта — по id: места spb-…, планы spb-d-/spb-g-/spb-w-…, события ev-spb-…, у матчей — своё поле city. */
+  const okCity = c => typeof c === 'string' && Object.prototype.hasOwnProperty.call(K.CITIES, c);
+  const CITY_OF = new Map();
+  /* Город плана, места (p-<id>) или события; неизвестный id — '' (кроме петербургских: их видно по префиксу) */
+  function itemCity(id) {
+    if (typeof id !== 'string' || !id) return '';
+    if (CITY_OF.has(id)) return CITY_OF.get(id);
+    const pl = K.planById(id), ev = pl ? null : evById(id);
+    const c = pl ? K.cityOf(pl.single ? pl.stops[0] : pl) : ev ? K.cityOf(ev) : K.cityOf(id) === 'spb' ? 'spb' : '';
+    if (pl || ev) CITY_OF.set(id, c);
+    return c;
+  }
+  const inCityNow = id => itemCity(id) === state.city;
+  /* Сколько мест в каталоге каждого города: переключатель показываем, только если городов с местами больше одного */
+  const CITY_N = {};
+  Object.keys(K.kuda().places || {}).forEach(id => { if (K.placeById(id)) { const c = K.cityOf(id); CITY_N[c] = (CITY_N[c] || 0) + 1; } });
+  const pkCities = () => Object.keys(K.CITIES).filter(c => c === state.city || CITY_N[c]);
+  /* Город приглашения или черновика — по первому пункту из каталога, '' — пунктов из каталога нет */
+  const firstCity = ids => { for (const id of ids) { const c = itemCity(id); if (c) return c; } return ''; };
+
   const EV_LIST = {};
-  /* Ближайшие события, подходящие режиму, — по дате */
+  /* Ближайшие события города, подходящие режиму, — по дате */
   function evList(mode) {
-    if (EV_LIST[mode]) return EV_LIST[mode];
+    const key = mode + '|' + state.city;
+    if (EV_LIST[key]) return EV_LIST[key];
     let list = null;
     if (K.events) { try { list = K.events({ mode }); } catch (e) { list = null; } }
     if (!Array.isArray(list)) {
       list = (window.KUDA_EVENTS || []).filter(e => e && e.id).slice()
         .sort((a, b) => (evDays(a)[0] || '9').localeCompare(evDays(b)[0] || '9') || String(a.title).localeCompare(String(b.title), 'ru'));
     }
-    return (EV_LIST[mode] = list.filter(e => e && evAlive(e) && (!Array.isArray(e.fit) || !e.fit.length || e.fit.includes(mode))));
+    return (EV_LIST[key] = list.filter(e => e && evAlive(e) && K.cityOf(e) === state.city && (!Array.isArray(e.fit) || !e.fit.length || e.fit.includes(mode))));
   }
   const curEvent = () => (!isGroup() && state.event ? evById(state.event) : null);
   function dayShort(s) {
@@ -241,26 +269,27 @@
     const box = $('#' + id);
     box.innerHTML = id === 'dates' ? items.map(dateRow).join('') : items.map(it => itemRow(it, id)).join('');
   }
-  function readList(id) {
-    return $$('.li', $('#' + id)).map(r => {
-      const o = { emoji: $('.em', r).value.trim(), title: $('.ti', r).value.trim() };
-      const note = $('.no', r).value.trim();
-      if (note) o.note = note;
-      if (r.dataset.plan) {
-        const pl = K.planById(r.dataset.plan);
-        // если подписи совпадают с планом — храним только id плана (короче ссылка)
-        if (pl && o.emoji === pl.emoji && o.title === pl.title && (o.note || '') === (pl.why || '')) return { plan: pl.id };
-        o.plan = r.dataset.plan;
-      }
-      return o;
-    }).filter(o => o.title || o.plan);
+  function readRow(r) {
+    const o = { emoji: $('.em', r).value.trim(), title: $('.ti', r).value.trim() };
+    const note = $('.no', r).value.trim();
+    if (note) o.note = note;
+    if (r.dataset.plan) {
+      const pl = K.planById(r.dataset.plan);
+      // если подписи совпадают с планом — храним только id плана (короче ссылка)
+      if (pl && o.emoji === pl.emoji && o.title === pl.title && (o.note || '') === (pl.why || '')) return { plan: pl.id };
+      o.plan = r.dataset.plan;
+    }
+    return o;
   }
+  const readList = id => $$('.li', $('#' + id)).map(readRow).filter(o => o.title || o.plan);
 
   /* ---------- выбор из каталога: подборки, все места, события; поиск, подсказки ---------- */
   /* Один и тот же выбор в двух режимах: в свидании пункт становится шариком (#places) или событием приглашения,
      в компании — вариантом для голосования (state.gsel). Места каталога идут как «p-<id>», события — «ev-…». */
   const PK_STEP = 24;
   const pk = { tab: 'plans', q: '', hint: '', ecat: '', limit: PK_STEP, pinned: [] };
+  /* Улица-пример в подсказке поиска — своя у каждого города */
+  const PK_STREET = { msk: 'Арбат', spb: 'Невский' };
   const norm = s => String(s || '').toLowerCase().replace(/ё/g, 'е');
   const SEASON = K.seasonHints();
   const PK_HINTS = ['autumn', 'halloween', 'newyear', 'first', 'scenic', 'view', 'rain', 'budget', 'company', 'night', 'michelin'];
@@ -283,14 +312,15 @@
   const lead = s => s.replace(/^[^0-9A-Za-zА-Яа-яЁё]+/, '');
   /* В каталоге — только то, что сейчас в сезоне (поле season, как на главной). Уже выбранное
      (черновик, ?plan=, «В конструктор» из приглашения) всё равно видно: отмеченные идут отдельно, через pk.pinned */
-  const pkPlanOk = (s, mode) => s.mode === mode && K.planStops(s).length && K.seasonOk(s);
-  let PK_PLACES = null;
+  const pkPlanOk = (s, mode) => s.mode === mode && K.planStops(s).length && K.seasonOk(s) && inCityNow(s.id);
+  const PK_PLACES = {};   // город → места каталога
   function pkPlaces() {
-    if (!PK_PLACES) {
-      PK_PLACES = Object.keys(K.kuda().places).filter(id => K.seasonOk(K.placeById(id))).map(id => K.planById('p-' + id)).filter(Boolean)
+    const c = state.city;
+    if (!PK_PLACES[c]) {
+      PK_PLACES[c] = Object.keys(K.kuda().places).filter(id => K.seasonOk(K.placeById(id)) && K.cityOf(id) === c).map(id => K.planById('p-' + id)).filter(Boolean)
         .sort((a, b) => (!!K.photo(K.placeById(b.stops[0])) - !!K.photo(K.placeById(a.stops[0]))) || lead(a.title).localeCompare(lead(b.title), 'ru'));
     }
-    return PK_PLACES;
+    return PK_PLACES[c];
   }
   function pkPlans() {
     const list = K.kuda().scenarios.filter(s => pkPlanOk(s, state.mode));
@@ -324,7 +354,7 @@
   /* Отмеченные — наверху, но только после смены вкладки/поиска: при нажатии пункт не прыгает из-под пальца */
   const pinNow = () => { pk.pinned = Array.from(pkSelected()); };
   /* Кнопка каталога в фокусе (клавиатура, экранный диктор): после перерисовки возвращаем фокус на неё же */
-  const PK_ATTRS = ['data-pk', 'data-pkh', 'data-pke', 'data-pktab', 'data-pkmore'];
+  const PK_ATTRS = ['data-pk', 'data-pkh', 'data-pke', 'data-pktab', 'data-pkmore', 'data-pkcity'];
   function pkFocus(box) {
     const ae = document.activeElement;
     if (!ae || !box.contains(ae)) return null;
@@ -344,12 +374,15 @@
     if (other.firstChild) other.innerHTML = '';
     const focus = pkFocus(box);
     if (!$('.pk-list', box)) {
-      box.innerHTML = `<div class="pk-tabs seg" role="group" aria-label="Каталог"><button type="button" data-pktab="plans"></button><button type="button" data-pktab="places"></button><button type="button" data-pktab="events"></button></div>
-        <input class="pk-q" type="search" placeholder="Поиск: парк, бар, Арбат, концерт…" aria-label="Поиск по планам, местам и событиям" autocomplete="off">
+      box.innerHTML = `<div class="pk-city hidden" role="group" aria-label="Город каталога"></div>
+        <div class="pk-tabs seg" role="group" aria-label="Каталог"><button type="button" data-pktab="plans"></button><button type="button" data-pktab="places"></button><button type="button" data-pktab="events"></button></div>
+        <input class="pk-q" type="search" placeholder="" aria-label="Поиск по планам, местам и событиям" autocomplete="off">
         <div class="pk-hints" role="group" aria-label="Подсказки"></div><div class="pk-list"></div><div class="pk-foot"></div>`;
     }
+    renderCitySeg(box);
     const q = $('.pk-q', box);
     if (q.value !== pk.q) q.value = pk.q;
+    q.placeholder = `Поиск: парк, бар, ${PK_STREET[state.city] || 'кофейня'}, концерт…`;
     const sel = pkSelected();
     const plans = pkPlans(), places = pkPlaces(), events = evList(state.mode);
     if (pk.tab === 'events' && !events.length) pk.tab = 'plans';
@@ -400,6 +433,9 @@
   }
   const optCount = () => state.gsel.size + readList('opts').length;
   function togglePick(id) {
+    // пункт другого города — сначала переключаем каталог на его город: в приглашении один город
+    const fc = pkSelected().has(id) ? '' : foreignCity(id);
+    if (fc) switchCity(fc, { save: true, quiet: true });
     if (isGroup()) {
       if (state.gsel.has(id)) state.gsel.delete(id);
       else if (optCount() >= MAX_OPTS) { toast(`Не больше ${MAX_OPTS} вариантов — так голосовать удобнее`); return; }
@@ -416,6 +452,117 @@
     if (row) row.remove();
     else if ($$('#places .li').length >= MAX_PLACES) { toast(`Не больше ${MAX_PLACES} шариков — иначе выбирать тяжело`); return; }
     else $('#places').insertAdjacentHTML('beforeend', itemRow({ plan: id }, 'places'));
+  }
+
+  /* ---------- смена города каталога ----------
+     Пункты прежнего города не теряются: откладываем их (в памяти вкладки) и возвращаем, если переключиться обратно.
+     Свои варианты без места из каталога («Покер у Димы», стандартные шарики) от города не зависят и остаются. */
+  const STASH = {};   // город → { places: [пункты шариков], event, evOther, gsel: { guys: [id…], girls: [id…] }, filled? }
+  const stashOf = c => STASH[c] || (STASH[c] = { places: [], event: '', evOther: false, gsel: {} });
+  const foreignCity = id => { const c = itemCity(id); return c && c !== state.city ? c : ''; };
+  /* Убираем из формы пункты другого города и откладываем их; ответ — сколько убрали */
+  function dropForeign() {
+    let n = 0;
+    $$('#places .li[data-plan]').forEach(r => {
+      const c = foreignCity(r.dataset.plan);
+      if (!c) return;
+      const o = readRow(r), s = stashOf(c);
+      r.remove();
+      n++;
+      if (!s.places.some(x => x.plan === o.plan)) s.places.push(o);
+    });
+    const ec = state.event ? foreignCity(state.event) : '';
+    if (ec) {
+      Object.assign(stashOf(ec), { event: state.event, evOther: state.evOther });
+      state.event = ''; state.evOther = false;
+      n++;
+    }
+    const keep = (ids, mode, auto) => ids.filter(id => {
+      const c = foreignCity(id);
+      if (!c) return true;
+      // выбор по умолчанию (три первые подборки) не откладываем — у нового города будут свои
+      if (!auto) { const g = stashOf(c).gsel; g[mode] = Array.from(new Set((g[mode] || []).concat(id))); n++; }
+      return false;
+    });
+    if (isGroup()) state.gsel = new Set(keep(Array.from(state.gsel), state.mode, state.autoSel));
+    ['guys', 'girls'].forEach(m => {
+      const g = state.gselBy[m];
+      if (!g || (isGroup() && m === state.mode)) return;
+      const sel = keep(g.sel, m, g.auto);
+      // выбор по умолчанию целиком из другого города — пусть режим наберёт свой, когда на него переключатся
+      state.gselBy[m] = sel.length || !g.auto ? { sel, auto: g.auto } : null;
+    });
+    return n;
+  }
+  /* Возвращаем отложенное для текущего города; ответ — сколько вернули */
+  function restoreCity() {
+    const s = STASH[state.city];
+    if (!s) return 0;
+    delete STASH[state.city];
+    let n = 0;
+    const back = s.places.filter(o => K.planById(o.plan) && !$(`#places .li[data-plan="${CSS.escape(o.plan)}"]`));
+    // стандартные шарики (кофейня, кино…), которые подставили, когда уходили из этого города, — убираем обратно
+    if (back.length && s.filled && isDefaultPlaces()) $('#places').innerHTML = '';
+    back.forEach(o => {
+      if ($$('#places .li').length >= MAX_PLACES) return;
+      $('#places').insertAdjacentHTML('beforeend', itemRow(o, 'places'));
+      n++;
+    });
+    if (s.event && !state.event && evAlive(evById(s.event))) { state.event = s.event; state.evOther = s.evOther; n++; }
+    Object.keys(s.gsel).forEach(m => {
+      const ids = s.gsel[m].filter(id => validOpt(id, m));
+      if (!ids.length) return;
+      if (isGroup() && m === state.mode) {
+        const room = Math.max(0, MAX_OPTS - readList('opts').length);
+        state.gsel = new Set((state.autoSel ? [] : Array.from(state.gsel)).concat(ids).slice(0, room));
+        state.autoSel = false;
+      } else {
+        const g = state.gselBy[m];
+        state.gselBy[m] = { sel: Array.from(new Set((g && !g.auto ? g.sel : []).concat(ids))), auto: false };
+      }
+      n += ids.length;
+    });
+    return n;
+  }
+  /* Число мест каталога в подсказке «любое из 960+ мест Москвы» — для города каталога */
+  function placeCount() {
+    const n = pkPlaces().length;
+    const el = $('#placeCount'), cityEl = $('#placeCity');
+    if (el) el.textContent = n >= 20 ? Math.floor(n / 10) * 10 + '+' : String(n);
+    if (cityEl) cityEl.textContent = K.CITIES[state.city].gen;
+  }
+  /* o.save — запомнить город и для главной (выбрал сам или пришёл по ссылке на план или событие), o.quiet — без подсказки */
+  function switchCity(c, o) {
+    o = o || {};
+    if (!okCity(c) || c === state.city) return false;
+    const was = state.city;
+    state.city = c;
+    if (o.save) K.setCity(c);
+    const gone = dropForeign(), back = restoreCity();
+    if (isGroup() && !state.gsel.size && !readList('opts').length) { state.gsel = new Set(defaultGroupSel(state.mode)); state.autoSel = true; }
+    if (!isGroup() && !state.event && !$$('#places .li').length) {
+      ensurePlaces();
+      // вернёмся в прежний город — стандартные шарики уступят место отложенным
+      if (STASH[was]) STASH[was].filled = true;
+    }
+    // поиск и фильтры прежнего города («Арбат») в новом обычно пусты — начинаем с чистого листа
+    Object.assign(pk, { q: '', hint: '', ecat: '', limit: PK_STEP });
+    placeCount();
+    pinNow();
+    renderPicker();
+    renderEventUi();
+    if (!o.quiet) {
+      toast(gone ? `Выбранное ${K.CITIES[was].in} отложил: в приглашении — один город${back ? '. Вернул выбранное ' + K.CITIES[c].in : ''}`
+        : back ? `Вернул выбранное ${K.CITIES[c].in} ✓` : `Каталог: ${K.CITIES[c].name}`);
+    }
+    changed();
+    return true;
+  }
+  function renderCitySeg(box) {
+    const el = $('.pk-city', box), list = pkCities();
+    el.classList.toggle('hidden', list.length < 2);
+    el.innerHTML = list.length < 2 ? '' : '<span class="pk-city-l" aria-hidden="true">📍</span>' + list.map(c =>
+      `<button type="button" data-pkcity="${c}" class="${c === state.city ? 'on' : ''}" aria-pressed="${c === state.city}">${esc(K.CITIES[c].name)}</button>`).join('');
   }
 
   /* ---------- событие в приглашении на свидание ---------- */
@@ -515,11 +662,17 @@
         : 'В конце игры человек отправит тебе ответ ссылкой-билетом.') +
         ' «Открыть как получатель» — пройти всю игру самому: в этом браузере твои ответы не сохраняются и никуда не уходят.';
   }
-  /* Сценарии режима по умолчанию — три первые подборки */
+  /* Сценарии режима по умолчанию — три первые подборки города каталога */
   function defaultGroupSel(mode) {
     return K.kuda().scenarios.filter(s => pkPlanOk(s, mode)).slice(0, 3).map(s => s.id);
   }
-  const validOpt = (id, mode) => { const pl = K.planById(id); if (pl) return pl.single || pl.mode === mode; return evAlive(evById(id)); };
+  /* Вариант для голосования: план своего режима, место или идущее событие — и только из города каталога */
+  const validOpt = (id, mode) => {
+    if (!inCityNow(id)) return false;
+    const pl = K.planById(id);
+    if (pl) return pl.single || pl.mode === mode;
+    return evAlive(evById(id));
+  };
   function switchMode(next) {
     if (next === state.mode || !okMode(next)) return;
     const prev = state.mode;
@@ -566,6 +719,16 @@
     src = isObj(src) ? src : {};
     const inv = K.merge(DEF, src);
     state.mode = okMode(src._mode) ? src._mode : modeOf(inv);
+    // город — по первому пункту из каталога (событие, шарики, варианты голосования); их нет — город остаётся прежним.
+    // В черновике варианты голосования лежат и в _gsel, а выбор по умолчанию (_auto) город не задаёт: его подставили сами.
+    // Отложенное прежней формы к новой не относится
+    const draft = typeof src._mode === 'string', auto = isObj(src._auto) ? src._auto : {};
+    const ids = [src._event, inv.event].concat(
+      (Array.isArray(inv.places) ? inv.places : []).map(p => p && p.plan),
+      draft ? [] : (Array.isArray(inv.opts) ? inv.opts : []).map(o => o && (o.plan || o.event)),
+      ...(isObj(src._gsel) ? ['guys', 'girls'].map(m => (Array.isArray(src._gsel[m]) && !auto[m] ? src._gsel[m] : [])) : []));
+    state.city = firstCity(ids.filter(x => typeof x === 'string')) || state.city;
+    Object.keys(STASH).forEach(c => { delete STASH[c]; });
     ['her', 'me', 'catName', 'signature', 'finale'].forEach(k => { $('#' + k).value = inv[k] || ''; });
     // старые черновики хранили запасные имена как введённые — в форме их не показываем
     if (typeof src._mode === 'string') ['her', 'me'].forEach(k => { if (inv[k] === FALLBACK[k]) $('#' + k).value = ''; });
@@ -623,6 +786,15 @@
     $('#tTo').value = clockOf(t.to, '22:00');
     $('#tStep').value = String([15, 30, 60].includes(+t.step) ? +t.step : 30);
     $('#tDef').value = clockOf(t.def, '19:00');
+    // компания: варианты времени и срок. В черновике — как в полях; в ссылке без slots — стандартные три
+    const draftSl = Array.isArray(src._slots) ? src._slots.map(x => (typeof x === 'string' ? x : '')) : null;
+    const linkSl = Array.isArray(src.slots) ? src.slots.filter(x => typeof x === 'string') : null;
+    fillSlots(draftSl || (linkSl && linkSl.length ? linkSl : SLOT_DEF), typeof src._slotAsk === 'boolean' ? src._slotAsk : true);
+    const um = ['hour', 'today', 'thu', 'own'].includes(src._umode) ? src._umode : '';
+    const uMs = typeof src._until === 'string' ? msOfLocal(src._until) : Number.isInteger(src.until) ? src.until * 60000 : NaN;
+    if (um && um !== 'own') { setUMode(um); pickUntil(um); }   // «через час» из вчерашнего черновика — от текущего момента
+    else if ((um === 'own' || (!draft && uMs)) && uMs > Date.now()) { setUMode('own'); $('#untilAt').value = localOf(uMs); renderUntil(); }
+    else { setUMode(''); $('#untilAt').value = ''; renderUntil(); }
     // пустой список блюд — осознанный выбор (уровень пропускается), стандартные не подставляем
     renderList('food', (inv.food || []).filter(f => f && f.title));
     // событие: из черновика (_event) или из ссылки (event)
@@ -630,6 +802,11 @@
     const ev = evId ? evById(evId) : null;
     state.event = ev && evAlive(ev) ? ev.id : '';
     state.evOther = src._evOther != null ? !!src._evOther : !!(state.event && ((inv.places || []).length || inv.placeSurprise || inv.placeCustom));
+    // пункты другого города (смешанная ссылка, черновик до смены города на главной) — в сторону: в приглашении один город.
+    // Выбор по умолчанию другого города заменяем подборками этого
+    dropForeign();
+    if (isGroup() && state.autoSel && !state.gsel.size && !readList('opts').length) state.gsel = new Set(defaultGroupSel(state.mode));
+    placeCount();
     syncDateMode();
     applyModeUi();
     pinNow();
@@ -659,6 +836,84 @@
     let b = K.toMin(to), x = K.toMin(t);
     if (b <= a) { b += 1440; if (x < a) x += 1440; }
     return x >= a && x <= b;
+  }
+  /* ---------- компания: «Во сколько» и «Решаем до» (время московское, как в игре) ---------- */
+  const SLOT_DEF = ['19:00', '20:00', '21:00'];
+  const MSK = 3 * 3600e3, DAY = 86400e3;
+  const UNTIL_MAX = 14 * DAY;                       // дальше двух недель сервер дедлайн не примет
+  const mskNow = () => new Date(Date.now() + MSK);   // поля UTC этой даты — московское время
+  const localOf = ms => new Date(ms + MSK).toISOString().slice(0, 16);   // 'ГГГГ-ММ-ДДTЧЧ:ММ' по Москве
+  const msOfLocal = s => { const m = /^(\d{4})-(\d\d)-(\d\d)T(\d\d):(\d\d)$/.exec(s || ''); return m ? Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]) - MSK : NaN; };
+  const mskMidnight = () => { const n = mskNow(); return Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), n.getUTCDate()) - MSK; };
+  /* «через час» (до 5 минут вверх), «сегодня 18:00» (прошло — завтра), «чт 18:00» (ближайший четверг) */
+  function untilPreset(kind) {
+    const now = Date.now(), soon = now + 15 * 60e3, day = mskMidnight();
+    if (kind === 'hour') return Math.ceil((now + 3600e3) / 300e3) * 300e3;
+    if (kind === 'today') { const t = day + 18 * 3600e3; return t > soon ? t : t + DAY; }
+    if (kind === 'thu') { let t = day + ((4 - mskNow().getUTCDay() + 7) % 7) * DAY + 18 * 3600e3; if (t <= soon) t += 7 * DAY; return t; }
+    return NaN;
+  }
+  const uMode = () => ($('input[name="umode"]:checked') || {}).value || '';
+  function setUMode(m) { $$('input[name="umode"]').forEach(r => { r.checked = r.value === m; }); }
+  function renderSlots() { $('#slotEd').classList.toggle('off', !$('#slotAsk').checked); }
+  function renderUntil() {
+    const t = mskMidnight() + 18 * 3600e3;
+    $('#uToday').textContent = t > Date.now() + 15 * 60e3 ? 'Сегодня 18:00' : 'Завтра 18:00';
+    const m = uMode(), box = $('#untilAt');
+    box.classList.toggle('hidden', !m);
+    const ms = msOfLocal(box.value), info = $('#untilInfo');
+    if (!m) info.textContent = 'После срока голосование закроется, итог у всех будет одинаковый.';
+    else if (!(ms > Date.now())) info.textContent = 'Этот срок уже прошёл — выбери другой.';
+    else if (ms - Date.now() > UNTIL_MAX) info.textContent = 'Не дальше двух недель — так компания точно не забудет.';
+    else info.textContent = 'Время московское. После срока голосование закроется, итог у всех будет одинаковый.';
+  }
+  function pickUntil(m) {
+    const box = $('#untilAt');
+    if (m && m !== 'own') box.value = localOf(untilPreset(m));
+    else if (m === 'own' && !(msOfLocal(box.value) > Date.now())) box.value = localOf(untilPreset('today'));
+    renderUntil();
+  }
+  function fillSlots(list, ask) {
+    const ins = $$('#slotEd .slot-in');
+    ins.forEach((el, i) => { el.value = list[i] || ''; });
+    $('#slotAsk').checked = ask;
+    renderSlots();
+  }
+  function readSlots() {
+    if (!$('#slotAsk').checked) return [];
+    const out = [];
+    $$('#slotEd .slot-in').forEach(el => { const t = el.value; if (/^([01]\d|2[0-3]):[0-5]\d$/.test(t) && !out.includes(t)) out.push(t); });
+    return out.slice(0, 4);
+  }
+  /* дедлайн в минутах эпохи или 0 (нет, прошёл, дальше двух недель) */
+  function readUntil() {
+    if (!uMode()) return 0;
+    const ms = msOfLocal($('#untilAt').value);
+    return ms > Date.now() && ms - Date.now() <= UNTIL_MAX ? Math.floor(ms / 60000) : 0;
+  }
+  /* «Сегодня, решаем за час»: только сегодня, ближайшие часы с 19:00, срок — через час */
+  function presetNow() {
+    const n = mskNow();
+    $$('input[name="dmode"]').forEach(r => { r.checked = r.value === 'list'; });
+    renderList('dates', [n.toISOString().slice(0, 10)]);
+    syncDateMode();
+    const h0 = Math.max(19, n.getUTCHours() + (n.getUTCMinutes() >= 30 ? 2 : 1));
+    const sl = [h0, h0 + 1, h0 + 2].filter(h => h <= 23).map(h => String(h).padStart(2, '0') + ':00');
+    fillSlots(sl.length ? sl : ['23:30'], true);
+    setUMode('hour');
+    pickUntil('hour');
+    changed();
+    toast('Сегодня, решаем за час ✓');
+  }
+  /* «Собрать снова»: тот же состав, даты на неделю позже, старый срок не переносим */
+  function shiftWeek(inv) {
+    const d = inv && inv.dates;
+    if (!isObj(d)) return inv;
+    const plus = s => { const t = K.parseYmd(s); return t ? K.ymd(K.addDays(t, 7)) : s; };
+    if (Array.isArray(d.list)) d.list = d.list.map(plus);
+    if (d.start) d.start = plus(d.start);
+    delete inv.until;
+    return inv;
   }
   function groupOpts() {
     const out = [];
@@ -704,6 +959,9 @@
       if (inv.greeting === MC().greeting) inv.greeting = DEF.greeting;
       if (inv.question === MC().question) inv.question = DEF.question;
       Object.assign(inv, { mode: state.mode, title: v('title') || MC().title, opts: groupOpts() });
+      const sl = readSlots(), until = readUntil();
+      if (sl.length) inv.slots = sl;
+      if (until) inv.until = until;
     } else {
       Object.assign(inv, dateFields());
       if (state.who === 'm') inv.who = 'm';
@@ -750,6 +1008,11 @@
       ['guys', 'girls'].forEach(m => { if (by[m]) { inv._gsel[m] = by[m].sel; inv._auto[m] = !!by[m].auto; } });
       inv._event = state.event;
       inv._evOther = state.evOther;
+      inv._slots = $$('#slotEd .slot-in').map(el => el.value);
+      inv._slotAsk = $('#slotAsk').checked;
+      inv._umode = uMode();
+      inv._until = $('#untilAt').value;
+      delete inv.slots; delete inv.until;
     }
     return inv;
   }
@@ -1037,7 +1300,7 @@
   function registerInvite(x) {
     const api = API();
     if (!api || !x || x.reg) return;
-    api.invite(x.code, ownerSecret(), { mode: x.mode, title: x.title }).then(ok => {
+    api.invite(x.code, ownerSecret(), { mode: x.mode, title: x.title, until: x.until, city: x.city, ref: x.ref }).then(ok => {
       if (ok) patchHist(x.code, { reg: 1 });
       else if (api.lastError === 'taken') patchHist(x.code, { reg: -1 });
     });
@@ -1058,6 +1321,11 @@
       at: old && old.at ? old.at : now, upd: now,
     });
     if (inv.event) x.ev = inv.event; else delete x.ev;
+    // город — если в приглашении есть что-то из каталога («Мои приглашения» подпишут петербургские)
+    const city = firstCity([inv.event].concat((inv.places || []).map(p => p && p.plan), (inv.opts || []).map(o => o && (o.plan || o.event))).filter(Boolean));
+    if (city) x.city = city; else delete x.city;
+    if (inv.until) x.until = inv.until; else delete x.until;
+    if (REF && !x.ref) { x.ref = REF; try { if (window.KudaTrack && KudaTrack.ev) KudaTrack.ev('guest_create', { mode: state.mode }); } catch (e) { /* без аналитики */ } }
     saveHist([x].concat(list.filter(y => histCode(y) !== code)));
     markOwn(code);
     renderHist();
@@ -1086,12 +1354,15 @@
   function renderHist() {
     const list = histList();
     const fmt = t => new Date(t).toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+    // город подписываем, если приглашения в разных городах или город не Москва
+    const cities = new Set(list.map(x => (okCity(x.city) ? x.city : 'msk')));
+    const cityLabel = x => (okCity(x.city) && (x.city !== 'msk' || cities.size > 1) ? ' · ' + K.CITIES[x.city].name : '');
     $('#hist').innerHTML = list.length ? list.slice(0, HIST_SHOW).map((x, i) => {
       const name = x.title || x.label || x.her || 'Приглашение';
       const shown = x.mode ? `${K.MODES[okMode(x.mode) ? x.mode : 'date'].emoji} ${x.title || x.label || 'Приглашение'}` : (x.label || x.her || 'Приглашение');
       return `
       <div class="hist-item">
-        <b>${esc(shown)}<small>${esc(fmt(x.at || 0))}</small></b>
+        <b>${esc(shown)}<small>${esc(fmt(x.at || 0) + cityLabel(x))}</small></b>
         <button class="btn" type="button" data-h="copy" data-i="${i}">Копировать</button>
         <button class="btn" type="button" data-h="load" data-i="${i}">В форму</button>
         <button class="btn" type="button" data-h="del" data-i="${i}" aria-label="Удалить «${esc(name)}» из списка">${K.icon('x')}</button>
@@ -1205,11 +1476,65 @@
     const cur = readList('places');
     return !cur.length || (cur.length === DEF.places.length && cur.every((p, i) => !p.plan && p.title === DEF.places[i].title && p.emoji === DEF.places[i].emoji));
   };
+  /* «Позвать по подборке»: ?col=<id> или свой список ?list=…&t=… (start.html, assets/cols.js). В компании пункты встают
+     вариантами голосования (план другого повода — его местами), в свидании — шариками; события — вариантами или событием */
+  function applyCollection(q) {
+    const C = window.KudaCols;
+    const colId = q.get('col'), lv = q.get('list');
+    if (!C || (!colId && !lv)) return false;
+    const col = colId ? C.find(colId) : null;
+    const ids = col ? [] : C.decodeList(lv || '');
+    const c = col ? C.cityOf(col) || state.city : C.listCity(ids);
+    const qm = q.get('mode');
+    history.replaceState(null, '', 'create.html' + location.hash);
+    if (c && !switchCity(c, { save: true, quiet: true })) K.setCity(c);
+    if (okMode(qm)) switchMode(qm);
+    const rows = col ? C.items(col, { city: c, mode: state.mode }) : C.items({ id: 'list', items: ids, city: c }, { city: c, mode: state.mode });
+    if (!rows.length) { toast('Подборка сейчас пустая — выбери места сам'); return true; }
+    const title = col ? col.title : C.cleanTitle(q.get('t'));
+    let n = 0;
+    if (isGroup()) {
+      const sel = [];
+      const add = id => { if (sel.length < MAX_OPTS && !sel.includes(id) && validOpt(id, state.mode)) sel.push(id); };
+      rows.forEach(r => {
+        if (r.kind === 'place') add('p-' + r.id);
+        else if (r.kind === 'event') add(r.id);
+        else if (validOpt(r.id, state.mode)) add(r.id);
+        else r.x.stops.forEach(sid => add('p-' + sid));
+      });
+      state.gsel = new Set(sel); state.autoSel = false; n = sel.length;
+      if (title) $('#title').value = title;
+      pk.tab = rows.every(r => r.kind === 'event') ? 'events' : pk.tab;
+    } else {
+      const pl = [];
+      rows.forEach(r => { const id = r.kind === 'place' ? 'p-' + r.id : r.kind === 'plan' ? r.id : ''; if (id && K.planById(id) && !pl.includes(id) && pl.length < MAX_PLACES) pl.push(id); });
+      if (pl.length) {
+        $('#places').innerHTML = pl.map(id => itemRow({ plan: id }, 'places')).join('');
+        const lvp = $('#lv-place');
+        if (lvp) lvp.checked = true;
+        n = pl.length;
+      } else {
+        const ev = rows.find(r => r.kind === 'event');
+        if (ev) { setEvent(ev.id); n = 1; }
+      }
+    }
+    pinNow();
+    renderPicker();
+    changed();
+    toast(n ? `Подставил ${n} из подборки «${title || 'список'}» ✓` : 'Из подборки ничего не подошло — выбери места сам');
+    return true;
+  }
   function applyUrlParams() {
     const q = new URLSearchParams(location.search);
-    const m = q.get('mode'), planId = q.get('plan'), evId = q.get('event');
-    if (!m && !planId && !evId) return;
+    if (applyCollection(q)) return;
+    const m = q.get('mode'), planId = q.get('plan'), evId = q.get('event'), qc = q.get('city');
+    if (!m && !planId && !evId && !qc) return;
     history.replaceState(null, '', 'create.html' + location.hash);
+    // город: у плана или события из ссылки — их город, иначе ?city=. Переключаем до режима:
+    // подборки по умолчанию для голосования берутся уже из нужного города
+    const item = planId && K.planById(planId) ? planId : evId && evById(evId) ? evId : '';
+    const c = (item && itemCity(item)) || (okCity(qc) ? qc : '');
+    if (c && !switchCity(c, { save: true, quiet: true })) K.setCity(c);
     if (okMode(m)) switchMode(m);
     if (evId) {
       const ev = evById(evId);
@@ -1251,12 +1576,14 @@
   }
   /* «В конструктор» из «Мои приглашения»: create.html#from=<код> — копия приглашения в форме */
   async function applyHashLoad() {
-    const m = /^#from=([A-Za-z0-9_-]{2,4000})$/.exec(location.hash);
+    const m = /^#(from|again)=([A-Za-z0-9_-]{2,4000})$/.exec(location.hash);
     if (!m) return false;
     history.replaceState(null, '', 'create.html' + location.search);
     try {
-      const r = fillForm(await K.decodeInvite(m[1]));
-      toast(r.pastEvent ? 'Загрузил в форму. Событие уже прошло — выбери другое' : 'Загрузил приглашение в форму ✓');
+      const inv = await K.decodeInvite(m[2]);
+      const again = m[1] === 'again';
+      const r = fillForm(again ? shiftWeek(inv) : inv);
+      toast(r.pastEvent ? 'Загрузил в форму. Событие уже прошло — выбери другое' : again ? 'Тот же состав, даты на неделю позже ✓' : 'Загрузил приглашение в форму ✓');
       changed();
       return true;
     } catch (e) { toast('Не удалось прочитать приглашение'); return false; }
@@ -1295,8 +1622,6 @@
     // название сайта — из config.js (site.name), как на главной
     if (CFG.site && CFG.site.name) { const b = $('.back span'); if (b) b.textContent = CFG.site.name; }
     $('#weekdays').innerHTML = WEEK.map(([n, t]) => `<label class="chip"><input type="checkbox" value="${n}"><span>${t}</span></label>`).join('');
-    const nPlaces = pkPlaces().length;
-    if (nPlaces >= 20) $('#placeCount').textContent = Math.floor(nPlaces / 10) * 10 + '+';
 
     let draft = null;
     try { OLD_DRAFTS.forEach(k => localStorage.removeItem(k)); } catch (e) { /* ок */ }
@@ -1341,6 +1666,9 @@
         return;
       }
       if (t.name === 'dmode') syncDateMode();
+      if (t.name === 'umode') pickUntil(t.value);
+      if (t.id === 'untilAt') { if (uMode() !== 'own') setUMode('own'); renderUntil(); }
+      if (t.id === 'slotAsk') renderSlots();
       if (t.id === 'tgu') {
         const raw = t.value.trim(), u = K.tgUser(raw);
         if (raw && !u) toast('Ник в Telegram: латиница, цифры и _, от 5 символов');
@@ -1358,6 +1686,8 @@
       }
       const tab = t.closest('[data-pktab]');
       if (tab) { pk.tab = tab.dataset.pktab; pk.limit = PK_STEP; pinNow(); renderPicker(); return; }
+      const pc = t.closest('[data-pkcity]');
+      if (pc) { switchCity(pc.dataset.pkcity, { save: true }); return; }
       const ph = t.closest('[data-pkh]');
       if (ph) { pk.hint = ph.dataset.pkh === pk.hint ? '' : ph.dataset.pkh; pk.limit = PK_STEP; pinNow(); renderPicker(); return; }
       const pe = t.closest('[data-pke]');
@@ -1373,6 +1703,7 @@
         return;
       }
       if (t.closest('.del') && t.closest('.li')) { t.closest('.li').remove(); renderPicker(); changed(); return; }
+      if (t.closest('#presetNow')) { presetNow(); return; }
       const add = t.closest('.btn-add');
       if (add) {
         const id = add.dataset.add, box = $('#' + id);

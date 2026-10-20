@@ -151,11 +151,12 @@ jobs:
             NEXT=$((V + 1))
             sed -i -E "s/(\.(js|css))\?v=[0-9]+/\1?v=${NEXT}/g" $FILES
           fi
-          # SEO-страницы moskva/ и sitemap.xml — из обновлённых данных (без зависимостей, только node)
+          # SEO-страницы городов (moskva/, spb/) и sitemap.xml — из обновлённых данных (без зависимостей, только node)
           node scripts/build-seo.mjs
           BR=${EXISTING:-auto/catalog-$DATE}
           git checkout -q -B "$BR"
-          git add assets $FILES moskva sitemap.xml robots.txt
+          # папки города может ещё не быть (git add на несуществующий путь падает)
+          git add assets $FILES sitemap.xml robots.txt $(ls -d moskva spb 2>/dev/null)
           git commit -qm "Каталог: обновление $DATE"
           if [ -n "$EXISTING" ]; then
             # ветка PR = свежий main + один коммит с её же изменениями (см. шаг выше);

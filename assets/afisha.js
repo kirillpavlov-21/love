@@ -1,12 +1,15 @@
-/* Афиша «Куда идём?»: события Москвы на ближайшие дни.
+/* Афиша «Куда идём?»: события города на ближайшие дни (Москва или Петербург — город интерфейса K.city()).
    ─ shelf()  — лента «Ближайшие события» над готовыми планами;
-   ─ mount()  — вкладка «Афиша»: даты, жанры, «Бесплатно», повод, список по дням;
+   ─ mount()  — вкладка «Афиша»: подборки (Футбол, Концерты, Театр, …, «На выходных», «Бесплатно») лентами,
+                чипы подборок — они же фильтр (ссылка ?tab=events&col=football), даты, «Бесплатно», повод, список по дням;
    ─ open()   — карточка события: когда, где, цена, билеты, календарь, «Позвать», план вокруг;
+                у футбольного матча ещё «Где смотреть» — watch(): бары с трансляциями этого же города;
    ─ handleDeepLink() — ссылка start.html?event=<id>;
    ─ count()  — числа для страницы: заголовок «Афиша N событий» = список вкладки с её фильтрами (подробно — у функции).
-   Данные — window.KUDA_EVENTS (assets/events.js и auto.js). Даты и время — московские (Europe/Moscow),
-   прошедшие события не показываем. Афиш-картинок нет: эмодзи на цветной подложке, а у площадки
-   из каталога — её фото с Wikimedia Commons с автором и лицензией. */
+   Данные — window.KUDA_EVENTS (assets/events.js, events-spb.js, sport.js и auto.js). Город события — поле city,
+   иначе по id (ev-spb-…), площадке или координатам (K.cityOf); во всех списках и числах — только город интерфейса.
+   Даты и время — московские (Europe/Moscow, в Петербурге то же время), прошедшие события не показываем.
+   Афиш-картинок нет: эмодзи на цветной подложке, а у площадки из каталога — её фото с Wikimedia Commons с автором и лицензией. */
 (function () {
   'use strict';
 
@@ -14,6 +17,7 @@
   const esc = K.esc || (s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])));
   const OWN_IC = {
     ticket: '<path d="M4 7h16v3a2 2 0 0 0 0 4v3H4v-3a2 2 0 0 0 0-4z"/><path d="M14 7.5v9" stroke-dasharray="1.6 2.2"/>',
+    tv: '<rect x="3" y="6" width="18" height="12" rx="2.5"/><path d="M8.5 21h7M9 2.5l3 3.5 3-3.5"/>',
   };
   const I = name => OWN_IC[name]
     ? `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${OWN_IC[name]}</svg>`
@@ -29,7 +33,7 @@
     show: ['Шоу', 'Шоу', '✨'], party: ['Вечеринки', 'Вечеринка', '🪩'], lecture: ['Лекции', 'Лекция', '📚'], kids: ['Детям', 'Детям', '🧸'],
   };
   const CAT_ORDER = Object.keys(CATS);
-  const WHEN = [['today', 'Сегодня'], ['tomorrow', 'Завтра'], ['weekend', 'Выходные'], ['week', 'Неделя'], ['month', 'Месяц'], ['all', 'Все']];
+  const WHEN = [['today', 'Сегодня'], ['tomorrow', 'Завтра'], ['weekend', 'Выходные'], ['week', 'Неделя'], ['month', 'Месяц'], ['all', 'Все даты']];
   const WHEN_IDS = WHEN.map(w => w[0]);
   const WHEN_EMPTY = { today: 'Сегодня', tomorrow: 'Завтра', weekend: 'На выходных', week: 'В ближайшие 7 дней', month: 'В ближайший месяц', all: 'В афише' };
   /* сколько длится событие для календаря, минуты */
@@ -40,6 +44,36 @@
   const NEAR_M = 900;       // «план вокруг события» — места в радиусе
   const NEAR_CATS = ['food', 'bar', 'coffee', 'walk'];
   const NEAR_Q = { date: 'кафе', guys: 'бар', girls: 'кафе' };
+  const GRACE_FB = 120;     // матч идёт два часа: «где смотреть» ещё нужно, пока он не кончился
+  const SHELF_N = 10;       // карточек в ленте подборки до «Все →»
+  const WATCH_N = 6;        // баров в «Где смотреть»
+
+  /* ---------- подборки: чипы сверху вкладки и ленты в её обзоре ----------
+     Подборка — жанр события, но футбол отдельно от остального спорта (матчи из assets/sport.js: cat 'sport', sub 'football').
+     «На выходных» и «Бесплатно» — умные ленты: это не подборки, а фильтры дат и цены, их «Все →» включает фильтр. */
+  const COLS = {
+    football: ['Футбол', '⚽'], concert: ['Концерты', '🎤'], theatre: ['Театр', '🎭'], standup: ['Стендап', '🎙️'],
+    exhibition: ['Выставки', '🖼️'], festival: ['Фестивали', '🎪'], party: ['Вечеринки', '🪩'], show: ['Шоу', '✨'],
+    sport: ['Спорт', '🏟️'], lecture: ['Лекции', '📚'], kids: ['Детям', '🧸'],
+  };
+  const SMART = { weekend: ['На выходных', '🗓️'], free: ['Бесплатно', '🆓'] };
+  /* Порядок лент обзора под повод: пацанам первым — футбол, подружкам — театр и концерты */
+  const OVERVIEW = {
+    guys: ['football', 'weekend', 'sport', 'concert', 'standup', 'party', 'free', 'festival', 'show', 'theatre', 'exhibition', 'lecture', 'kids'],
+    girls: ['theatre', 'concert', 'weekend', 'show', 'exhibition', 'standup', 'free', 'party', 'festival', 'lecture', 'kids', 'football', 'sport'],
+    date: ['concert', 'theatre', 'football', 'weekend', 'exhibition', 'standup', 'free', 'show', 'festival', 'party', 'sport', 'lecture', 'kids'],
+  };
+  const colOrder = mode => (OVERVIEW[mode] || OVERVIEW.date).filter(c => COLS[c]);
+  /* Редкие подборки (матчи раз в неделю-две) по умолчанию — на все даты: их и открывают, чтобы следить за расписанием */
+  const COL_ALL_DATES = ['football', 'sport'];
+  /* «Где смотреть»: бары, кафе и пабы с трансляциями. «матча» не берём: это и чай матча («кофе и матча»).
+     Кофейням мало слова «паб» или «матчи» — нужны «трансляции», «спорт-бар» или «футбол»; tv: true в каталоге — без условий */
+  const WATCH_RX = /спорт-?бар|трансляц|футбол|матч(?:и|ей|ам|ами|ах)?(?![а-яё])|паб(?:а|ы|е|у|ом|ов|ам|ах)?(?![а-яё])/i;
+  const WATCH_STRONG = /спорт-?бар|трансляц|футбол/i;
+  const WATCH_CATS = ['bar', 'food', 'fun', 'coffee'];
+  const WATCH_NOT = /стадион|арена|спорткомплекс/i;
+  /* «…сотни проверенных мест по всей Москве» — у каждого города свой падеж */
+  const CITY_ALL = { msk: 'по всей Москве', spb: 'по всему Петербургу' };
 
   const plural = (n, one, few, many) => { const a = Math.abs(n) % 100, b = a % 10; return a > 10 && a < 20 ? many : b === 1 ? one : b >= 2 && b <= 4 ? few : many; };
   const evWord = n => n + ' ' + plural(n, 'событие', 'события', 'событий');
@@ -87,9 +121,38 @@
     }
   }
 
+  /* ---------- города ---------- */
+  const isCity = c => typeof c === 'string' && (K.CITIES ? Object.prototype.hasOwnProperty.call(K.CITIES, c) : c === 'msk');
+  /* Город интерфейса; без K.city (старый shared.js) — Москва */
+  function curCity() {
+    try { const c = K.city ? K.city() : 'msk'; return isCity(c) ? c : 'msk'; } catch (e) { return 'msk'; }
+  }
+  /* opts.city: id города → он, 'all' или '*' → все города (''), иначе — город интерфейса */
+  const pickCity = c => (c === 'all' || c === '*' ? '' : isCity(c) ? c : curCity());
+  const cityConf = c => (K.CITIES && K.CITIES[c]) || { id: 'msk', in: 'в Москве', ya: { id: 213, slug: 'moscow' }, center: [55.751, 37.618] };
+  /* Город события: поле city → K.cityOf (префикс id ev-spb-, площадка из каталога, координаты) → Москва */
+  function evCity(raw, id) {
+    if (isCity(raw.city)) return raw.city;
+    if (K.cityOf) { try { const c = K.cityOf(raw); if (isCity(c)) return c; } catch (e) { /* ниже — по id */ } }
+    return /^ev-spb-/.test(id) ? 'spb' : 'msk';
+  }
+  /* Город места каталога: поле city (места Петербурга получают его при загрузке) или префикс id spb-; без них — Москва */
+  const placeCity = (id, p) => (p && isCity(p.city) ? p.city : /^spb-/.test(String(id || '')) ? 'spb' : 'msk');
+
   /* ---------- данные ---------- */
   /* число или строка с числом; '' и true не считаем ценой (isFinite('') === true) */
   const numOk = v => (typeof v === 'number' && isFinite(v)) || (typeof v === 'string' && v.trim() !== '' && isFinite(v));
+  /* Футбольный матч: sub 'football' из sport.js; у старых записей events.js — «(футбол, РПЛ)» в названии
+     или значок ⚽ («Спартак — Рубин»); другой sub (хоккей) — не футбол */
+  const fbRaw = (raw, title) => raw.cat === 'sport' &&
+    (raw.sub ? raw.sub === 'football' : /футбол/i.test(title) || String(raw.emoji || '').trim() === '⚽');
+  /* Хозяева и гости: поле teams, иначе — из названия «Спартак — Зенит (футбол, РПЛ)» */
+  function teamsOf(raw, title) {
+    const t = Array.isArray(raw.teams) ? raw.teams.map(x => String(x == null ? '' : x).trim()).filter(Boolean) : [];
+    if (t.length === 2) return t;
+    const m = /^(.+?)\s+[—–-]\s+(.+?)(?:\s*\([^)]*\))?$/.exec(title);
+    return m ? [m[1].trim(), m[2].trim()] : [];
+  }
   function normalize(src) {
     const out = [], seen = new Set();
     (Array.isArray(src) ? src : []).forEach(raw => {
@@ -113,10 +176,17 @@
         price = [from, to];
       }
       const age = /^\d{1,2}\+$/.test(String(raw.age || '').trim()) ? String(raw.age).trim() : '';
+      /* tbc — время ещё не назначено (у матчей его ставят за пару недель): «время уточняется», по времени не считаем */
+      const tbc = raw.tbc === true;
+      const fb = fbRaw(raw, title);
+      const league = String(raw.league || (fb && (/\(футбол,\s*([^)]+)\)/i.exec(title) || [])[1]) || '').trim();
       seen.add(id);
       out.push({
-        id, title, cat, emoji: String(raw.emoji || (CATS[cat] ? CATS[cat][2] : '📅')),
-        start, end, dates, time: tm ? pad(+tm[1]) + ':' + tm[2] : '',
+        id, title, cat, emoji: String(raw.emoji || (fb ? '⚽' : CATS[cat] ? CATS[cat][2] : '📅')),
+        city: evCity(raw, id),
+        sub: fb ? 'football' : String(raw.sub || '').trim(), league, tour: String(raw.tour || '').trim(),
+        teams: fb ? teamsOf(raw, title) : [], tbc,
+        start, end, dates, time: tm && !tbc ? pad(+tm[1]) + ':' + tm[2] : '',
         venue: String(raw.venue || (pl && pl.name) || '').trim(), place: raw.place ? String(raw.place) : '',
         addr: String(raw.addr || (pl && pl.addr) || '').trim(), metro: String(raw.metro || (pl && pl.metro) || '').trim(),
         lat: geo ? lat : null, lon: geo ? lon : null, price, age,
@@ -124,6 +194,8 @@
         note: String(raw.note || '').trim(),
         fit: Array.isArray(raw.fit) ? raw.fit.filter(m => MODES.includes(m)) : [],
         long: !dates.length && dn(end) - dn(start) >= LONG_DAYS - 1,
+        // регистрация (A2): нужна ли и когда откроется
+        reg: raw.reg === true, regOpen: raw.reg === true && /^\d{4}-\d{2}-\d{2}$/.test(String(raw.regOpen || '')) ? raw.regOpen : '',
       });
     });
     return out;
@@ -134,15 +206,58 @@
     const src = Array.isArray(window.KUDA_EVENTS) ? window.KUDA_EVENTS : [];
     if (src !== SRC || src.length !== SRC_N) {
       SRC = src; SRC_N = src.length;
-      LIST = normalize(src);
-      BY_ID = new Map(LIST.map(e => [e.id, e]));
+      const all = normalize(src), tw = twins(all, src);
+      LIST = tw.hide.size ? all.filter(e => !tw.hide.has(e.id)) : all;
+      BY_ID = new Map(all.map(e => [e.id, e]));
+      tw.alias.forEach((m, a) => { if (!BY_ID.has(a)) BY_ID.set(a, m); });
     }
     return LIST;
   }
+  /* Один матч дважды: старая запись events.js («ЦСКА — Спартак (футбол, РПЛ)») и он же из sport.js.
+     Старая — в aka матча или футбол в тот же день на том же стадионе (до 1 км). В списках остаётся матч из sport.js;
+     по старому id (приглашения, ссылки) карточка открывается, как раньше, а если записи уже нет — открывается матч.
+     → { hide: старые id, alias: старый id → матч } */
+  function twins(all, src) {
+    const fresh = new Map(), hide = new Set(), alias = new Map();
+    src.forEach(r => {
+      if (r && typeof r === 'object' && r.sub === 'football' && r.id) {
+        fresh.set(String(r.id).trim(), Array.isArray(r.aka) ? r.aka.map(x => String(x == null ? '' : x).trim()).filter(Boolean) : []);
+      }
+    });
+    if (!fresh.size) return { hide, alias };
+    const live = all.filter(e => fresh.has(e.id));
+    live.forEach(m => fresh.get(m.id).forEach(a => { if (!fresh.has(a)) { hide.add(a); alias.set(a, m); } }));
+    all.forEach(e => {
+      if (fresh.has(e.id) || hide.has(e.id) || !isFootball(e) || e.lat == null) return;
+      if (live.some(m => m.city === e.city && m.start === e.start && m.lat != null && distM(m, e) <= 1000)) hide.add(e.id);
+    });
+    return { hide, alias };
+  }
   const findEvent = id => (events(), BY_ID.get(String(id || '')) || null);
+  /* События одного города (c = '' — всех): списки, ленты и числа показывают только город интерфейса */
+  let BY_CITY = { list: null, map: new Map() };
+  function cityEvents(c) {
+    const all = events();
+    if (!c) return all;
+    if (BY_CITY.list !== all) BY_CITY = { list: all, map: new Map() };
+    let l = BY_CITY.map.get(c);
+    if (!l) { l = all.filter(ev => ev.city === c); BY_CITY.map.set(c, l); }
+    return l;
+  }
+
+  /* ---------- подборки ---------- */
+  const isFootball = ev => ev.sub === 'football';
+  /* Событие в подборке: футбол — матчи, «Спорт» — остальной спорт, прочие — по жанру */
+  const inCol = (ev, col) => (col === 'football' ? isFootball(ev) : col === 'sport' ? ev.cat === 'sport' && !isFootball(ev) : ev.cat === col);
+  const colOf = ev => (isFootball(ev) ? 'football' : ev.cat);
+  /* «Спартак — Зенит»; без пары команд — название как есть */
+  const matchTitle = ev => (ev.teams && ev.teams.length === 2 ? ev.teams[0] + ' — ' + ev.teams[1] : ev.title);
+  const evTitle = ev => (isFootball(ev) ? matchTitle(ev) : ev.title);
+  /* «РПЛ · 13-й тур» */
+  const leagueLine = ev => [ev.league, ev.tour].filter(Boolean).join(' · ');
 
   /* ---------- когда идёт событие ---------- */
-  const over = (ev, d, ctx) => d === ctx.today && !!ev.time && ctx.nowMin >= toMin(ev.time) + GRACE_MIN;
+  const over = (ev, d, ctx) => d === ctx.today && !!ev.time && ctx.nowMin >= toMin(ev.time) + (isFootball(ev) ? GRACE_FB : GRACE_MIN);
   /* Ближайший день события в окне [from; to] (to = '' — без конца), не раньше сегодняшнего; '' — нет */
   function nextDay(ev, ctx, from, to) {
     const lo = from && from > ctx.today ? from : ctx.today;
@@ -191,7 +306,8 @@
     }
   }
 
-  /* Фильтр: { when | from+to, cat, free, mode, fit (по умолчанию — да, если задан mode), ctx }
+  /* Фильтр: { when | from+to, city, col, cat, free, mode, fit (по умолчанию — да, если задан mode), ctx }
+     (city — id города, без него — все города; col — подборка: football, concert, …)
      → [{ ev, day: ближайший показ в окне, long }] по ближайшему показу, затем по времени
      (на свидании 18+ — после остальных событий того же дня) */
   function filterEvents(list, o) {
@@ -200,8 +316,11 @@
     const w = o.from ? { from: o.from, to: o.to || '' } : windowOf(o.when, ctx.today);
     const mode = MODES.includes(o.mode) ? o.mode : '';
     const a18 = adultRank(mode);
+    const city = isCity(o.city) ? o.city : '', col = COLS[o.col] ? o.col : '';
     const out = [];
     (list || []).forEach(ev => {
+      if (city && ev.city !== city) return;
+      if (col && !inCol(ev, col)) return;
       if (o.cat && ev.cat !== o.cat) return;
       if (o.free && !isFree(ev)) return;
       if (mode && o.fit !== false && !fits(ev, mode)) return;
@@ -248,8 +367,9 @@
     const d = o.day || nextDay(ev, ctx);
     if (!d) return '';
     const parts = [];
-    if (!o.row) parts.push(dayLabel(d, t) + (ev.time ? ', ' + ev.time : ''));
+    if (!o.row) parts.push(dayLabel(d, t) + (ev.time ? ', ' + ev.time : ev.tbc ? ', время уточняется' : ''));
     else if (ev.time) parts.push(ev.time);
+    else if (ev.tbc) parts.push('время уточняется');
     if (!o.noMore) {
       const more = upcomingDays(ev, ctx).filter(x => x > d).length;
       if (more) parts.push(`ещё ${more} ${plural(more, 'дата', 'даты', 'дат')}`);
@@ -277,7 +397,7 @@
   }
   const walkOf = m => Math.max(1, Math.round(m * 1.3 / 75));   // как K.walkMin: петляем по улицам
   const catOf = p => (K.catOf ? K.catOf(p) : (p.cat || 'food'));
-  /* До limit мест каталога в радиусе (еда, бары, кофе, прогулки), без закрытых, 18+ и самой площадки.
+  /* До limit мест каталога в радиусе (еда, бары, кофе, прогулки) того же города, что и событие, без закрытых, 18+ и самой площадки.
      Порядок — по score(id) (рейтинг отзывов), при равенстве — ближе; не больше двух мест одного раздела */
   function nearbyPlaces(ev, places, o) {
     o = o || {};
@@ -291,6 +411,7 @@
       if (!NEAR_CATS.includes(c)) return;
       const dist = distM(ev, p);
       if (dist > radius) return;
+      if (ev.city && placeCity(id, p) !== ev.city) return;
       let s = 0;
       if (score) { try { s = Number(score(id)) || 0; } catch (e) { s = 0; } }
       cand.push({ id, p, c, dist, walk: walkOf(dist), s });
@@ -302,6 +423,50 @@
     cand.forEach(x => { if (out.length < limit && !out.includes(x)) out.push(x); });
     return out.sort(order);
   }
+  /* Показывает ли место матчи: tv: true в каталоге или по типу и описанию (спорт-бар, трансляции, паб…); стадионы — нет */
+  function showsMatches(p) {
+    if (!p || p.closed || p.adult) return false;
+    if (p.tv === true) return true;
+    const kind = String(p.kind || ''), text = kind + ' · ' + String(p.note || '');
+    if (WATCH_NOT.test(kind)) return false;
+    const c = catOf(p);
+    if (!WATCH_CATS.includes(c)) return false;
+    return c === 'coffee' ? WATCH_STRONG.test(text) : WATCH_RX.test(text);
+  }
+  /* «Где смотреть»: до o.limit (6) баров с трансляциями в городе матча — ближе к o.from (точка человека),
+     иначе к стадиону, а без координат матча — к центру города. → [{ id, p, dist }] */
+  function watchPlaces(ev, places, o) {
+    o = o || {};
+    if (!ev) return [];
+    const city = ev.city || 'msk', limit = o.limit || WATCH_N;
+    const c0 = cityConf(city).center || [0, 0];
+    const from = o.from && isFinite(o.from.lat) && isFinite(o.from.lon) ? o.from : ev.lat != null && ev.lon != null ? ev : { lat: c0[0], lon: c0[1] };
+    const cand = [];
+    Object.keys(places || {}).forEach(id => {
+      const p = places[id];
+      if (!p || !isFinite(p.lat) || !isFinite(p.lon) || placeCity(id, p) !== city || !showsMatches(p)) return;
+      cand.push({ id, p, dist: distM(from, p) });
+    });
+    // проверенные бары (tv: true) — если их в городе хватает, угадывать по описанию («паб», «матч») не нужно
+    const sure = cand.filter(x => x.p.tv === true);
+    return (sure.length >= WATCH_N ? sure : cand).sort((a, b) => (a.dist - b.dist) || cmp(a.id, b.id)).slice(0, limit);
+  }
+  /* Точка «Рядом со мной» этого города (assets/geo.js: 'kuda-near' — Москва, 'kuda-near:spb' — Петербург;
+     GPS — в sessionStorage, станция или точка на карте — в localStorage). Точка из другого города не годится */
+  function nearPoint(city) {
+    const ok = p => !!p && isFinite(p.lat) && isFinite(p.lon) && Math.abs(p.lat) > 1 &&
+      (!K.cityByPoint || K.cityByPoint(+p.lat, +p.lon) === city);
+    try {
+      const G = window.KudaGeo;
+      if (G && typeof G.saved === 'function') { const p = G.saved(city); if (ok(p)) return p; }
+    } catch (e) { /* ниже — из хранилища */ }
+    const key = city === 'msk' ? 'kuda-near' : 'kuda-near:' + city;
+    for (const s of ['sessionStorage', 'localStorage']) {
+      try { const p = JSON.parse(window[s].getItem(key) || 'null'); if (ok(p)) return p; } catch (e) { /* приватный режим */ }
+    }
+    return null;
+  }
+  const kmText = m => (m < 950 ? Math.max(50, Math.round(m / 50) * 50) + ' м' : String(Math.round(m / 100) / 10).replace('.', ',') + ' км');
   const placesMap = () => ((K.kuda ? K.kuda() : window.KUDA) || {}).places || {};
   function placeOf(ev) {
     if (!ev.place) return null;
@@ -312,10 +477,12 @@
   const reviewScore = () => { const R = window.KudaReviews; return R && typeof R.score === 'function' ? id => R.score(id) : null; };
 
   /* ---------- ссылки ---------- */
+  /* Ссылка на событие; у событий не Москвы — ещё &city=…: главная сразу откроется в нужном городе */
   function shareUrl(id, mode) {
     let base = 'start.html';
     try { base = K.sitePath ? K.sitePath('start.html') : new URL('start.html', location.href).href.split(/[?#]/)[0]; } catch (e) { /* относительная */ }
-    return base + '?event=' + encodeURIComponent(id) + (MODES.includes(mode) ? '&m=' + mode : '');
+    const ev = findEvent(id), city = ev && ev.city !== 'msk' ? ev.city : '';
+    return base + '?event=' + encodeURIComponent(id) + (MODES.includes(mode) ? '&m=' + mode : '') + (city ? '&city=' + city : '');
   }
   /* Где продают билеты — по адресу ссылки: [ключ для аналитики, домен (с поддоменами) или проверка, «Билеты — …», «проверь их …»] */
   const SELLERS = [
@@ -329,22 +496,31 @@
     ['kinoafisha', 'kinoafisha.info', 'Киноафиша', 'на Киноафише'],
   ];
   const ORGANIZER = { key: 'site', name: 'сайт организатора', on: 'на сайте организатора' };
-  function ticketSource(url) {
+  /* У матча ссылка — сайт клуба или лиги */
+  const OFFICIAL = { key: 'site', name: 'официальный сайт', on: 'на официальном сайте' };
+  function ticketSource(url, ev) {
+    const own = ev && isFootball(ev) ? OFFICIAL : ORGANIZER;
     let h = '', path = '';
-    try { const u = new URL(url); h = u.hostname.toLowerCase().replace(/^www\.|\.$/g, ''); path = u.pathname; } catch (e) { return ORGANIZER; }
+    try { const u = new URL(url); h = u.hostname.toLowerCase().replace(/^www\.|\.$/g, ''); path = u.pathname; } catch (e) { return own; }
     /* старые ссылки Яндекса: yandex.ru/afisha/… */
     if (/^yandex\.(ru|com)$/.test(h) && /^\/afisha(\/|$)/.test(path)) h = 'afisha.yandex.ru';
     const s = SELLERS.find(([, m]) => (typeof m === 'function' ? m(h) : h === m || h.endsWith('.' + m)));
-    return s ? { key: s[0], name: s[2], on: s[3] } : ORGANIZER;
+    return s ? { key: s[0], name: s[2], on: s[3] } : own;
   }
   const inviteUrl = (id, mode) => 'create.html?event=' + encodeURIComponent(id) + '&mode=' + (MODES.includes(mode) ? mode : 'date');
-  const ll = p => p.lat.toFixed(6) + ',' + p.lon.toFixed(6);
+  const ll = p => (+p.lat).toFixed(6) + ',' + (+p.lon).toFixed(6);
+  /* Яндекс Карты — в регионе города события (Москва 213, Петербург 2), а не города интерфейса */
+  const yaBase = c => { const y = cityConf(isCity(c) ? c : 'msk').ya || { id: 213, slug: 'moscow' }; return `https://yandex.ru/maps/${y.id}/${y.slug}/`; };
   /* До площадки — общественным транспортом, откуда ехать, человек укажет сам; к месту рядом — пешком */
   const routeTo = ev => (ev.lat != null
-    ? 'https://yandex.ru/maps/213/moscow/?rtext=~' + ll(ev) + '&rtt=mt'
-    : 'https://yandex.ru/maps/213/moscow/?text=' + encodeURIComponent([ev.venue, ev.addr].filter(Boolean).join(', ')));
-  const walkRoute = (a, b) => 'https://yandex.ru/maps/213/moscow/?rtext=' + ll(a) + '~' + ll(b) + '&rtt=pd';
-  const venueMap = ev => 'https://yandex.ru/maps/213/moscow/?text=' + encodeURIComponent([ev.venue, ev.addr].filter(Boolean).join(', '));
+    ? yaBase(ev.city) + '?rtext=~' + ll(ev) + '&rtt=mt'
+    : yaBase(ev.city) + '?text=' + encodeURIComponent([ev.venue, ev.addr].filter(Boolean).join(', ')));
+  const walkRoute = (a, b) => yaBase(a.city) + '?rtext=' + ll(a) + '~' + ll(b) + '&rtt=pd';
+  const venueMap = ev => yaBase(ev.city) + '?text=' + encodeURIComponent([ev.venue, ev.addr].filter(Boolean).join(', '));
+  /* До бара: от точки человека, если она есть (пешком, когда близко), иначе откуда ехать — укажет сам */
+  const barRoute = (city, from, p, dist) => yaBase(city) + '?rtext=' + (from ? ll(from) : '') + '~' + ll(p) + '&rtt=' + (from && dist < 1500 ? 'pd' : 'mt');
+  /* Карточка места на главной: в шторке страницы (opts.onPlace) или ссылкой */
+  const placeHref = (id, city) => 'start.html?place=' + encodeURIComponent(id) + (city && city !== 'msk' ? '&city=' + city : '');
   /* «м. Чистые пруды» — без переноса после «м.» */
   const metroText = m => (K.metroText ? K.metroText(m) : m ? 'м. ' + m : '').replace(/^(м\.|ж\/д) /, '$1\u00A0');
 
@@ -353,7 +529,7 @@
   }
 
   /* ---------- разметка ---------- */
-  const catName = ev => (CATS[ev.cat] ? CATS[ev.cat][1] : 'Событие');
+  const catName = ev => (isFootball(ev) ? 'Футбол' : CATS[ev.cat] ? CATS[ev.cat][1] : 'Событие');
   const ageTag = ev => (ev.age ? `<span class="af-tag af-age${ev.age === '18+' ? ' af-a18' : ''}">${esc(ev.age)}</span>` : '');
   function cover(ev, cls) {
     const ph = photoOf(ev);
@@ -366,22 +542,51 @@
     return (pr ? `<span class="af-tag${isFree(ev) ? ' af-free' : ''}">${esc(pr)}</span>` : '') + ageTag(ev) +
       (closingSoon(ev, ctx) ? '<span class="af-tag af-soon">скоро закроется</span>' : '');
   }
-  /* Строка списка; o.withDay — с днём (вне группы по дням) */
+  /* Строка списка; o.withDay — с днём (вне группы по дням); o.match — у матча кнопки «Билеты · Позвать · Где смотреть» */
   function itemHtml(it, ctx, o) {
     const ev = it.ev;
+    if (o && o.match && isFootball(ev)) return matchItemHtml(it, ctx, o);
     const when = formatWhen(ev, ctx, { day: it.day, row: !(o && o.withDay) });
     const sub = [when, ev.venue, metroText(ev.metro)].filter(Boolean).join(' · ');
     return `<li><button type="button" class="af-item" data-af-ev="${esc(ev.id)}">${cover(ev, 'af-cov')}` +
-      `<span class="af-main"><span class="af-vh">${esc(catName(ev))}. </span><span class="af-name">${esc(ev.title)}</span>` +
+      `<span class="af-main"><span class="af-vh">${esc(catName(ev))}. </span><span class="af-name">${esc(evTitle(ev))}</span>` +
       `<span class="af-sub">${esc(sub)}</span><span class="af-tags">${tagsHtml(ev, ctx)}</span></span></button></li>`;
   }
   function cardHtml(it, ctx) {
     const ev = it.ev, pr = priceText(ev);
     return `<li class="af-cell"><button type="button" class="af-card" data-af-ev="${esc(ev.id)}">${cover(ev, 'af-ccov')}` +
       `<span class="af-cwhen">${esc(formatWhen(ev, ctx, { day: it.day, noMore: true }))}</span>` +
-      `<span class="af-vh">${esc(catName(ev))}. </span><span class="af-ct">${esc(ev.title)}</span>` +
+      `<span class="af-vh">${esc(catName(ev))}. </span><span class="af-ct">${esc(evTitle(ev))}</span>` +
       `<span class="af-cv">${esc(ev.venue)}</span>` +
       `<span class="af-tags">${pr ? `<span class="af-tag${isFree(ev) ? ' af-free' : ''}">${esc(pr)}</span>` : ''}${ageTag(ev)}</span></button></li>`;
+  }
+
+  /* ---------- карточки матчей: хозяева — гости, лига и тур, когда, стадион и три действия ---------- */
+  /* «Билеты» (сайт клуба или лиги), «Позвать» (приглашение на событие), «Где смотреть» (бары с трансляциями) */
+  function matchActs(ev, mode, cls) {
+    const t = matchTitle(ev);
+    const tickets = ev.url ? `<a class="af-mb af-mb-tk" href="${esc(ev.url)}" target="_blank" rel="noopener nofollow" data-af-t="event_tickets" data-af-v="${ticketSource(ev.url, ev).key}" data-af-id="${esc(ev.id)}" aria-label="${esc(`Билеты на матч ${t} — откроется в новой вкладке`)}">${I('ticket')}<span>Билеты</span></a>` : '';
+    return `<div class="af-mact${cls ? ' ' + cls : ''}">` +
+      `<a class="af-mb af-mb-go" href="${inviteUrl(ev.id, mode)}" data-af-t="event_invite" data-af-id="${esc(ev.id)}" aria-label="${esc(`Позвать на матч ${t}`)}">${I('send')}<span>Позвать</span></a>` +
+      tickets +
+      `<button type="button" class="af-mb" data-af-watch="${esc(ev.id)}" aria-label="${esc(`Где смотреть матч ${t}: бары с трансляциями`)}">${I('tv')}<span>Где смотреть</span></button></div>`;
+  }
+  function matchItemHtml(it, ctx, o) {
+    const ev = it.ev, lg = leagueLine(ev);
+    const when = formatWhen(ev, ctx, { day: it.day, row: !(o && o.withDay) });
+    const sub = [when, ev.venue, metroText(ev.metro)].filter(Boolean).join(' · ');
+    return `<li class="af-mli"><div class="af-mrow"><button type="button" class="af-item af-mitem" data-af-ev="${esc(ev.id)}">${cover(ev, 'af-cov')}` +
+      `<span class="af-main"><span class="af-mlg"><span class="af-vh">Футбол. </span>${esc(lg || 'Футбол')}</span><span class="af-name">${esc(matchTitle(ev))}</span>` +
+      `<span class="af-sub">${esc(sub)}</span><span class="af-tags">${tagsHtml(ev, ctx)}</span></span></button>` +
+      `${matchActs(ev, o && o.mode)}</div></li>`;
+  }
+  function matchCardHtml(it, ctx, mode) {
+    const ev = it.ev, lg = leagueLine(ev);
+    return `<li class="af-cell"><div class="af-mcard"><button type="button" class="af-mbody" data-af-ev="${esc(ev.id)}">` +
+      `<span class="af-mlg"><span aria-hidden="true">⚽</span><span class="af-vh">Футбол. </span> ${esc(lg || 'Футбол')}</span>` +
+      `<span class="af-mteams">${esc(matchTitle(ev))}</span>` +
+      `<span class="af-cwhen">${esc(formatWhen(ev, ctx, { day: it.day, noMore: true }))}</span>` +
+      `<span class="af-cv">${esc(ev.venue)}</span></button>${matchActs(ev, mode, 'af-mact2')}</div></li>`;
   }
 
   /* ---------- лента «Ближайшие события» ---------- */
@@ -416,13 +621,16 @@
     const mode = MODES.includes(opts.mode) ? opts.mode : 'date';
     const limit = Math.max(1, Math.min(20, +opts.limit || 8));
     const ctx = mskNow();
-    const items = shelfItems(events(), mode, limit, ctx);
+    /* город — из opts.city или город интерфейса на момент отрисовки (сменили город — перерисовка покажет новый) */
+    const items = shelfItems(cityEvents(pickCity(opts.city)), mode, limit, ctx);
     let s = SHELVES.get(container);
     if (!s) {
       s = {};
       SHELVES.set(container, s);
       container.classList.add('af-host');
       container.addEventListener('click', e => {
+        const w = e.target.closest('[data-af-watch]');
+        if (w) { watch(w.dataset.afWatch, s.opts); return; }
         const b = e.target.closest('[data-af-ev]');
         if (b) { open(b.dataset.afEv, s.opts); return; }
         if (e.target.closest('[data-af-all]') && typeof s.opts.onAll === 'function') s.opts.onAll();
@@ -440,32 +648,44 @@
     return items.length;
   }
 
-  /* ---------- вкладка «Афиша» ---------- */
+  /* ---------- вкладка «Афиша» ----------
+     Состояние: col — подборка ('' — все), when — даты, free — «Бесплатно», fit — «Для … / Все», limit — сколько в списке.
+     Подборка не выбрана, даты «Все даты», без «Бесплатно» — обзор: ленты подборок по поводу, у каждой «Все →».
+     Иначе — список по дням с теми же фильтрами (чипы подборок сверху — тот же фильтр, ссылка ?tab=events&col=football). */
   const MOUNTS = new WeakMap();
   let UID = 0;
   let TAB = null;   // последняя нарисованная вкладка: её фильтры показывает count({ mode })
-  /* День по умолчанию: неделя; если на неделе пусто — месяц, иначе все даты */
-  const defaultWhen = (all, ctx, mode) => ['week', 'month'].find(w => filterEvents(all, { ctx, mode, when: w }).length) || 'all';
-  /* Фильтры вкладки для повода; пока вкладку не рисовали — вид по умолчанию */
-  function viewState(mode, all, ctx) {
-    const m = TAB && TAB.el.isConnected ? TAB : null;
-    if (!m) return { when: defaultWhen(all, ctx, mode), cat: '', free: false, fit: true };
+  /* День по умолчанию: неделя; если на неделе пусто — месяц, иначе все даты (o — подборка и «Бесплатно») */
+  const defaultWhen = (all, ctx, mode, o) => ['week', 'month'].find(w => filterEvents(all, Object.assign({ ctx, mode, when: w }, o)).length) || 'all';
+  /* День, подобранный сам: обзор и редкие подборки (футбол, спорт) — все даты; остальное — неделя, месяц или все */
+  function autoWhen(all, ctx, mode, st) {
+    if ((!st.col && !st.free) || COL_ALL_DATES.includes(st.col)) return 'all';
+    return defaultWhen(all, ctx, mode, { col: st.col, free: st.free });
+  }
+  const isOverview = st => !st.col && st.when === 'all' && !st.free;
+  /* Фильтры вкладки для повода; пока вкладку не рисовали (или она нарисована для другого города) — вид по умолчанию: обзор */
+  function viewState(mode, all, ctx, city) {
+    const m = TAB && TAB.el.isConnected && TAB.city === city ? TAB : null;
+    if (!m) return { col: '', when: 'all', free: false, fit: true };
     const st = m.st;
     /* вкладка ещё не перерисована под новый повод, а день подобран автоматически — считаем, как она его подберёт */
-    const when = m.auto && m.mode !== mode ? defaultWhen(all, ctx, mode) : st.when || defaultWhen(all, ctx, mode);
-    return { when, cat: st.cat, free: st.free, fit: st.fit };
+    const when = m.auto && m.mode !== mode ? autoWhen(all, ctx, mode, st) : st.when || autoWhen(all, ctx, mode, st);
+    return { col: st.col, when, free: st.free, fit: st.fit };
   }
   /* Сообщаем странице, что число событий во вкладке изменилось (главная обновит «Афиша N событий») */
   function notify(reason) {
     try { document.dispatchEvent(new CustomEvent('kuda-afisha', { detail: { reason } })); } catch (e) { /* старый браузер */ }
   }
+  /* opts.city — город (без него — город интерфейса на момент отрисовки), opts.col — подборка при первом показе
+     (без него — ?col= из адреса страницы: football, concert, …, а также free и weekend — фильтры «Бесплатно» и «Выходные») */
   function mount(container, opts) {
     if (!container) return null;
     opts = opts || {};
     let m = MOUNTS.get(container);
     const first = !m;
     if (first) {
-      m = { el: container, uid: 'afm' + (++UID), st: { when: '', cat: '', free: false, fit: true, limit: PAGE } };
+      /* url — подборку берём из адреса и держим её там же (если страница не передала свою) */
+      m = { el: container, uid: 'afm' + (++UID), st: { col: '', when: '', free: false, fit: true, limit: PAGE }, url: opts.col === undefined };
       MOUNTS.set(container, m);
       container.classList.add('af-host');
       container.addEventListener('click', e => onMountClick(m, e));
@@ -478,20 +698,29 @@
     m.opts = Object.assign({}, opts, { mode });
     /* стартовые фильтры (например, из ссылки) — только при первом показе */
     if (first) {
-      if (WHEN_IDS.includes(opts.when)) m.st.when = opts.when;
-      if (CATS[opts.cat]) m.st.cat = opts.cat;
-      if (opts.free) m.st.free = true;
+      const st = m.st;
+      let col = opts.col;
+      if (col === undefined) { try { col = new URLSearchParams(location.search).get('col'); } catch (e) { col = ''; } }
+      if (COLS[col]) st.col = col;
+      else if (col === 'free') st.free = true;
+      else if (col === 'weekend') st.when = 'weekend';
+      if (!st.col && CATS[opts.cat]) st.col = opts.cat;   // старый фильтр жанра
+      if (WHEN_IDS.includes(opts.when)) st.when = opts.when;
+      if (opts.free) st.free = true;
     }
-    /* день выбрали не сами — подбираем заново и при смене повода */
-    if (!m.st.when || (m.auto && modeChanged)) { m.st.when = defaultWhen(events(), mskNow(), mode); m.auto = true; }
+    /* день выбрали не сами — подбираем заново и при смене повода (renderMount подберёт по пустому when) */
+    if (!m.st.when || (m.auto && modeChanged)) { m.st.when = ''; m.auto = true; }
     renderMount(m);
+    if (first) m.el.querySelectorAll('[data-af-row]').forEach(revealOn);
     return {
       refresh: () => renderMount(m),
-      count: () => count({ mode: m.mode }),
+      count: () => count({ mode: m.mode, city: m.city === '' ? 'all' : m.city }),
       get state() { return Object.assign({}, m.st); },
     };
   }
   const chip = (k, label, n, on, cls) => `<button type="button" class="af-chip${cls ? ' ' + cls : ''}" data-af-k="${k}" aria-pressed="${on}">${label}<span class="af-n"><span class="af-vh">, </span>${n}</span></button>`;
+  const colLabel = c => `<span class="af-ce" aria-hidden="true">${COLS[c][1]}</span>${esc(COLS[c][0])}`;
+  const matchWord = n => n + ' ' + plural(n, 'матч', 'матча', 'матчей');
   function setRow(root, name, html) {
     const row = root.querySelector(`[data-af-row="${name}"]`);
     if (!row || row._h === html) return;
@@ -509,12 +738,20 @@
     else if (r.left < fr.left + 20) row.scrollLeft -= fr.left + 20 - r.left;
   }
   function renderMount(m) {
-    const all = events(), ctx = mskNow(), st = m.st, mode = m.mode;
+    const st = m.st, mode = m.mode, ctx = mskNow();
+    const city = pickCity(m.opts.city);
+    /* сменили город — как смена повода: список сначала, день подбираем заново (если подбирали сами) */
+    if (m.city !== city) {
+      if (m.city !== undefined) { st.limit = PAGE; if (m.auto) st.when = ''; }
+      m.city = city;
+    }
+    const all = cityEvents(city);
+    if (!st.when) { st.when = autoWhen(all, ctx, mode, st); m.auto = true; }
     let root = m.el.querySelector('.af-tab');
     if (!root) {
       m.el.innerHTML = `<div class="af af-tab">
-        <div class="af-chips" role="group" aria-label="Когда" data-af-row="when"></div>
-        <div class="af-chips" role="group" aria-label="Жанр и цена" data-af-row="cat"></div>
+        <div class="af-chips af-cols" role="group" aria-label="Подборки" data-af-row="col"></div>
+        <div class="af-chips" role="group" aria-label="Когда и цена" data-af-row="when"></div>
         <div class="af-seg" role="group" aria-label="Кому подходит" data-af-row="fit" hidden></div>
         <p class="af-status af-vh" role="status" aria-live="polite"></p>
         <div class="af-list"></div>
@@ -534,30 +771,39 @@
       return told(m, 0);
     }
     const base = { ctx, mode, fit: st.fit };
-    setRow(root, 'when', WHEN.map(([id, label]) =>
-      chip('when:' + id, label, filterEvents(all, Object.assign({}, base, { when: id, cat: st.cat, free: st.free })).length, st.when === id)).join(''));
+    const n = patch => filterEvents(all, Object.assign({}, base, { col: st.col, when: st.when, free: st.free }, patch)).length;
+    /* подборки: «Все» и подборки повода по порядку; число — на выбранные даты и «Бесплатно».
+       Пустые прячем; футбол виден, пока в городе есть хоть один матч (за ним следят) */
     const inWin = filterEvents(all, Object.assign({}, base, { when: st.when, free: st.free }));
     const per = {};
-    inWin.forEach(it => { per[it.ev.cat] = (per[it.ev.cat] || 0) + 1; });
-    const freeN = filterEvents(all, Object.assign({}, base, { when: st.when, cat: st.cat, free: true })).length;
-    setRow(root, 'cat', chip('free', 'Бесплатно', freeN, st.free, 'af-free') +
-      CAT_ORDER.filter(c => per[c] || st.cat === c).map(c => chip('cat:' + c, CATS[c][0], per[c] || 0, st.cat === c)).join(''));
+    inWin.forEach(it => { const c = colOf(it.ev); per[c] = (per[c] || 0) + 1; });
+    const fbAny = all.some(ev => isFootball(ev) && isUpcoming(ev, ctx));
+    setRow(root, 'col', chip('col:', 'Все', inWin.length, !st.col) +
+      colOrder(mode).filter(c => per[c] || st.col === c || (c === 'football' && fbAny))
+        .map(c => chip('col:' + c, colLabel(c), per[c] || 0, st.col === c)).join(''));
+    setRow(root, 'when', WHEN.map(([id, label]) => chip('when:' + id, label, n({ when: id }), st.when === id)).join('') +
+      chip('free', 'Бесплатно', n({ free: true }), st.free, 'af-free'));
 
-    /* «Для пацанов 21 · Все 42» — на выбранные даты, жанр и «Бесплатно»; выбранная половина = число в списке */
-    const sel = { ctx, mode, when: st.when, cat: st.cat, free: st.free };
+    /* «Для пацанов 21 · Все 42» — на выбранные подборку, даты и «Бесплатно»; выбранная половина = число в списке */
+    const sel = { ctx, mode, col: st.col, when: st.when, free: st.free };
     const mineL = filterEvents(all, Object.assign({}, sel, { fit: true })), anyL = filterEvents(all, Object.assign({}, sel, { fit: false }));
     const items = st.fit ? mineL : anyL;
     const fitLabel = FIT_LABEL[mode][0].toUpperCase() + FIT_LABEL[mode].slice(1);
     seg.hidden = st.fit && anyL.length === mineL.length;
-    setRow(root, 'fit', [[1, fitLabel, mineL.length], [0, 'Все', anyL.length]].map(([v, label, n]) =>
-      `<button type="button" class="af-sg" data-af-k="fit:${v}" aria-pressed="${st.fit === !!v}">${label}<span class="af-n"><span class="af-vh">: </span>${n}</span></button>`).join(''));
-    const say = evWord(items.length) + (st.fit ? ' ' + FIT_LABEL[mode] : ' для любой компании');
+    setRow(root, 'fit', [[1, fitLabel, mineL.length], [0, 'Все', anyL.length]].map(([v, label, k]) =>
+      `<button type="button" class="af-sg" data-af-k="fit:${v}" aria-pressed="${st.fit === !!v}">${label}<span class="af-n"><span class="af-vh">: </span>${k}</span></button>`).join(''));
+    const say = (st.col === 'football' ? matchWord : evWord)(items.length) + (st.fit ? ' ' + FIT_LABEL[mode] : ' для любой компании');
     if (status.textContent !== say) status.textContent = say;
 
     if (!items.length) {
       list.innerHTML = emptyHtml(m, all, ctx);
       more.hidden = true;
       return told(m, 0);
+    }
+    if (isOverview(st)) {
+      list.innerHTML = overviewHtml(m, all, ctx);
+      more.hidden = true;
+      return told(m, items.length);
     }
     let left = st.limit, html = '';
     groupByDay(items, ctx.today, { mode }).forEach((g, i) => {
@@ -566,13 +812,34 @@
       left -= part.length;
       const hid = `${m.uid}-g${i}`;
       html += `<section class="af-day" aria-labelledby="${hid}"><h3 class="af-day-h" id="${hid}">${esc(g.title)}${g.sub ? ` <small>${esc(g.sub)}</small>` : ''}</h3>` +
-        `<ul class="af-items">${part.map(it => itemHtml(it, ctx)).join('')}</ul></section>`;
+        `<ul class="af-items">${part.map(it => itemHtml(it, ctx, { match: true, mode })).join('')}</ul></section>`;
     });
     list.innerHTML = html;
     const rest = items.length - Math.min(items.length, st.limit);
     more.hidden = rest <= 0;
     more.textContent = `Показать ещё ${Math.min(rest, PAGE)} из ${rest}`;
     return told(m, items.length);
+  }
+  /* Обзор: ленты подборок в порядке повода; пустые не показываем. У футбола — карточки матчей с кнопками,
+     у «На выходных» и «Бесплатно» сначала события с датой, выставки и другие долгие — после */
+  function overviewHtml(m, all, ctx) {
+    const st = m.st, mode = m.mode;
+    const base = { ctx, mode, fit: st.fit, when: 'all' };
+    let html = '';
+    (OVERVIEW[mode] || OVERVIEW.date).forEach(id => {
+      const smart = SMART[id];
+      const o = Object.assign({}, base, id === 'free' ? { free: true } : id === 'weekend' ? { when: 'weekend' } : { col: id });
+      let items = filterEvents(all, o);
+      if (!items.length) return;
+      if (smart) items = items.filter(it => !it.long).concat(items.filter(it => it.long));
+      const [name, emo] = smart || COLS[id], fb = id === 'football', hid = `${m.uid}-s-${id}`;
+      const word = (fb ? matchWord : evWord)(items.length);
+      html += `<section class="af-tsh${fb ? ' af-tsh-fb' : ''}" aria-labelledby="${hid}"><div class="af-shelf-head">` +
+        `<h3 class="af-shelf-h" id="${hid}"><span class="af-ce" aria-hidden="true">${emo}</span>${esc(name)}<span class="af-shn"><span class="af-vh">, </span>${items.length}</span></h3>` +
+        `<button type="button" class="af-mini" data-af-col="${id}" aria-label="${esc(`${name}: смотреть все, ${word}`)}">Все${I('arrow')}</button></div>` +
+        `<ul class="af-rail${fb ? ' af-mrail' : ''}">${items.slice(0, SHELF_N).map(it => (fb ? matchCardHtml(it, ctx, mode) : cardHtml(it, ctx))).join('')}</ul></section>`;
+    });
+    return `<div class="af-shs">${html}</div>`;
   }
   /* Число в списке изменилось — говорим странице (один раз на изменение) */
   function told(m, n) {
@@ -582,13 +849,16 @@
   /* Пусто по фильтрам: предлагаем ослабить ровно тот фильтр, без которого что-то найдётся */
   function emptyHtml(m, all, ctx) {
     const st = m.st, mode = m.mode;
-    const base = { ctx, mode, fit: st.fit, when: st.when, cat: st.cat, free: st.free };
+    const base = { ctx, mode, fit: st.fit, col: st.col, when: st.when, free: st.free };
     const n = patch => filterEvents(all, Object.assign({}, base, patch));
     const tries = [], on = st.when === 'all' ? '' : ' на эти даты';
-    if (st.cat) tries.push(['cat', { cat: '' }, x => `В жанре «${CATS[st.cat][0]}»${on} ничего нет, зато в других жанрах — ${evWord(x)}.`, 'Все жанры']);
+    const whenTry = ['when', { when: 'all' }, (x, first) => `${WHEN_EMPTY[st.when]} ничего нет. Ближайшее — ${formatWhen(first.ev, ctx, { day: first.day, noMore: true }).replace(/^(Сегодня|Завтра)/, w => w.toLowerCase())}: «${evTitle(first.ev)}».`, 'Смотреть все даты'];
+    /* в подборке сначала предлагаем другие даты той же подборки, потом другие подборки */
+    if (st.col && st.when !== 'all') tries.push(whenTry);
+    if (st.col) tries.push(['col', { col: '' }, x => `В подборке «${COLS[st.col][0]}»${on} ничего нет, зато в других — ${evWord(x)}.`, 'Все подборки']);
     if (st.free) tries.push(['free', { free: false }, x => `Бесплатного${on} нет, зато есть ${evWord(x)} с билетами.`, 'Показать платные']);
     if (st.fit) tries.push(['fit', { fit: false }, x => `${FIT_LABEL[mode][0].toUpperCase() + FIT_LABEL[mode].slice(1)}${on} ничего не подобрали, но есть ${evWord(x)} для любой компании.`, 'Показать все']);
-    if (st.when !== 'all') tries.push(['when', { when: 'all' }, (x, first) => `${WHEN_EMPTY[st.when]} ничего нет. Ближайшее — ${formatWhen(first.ev, ctx, { day: first.day, noMore: true }).replace(/^(Сегодня|Завтра)/, w => w.toLowerCase())}: «${first.ev.title}».`, 'Смотреть все даты']);
+    if (!st.col && st.when !== 'all') tries.push(whenTry);
     const plans = typeof m.opts.onPlans === 'function' ? '<button type="button" class="af-btn af-ghost" data-af-plans>Готовые планы на вечер</button>' : '';
     /* до двух вариантов: объясняем первый, второй — запасной кнопкой (или готовые планы) */
     const ways = [];
@@ -605,21 +875,66 @@
   }
   function noDataHtml(m) {
     const plans = typeof m.opts.onPlans === 'function' ? '<button type="button" class="af-btn af-primary" data-af-plans>Смотреть готовые планы</button>' : '';
-    return emptyBox('🗓️', 'Афиша обновляется', 'Новые события появятся совсем скоро. А пока выбери готовый план на вечер — там сотни проверенных мест по всей Москве.', plans);
+    const city = m.city || curCity();
+    const where = CITY_ALL[city] || cityConf(city).in || '';
+    return emptyBox('🗓️', 'Афиша обновляется', `Новые события появятся совсем скоро. А пока выбери готовый план на вечер — там сотни проверенных мест${where ? ' ' + where : ''}.`, plans);
   }
   const emptyBox = (e, title, text, actions) => `<div class="af-empty"><span class="af-empty-e" aria-hidden="true">${e}</span><b>${esc(title)}</b><p>${esc(text)}</p>${actions ? `<div class="af-empty-act">${actions}</div>` : ''}</div>`;
 
+  /* Подборка в адресе страницы (?col=football; без подборки — col=free или col=weekend, если выбраны «Бесплатно» или «Выходные»):
+     ссылкой из строки браузера можно поделиться. Только когда открыта сама страница (не запись шторки) и подборку страница не задала сама */
+  function syncCol(m) {
+    if (!m.url) return;
+    try {
+      if (history.state && history.state.kudaSheet) return;
+      const st = m.st, col = st.col || (st.free ? 'free' : st.when === 'weekend' && !m.auto ? 'weekend' : '');
+      const u = new URL(location.href);
+      if ((u.searchParams.get('col') || '') === col) return;
+      if (col) u.searchParams.set('col', col); else u.searchParams.delete('col');
+      history.replaceState(history.state, '', u.pathname + u.search + u.hash);
+    } catch (e) { /* file:// и песочницы */ }
+  }
+  const reduced = () => { try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } };
+  /* Сменили подборку или «Бесплатно», а день подобран сам: числа на чипах посчитаны на нынешние даты — их и держим
+     (иначе «Концерты 31» открыли бы 2 концерта недели); сняли и подборку, и «Бесплатно» — день подберём заново (обзор) */
+  const keepWhen = m => { if (m.auto && !m.st.col && !m.st.free) m.st.when = ''; };
+  /* «Все →» у ленты обзора: подборка (или «Бесплатно», «Выходные») целиком — списком по дням, на все даты, как в ленте */
+  function openCol(m, id) {
+    const st = m.st;
+    if (id === 'weekend') { st.col = ''; st.when = 'weekend'; }
+    else if (id === 'free') { st.col = ''; st.free = true; st.when = 'all'; }
+    else if (COLS[id]) { st.col = id; st.when = 'all'; }
+    else return;
+    m.auto = false;
+    st.limit = PAGE;
+    syncCol(m);
+    renderMount(m);
+    m.el.querySelectorAll('[data-af-row]').forEach(revealOn);
+    /* ленты листали вниз — возвращаемся к началу вкладки, иначе список начнётся выше экрана */
+    try {
+      if (m.el.getBoundingClientRect().top < 0) (m.el.closest('section') || m.el).scrollIntoView({ block: 'start', behavior: reduced() ? 'auto' : 'smooth' });
+    } catch (e) { /* старый браузер */ }
+    const firstItem = m.el.querySelector('.af-item');
+    if (firstItem) firstItem.focus({ preventScroll: true });
+  }
+
   function onMountClick(m, e) {
     const st = m.st, t = e.target;
+    const w = t.closest('[data-af-watch]');
+    if (w) { watch(w.dataset.afWatch, m.opts); return; }
     const it = t.closest('[data-af-ev]');
     if (it) { open(it.dataset.afEv, m.opts); return; }
+    const sh = t.closest('[data-af-col]');
+    if (sh) { openCol(m, sh.dataset.afCol); track('event_filter', { v: 'shelf:' + sh.dataset.afCol, mode: m.mode }); return; }
     const c = t.closest('[data-af-k]');
     if (c) {
       const [kind, val] = c.dataset.afK.split(':');
-      if (kind === 'when') { st.when = val; m.auto = false; }
-      else if (kind === 'cat') st.cat = st.cat === val ? '' : val;
-      else if (kind === 'free') st.free = !st.free;
+      /* подборка: повторное нажатие (и «Все») снимает её; даты — те, на которые посчитаны числа чипов */
+      if (kind === 'col') { st.col = val && st.col !== val ? val : ''; keepWhen(m); }
+      else if (kind === 'when') { st.when = val; m.auto = false; }
+      else if (kind === 'free') { st.free = !st.free; keepWhen(m); }
       else if (kind === 'fit') { if (st.fit === (val === '1')) return; st.fit = val === '1'; }
+      if (kind !== 'fit') syncCol(m);
       st.limit = PAGE;
       const row = c.closest('[data-af-row]');
       renderMount(m);
@@ -630,14 +945,16 @@
     const rx = t.closest('[data-af-relax]');
     if (rx) {
       const k = rx.dataset.afRelax;
-      if (k === 'cat' || k === 'reset') st.cat = '';
+      if (k === 'col' || k === 'reset') st.col = '';
       if (k === 'free' || k === 'reset') st.free = false;
       if (k === 'fit' || k === 'reset') st.fit = false;
+      /* «Смотреть все даты» — все даты; другие кнопки обещали число «на эти даты» — даты не трогаем */
       if (k === 'when' || k === 'reset') { st.when = 'all'; m.auto = false; }
+      syncCol(m);
       st.limit = PAGE;
       renderMount(m);
       m.el.querySelectorAll('[data-af-row]').forEach(revealOn);
-      const firstItem = m.el.querySelector('.af-item');
+      const firstItem = m.el.querySelector('.af-item, .af-card, .af-mbody');
       if (firstItem) firstItem.focus({ preventScroll: true });
       return;
     }
@@ -648,28 +965,35 @@
       renderMount(m);
       const next = m.el.querySelectorAll('.af-item')[before];
       if (next) next.focus({ preventScroll: true });
+      return;
     }
+    /* ссылки карточек матчей («Билеты», «Позвать») уходят сами — только отмечаем нажатие */
+    const a = t.closest('[data-af-t]');
+    if (a) track(a.dataset.afT, { id: a.dataset.afId || undefined, mode: m.mode, v: a.dataset.afV || undefined });
   }
 
-  /* Сколько событий — для счётчиков страницы:
+  /* Сколько событий — для счётчиков страницы (только город интерфейса или opts.city; 'all' — все города):
      count() / count({ mode: '' }) — все предстоящие события, любой повод (есть ли что показать вообще);
-     count({ mode }) — сколько сейчас в списке вкладки «Афиша» для этого повода: выбранные даты, жанр,
-       «Бесплатно» и «Для … / Все»; пока вкладку не рисовали — вид по умолчанию (неделя; если пусто — месяц или все даты).
+     count({ mode }) — сколько сейчас в списке вкладки «Афиша» для этого повода: подборка, даты, «Бесплатно»
+       и «Для … / Все»; в обзоре подборок — все предстоящие события повода; пока вкладку не рисовали — обзор.
        Это число для заголовка «Афиша N событий»: оно совпадает со списком и с выбранной половиной «Для … / Все»;
-     count({ mode, when, cat?, free?, fit? }) — то же по явным фильтрам, без состояния вкладки:
+     count({ mode, when, col?, cat?, free?, fit? }) — то же по явным фильтрам, без состояния вкладки:
        { mode, when: 'week' } — события этой недели под повод (число на вкладке). */
   function count(opts) {
     opts = opts || {};
     const mode = MODES.includes(opts.mode) ? opts.mode : '';
-    const all = events(), ctx = mskNow();
+    const city = pickCity(opts.city), all = cityEvents(city), ctx = mskNow();
     if (!mode) return filterEvents(all, { ctx, when: 'all' }).length;
-    const st = WHEN_IDS.includes(opts.when) ? { when: opts.when, cat: CATS[opts.cat] ? opts.cat : '', free: !!opts.free, fit: opts.fit !== false } : viewState(mode, all, ctx);
-    return filterEvents(all, { ctx, mode, when: st.when, cat: st.cat, free: st.free, fit: st.fit }).length;
+    const st = WHEN_IDS.includes(opts.when)
+      ? { col: COLS[opts.col] ? opts.col : '', when: opts.when, cat: CATS[opts.cat] ? opts.cat : '', free: !!opts.free, fit: opts.fit !== false }
+      : viewState(mode, all, ctx, city);
+    return filterEvents(all, { ctx, mode, col: st.col, when: st.when, cat: st.cat, free: st.free, fit: st.fit }).length;
   }
-  /* Предстоящие события по порядку — для конструктора и других страниц: [{ ...событие, next: 'YYYY-MM-DD' }] */
+  /* Предстоящие события города по порядку — для главной и других страниц: [{ ...событие, next: 'YYYY-MM-DD' }].
+     opts: mode, when, col, cat, free, city (без него — город интерфейса, 'all' — все города) */
   function upcoming(opts) {
     opts = opts || {};
-    return filterEvents(events(), { mode: opts.mode, when: opts.when || 'all', cat: opts.cat, free: opts.free })
+    return filterEvents(cityEvents(pickCity(opts.city)), { mode: opts.mode, when: opts.when || 'all', col: opts.col, cat: opts.cat, free: opts.free })
       .map(it => Object.assign({}, it.ev, { next: it.day }));
   }
 
@@ -682,7 +1006,7 @@
       return range + (ev.time ? `, начало в ${ev.time}` : '');
     }
     const d = st.day, rel = d === t ? 'Сегодня' : d === addD(t, 1) ? 'Завтра' : '';
-    return (rel ? `${rel}, ${dMonth(d, t)}` : dLong(d, t)) + (ev.time ? ', ' + ev.time : '');
+    return (rel ? `${rel}, ${dMonth(d, t)}` : dLong(d, t)) + (ev.time ? ', ' + ev.time : ev.tbc ? ', время уточняется' : '');
   }
   function sheetHtml(st, tok) {
     const ev = st.ev, ctx = st.ctx, t = ctx.today, place = placeOf(ev);
@@ -706,24 +1030,27 @@
     const venue = ev.venue || (place && place.name) || '';
     const placeLink = place && typeof st.opts.onPlace === 'function'
       ? `<button type="button" class="af-link" data-af-place="${esc(ev.place)}">О площадке: фото и как найти</button>` : '';
-    /* подпись по адресу: «Билеты — Яндекс Афиша», у сайта площадки или организатора — «сайт организатора» */
-    const src = ev.url ? ticketSource(ev.url) : null, tkWord = isFree(ev) ? 'Подробнее' : 'Билеты';
+    /* подпись по адресу: «Билеты — Яндекс Афиша», у сайта площадки или организатора — «сайт организатора», у матча — «официальный сайт» */
+    const fb = isFootball(ev), title = evTitle(ev), lg = fb ? leagueLine(ev) : '';
+    const src = ev.url ? ticketSource(ev.url, ev) : null, tkWord = isFree(ev) ? 'Подробнее' : 'Билеты';
     const tickets = src ? `<a class="af-btn af-ghost" href="${esc(ev.url)}" target="_blank" rel="noopener nofollow" data-af-t="event_tickets" data-af-v="${src.key}" aria-label="${esc(`${tkWord} — ${src.name}, откроется в новой вкладке`)}">${I('ticket')}` +
       `<span class="af-bl"><span>${tkWord}</span><small>${esc(src.name)}</small></span></a>` : '';
     const cal = K.calendarLinks ? `<button type="button" class="af-btn af-ghost" data-af-cal aria-expanded="false" aria-controls="${tok}-cal">${I('calendar')}<span>В календарь</span></button>` : '';
     return `
       ${hero}
-      <p class="af-eyebrow">${esc(catName(ev))}${ev.age ? ` · <span class="af-tag af-age${ev.age === '18+' ? ' af-a18' : ''}">${esc(ev.age)}</span>` : ''}</p>
-      <h3 class="af-title" id="${tok}-t" tabindex="-1">${esc(ev.title)}</h3>
+      <p class="af-eyebrow">${esc(catName(ev))}${lg ? ` · <span class="af-lg">${esc(lg)}</span>` : ''}${ev.age ? ` · <span class="af-tag af-age${ev.age === '18+' ? ' af-a18' : ''}">${esc(ev.age)}</span>` : ''}</p>
+      <h3 class="af-title" id="${tok}-t" tabindex="-1">${esc(title)}</h3>
       <ul class="af-facts">
         <li>${I('calendar')}<span><b data-af-when>${esc(whenMain(st))}</b>${pick}</span></li>
         ${venue || ev.addr ? `<li>${I('pin')}<span><a class="af-venue" href="${venueMap(ev)}" target="_blank" rel="noopener"><b>${esc(venue)}</b></a>` +
           `<span class="af-dim">${esc([ev.addr, metro].filter(Boolean).join(' · '))}</span>${placeLink}</span></li>` : ''}
         <li>${I('ticket')}<span><b>${esc(priceFull || (src ? 'Цена — ' + src.on : 'Цену уточни у площадки'))}</b></span></li>
+        ${ev.reg ? `<li><span aria-hidden="true">📝</span><span><b>Нужна регистрация</b>${ev.regOpen && ev.regOpen >= t ? `<span class="af-dim">откроется ${esc(dayLabel(ev.regOpen, t))}</span>${K.calendarLinks ? `<a class="af-btn af-ghost af-sm af-remind" data-af-remind href="#" download="${esc(ev.id)}-reg.ics" data-af-t="event_reg">⏰ Напомнить в 10:00</a>` : ''}` : '<span class="af-dim">ссылка — на странице события</span>'}</span></li>` : ''}
       </ul>
       ${ev.note ? `<p class="af-note">${esc(ev.note)}</p>` : ''}
       <div class="af-actions">
-        <a class="af-btn af-primary" href="${inviteUrl(ev.id, st.mode)}" data-af-t="event_invite"><span>Позвать на событие</span>${I('arrow')}</a>
+        <a class="af-btn af-primary" href="${inviteUrl(ev.id, st.mode)}" data-af-t="event_invite"><span>${fb ? 'Позвать на матч' : 'Позвать на событие'}</span>${I('arrow')}</a>
+        ${fb ? `<button type="button" class="af-btn af-ghost" data-af-watch="${esc(ev.id)}" aria-label="Где смотреть матч: бары с трансляциями">${I('tv')}<span>Где смотреть матч</span></button>` : ''}
         ${tickets || cal ? `<div class="af-row${tickets && cal ? '' : ' af-one'}">${tickets}${cal}</div>` : ''}
         ${cal ? `<div class="af-cal" id="${tok}-cal" hidden>
           <a class="af-btn af-ghost af-sm" data-af-g href="#" target="_blank" rel="noopener" data-af-t="event_cal">Google Календарь</a>
@@ -746,7 +1073,7 @@
     const ev = st.ev, R = window.KudaReviews;
     const list = nearbyPlaces(ev, placesMap(), { score: reviewScore() });
     if (!list.length) {
-      const q = 'https://yandex.ru/maps/213/moscow/?ll=' + ev.lon.toFixed(6) + ',' + ev.lat.toFixed(6) + '&z=16&text=' + encodeURIComponent(NEAR_Q[st.mode] || 'кафе');
+      const q = yaBase(ev.city) + '?ll=' + ev.lon.toFixed(6) + ',' + ev.lat.toFixed(6) + '&z=16&text=' + encodeURIComponent(NEAR_Q[st.mode] || 'кафе');
       return `<p class="af-dim">В нашем каталоге рядом пока ничего нет. <a href="${q}" target="_blank" rel="noopener">Поискать рядом в Яндекс Картах</a></p>`;
     }
     const onPlace = typeof st.opts.onPlace === 'function';
@@ -756,24 +1083,25 @@
       if (R && typeof R.badge === 'function') { try { badge = R.badge(x.id, { short: true }) || ''; } catch (e) { badge = ''; } }
       const name = onPlace
         ? `<button type="button" class="af-np-name" data-af-place="${esc(x.id)}">${esc(p.name)}</button>`
-        : `<a class="af-np-name" href="start.html?place=${encodeURIComponent(x.id)}">${esc(p.name)}</a>`;
+        : `<a class="af-np-name" href="${placeHref(x.id, ev.city)}">${esc(p.name)}</a>`;
       return `<li class="af-np"><span class="af-np-e${ph && ph.t ? ' af-phc' : ''}" aria-hidden="true">${ph && ph.t ? `<img src="${esc(ph.t)}" width="240" height="240" alt="" loading="lazy" decoding="async">` : esc(p.emoji)}</span>` +
         `<span class="af-np-main">${name}<span class="af-np-sub">${x.walk} мин пешком · ${esc(String(p.kind || '').split(' · ')[0])}${badge ? ' ' + badge : ''}</span></span>` +
         `<a class="af-np-go" href="${walkRoute(ev, p)}" target="_blank" rel="noopener" data-af-t="event_plan" data-af-v="${esc(x.id)}" aria-label="Маршрут пешком от площадки до «${esc(p.name)}»">${I('route')}</a></li>`;
     }).join('')}</ul>`;
   }
 
-  /* Событие прошло или его нет: объясняем и предлагаем, что идёт сейчас */
+  /* Событие прошло или его нет: объясняем и предлагаем, что идёт сейчас — в городе этого события (неизвестного — в городе интерфейса);
+     сначала той же подборки (после матча — другие матчи) */
   function goneHtml(ev, st, tok) {
     const ctx = st.ctx;
-    let sug = filterEvents(events(), { ctx, mode: st.mode, when: 'all' });
-    if (ev && ev.cat) sug = sug.filter(it => it.ev.cat === ev.cat).concat(sug.filter(it => it.ev.cat !== ev.cat));
+    let sug = filterEvents(cityEvents(ev ? ev.city : curCity()), { ctx, mode: st.mode, when: 'all' });
+    if (ev && ev.cat) { const c = colOf(ev); sug = sug.filter(it => colOf(it.ev) === c).concat(sug.filter(it => colOf(it.ev) !== c)); }
     sug = sug.filter(it => !it.long).concat(sug.filter(it => it.long)).slice(0, 3);
     const all = typeof st.opts.onAll === 'function' ? '<button type="button" class="af-btn af-primary" data-af-all>Вся афиша</button>' : '';
     const plans = typeof st.opts.onPlans === 'function' ? `<button type="button" class="af-btn ${all ? 'af-ghost' : 'af-primary'}" data-af-plans>Готовые планы на вечер</button>` : '';
     return `<div class="af-gone"><span class="af-empty-e" aria-hidden="true">🕰️</span>
         <h3 class="af-title" id="${tok}-t" tabindex="-1">${ev ? 'Это событие уже прошло' : 'Такого события нет в афише'}</h3>
-        <p class="af-note">${ev ? `«${esc(ev.title)}» уже закончилось.` : 'Возможно, его отменили или ссылка устарела.'}${sug.length ? ' Вот что идёт в ближайшие дни:' : ''}</p></div>
+        <p class="af-note">${ev ? `«${esc(evTitle(ev))}» уже закончилось.` : 'Возможно, его отменили или ссылка устарела.'}${sug.length ? ' Вот что идёт в ближайшие дни:' : ''}</p></div>
       ${sug.length ? `<ul class="af-items">${sug.map(it => itemHtml(it, ctx, { withDay: true })).join('')}</ul>` : ''}
       ${all || plans ? `<div class="af-actions">${all}${plans}</div>` : ''}`;
   }
@@ -801,6 +1129,70 @@
         const box = cur.root.querySelector('[data-af-near]');
         if (box) box.innerHTML = nearHtml(st);
       }, () => { /* без рейтингов — по расстоянию */ });
+    }
+    return true;
+  }
+
+  /* ---------- «Где смотреть»: бары с трансляциями в городе матча ----------
+     Ближе к точке «Рядом со мной» этого города, если она задана, иначе — к стадиону. До шести мест, у каждого —
+     карточка места на главной (opts.onPlace или ссылка) и маршрут. Прошедший матч — карточка «уже прошло» */
+  function watchListHtml(st) {
+    const ev = st.ev, city = ev.city || 'msk', near = nearPoint(city), R = window.KudaReviews;
+    const list = watchPlaces(ev, placesMap(), { from: near });
+    const fromWord = near ? 'от тебя' : ev.lat != null ? 'от стадиона' : 'от центра';
+    const onPlace = typeof st.opts.onPlace === 'function';
+    if (list.length) {
+      return `<p class="af-dim">Бары и пабы с трансляциями ${esc(cityConf(city).in || '')} — сначала ближайшие ${near ? 'к тебе' : ev.lat != null ? 'к стадиону' : 'к центру'}.</p>
+        <ul class="af-near-list">${list.map(x => {
+          const p = x.p, ph = K.photo ? K.photo(p) : null;
+          let badge = '';
+          if (R && typeof R.badge === 'function') { try { badge = R.badge(x.id, { short: true }) || ''; } catch (e) { badge = ''; } }
+          const name = onPlace
+            ? `<button type="button" class="af-np-name" data-af-place="${esc(x.id)}">${esc(p.name)}</button>`
+            : `<a class="af-np-name" href="${placeHref(x.id, city)}">${esc(p.name)}</a>`;
+          return `<li class="af-np"><span class="af-np-e${ph && ph.t ? ' af-phc' : ''}" aria-hidden="true">${ph && ph.t ? `<img src="${esc(ph.t)}" width="240" height="240" alt="" loading="lazy" decoding="async">` : esc(p.emoji || '🍺')}</span>` +
+            `<span class="af-np-main">${name}<span class="af-np-sub">${esc(String(p.kind || '').split(' · ')[0])} · ${kmText(x.dist)} ${fromWord}${badge ? ' ' + badge : ''}</span></span>` +
+            `<a class="af-np-go" href="${barRoute(city, near, p, x.dist)}" target="_blank" rel="noopener" data-af-t="event_watch_route" data-af-v="${esc(x.id)}" aria-label="Маршрут до «${esc(p.name)}»">${I('route')}</a></li>`;
+        }).join('')}</ul>`;
+    }
+    const c = ev.lat != null ? ev : { lat: cityConf(city).center[0], lon: cityConf(city).center[1] };
+    const q = yaBase(city) + '?ll=' + (+c.lon).toFixed(6) + ',' + (+c.lat).toFixed(6) + '&z=13&text=' + encodeURIComponent('спорт-бар');
+    return `<p class="af-dim">В нашем каталоге пока нет баров с трансляциями ${esc(cityConf(city).in || '')}. <a href="${q}" target="_blank" rel="noopener">Поискать спорт-бары в Яндекс Картах</a></p>`;
+  }
+  function watchHtml(st, tok) {
+    const ev = st.ev, lg = leagueLine(ev);
+    const when = formatWhen(ev, st.ctx, { day: st.day, noMore: true });
+    return `<p class="af-eyebrow">Где смотреть${lg ? ` · <span class="af-lg">${esc(lg)}</span>` : ''}</p>
+      <h3 class="af-title" id="${tok}-t" tabindex="-1">${esc(matchTitle(ev))}</h3>
+      <p class="af-dim af-wsub">${esc([when, ev.venue].filter(Boolean).join(' · '))}</p>
+      <div class="af-watch" data-af-wl>${watchListHtml(st)}</div>
+      <div class="af-actions">
+        <a class="af-btn af-primary" href="${inviteUrl(ev.id, st.mode)}" data-af-t="event_invite"><span>Позвать смотреть вместе</span>${I('arrow')}</a>
+        <button type="button" class="af-btn af-ghost" data-af-ev="${esc(ev.id)}">${I('ticket')}<span>К матчу: билеты и детали</span></button>
+      </div>
+      <p class="af-disc">Не каждый бар показывает каждый матч — перед походом уточни трансляцию и забронируй стол.</p>`;
+  }
+  /* Открыть «Где смотреть» для матча id (для другого события — его карточку). false — матч прошёл или его нет */
+  function watch(id, opts) {
+    const ev = findEvent(id);
+    if (!ev || !isFootball(ev)) return open(id, opts);
+    const so = Object.assign({}, opts);
+    opts = Object.assign({}, opts);
+    delete opts.adopt;
+    const mode = MODES.includes(opts.mode) ? opts.mode : 'date';
+    const ctx = mskNow();
+    if (!isUpcoming(ev, ctx)) return open(id, so);
+    const st = { ev, id: ev.id, mode, opts, ctx, day: nextDay(ev, ctx), days: upcomingDays(ev, ctx), watch: true };
+    present(tok => watchHtml(st, tok), so, st);
+    track('event_watch', { id: ev.id, mode });
+    const R = window.KudaReviews;
+    if (R && R.ready && typeof R.ready.then === 'function') {
+      const cur = CUR;
+      R.ready.then(() => {
+        if (CUR !== cur || !cur || !cur.root.isConnected) return;
+        const box = cur.root.querySelector('[data-af-wl]');
+        if (box) box.innerHTML = watchListHtml(st);
+      }, () => { /* без рейтингов — просто по расстоянию */ });
     }
     return true;
   }
@@ -851,7 +1243,18 @@
     const day = t.closest('[data-af-day]');
     if (day) { setDay(cur, day.dataset.afDay); return; }
     if (t.closest('[data-af-cal]')) { toggleCal(cur); return; }
+    const rm = t.closest('[data-af-remind]');
+    if (rm && K.calendarLinks) {
+      // напоминание в день открытия регистрации, 10:00 по Москве: .ics собираем по нажатию
+      const ev = cur.st.ev;
+      const l = K.calendarLinks({ title: 'Регистрация: ' + ev.title, day: ev.regOpen, time: '10:00', minutes: 15, details: [ev.url, ev.venue].filter(Boolean).join('\n') });
+      rm.href = l.ics;
+      setTimeout(() => { try { URL.revokeObjectURL(l.ics); } catch (e) { /* ок */ } }, 10000);
+      return;   // переход по ссылке с download скачает файл
+    }
     if (t.closest('[data-af-share]')) { shareEvent(cur); return; }
+    const w = t.closest('[data-af-watch]');
+    if (w) { watch(w.dataset.afWatch, st.opts); return; }
     const ev = t.closest('[data-af-ev]');
     if (ev) { open(ev.dataset.afEv, st.opts); return; }
     const pl = t.closest('[data-af-place]');
@@ -1010,14 +1413,21 @@
       /* страница может обновить свои счётчики (например, число событий на вкладке) */
       try { document.dispatchEvent(new CustomEvent('kuda-afisha', { detail: { reason: 'refresh' } })); } catch (e) { /* старый браузер */ }
     });
+    /* Сменили город, а страница не перерисовала афишу сама: ленты и вкладка берут город интерфейса при отрисовке */
+    document.addEventListener('kuda-city', () => {
+      LIVE.forEach(fn => { if (!fn()) LIVE.delete(fn); });
+      try { document.dispatchEvent(new CustomEvent('kuda-afisha', { detail: { reason: 'city' } })); } catch (e) { /* старый браузер */ }
+    });
   }
 
   window.KudaAfisha = {
-    count, shelf, mount, open, handleDeepLink, upcoming,
+    count, shelf, mount, open, handleDeepLink, upcoming, watch,
     /* чистые функции — для тестов */
     _test: {
       normalize, filterEvents, groupByDay, nearbyPlaces, formatWhen, priceText, windowOf, nextDay, upcomingDays,
       dayLabel, mskNow, shelfItems, itemHtml, cardHtml, isFree, isAdult, shareUrl, inviteUrl, ticketSource, sheetHtml, CATS, WHEN,
+      COLS, OVERVIEW, inCol, isFootball, matchTitle, matchCardHtml, matchItemHtml, watchPlaces, showsMatches, nearPoint, watchHtml,
+      cityEvents, autoWhen, overviewHtml, curCity, kmText, routeTo, venueMap,
       setClock: fn => { clock = typeof fn === 'function' ? fn : () => new Date(); },
     },
   };
