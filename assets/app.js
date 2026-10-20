@@ -1923,7 +1923,7 @@
     }) : null;
     const extra = ev
       ? `<div class="tally"><h3>${esc(ev.emoji || '🎫')} ${esc(ev.title)}</h3>${evPlaceLine(ev) ? `<p class="v-day">${I('pin')}${esc(evLoc(ev))}</p>` : ''}${evLinks(ev)}${calEv ? calBlock(calEv) : ''}</div>`
-      : plan || calEv ? `<div class="tally"><h3>${plan ? esc(plan.title) : 'Не забудь'}</h3>${plan ? planBlock(plan) : ''}${plan ? homeRiskBlock(plan, S.a.time, S.a.date) : ''}${calEv ? calBlock(calEv) : ''}${plan && !view ? (() => { const st = K.planStops(plan), b = K.bookStop(st); const at = K.arriveWhen(st, b, S.a.time, S.a.date); return bookBox(b, { n: 2, day: at.day, time: at.time }); })() : ''}</div>` : '';
+      : plan || calEv ? `<div class="tally"><h3>${plan ? esc(plan.title) : 'Не забудь'}</h3>${plan ? planBlock(plan) : ''}${plan ? homeRiskBlock(plan, S.a.time, S.a.date) : ''}${calEv ? calBlock(calEv) : ''}${plan && !view ? (() => { const st = K.planStops(plan), b = K.bookStop(st); const at = K.arriveWhen(st, b, S.a.time, meetDay(S.a.date, S.a)); return bookBox(b, { n: 2, day: at.day, time: at.time }); })() : ''}</div>` : '';
     el.innerHTML = `
       <div class="res-head"><p class="eyebrow">${view ? 'Ответ получен' : 'Готово'}</p>
         <h2 class="final-title">${view ? `${esc(INV.her)} ${GF('ответила', 'ответил')} «да»` : 'Твой билет на свидание'}</h2></div>
@@ -2449,7 +2449,9 @@
         const who = v.day ? v.t.inV.filter(x => x.d.includes(v.day.d)) : v.t.inV;
         const n = who.length ? who.length + who.reduce((s, x) => s + (x.p || 0), 0) : 0;
         const day = v.day ? K.numDay(v.day.d) : '';
-        const at = v.slot && v.slot.tie ? { day, time: v.slot.tm + ' или ' + v.slot.tie } : K.arriveWhen(st, b, v.slot ? v.slot.tm : '', day);
+        const tms = v.slot ? [v.slot.tm].concat(v.slot.tie ? v.slot.tie.split(' или ') : []) : [''];
+        const ats = tms.map(tm => K.arriveWhen(st, b, tm, day));
+        const at = { day: ats[0].day, time: ats.every(x => x.day === ats[0].day) ? ats.map(x => x.time).join(' или ') : ats[0].time };
         return bookBox(b, { n, day: at.day, time: at.time, name: S.a.name || '' });
       })()}
     </div>`;
