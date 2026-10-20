@@ -260,22 +260,31 @@
     return list.find(p => eat(p) && (p.tel || p.site)) || list.find(p => p.tel || p.site) || list.find(eat) || null;
   }
   /* Во сколько прийти на остановку плана: начало + время на предыдущих остановках и дорогу (как в «Успеть домой»), до 15 мин */
-  function arriveAt(stops, stop, start) {
+  function arriveMin(stops, stop, start) {
     const i = (stops || []).indexOf(stop);
-    if (i <= 0 || !/^\d{1,2}:\d{2}$/.test(start || '')) return start || '';
     let t = toMin(start);
     for (let k = 0; k < i; k++) t += (STAY[catOf(stops[k])] || 90) + walkMin(stops[k], stops[k + 1]);
-    return hmOf(Math.round(t / 15) * 15);
+    return Math.round(t / 15) * 15;
+  }
+  function arriveAt(stops, stop, start) {
+    if ((stops || []).indexOf(stop) <= 0 || !/^\d{1,2}:\d{2}$/.test(start || '')) return start || '';
+    return hmOf(arriveMin(stops, stop, start));
+  }
+  /* То же с датой: после полуночи — следующий день. → { day: 'ГГГГ-ММ-ДД', time } */
+  function arriveWhen(stops, stop, start, day) {
+    if ((stops || []).indexOf(stop) <= 0 || !/^\d{1,2}:\d{2}$/.test(start || '')) return { day, time: start || '' };
+    const t = arriveMin(stops, stop, start), d = parseYmd(day);
+    return { day: d && t >= 1440 ? ymd(addDays(d, Math.floor(t / 1440))) : day, time: hmOf(t) };
   }
   /* «Здравствуйте! Хотим стол на 6 человек на пт, 24 октября, в 20:00. Имя — Аня» */
   function bookText(o) {
     o = o || {};
-    const n = Math.max(1, Math.min(99, Math.round(+o.n) || 2));
+    const n = Math.max(0, Math.min(99, Math.round(+o.n) || 0));   // 0 — число не знаем, не выдумываем
     const d = parseYmd(o.day);
     const WD = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'], MON = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
     const when = d ? ` на ${WD[d.getDay()]}, ${d.getDate()} ${MON[d.getMonth()]}` : '';
-    const ppl = n === 2 ? 'на двоих' : `на ${n} ${n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? 'человека' : 'человек'}`;
-    return `Здравствуйте! Хотим стол ${ppl}${when}${o.time ? ', в ' + o.time : ''}.${o.name ? ' Имя — ' + o.name + '.' : ''}`;
+    const ppl = !n ? '' : n === 2 ? ' на двоих' : ` на ${n} ${n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? 'человека' : 'человек'}`;
+    return `Здравствуйте! Хотим забронировать стол${ppl}${when}${o.time ? ', в ' + o.time : ''}.${o.name ? ' Имя — ' + o.name + '.' : ''}`;
   }
   const telHref = t => (/^\+7\d{10}$/.test(t || '') ? 'tel:' + t : '');
   const telText = t => (/^\+7(\d{3})(\d{3})(\d{2})(\d{2})$/.test(t || '') ? t.replace(/^\+7(\d{3})(\d{3})(\d{2})(\d{2})$/, '+7 $1 $2-$3-$4') : '');
@@ -1131,7 +1140,7 @@
 
   window.DateKit = {
     BASE, merge, defaults, diffInvite, encodeInvite, decodeInvite, encodeData, decodeData, readHash, esc, fill, hash,
-    leftText, bookStop, bookText, arriveAt, telHref, telText, ohDays, openState, closedOn, openText, ymd, parseYmd, addDays, listDates, fmtDay, dayNum, numDay, toMin, fromMin, relaySend, relayRegister, relayTest, shortLink, goRoute, sitePath, toB64url,
+    leftText, bookStop, bookText, arriveAt, arriveWhen, telHref, telText, ohDays, openState, closedOn, openText, ymd, parseYmd, addDays, listDates, fmtDay, dayNum, numDay, toMin, fromMin, relaySend, relayRegister, relayTest, shortLink, goRoute, sitePath, toB64url,
     CATS, catVars, catSVG, HEART_D, STAR_D, markD, ICONS, icon, MODE_ICON, tgUser, tgLink, calendarLinks,
     MODES, modeOf, kuda, placeById, planById, planStops, catOf, photo, planPhoto, photoCredit, cleanAuthor, HINTS, placeHints, planHints, hintChip, seasonHints,
     todayMsk, seasonNow, seasonOk, eventById, events, eventDays, sheet, homeRisk, bridgesToday, BRIDGES, LAST_METRO,

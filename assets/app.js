@@ -774,7 +774,7 @@
     return `<div class="book-wrap"><button class="btn btn-soft btn-wide book-open" aria-expanded="false">📞 Забронировать</button>
       <div class="book-box hidden" data-text="${esc(text)}" data-day="${esc(o.day || '')}" data-time="${esc(o.time || '')}" data-name="${esc(o.name || '')}">
         <p class="k">Бронь · ${esc(p.name)}</p>
-        <label class="book-n">Сколько человек <input type="number" class="field" min="1" max="99" value="${Math.max(1, Math.round(o.n) || 2)}" inputmode="numeric"></label>
+        <label class="book-n">Сколько человек <input type="number" class="field" min="1" max="99" value="${Math.round(o.n) > 0 ? Math.round(o.n) : ''}" placeholder="?" inputmode="numeric"></label>
         <p class="book-text">${esc(text)}</p>
         <div class="book-acts">
           ${p.tel ? `<a class="btn btn-primary" href="${esc(K.telHref(p.tel))}">Позвонить ${esc(K.telText(p.tel))}</a>` : ''}
@@ -791,7 +791,7 @@
     open.onclick = () => { Sfx.click(); const on = box.classList.toggle('hidden'); open.setAttribute('aria-expanded', String(!on)); };
     const nIn = w.querySelector('.book-n input');
     if (nIn) nIn.oninput = () => {
-      const d = box.dataset, t = K.bookText({ n: +nIn.value || 1, day: d.day, time: d.time, name: d.name });
+      const d = box.dataset, t = K.bookText({ n: +nIn.value || 0, day: d.day, time: d.time, name: d.name });
       d.text = t; w.querySelector('.book-text').textContent = t;
     };
     w.querySelector('.book-copy').onclick = () => copyText(box.dataset.text).then(ok => toast(ok ? 'Текст скопирован' : 'Не получилось скопировать'));
@@ -1923,7 +1923,7 @@
     }) : null;
     const extra = ev
       ? `<div class="tally"><h3>${esc(ev.emoji || '🎫')} ${esc(ev.title)}</h3>${evPlaceLine(ev) ? `<p class="v-day">${I('pin')}${esc(evLoc(ev))}</p>` : ''}${evLinks(ev)}${calEv ? calBlock(calEv) : ''}</div>`
-      : plan || calEv ? `<div class="tally"><h3>${plan ? esc(plan.title) : 'Не забудь'}</h3>${plan ? planBlock(plan) : ''}${plan ? homeRiskBlock(plan, S.a.time, S.a.date) : ''}${calEv ? calBlock(calEv) : ''}${plan && !view ? (() => { const st = K.planStops(plan), b = K.bookStop(st); return bookBox(b, { n: 2, day: S.a.date, time: K.arriveAt(st, b, S.a.time) }); })() : ''}</div>` : '';
+      : plan || calEv ? `<div class="tally"><h3>${plan ? esc(plan.title) : 'Не забудь'}</h3>${plan ? planBlock(plan) : ''}${plan ? homeRiskBlock(plan, S.a.time, S.a.date) : ''}${calEv ? calBlock(calEv) : ''}${plan && !view ? (() => { const st = K.planStops(plan), b = K.bookStop(st); const at = K.arriveWhen(st, b, S.a.time, S.a.date); return bookBox(b, { n: 2, day: at.day, time: at.time }); })() : ''}</div>` : '';
     el.innerHTML = `
       <div class="res-head"><p class="eyebrow">${view ? 'Ответ получен' : 'Готово'}</p>
         <h2 class="final-title">${view ? `${esc(INV.her)} ${GF('ответила', 'ответил')} «да»` : 'Твой билет на свидание'}</h2></div>
@@ -2380,13 +2380,14 @@
     const SL = slotList();
     const slot = SL.length === 1 ? { tm: SL[0], who: [] } : t.slots.length && t.slots[0].who.length ? t.slots[0] : null;
     // ничья по времени: показываем оба варианта, а не молча первый
-    if (slot && SL.length > 1 && t.slots[1] && t.slots[1].who.length === slot.who.length) slot.tie = t.slots[1].tm;
+    if (slot && SL.length > 1) { const eq = t.slots.slice(1).filter(x => x.who.length === slot.who.length).map(x => x.tm); if (eq.length) slot.tie = eq.join(' или '); }
     return { t, win, leaders, ev, day, slot, people: t.inV.length + t.plus, wheel: forced != null && !!win, plan: win && win.o.plan ? K.planById(win.o.plan) : null };
   }
   /* «могут все» — только когда про дни ответили хотя бы двое и все — твёрдым «да»; «может быть» считаем отдельно */
   function canLine(v, names) {
     const m = v.t.dIn.length, yes = v.day.yes == null ? v.day.who.length : v.day.yes, maybe = v.day.who.length - yes;
     if (yes === m && m >= 2) return `могут все ${m}`;
+    if (!yes && maybe) return `пока только «может»: ${maybe} из ${m}`;
     const may = maybe ? ` + ${maybe} «может»` : '';
     return names ? `могут ${v.day.who.join(', ')} (${yes} из ${m}${may})` : `могут ${yes} из ${m}${may}`;
   }
@@ -2421,7 +2422,7 @@
     const evNext = v.ev && !v.day ? evDaysAll(v.ev)[0] || '' : '';
     const calDay = v.day ? K.numDay(v.day.d) : evNext;
     const cal = calDay ? {
-      title: groupTitle() + (v.win ? ' · ' + v.win.o.title : ''), day: calDay, time: (v.ev && v.ev.time) || (v.slot && v.slot.tm) || '', minutes: v.ev ? EV_MIN[v.ev.cat] : undefined,
+      title: groupTitle() + (v.win ? ' · ' + v.win.o.title : ''), day: calDay, time: (v.ev && v.ev.time) || (v.slot && !v.slot.tie && v.slot.tm) || '', minutes: v.ev ? EV_MIN[v.ev.cat] : undefined,
       location: v.plan ? placeLoc(v.plan) : v.ev ? evLoc(v.ev) : '', details: v.plan ? planDetails(v.plan) : v.ev ? evUrl(v.ev) : '',
     } : null;
     const title = v.win ? esc(v.win.o.title)
@@ -2444,9 +2445,12 @@
       ${PREVIEW || !window.KudaShareCard || !v.win ? '' : `<button class="btn btn-soft btn-wide verdict-card">🖼️ Картинка с итогом</button>`}
       ${PREVIEW || !v.plan ? '' : (() => {
         const st = K.planStops(v.plan), b = K.bookStop(st);
+        // твёрдые «да» на этот день и их гости; только «может» — число не выдумываем, его вписывают сами
         const who = v.day ? v.t.inV.filter(x => x.d.includes(v.day.d)) : v.t.inV;
-        const n = who.length + who.reduce((s, x) => s + (x.p || 0), 0);
-        return bookBox(b, { n, day: v.day ? K.numDay(v.day.d) : '', time: K.arriveAt(st, b, v.slot ? v.slot.tm : ''), name: S.a.name || '' });
+        const n = who.length ? who.length + who.reduce((s, x) => s + (x.p || 0), 0) : 0;
+        const day = v.day ? K.numDay(v.day.d) : '';
+        const at = v.slot && v.slot.tie ? { day, time: v.slot.tm + ' или ' + v.slot.tie } : K.arriveWhen(st, b, v.slot ? v.slot.tm : '', day);
+        return bookBox(b, { n, day: at.day, time: at.time, name: S.a.name || '' });
       })()}
     </div>`;
   }
@@ -2757,7 +2761,7 @@
           const v = verdict(PRIOR, FORCED);
           if (!v.win) return;
           const st = v.plan ? K.planStops(v.plan) : [];
-          const when = [v.day ? shortDay(v.day.d) : '', v.ev && v.ev.time ? v.ev.time : v.slot ? v.slot.tm : ''].filter(Boolean).join(' · ');
+          const when = [v.day ? shortDay(v.day.d) : '', v.ev && v.ev.time ? v.ev.time : v.slot ? v.slot.tm + (v.slot.tie ? ' или ' + v.slot.tie : '') : ''].filter(Boolean).join(' · ');
           const ppl = v.t.plus ? `идут ${v.t.inV.length} + ${v.t.plus}` : `идут ${v.t.inV.length}`;
           vc.disabled = true;
           window.KudaShareCard.share({ title: v.win.o.title, sub: [when, ppl].filter(Boolean).join(' · '), mode: MODE, size: 'square', fileName: 'itog',

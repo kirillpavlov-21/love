@@ -61,3 +61,12 @@ test('часы и бронь: открытие ровно через недел�
   assert.match(K.bookText({ n: 45, day: '2026-10-23', time: '20:30' }), /на 45 человек на пт, 23 октября, в 20:30/);
   assert.match(K.bookText({ n: 2, day: '2026-10-23' }), /на двоих/);
 });
+
+test('бронь: после полуночи — следующий день; без числа людей — без выдуманных «двоих»', () => {
+  const a = { cat: 'bar', lat: 59.93, lon: 30.33 }, b = { cat: 'bar', lat: 59.931, lon: 30.33 };
+  // объекты из песочницы vm — сравниваем как JSON
+  assert.equal(JSON.stringify(K.arriveWhen([a, b], b, '23:00', '2026-10-24')), JSON.stringify({ day: '2026-10-25', time: '01:00' }));
+  assert.equal(JSON.stringify(K.arriveWhen([a, b], a, '23:00', '2026-10-24')), JSON.stringify({ day: '2026-10-24', time: '23:00' }));
+  const t = K.bookText({ n: 0, day: '2026-10-23', time: '20:00' });
+  assert.equal(t, 'Здравствуйте! Хотим забронировать стол на пт, 23 октября, в 20:00.');
+});
