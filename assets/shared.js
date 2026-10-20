@@ -232,7 +232,7 @@
     const prev = D[(wd + 6) % 7].find(([, b]) => b > 1440 && t + 1440 < b);
     const cur = D[wd].find(([a, b]) => a <= t && t < b);
     if (prev || cur) return { open: true, until: hmOf((cur || prev)[1]), allDay: false, dayOff: false };
-    for (let k = 0; k < 7; k++) {
+    for (let k = 0; k <= 7; k++) {
       const next = D[(wd + k) % 7].filter(([a]) => k > 0 || a > t).sort((x, y) => x[0] - y[0])[0];
       if (next) return { open: false, opens: hmOf(next[0]), inDays: k, dayOff: !D[wd].length };
     }
@@ -259,10 +259,18 @@
     const eat = p => ['food', 'bar'].includes(catOf(p));
     return list.find(p => eat(p) && (p.tel || p.site)) || list.find(p => p.tel || p.site) || list.find(eat) || null;
   }
+  /* Во сколько прийти на остановку плана: начало + время на предыдущих остановках и дорогу (как в «Успеть домой»), до 15 мин */
+  function arriveAt(stops, stop, start) {
+    const i = (stops || []).indexOf(stop);
+    if (i <= 0 || !/^\d{1,2}:\d{2}$/.test(start || '')) return start || '';
+    let t = toMin(start);
+    for (let k = 0; k < i; k++) t += (STAY[catOf(stops[k])] || 90) + walkMin(stops[k], stops[k + 1]);
+    return hmOf(Math.round(t / 15) * 15);
+  }
   /* «Здравствуйте! Хотим стол на 6 человек на пт, 24 октября, в 20:00. Имя — Аня» */
   function bookText(o) {
     o = o || {};
-    const n = Math.max(1, Math.min(40, +o.n || 2));
+    const n = Math.max(1, Math.min(99, Math.round(+o.n) || 2));
     const d = parseYmd(o.day);
     const WD = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'], MON = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
     const when = d ? ` на ${WD[d.getDay()]}, ${d.getDate()} ${MON[d.getMonth()]}` : '';
@@ -802,7 +810,7 @@
       'UID:' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8) + '@kuda-idem',
       'DTSTAMP:' + stamp(Date.now()), ia, ib, 'SUMMARY:' + esc1(ev.title)]
       .concat(ev.location ? ['LOCATION:' + esc1(ev.location)] : [], ev.details ? ['DESCRIPTION:' + esc1(ev.details)] : [],
-        ['BEGIN:VALARM', 'TRIGGER:-PT2H', 'ACTION:DISPLAY', 'DESCRIPTION:' + esc1(ev.title), 'END:VALARM', 'END:VEVENT', 'END:VCALENDAR']).join('\r\n');
+        ['BEGIN:VALARM', 'TRIGGER:' + (Number.isInteger(ev.alarm) && ev.alarm >= 0 ? (ev.alarm ? '-PT' + ev.alarm + 'M' : 'PT0S') : '-PT2H'), 'ACTION:DISPLAY', 'DESCRIPTION:' + esc1(ev.title), 'END:VALARM', 'END:VEVENT', 'END:VCALENDAR']).join('\r\n');
     return { google, ics: URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' })) };
   }
 
@@ -1123,7 +1131,7 @@
 
   window.DateKit = {
     BASE, merge, defaults, diffInvite, encodeInvite, decodeInvite, encodeData, decodeData, readHash, esc, fill, hash,
-    leftText, bookStop, bookText, telHref, telText, ohDays, openState, closedOn, openText, ymd, parseYmd, addDays, listDates, fmtDay, dayNum, numDay, toMin, fromMin, relaySend, relayRegister, relayTest, shortLink, goRoute, sitePath, toB64url,
+    leftText, bookStop, bookText, arriveAt, telHref, telText, ohDays, openState, closedOn, openText, ymd, parseYmd, addDays, listDates, fmtDay, dayNum, numDay, toMin, fromMin, relaySend, relayRegister, relayTest, shortLink, goRoute, sitePath, toB64url,
     CATS, catVars, catSVG, HEART_D, STAR_D, markD, ICONS, icon, MODE_ICON, tgUser, tgLink, calendarLinks,
     MODES, modeOf, kuda, placeById, planById, planStops, catOf, photo, planPhoto, photoCredit, cleanAuthor, HINTS, placeHints, planHints, hintChip, seasonHints,
     todayMsk, seasonNow, seasonOk, eventById, events, eventDays, sheet, homeRisk, bridgesToday, BRIDGES, LAST_METRO,

@@ -17,12 +17,17 @@
   /* граф города: { name → [[сосед, мин]] } или null (нет линий) */
   function graph(c) {
     if (c in GRAPH) return GRAPH[c];
-    const T = G.table(c), names = Object.keys(T);
-    if (!names.length || !names.every(n => T[n][2])) return (GRAPH[c] = null);
+    const T0 = G.table(c), names = Object.keys(T0);
+    if (!names.length || !names.every(n => T0[n][2])) return (GRAPH[c] = null);
+    const T = Object.assign({}, T0);   // копия: узлы «Имя#линия» для станций на двух линиях, таблицу geo.js не трогаем
     const adj = {};
     const add = (a, b, w) => { (adj[a] = adj[a] || []).push([b, w]); (adj[b] = adj[b] || []).push([a, w]); };
     const lines = {};
-    names.forEach(n => { new Set([T[n][2]].concat((ALSO[c] || {})[n] || [])).forEach(l => { (lines[l] = lines[l] || []).push(n); }); });
+    const alias = {};
+    names.forEach(n => {
+      (lines[T[n][2]] = lines[T[n][2]] || []).push(n);
+      ((ALSO[c] || {})[n] || []).filter(l => l !== T[n][2]).forEach(l => { const a = n + '#' + l; T[a] = T0[n]; alias[a] = n; (lines[l] = lines[l] || []).push(a); });
+    });
     Object.values(lines).forEach(list => {
       if (list.length < 2) return;
       // конец линии — станция, самая далёкая от первой; дальше — ближайшая непосещённая
@@ -36,6 +41,8 @@
         left.delete(nx); cur = nx;
       }
     });
+    // та же станция на другой линии — пересадка 4 мин
+    Object.keys(alias).forEach(a => add(a, alias[a], 4));
     // пересадки
     for (let i = 0; i < names.length; i++) for (let j = i + 1; j < names.length; j++) {
       const a = names[i], b = names[j];

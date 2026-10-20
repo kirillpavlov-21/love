@@ -274,14 +274,14 @@
   function leaderOf(it) {
     const votes = Array.isArray(it.votes) ? it.votes : [];
     const yes = votes.filter(v => v && v.y);
-    const cnt = new Map(), days = new Map();
+    const cnt = new Map(), days = new Map(), firm = new Map();
     const today = K.dayNum(K.todayMsk ? K.todayMsk() : K.ymd(new Date()));   // прошедшие дни не считаем — как в игре
     // варианты — только те, что есть в приглашении (как в игре), иначе набор лидеров разойдётся с колесом
     const nOpt = it.inv && Array.isArray(it.inv.opts) ? it.inv.opts.length : 100;
     yes.forEach(v => {
       new Set(Array.isArray(v.o) ? v.o : []).forEach(i => { if (Number.isInteger(i) && i >= 0 && i < nOpt) cnt.set(i, (cnt.get(i) || 0) + 1); });
       const dd = new Set(Array.isArray(v.d) ? v.d : []);
-      dd.forEach(d => { if (d >= today) days.set(d, (days.get(d) || 0) + 1); });
+      dd.forEach(d => { if (d >= today) { days.set(d, (days.get(d) || 0) + 1); firm.set(d, (firm.get(d) || 0) + 1); } });
       // «может быть» — полголоса, как в игре
       new Set(Array.isArray(v.m) ? v.m : []).forEach(d => { if (d >= today && !dd.has(d)) days.set(d, (days.get(d) || 0) + 0.5); });
     });
@@ -298,7 +298,8 @@
     else if (lead.length === 2) text = `ничья: ${optTitle(it, lead[0])} или ${optTitle(it, lead[1])}`;
     else if (lead.length > 2) text = `ничья из ${lead.length} вариантов`;
     const dTop = Math.max(0, ...days.values());
-    const day = dTop ? Array.from(days.keys()).filter(d => days.get(d) === dTop).sort((a, b) => a - b)[0] : null;
+    // как в игре: больше вес, при равенстве — больше твёрдых «да», потом раньше
+    const day = dTop ? Array.from(days.keys()).filter(d => days.get(d) === dTop).sort((a, b) => (firm.get(b) || 0) - (firm.get(a) || 0) || a - b)[0] : null;
     return { text, day: day != null ? dayShort(K.numDay(day)) : '', out: votes.length - yes.length, time, yes: yes.length, plus };
   }
   /* ---------- компания: время и срок ---------- */

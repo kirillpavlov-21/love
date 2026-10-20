@@ -23,7 +23,7 @@
   const esc = K.esc;
   const I = K.icon;
   const CFG = window.DATE_CONFIG || {};
-  const T = window.KudaTrack, G = window.KudaGeo, KM = window.KudaMap, AU = window.KudaAuth, GAL = window.KudaGallery;
+  const T = window.KudaTrack, G = window.KudaGeo, AU = window.KudaAuth, GAL = window.KudaGallery;
   /* Свой сервер (assets/api.js): живые голоса, «Мои приглашения», сообщения об ошибках. Нет модуля или пустой api.url — работаем без него */
   const API = window.KudaAPI || null;
   const LIVE = !!(API && API.on);
@@ -574,7 +574,7 @@
     if (!rows.length) return false;
     const q = 'list=' + v + '&t=' + encodeURIComponent(t);
     colSheet({ col: { id: 'list', title: t, emoji: '🔖', lead: '' }, rows, kind: 'list', id: 'list', url: sheetUrl(q), share: q,
-      call: createUrlQ(q), callText: 'Голосовать за эти места', so });
+      call: createUrlQ(q), callText: mode === 'date' ? 'Позвать на свидание по списку' : 'Голосовать за эти места', so });
     return true;
   }
   /* «Поделиться списком» в «Сохранённых»: места этого города, до LIST_MAX */
@@ -660,88 +660,14 @@
     renderWx();
   }
 
-  /* ---------- большая карта мест: Яндекс Карты (assets/maps.js), грузится при первом открытии ----------
-     На карте — все места под текущими фильтрами, рядом стоящие собираются в кластеры. */
-  let PLIST = [], MAP = null, OM = null, ME = null, picking = false;
-  /* Центр и масштаб города (maps.js); старый maps.js из кэша без center() — из K.CITIES */
-  const mapCenter = () => (KM && typeof KM.center === 'function' ? KM.center(city) : cityConf().center.slice());
-  const mapZoom = () => (KM && typeof KM.zoom === 'function' ? KM.zoom(city) : cityConf().zoom);
-  const COARSE = !!(window.matchMedia && matchMedia('(pointer: coarse)').matches);
-  function balloonProps(p) {
-    const pr = promoOf(p.id);
-    return {
-      hintContent: esc(p.name),   // подсказки и балуны Яндекс Карт — HTML
-      balloonContentHeader: esc(p.name) + (pr ? ' 🎁' : ''),
-      balloonContentBody: `<span class="ym-sub">${esc(p.kind)} · ${esc(K.metroText(p.metro))}</span>${pr ? `<br><span class="ym-promo">🎁 ${esc(pr.title)}</span><br><span class="ym-ad">${esc(adText(pr))}</span>` : ''}`,
-      balloonContentFooter: `<button type="button" class="map-open" data-open-place="${esc(p.id)}">Подробнее</button>`,
-    };
-  }
-  function setPicking(on) {
-    picking = !!on;
-    $('#pmap').classList.toggle('picking', picking);
-    $('#mapPick').classList.toggle('hidden', !picking);
-  }
-  function renderMap() {
-    const box = $('#pmap');
-    KM.load().then(ym => {
-      if (!MAP) {
-        box.innerHTML = '';
-        MAP = new ym.Map(box, { center: mapCenter(), zoom: mapZoom(), controls: ['zoomControl', 'fullscreenControl'] }, { suppressMapOpenBlock: true });
-        MAP.behaviors.disable('scrollZoom');   // колесо мыши листает страницу, а карту приближают кнопки и щипок
-        // на телефоне одним пальцем листаем страницу, а карту двигаем двумя пальцами или во весь экран
-        if (COARSE) {
-          MAP.behaviors.disable('drag');
-          MAP.container.events.add('fullscreenenter', () => MAP.behaviors.enable('drag'));
-          MAP.container.events.add('fullscreenexit', () => MAP.behaviors.disable('drag'));
-        }
-        OM = new ym.ObjectManager({ clusterize: true, gridSize: 64 });
-        OM.clusters.options.set('preset', 'islands#invertedDarkBlueClusterIcons');
-        MAP.geoObjects.add(OM);
-        MAP.events.add('click', e => {
-          if (!picking) return;
-          const c = e.get('coords');
-          setPicking(false);
-          setNear({ lat: c[0], lon: c[1], label: 'Точка на карте', src: 'map' });
-        });
-      }
-      OM.removeAll();
-      OM.add({ type: 'FeatureCollection', features: PLIST.map((p, i) => ({
-        type: 'Feature', id: i, geometry: { type: 'Point', coordinates: [p.lat, p.lon] }, properties: balloonProps(p),
-        options: promoOf(p.id) ? { preset: 'islands#circleIcon', iconColor: KM.PROMO_COLOR } : { preset: 'islands#circleDotIcon', iconColor: KM.CAT_COLOR[p.c] || KM.CAT_COLOR.food },
-      })) });
-      if (ME) MAP.geoObjects.remove(ME);
-      ME = near ? new ym.Placemark([near.lat, near.lon], { hintContent: esc(near.label || 'Ты здесь') }, { preset: 'islands#geolocationIcon', iconColor: '#3D8BFF' }) : null;
-      if (ME) MAP.geoObjects.add(ME);
-      MAP.container.fitToViewport();
-      // рядом со мной — вокруг точки; мест немного — показываем все; много (или нет) — центр города (иначе карта отъезжает на всю область)
-      if (near) MAP.setCenter([near.lat, near.lon], 14);
-      else if (PLIST.length === 1) MAP.setCenter([PLIST[0].lat, PLIST[0].lon], 15);
-      else if (PLIST.length && PLIST.length <= 150) MAP.setBounds(ym.util.bounds.fromPoints(PLIST.map(p => [p.lat, p.lon])), { checkZoomRange: true, zoomMargin: 30 });
-      else MAP.setCenter(mapCenter(), mapZoom());
-    }).catch(() => {
-      MAP = null;
-      box.innerHTML = `<div class="map-fail"><p>Яндекс Карты не загрузились — проверь интернет или отключи блокировщик рекламы для этого сайта.</p><button type="button" class="btn ghost" data-map-retry>Попробовать ещё раз</button></div>`;
-    });
-  }
-  /* Переключение «Список / Карта» */
-  function setView(v) {
-    pview = v;
-    $$('#pview button').forEach(x => { const on = x.dataset.v === v; x.classList.toggle('on', on); x.setAttribute('aria-pressed', on); });
-    $('#pmap').classList.toggle('hidden', v !== 'map');
-    $('#plist').classList.toggle('hidden', v === 'map');
-    $('#pmore').classList.toggle('hidden', v === 'map' || PLIST.length <= plimit);
-    $('#mapLegend').classList.toggle('hidden', v !== 'map');
-    if (v !== 'map') setPicking(false);
-    else renderMap();
-    syncTabs();
-  }
-  const LEGEND = [['walk', 'прогулки'], ['culture', 'культура'], ['food', 'еда'], ['coffee', 'кофе'], ['bar', 'бары'], ['fun', 'развлечения'], ['pc', 'компы'], ['spa', 'бани'], ['books', 'книжные']];
-  // «с промокодом» — когда в городе есть промокоды: перерисовываем при смене города
-  function renderLegend() {
-    $('#mapLegend').innerHTML = LEGEND.map(([c, t]) => `<span><i style="background:${KM.CAT_COLOR[c]}"></i>${t}</span>`).join('') +
-      (PROMOS.length ? `<span><i style="background:${KM.PROMO_COLOR}"></i>с промокодом</span>` : '') +
-      (COARSE ? '<span class="map-hint">Карту двигают двумя пальцами или во весь экран — кнопкой в углу.</span>' : '');
-  }
+  /* ---------- список мест: только список — карты на сайте нет (убрали по решению автора) ----------
+     «Рядом со мной» работает по геопозиции и станциям метро; «Как добраться» и «Яндекс Карты» у мест — внешние ссылки. */
+  let PLIST = [], picking = false;
+  function setPicking() { picking = false; }
+  function renderMap() { /* карты нет */ }
+  /* старые ссылки ?tab=map открывают список мест */
+  function setView() { pview = 'list'; syncTabs(); }
+  function renderLegend() { /* карты нет */ }
 
   /* ---------- список мест ---------- */
   /* Часы работы (поле oh): строка в карточке и короткий бейдж в списке; без часов — пусто, как раньше */
@@ -1345,13 +1271,12 @@
       <label class="psearch"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="mq" type="search" placeholder="Станция метро" aria-label="Станция метро" autocomplete="off"></label>
       <div class="metro-list" id="mlist"></div>
       <div class="sheet-actions">
-        <button type="button" class="btn ghost wide" id="pickMap">${I('map')}Поставить точку на карте</button>
         <button type="button" class="btn ghost wide" id="pickRetry">${I('locate')}Попробовать определить ещё раз</button>
       </div>`, { kind: 'near' });
     const draw = q => {
       const nq = norm(q).trim();
       const list = st.filter(x => !nq || norm(x.name).includes(nq)).slice(0, nq ? 40 : 24);
-      $('#mlist').innerHTML = list.map(x => `<button type="button" class="chip" data-metro="${esc(x.name)}"><span class="metro${x.line ? ' l' + x.line : ''}" aria-hidden="true">М</span>${esc(x.name)}</button>`).join('') || '<p class="muted">Такой станции нет в каталоге — поставь точку на карте.</p>';
+      $('#mlist').innerHTML = list.map(x => `<button type="button" class="chip" data-metro="${esc(x.name)}"><span class="metro${x.line ? ' l' + x.line : ''}" aria-hidden="true">М</span>${esc(x.name)}</button>`).join('') || '<p class="muted">Такой станции нет в каталоге — попробуй соседнюю.</p>';
     };
     draw('');
     $('#mq').addEventListener('input', e => draw(e.target.value));
@@ -1361,14 +1286,6 @@
       const x = st.find(y => y.name === b.dataset.metro);
       if (x) setNear({ lat: x.lat, lon: x.lon, label: 'м. ' + x.name, src: 'metro' });
     });
-    $('#pickMap').onclick = () => {
-      locating++;   // ответ геолокации, пришедший позже, точку уже не подменит
-      closeSheet(() => {
-        setView('map');
-        setPicking(true);
-        $('#mapPick').scrollIntoView({ behavior: 'smooth', block: 'start' });
-      });
-    };
     // шторку не закрываем: окно выбора просто открывается заново с новым поиском
     $('#pickRetry').onclick = () => { near = null; toggleNear(); };
   }
@@ -1380,21 +1297,6 @@
     try { await navigator.clipboard.writeText(url); toast('Ссылка скопирована'); }
     catch (e) { prompt('Скопируй ссылку', url); }
   }
-  $('#pview').addEventListener('click', e => {
-    const b = e.target.closest('button[data-v]');
-    if (b && b.dataset.v !== pview) setView(b.dataset.v);
-  });
-  /* Карта: «Подробнее» в балуне, отмена выбора точки, повторная загрузка */
-  $('#placesBlock').addEventListener('click', e => {
-    const op = e.target.closest('#pmap [data-open-place]');
-    if (op) {
-      if (MAP && MAP.container.isFullscreen()) MAP.container.exitFullscreen();
-      openPlace(op.dataset.openPlace);
-      return;
-    }
-    if (e.target.closest('[data-pick-cancel]')) { setPicking(false); return; }
-    if (e.target.closest('[data-map-retry]')) { $('#pmap').innerHTML = ''; renderMap(); }
-  });
   $('#plist').addEventListener('click', e => {
     if (e.target.closest('[data-share-list]')) { shareSaved(); return; }
     if (e.target.closest('[data-pc-new]')) { pcat = 'new'; plimit = PSTEP; renderPlaces(); syncUrl(); $('#pfilters').scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
@@ -1992,7 +1894,7 @@
   /* ---------- вкладки-якоря: подсвечиваем раздел, который сейчас на экране ---------- */
   let curSec = '';
   function syncTabs() {
-    const tab = curSec === 'placesBlock' ? (pview === 'map' ? 'map' : 'places') : { plansBlock: 'plans', eventsBlock: 'events', promoBlock: 'promo' }[curSec] || '';
+    const tab = curSec === 'placesBlock' ? 'places' : { plansBlock: 'plans', eventsBlock: 'events', promoBlock: 'promo' }[curSec] || '';
     $$('#tabs a[data-tab]').forEach(a => {
       const on = a.dataset.tab === tab;
       a.classList.toggle('on', on);
@@ -2002,12 +1904,11 @@
   /* land — открыли по ссылке (?tab=…): прокручиваем сразу и держим раздел на месте, пока страница догружается */
   function goTab(tab, land) {
     if (!/^[a-z]+$/.test(String(tab || ''))) return false;
+    if (tab === 'map') tab = 'places';   // карты больше нет — старые ссылки ведут к списку мест
     if (tab === 'events') renderAfTab();   // вкладка «Афиша» прячется, пока не посчитаны события, — считаем сейчас
     const a = $(`#tabs a[data-tab="${tab}"]`);
     if (!a || a.classList.contains('hidden')) return false;
     if (tab === 'events') bootAfisha();   // афиша ещё не нарисована — рисуем сразу, иначе прокрутим к пустому месту
-    const want = tab === 'map' ? 'map' : tab === 'places' ? 'list' : null;
-    if (want && pview !== want) setView(want);
     const sec = $(a.getAttribute('href'));
     if (!sec || sec.classList.contains('hidden')) return false;
     if (land) pinTo(() => sec);

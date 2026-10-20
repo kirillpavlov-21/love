@@ -119,9 +119,10 @@
   /* Живые места города (без 18+ и не в сезон) — один раз на город */
   const PL_CACHE = {};
   function cityPlaces(city) {
-    if (PL_CACHE[city]) return PL_CACHE[city];
+    const key = city + '|' + today();   // сезон и закрытия меняются — кэш на день
+    if (PL_CACHE[key]) return PL_CACHE[key];
     const P = D().places || {};
-    return (PL_CACHE[city] = Object.keys(P).map(id => ({ id, kind: 'place', x: K.placeById(id) })).filter(r => alive(r, city)));
+    return (PL_CACHE[key] = Object.keys(P).map(id => ({ id, kind: 'place', x: K.placeById(id) })).filter(r => alive(r, city)));
   }
   /* Порядок разделов каталога по поводу: что чаще нужно поздно вечером или в непогоду */
   const LATE_CATS = { date: ['bar', 'food', 'fun', 'coffee', 'culture', 'spa'], guys: ['bar', 'pc', 'spa', 'fun', 'food'], girls: ['bar', 'food', 'spa', 'fun', 'coffee'] };

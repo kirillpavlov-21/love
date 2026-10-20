@@ -772,15 +772,16 @@
     const text = K.bookText(o);
     const done = !!(S.sent && S.sent.booked);
     return `<div class="book-wrap"><button class="btn btn-soft btn-wide book-open" aria-expanded="false">📞 Забронировать</button>
-      <div class="book-box hidden" data-text="${esc(text)}">
+      <div class="book-box hidden" data-text="${esc(text)}" data-day="${esc(o.day || '')}" data-time="${esc(o.time || '')}" data-name="${esc(o.name || '')}">
         <p class="k">Бронь · ${esc(p.name)}</p>
+        <label class="book-n">Сколько человек <input type="number" class="field" min="1" max="99" value="${Math.max(1, Math.round(o.n) || 2)}" inputmode="numeric"></label>
         <p class="book-text">${esc(text)}</p>
         <div class="book-acts">
           ${p.tel ? `<a class="btn btn-primary" href="${esc(K.telHref(p.tel))}">Позвонить ${esc(K.telText(p.tel))}</a>` : ''}
           <button class="btn btn-soft book-copy">Скопировать текст</button>
           ${p.site ? `<a class="btn btn-soft" href="${esc(p.site)}" target="_blank" rel="noopener nofollow">Сайт места</a>` : `<a class="btn btn-soft" href="${esc(K.mapUrl(p))}" target="_blank" rel="noopener">Яндекс Карты</a>`}
         </div>
-        <label class="book-done"><input type="checkbox"${done ? ' checked' : ''}> ${GF('Забронировала', 'Забронировал')} ✓</label>
+        <label class="book-done"><input type="checkbox"${done ? ' checked' : ''}> Моя отметка: ${GF('забронировала', 'забронировал')} ✓</label>
       </div></div>`;
   }
   function wireBook(root) {
@@ -788,6 +789,11 @@
     if (!w) return;
     const open = w.querySelector('.book-open'), box = w.querySelector('.book-box');
     open.onclick = () => { Sfx.click(); const on = box.classList.toggle('hidden'); open.setAttribute('aria-expanded', String(!on)); };
+    const nIn = w.querySelector('.book-n input');
+    if (nIn) nIn.oninput = () => {
+      const d = box.dataset, t = K.bookText({ n: +nIn.value || 1, day: d.day, time: d.time, name: d.name });
+      d.text = t; w.querySelector('.book-text').textContent = t;
+    };
     w.querySelector('.book-copy').onclick = () => copyText(box.dataset.text).then(ok => toast(ok ? 'Текст скопирован' : 'Не получилось скопировать'));
     w.querySelector('.book-done input').onchange = e => { S.sent = S.sent || {}; S.sent.booked = e.target.checked ? (S.a.name || INV.me || '✓') : ''; save(); toast(e.target.checked ? 'Отметили: забронировано' : 'Отметку сняли'); };
   }
@@ -1499,6 +1505,8 @@
     const stops = pl ? K.planStops(pl) : [];
     const shut = d => stops.some(p => K.closedOn(p, d));
     const open = days.filter(d => !shut(d));
+    // все предложенные дни — выходные у места: дни оставляем (ответить всё равно можно), но предупреждаем
+    const allShut = !!stops.length && days.length > 0 && !open.length;
     const avail = new Set(open.length ? open : days);
     const evOn = !GROUP && evChosen();
     let cal = '';
@@ -1531,6 +1539,7 @@
       ${cal}
       <div class="pick-line" aria-live="polite"></div>
       ${days.length ? miniCat(multi ? 'Отмечай всё, что подходит — выберем день, когда смогут все' : 'Выбирай любой — я всё запомню 📝') : ''}
+      ${allShut ? `<p class="hint shut-note">⚠ В эти дни «${esc(stops.find(p => days.every(d => K.closedOn(p, d))) ? stops.find(p => days.every(d => K.closedOn(p, d))).name : 'место из плана')}» не работает — выбери день, а место уточните вместе</p>` : ''}
       ${multi ? `<div class="day-acts"><button class="link-btn all">${I('check')}Подходит любой</button><button class="link-btn idk">Пока не знаю</button></div>` : ''}
       ${other ? `<button class="link-btn other ${days.length ? '' : 'hidden'}">Ни один день не подходит</button>
         <div class="other-box ${days.length ? 'hidden' : ''}" style="width:100%"><input class="field" maxlength="80" placeholder="Например: в следующие выходные" aria-label="Когда тебе удобно"></div>` : ''}
@@ -1914,7 +1923,7 @@
     }) : null;
     const extra = ev
       ? `<div class="tally"><h3>${esc(ev.emoji || '🎫')} ${esc(ev.title)}</h3>${evPlaceLine(ev) ? `<p class="v-day">${I('pin')}${esc(evLoc(ev))}</p>` : ''}${evLinks(ev)}${calEv ? calBlock(calEv) : ''}</div>`
-      : plan || calEv ? `<div class="tally"><h3>${plan ? esc(plan.title) : 'Не забудь'}</h3>${plan ? planBlock(plan) : ''}${plan ? homeRiskBlock(plan, S.a.time, S.a.date) : ''}${calEv ? calBlock(calEv) : ''}${plan && !view ? bookBox(K.bookStop(K.planStops(plan)), { n: 2, day: S.a.date, time: S.a.time }) : ''}</div>` : '';
+      : plan || calEv ? `<div class="tally"><h3>${plan ? esc(plan.title) : 'Не забудь'}</h3>${plan ? planBlock(plan) : ''}${plan ? homeRiskBlock(plan, S.a.time, S.a.date) : ''}${calEv ? calBlock(calEv) : ''}${plan && !view ? (() => { const st = K.planStops(plan), b = K.bookStop(st); return bookBox(b, { n: 2, day: S.a.date, time: K.arriveAt(st, b, S.a.time) }); })() : ''}</div>` : '';
     el.innerHTML = `
       <div class="res-head"><p class="eyebrow">${view ? 'Ответ получен' : 'Готово'}</p>
         <h2 class="final-title">${view ? `${esc(INV.her)} ${GF('ответила', 'ответил')} «да»` : 'Твой билет на свидание'}</h2></div>
@@ -2201,7 +2210,15 @@
       // сервер отверг какой-то голос из старой ссылки — сохраняем хотя бы свой
       if (!r && seed.length && !/^(rate|net|timeout|off|owner|full|closed)$/.test(apiErr())) r = await api('vote', CODE, mine, voteSecret(), []);
       // организатор закрыл голосование или прошёл дедлайн — голос не принят, итог окончательный
-      if (!r && apiErr() === 'closed') { SRV_UNTIL = SRV_UNTIL || Math.floor(Date.now() / 60000); toast('Голосование уже закрыто — твой голос не попал в итог'); }
+      if (!r && apiErr() === 'closed') {
+        SRV_UNTIL = SRV_UNTIL || Math.floor(Date.now() / 60000);
+        // голос не принят: убираем его из итога этого браузера, иначе итог разойдётся с остальными; прежний голос (если был) вернёт сервер
+        PRIOR = PRIOR.filter(v => v.id !== mine.id);
+        if (!PREVIEW) { try { localStorage.setItem(VKEY(), JSON.stringify(PRIOR.slice(-60))); } catch (e) { /* ок */ } }
+        S.sent.api = ''; save();
+        toast('Голосование уже закрыто — твой голос не попал в итог');
+        pullRemote();
+      }
       if (r && Array.isArray(r.votes)) {
         if (ADOPT && ADOPT.id === mine.id) ADOPT = null;
         if (voteSig(myVote()) === voteSig(mine)) { S.sent.api = voteSig(mine); save(); }
@@ -2362,12 +2379,14 @@
     if (ev) { const ok = new Set(evDaysAll(ev).map(K.dayNum)); day = t.days.find(x => ok.has(x.d)) || null; }
     const SL = slotList();
     const slot = SL.length === 1 ? { tm: SL[0], who: [] } : t.slots.length && t.slots[0].who.length ? t.slots[0] : null;
+    // ничья по времени: показываем оба варианта, а не молча первый
+    if (slot && SL.length > 1 && t.slots[1] && t.slots[1].who.length === slot.who.length) slot.tie = t.slots[1].tm;
     return { t, win, leaders, ev, day, slot, people: t.inV.length + t.plus, wheel: forced != null && !!win, plan: win && win.o.plan ? K.planById(win.o.plan) : null };
   }
   /* «могут все» — только когда про дни ответили хотя бы двое и все — твёрдым «да»; «может быть» считаем отдельно */
   function canLine(v, names) {
     const m = v.t.dIn.length, yes = v.day.yes == null ? v.day.who.length : v.day.yes, maybe = v.day.who.length - yes;
-    if (yes === m && m >= 2) return 'могут все';
+    if (yes === m && m >= 2) return `могут все ${m}`;
     const may = maybe ? ` + ${maybe} «может»` : '';
     return names ? `могут ${v.day.who.join(', ')} (${yes} из ${m}${may})` : `могут ${yes} из ${m}${may}`;
   }
@@ -2383,8 +2402,8 @@
       if (st.length > 1 || (st[0] && st[0].name !== v.win.o.title)) L.push('   ' + st.map(p => p.name).join(' → '));
       if (v.ev && evPlaceLine(v.ev)) L.push('   ' + evPlaceLine(v.ev));
     } else if (v.leaders.length > 1) L.push(`📍 Пока ничья: ${someTitles(v.leaders, 3)}`);
-    if (v.day) L.push(`📅 ${shortDay(v.day.d)}${v.ev && v.ev.time ? ', ' + v.ev.time : v.slot ? ', ' + v.slot.tm : ''} — ${canLine(v, true)}`);
-    else if (v.slot && !(v.ev && v.ev.time)) L.push(`🕗 Во сколько: ${v.slot.tm}${v.slot.who.length ? ' (' + v.slot.who.length + ')' : ''}`);
+    if (v.day) L.push(`📅 ${shortDay(v.day.d)}${v.ev && v.ev.time ? ', ' + v.ev.time : v.slot ? ', ' + v.slot.tm + (v.slot.tie ? ' или ' + v.slot.tie + ' (поровну)' : '') : ''} — ${canLine(v, true)}`);
+    else if (v.slot && !(v.ev && v.ev.time)) L.push(`🕗 Во сколько: ${v.slot.tm + (v.slot.tie ? ' или ' + v.slot.tie + ' (поровну)' : '')}${v.slot.who.length ? ' (' + v.slot.who.length + ')' : ''}`);
     if (v.t.plus) L.push(`👥 Идут: ${v.t.inV.length} + ${v.t.plus} ${plural(v.t.plus, 'гость', 'гостя', 'гостей')}`);
     const dl = deadline();
     if (dl) L.push(dl.closed ? '🔒 Голосование закрыто' : `⏳ Голосуем до ${dl.text}`);
@@ -2414,16 +2433,21 @@
       ${tie && v.leaders.length > 2 ? `<div class="v-tie">${v.leaders.slice(0, 4).map(x => `<span>${esc(x.o.emoji || '📍')} ${esc(x.o.title)}</span>`).join('')}${v.leaders.length > 4 ? `<span class="more">+${v.leaders.length - 4}</span>` : ''}</div>` : ''}
       ${tie ? `<p class="v-day">${v.t.inV.length < 2 ? 'Подожди голоса остальных или крутани колесо ниже' : 'Крутани колесо ниже — оно решит'}</p>` : ''}
       ${v.ev && evPlaceLine(v.ev) ? `<p class="v-day">${I('pin')}${esc(evPlaceLine(v.ev))}</p>` : ''}
-      ${v.day ? `<p class="v-day">${I('calendar')}${esc(shortDay(v.day.d))}${v.ev && v.ev.time ? ' · ' + esc(v.ev.time) : v.slot ? ' · ' + esc(v.slot.tm) : ''} · ${esc(canLine(v))}</p>`
+      ${v.day ? `<p class="v-day">${I('calendar')}${esc(shortDay(v.day.d))}${v.ev && v.ev.time ? ' · ' + esc(v.ev.time) : v.slot ? ' · ' + esc(v.slot.tm + (v.slot.tie ? ' или ' + v.slot.tie + ' (поровну)' : '')) : ''} · ${esc(canLine(v))}</p>`
         : evNext ? `<p class="v-day">${I('calendar')}Ближайший показ: ${esc(dayShort(evNext))}${v.ev.time ? ' · ' + esc(v.ev.time) : ''}</p>` : ''}
-      ${!v.day && v.slot && !(v.ev && v.ev.time) ? `<p class="v-day">${I('clock')}Во сколько: ${esc(v.slot.tm)}${v.slot.who.length ? ' · ' + v.slot.who.length + ' ' + plural(v.slot.who.length, 'голос', 'голоса', 'голосов') : ''}</p>` : ''}
+      ${!v.day && v.slot && !(v.ev && v.ev.time) ? `<p class="v-day">${I('clock')}Во сколько: ${esc(v.slot.tm + (v.slot.tie ? ' или ' + v.slot.tie + ' (поровну)' : ''))}${v.slot.who.length ? ' · ' + v.slot.who.length + ' ' + plural(v.slot.who.length, 'голос', 'голоса', 'голосов') : ''}</p>` : ''}
       ${v.t.plus ? `<p class="v-day">${I('users')}Идут ${v.t.inV.length} + ${v.t.plus} ${plural(v.t.plus, 'гость', 'гостя', 'гостей')}</p>` : ''}
       ${v.plan ? planBlock(v.plan) : ''}
       ${v.ev ? evLinks(v.ev) : ''}
       ${cal ? calBlock(cal) : ''}
       ${PREVIEW ? '' : `<button class="btn btn-soft btn-wide verdict-share">${I('send')}Отправить итог в чат</button>`}
       ${PREVIEW || !window.KudaShareCard || !v.win ? '' : `<button class="btn btn-soft btn-wide verdict-card">🖼️ Картинка с итогом</button>`}
-      ${PREVIEW || !v.plan ? '' : bookBox(K.bookStop(K.planStops(v.plan)), { n: v.t.inV.length + v.t.plus, day: v.day ? K.numDay(v.day.d) : '', time: v.slot ? v.slot.tm : '', name: S.a.name || '' })}
+      ${PREVIEW || !v.plan ? '' : (() => {
+        const st = K.planStops(v.plan), b = K.bookStop(st);
+        const who = v.day ? v.t.inV.filter(x => x.d.includes(v.day.d)) : v.t.inV;
+        const n = who.length + who.reduce((s, x) => s + (x.p || 0), 0);
+        return bookBox(b, { n, day: v.day ? K.numDay(v.day.d) : '', time: K.arriveAt(st, b, v.slot ? v.slot.tm : ''), name: S.a.name || '' });
+      })()}
     </div>`;
   }
   function tallyHtml(votes, forced, t) {
@@ -2570,7 +2594,10 @@
     S.a = freshAnswers();
     if (!my) { restep(); go(1); return; }
     const today = todayNum();
-    Object.assign(S.a, { yes: !!my.y, coming: my.y ? true : null, opts: my.o.slice(), days: my.d.filter(d => d >= today).map(K.numDay), name: my.n });
+    // все поля голоса: «может», время, +N и станция — иначе повторная отправка перезапишет их пустыми
+    const nSlots = slotList().length;
+    Object.assign(S.a, { yes: !!my.y, coming: my.y ? true : null, opts: my.o.slice(), days: my.d.filter(d => d >= today).map(K.numDay), name: my.n,
+      maybe: (my.m || []).filter(d => d >= today).map(K.numDay), slots: (my.s || []).filter(i => i < nSlots), plus: my.p || 0, st: my.st || '' });
     restep();
     const at = id => STEPS.findIndex(s => s.id === id);
     let i = my.y ? [at('vote'), at('date')].find(x => x > 0) : at('letter');

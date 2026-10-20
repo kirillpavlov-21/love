@@ -43,7 +43,6 @@
     <a href="#plansBlock" data-tab="plans">Планы</a>
     <a href="#eventsBlock" data-tab="events" class="hidden" id="tabEvents">Афиша</a>
     <a href="#placesBlock" data-tab="places">Места</a>
-    <a href="#placesBlock" data-tab="map">Карта</a>
     <a href="#promoBlock" data-tab="promo" class="hidden" id="tabPromo">Промокоды</a>
   </nav>
 
@@ -114,16 +113,12 @@
   <section class="block" id="placesBlock" aria-labelledby="placesTitle">
     <div class="block-head">
       <h2 id="placesTitle">Все места <span class="count" id="pcount"></span></h2>
-      <div class="seg" id="pview" role="group" aria-label="Вид"><button type="button" data-v="list" class="on" aria-pressed="true">Список</button><button type="button" data-v="map" aria-pressed="false">Карта</button></div>
     </div>
     <p class="block-note" id="placesNote">Места по всей Москве и ближнему Подмосковью — от парков до ресторанов из гида Michelin (2021). Часы работы и адреса лучше уточнить перед выходом.</p>
     <label class="psearch"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="psearch" type="search" placeholder="Название, метро или тип места" aria-label="Поиск по местам" autocomplete="off"></label>
     <div class="filters" id="pfilters" role="group" aria-label="Категории мест"></div>
     <div class="filters okrs" id="pokrs" role="group" aria-label="Округа"></div>
     <div class="tools" id="ptools"></div>
-    <div class="map-bar pick hidden" id="mapPick" role="status"><span>Нажми на карте, откуда искать</span><button type="button" class="mini" data-pick-cancel>Отмена</button></div>
-    <div class="pmap hidden" id="pmap" aria-label="Карта мест"></div>
-    <div class="map-legend hidden" id="mapLegend" aria-label="Цвета точек на карте"></div>
     <div class="plist" id="plist"></div>
     <button class="btn ghost wide hidden" id="pmore" type="button"></button>
   </section>
@@ -198,7 +193,6 @@
   <script src="assets/promos.js?v=32"></script>
   <script src="assets/track.js?v=32"></script>
   <script src="assets/geo.js?v=32"></script>
-  <script src="assets/maps.js?v=32"></script>
   <script src="assets/metro.js?v=32"></script>
   <script src="assets/gallery.js?v=32"></script>
   <script src="assets/auth.js?v=32"></script>
