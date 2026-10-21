@@ -429,3 +429,23 @@ test('extract: кончились деньги (402 / credit balance) — зап
     message: 'Your credit balance is too low to access the Anthropic API.' } }, 'x', new Headers());
   await assert.rejects(makeLLM({ client: stubClient([credit]), today: TODAY, log: quiet() }).extract(posts(1), input.catalog), /credit balance/);
 });
+
+test('режим обмена: без ответа — запрос в папку и пачка отложена; с ответом — ответ принят', async () => {
+  const dir = mkdtempSync(path.join(tmpdir(), 'kuda-ex-'));
+  const llm = makeLLM({ exchangeDir: dir, today: TODAY, log: quiet() });
+  const place = { id: 'x', name: 'Место', kind: 'Кафе', addr: 'ул. Пробная, 1' };
+  const cands = [{ thumb: 'https://upload.wikimedia.org/a.jpg', title: 'a' }, { thumb: 'https://upload.wikimedia.org/b.jpg', title: 'b' }];
+  assert.equal(await llm.pickPhoto(place, cands), -1);
+  assert.equal(llm.stats.pending, 1);
+  const req = readdirSync(dir).filter(f => f.endsWith('.request.json'));
+  assert.equal(req.length, 1);
+  const r = JSON.parse(readFileSync(path.join(dir, req[0]), 'utf8'));
+  assert.ok(existsSync(path.join(dir, r.system_file)), 'системный текст лежит рядом');
+  assert.deepEqual(r.schema, PHOTO_SCHEMA);
+  // ответ исполнителя — голый JSON по схеме
+  const { writeFileSync } = await import('node:fs');
+  writeFileSync(path.join(dir, r.key + '.json'), JSON.stringify({ index: 1, reason: 'фасад' }));
+  const llm2 = makeLLM({ exchangeDir: dir, today: TODAY, log: quiet() });
+  assert.equal(await llm2.pickPhoto(place, cands), 1);
+  assert.equal(llm2.stats.pending, 0);
+});

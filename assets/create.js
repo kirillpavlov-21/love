@@ -1608,7 +1608,16 @@
     try { el.focus({ preventScroll: true }); el.setSelectionRange(0, el.value.length); } catch (e) { /* ок */ }
     toast('Не получилось скопировать — ссылка выделена, скопируй её вручную');
   }
+  /* «Решаем до» выбран, но срок прошёл или дальше двух недель — ссылку не отдаём молча без срока */
+  function untilBad() {
+    if (!isGroup() || !uMode() || readUntil()) return false;
+    toast('Срок «Решаем до» не подходит — поправь его или выбери «Без срока»');
+    const f = $('#untilAt');
+    if (f) { f.scrollIntoView({ behavior: 'smooth', block: 'center' }); f.focus({ preventScroll: true }); }
+    return true;
+  }
   function doCopy() {
+    if (untilBad()) return;
     const group = isGroup();
     const voted = !!(myVote() || {}).mine;
     copyCurrent().then(ok => (!ok ? showLink() : toast(group
@@ -1731,6 +1740,7 @@
     $('#copy').onclick = doCopy;
     $('#mbCopy').onclick = doCopy;
     $('#share').onclick = async () => {
+      if (untilBad()) return;
       const long = isFresh() ? realLink() : await freshLink();
       remember();
       trackInvite();

@@ -48,3 +48,25 @@ test('часы: у мест Петербурга oh разбирается и п
   assert.ok(P.length > 200, `мест с часами ${P.length}`);
   for (const p of P) { assert.ok(K.ohDays(p.oh), `${p.name}: ${p.oh}`); assert.match(p.ohChk, /^\d{4}-\d{2}$/); }
 });
+
+test('часы и бронь: открытие ровно через неделю, время на вторую остановку, текст брони', () => {
+  const w = K.openState({ oh: 'Mo 10:00-11:00' }, at('2026-10-19', '12:00'));
+  assert.equal(w.open, false);
+  assert.equal(w.inDays, 7);
+  assert.equal(w.opens, '10:00');
+  // музей 90 мин + дорога → ресторан; до 15 минут
+  const museum = { cat: 'culture', lat: 59.9398, lon: 30.3146 }, food = { cat: 'food', lat: 59.9408, lon: 30.3146 };
+  assert.equal(K.arriveAt([museum, food], food, '19:00'), '20:30');
+  assert.equal(K.arriveAt([museum, food], museum, '19:00'), '19:00');
+  assert.match(K.bookText({ n: 45, day: '2026-10-23', time: '20:30' }), /на 45 человек на пт, 23 октября, в 20:30/);
+  assert.match(K.bookText({ n: 2, day: '2026-10-23' }), /на двоих/);
+});
+
+test('бронь: после полуночи — следующий день; без числа людей — без выдуманных «двоих»', () => {
+  const a = { cat: 'bar', lat: 59.93, lon: 30.33 }, b = { cat: 'bar', lat: 59.931, lon: 30.33 };
+  // объекты из песочницы vm — сравниваем как JSON
+  assert.equal(JSON.stringify(K.arriveWhen([a, b], b, '23:00', '2026-10-24')), JSON.stringify({ day: '2026-10-25', time: '01:00' }));
+  assert.equal(JSON.stringify(K.arriveWhen([a, b], a, '23:00', '2026-10-24')), JSON.stringify({ day: '2026-10-24', time: '23:00' }));
+  const t = K.bookText({ n: 0, day: '2026-10-23', time: '20:00' });
+  assert.equal(t, 'Здравствуйте! Хотим забронировать стол на пт, 23 октября, в 20:00.');
+});

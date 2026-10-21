@@ -78,8 +78,12 @@
   async function qrUrl(url) {
     if (!url) return '';
     if (new TextEncoder().encode(url).length <= 200) return url;
-    try { const s = K && K.shortLink ? await K.shortLink(url) : url; if (s && new TextEncoder().encode(s).length <= 200) return s; } catch (e) { /* ниже */ }
-    return (K && K.sitePath ? K.sitePath('start.html') : '');   // ссылка не влезла и не сократилась — QR на главную
+    // сокращаем не дольше 4 с; не вышло — QR не ставим (не подменяем приглашение главной), подпись просит отправить ссылку
+    try {
+      const s = K && K.shortLink ? await Promise.race([K.shortLink(url), new Promise(r => setTimeout(() => r(''), 4000))]) : '';
+      if (s && new TextEncoder().encode(s).length <= 200) return s;
+    } catch (e) { /* ниже */ }
+    return '';
   }
 
   async function render(o) {
@@ -129,7 +133,7 @@
     const hasQr = link && qr(g, link, W - M - qrSize, qy, qrSize);
     g.textAlign = 'left'; g.fillStyle = MUTED; g.font = `500 ${story ? 32 : 28}px ${BODY}`;
     const capW = W - M * 2 - (hasQr ? qrSize + 50 : 0);
-    const cap = hasQr ? 'Наведи камеру на код — откроется план и маршрут' : 'Открой «Куда идём?» — там план и маршрут';
+    const cap = hasQr ? 'Наведи камеру на код — откроется план и маршрут' : o.url ? 'Ссылку на приглашение отправь вместе с картинкой' : 'Открой «Куда идём?» — там план и маршрут';
     let cy = H - M - (story ? 110 : 80);
     lines(g, cap, capW, 2).forEach(l => { g.fillText(l, M, cy); cy += story ? 44 : 38; });
     g.fillStyle = TEXT; g.font = `700 ${story ? 34 : 30}px ${DISPLAY}`;

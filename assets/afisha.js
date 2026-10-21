@@ -1247,7 +1247,7 @@
     if (rm && K.calendarLinks) {
       // напоминание в день открытия регистрации, 10:00 по Москве: .ics собираем по нажатию
       const ev = cur.st.ev;
-      const l = K.calendarLinks({ title: 'Регистрация: ' + ev.title, day: ev.regOpen, time: '10:00', minutes: 15, details: [ev.url, ev.venue].filter(Boolean).join('\n') });
+      const l = K.calendarLinks({ title: 'Регистрация: ' + ev.title, day: ev.regOpen, time: '10:00', minutes: 15, alarm: 0, details: [ev.url, ev.venue].filter(Boolean).join('\n') });
       rm.href = l.ics;
       setTimeout(() => { try { URL.revokeObjectURL(l.ics); } catch (e) { /* ок */ } }, 10000);
       return;   // переход по ссылке с download скачает файл

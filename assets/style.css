@@ -787,3 +787,5 @@ form.name-box { margin: 0; }
 /* откуда поедешь */
 .st-row { display: grid; gap: 6px; width: 100%; font-weight: 600; color: var(--muted-2); font-size: 14px; }
 .st-row select { margin: 0; }
+.book-n { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; color: var(--muted-2); }
+.book-n input { width: 80px; margin: 0; }

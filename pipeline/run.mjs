@@ -18,6 +18,7 @@ import {
 } from './lib/catalog.mjs';
 import { geocode, inRegion, nearestMetro, okrOf, normCity, cityHint, mentionsCity, CITIES } from './lib/geo.mjs';
 import { findCommonsCandidates, savePhoto } from './lib/photos.mjs';
+import { facesIn, loadBlocked, addBlocked } from './lib/faces.mjs';
 import { makeLLM, moscowDay, officialUrl } from './lib/llm.mjs';
 import { renderAutoJs, emptyAutoData } from './lib/autojs.mjs';
 
@@ -55,6 +56,7 @@ const USAGE = `Конвейер каталога «Куда идём?»
   --inbox-out <файл>  список issues ящика, которые закрыть после PR (по умолчанию ./pipeline-inbox.json)
   --dry               ничего не писать в assets/ и не трогать прочитанное (только отчёт <дата>-dry.md и кеш геокодера)
   --mock <папка>      ответы модели из сохранённых файлов (тесты)
+  --exchange <папка>  без ключа API: запросы модели — в <ключ>.request.json, ответы — из <ключ>.json (их пишет задача Claude)
   --record <папка>    сохранять ответы модели в папку (потом их можно проиграть через --mock)
   --max-posts N       сколько постов брать с источника за запуск (40)
   --budget-min N      сколько минут запуска отдать разбору постов (35), остальное — в следующий раз
@@ -130,6 +132,7 @@ export function parseArgs(argv) {
       case '--report': o.report = val(); break;
       case '--inbox-out': o.inboxOut = val(); break;
       case '--mock': o.mock = val(); break;
+      case '--exchange': o.exchange = val(); break;
       case '--record': o.record = val(); break;
       case '--max-posts': o.maxPosts = num(flag, val()); break;
       case '--budget-min': o.budgetMin = num(flag, val()); break;
@@ -634,12 +637,13 @@ async function runPipeline(opts, deps, box) {
 
   /* ---- 3. модель ---- */
   const apiKey = env.ANTHROPIC_API_KEY;
-  if (!opts.mock && !apiKey && !deps.llmClient) {
-    throw new Error('нет ANTHROPIC_API_KEY (для проверки без модели — --no-llm, для тестов — --mock <папка>)');
+  if (!opts.mock && !opts.exchange && !apiKey && !deps.llmClient) {
+    throw new Error('нет ANTHROPIC_API_KEY (для проверки без модели — --no-llm, для тестов — --mock <папка>, без ключа — --exchange <папка>)');
   }
   const llm = makeLLM({
     apiKey,
     mockDir: opts.mock ? path.resolve(opts.mock) : undefined,
+    exchangeDir: opts.exchange ? path.resolve(opts.exchange) : undefined,
     recordDir: opts.record ? path.resolve(opts.record) : undefined,
     client: deps.llmClient,
     today,
@@ -656,7 +660,9 @@ async function runPipeline(opts, deps, box) {
   const notCounted = st => !st || st === 'transient' || st === 'skipped';
   // модель не ответила ни на одну пачку (нет связи, перегрузка, кончились деньги): ничего не помечаем прочитанным
   const outage = sent.length > 0 && sent.every(p => status.get(p.key) === 'transient');
-  if (outage) fatal.push('модель не ответила ни на один запрос — посты не тронуты и разберутся в следующий раз');
+  // режим обмена: первая половина — запросы выложены для задачи Claude, ответов ещё нет; это не сбой
+  const pendingN = (llm.stats && llm.stats.pending) || 0;
+  if (outage && !(opts.exchange && pendingN)) fatal.push('модель не ответила ни на один запрос — посты не тронуты и разберутся в следующий раз');
 
   /* ---- 4. проверка и применение ---- */
   const postByKey = new Map(fresh.map(p => [p.key, p]));
@@ -738,7 +744,8 @@ async function runPipeline(opts, deps, box) {
       const all = await findCommonsCandidates(place, { fetchImpl });
       if (!all.length) return { note: 'на Commons рядом нет подходящих снимков' };
       // снимок, который уже стоит у другого места (обычно здание), второму заведению не отдаём
-      const cands = all.filter(c => !usedFiles.has(fileKey(c.file)));
+      const blocked = new Set(Object.keys(loadBlocked(repoDir)).map(fileKey));   // отклонённые (лица людей)
+      const cands = all.filter(c => !usedFiles.has(fileKey(c.file)) && !blocked.has(fileKey(c.file)));
       if (!cands.length) return { note: `все ${all.length} снимков рядом уже стоят у других мест каталога` };
       const i = await llm.pickPhoto({ id, ...place }, cands);
       if (i < 0) return { note: `ни один из ${cands.length} снимков не показывает место` };
@@ -746,6 +753,13 @@ async function runPipeline(opts, deps, box) {
       if (leak(ph)) {
         await Promise.all([ph.s, ph.t].map(f => fs.rm(path.join(repoDir, f), { force: true })));
         return { note: 'в подписи фото имя источника — фото не взято' };
+      }
+      // лиц людей на сайте не должно быть; мелкие детектор пропускает — их смотрят глазами (scripts/photos-review.mjs)
+      const faces = await facesIn([path.join(repoDir, ph.s)]).catch(() => null);
+      if (faces && faces[path.join(repoDir, ph.s)] > 0) {
+        await Promise.all([ph.s, ph.t].map(f => fs.rm(path.join(repoDir, f), { force: true })));
+        addBlocked(repoDir, [ph.file]);
+        return { note: 'на фото лицо человека — фото не взято' };
       }
       usedFiles.add(fileKey(ph.file));
       return { ph };
@@ -985,6 +999,9 @@ async function runPipeline(opts, deps, box) {
   }
 
   /* ---- 6. итог и запись ---- */
+  /* режим обмена: пока на какой-то запрос (разбор, фото, планы) нет ответа — это подготовительный круг: auto.js, прочитанные
+     посты и курсоры не трогаем; запросы детерминированы, следующий запуск с ответами применит всё целиком */
+  const exchangeWait = !!opts.exchange && ((llm.stats && llm.stats.pending) || 0) > 0;
   const newlyClosed = new Set(res.closed.map(c => c.id));
   res.hidden = catalog.scenarios.filter(s => (s.stops || []).some(id => newlyClosed.has(id))).map(s => s.id);
   auto.scenarios = auto.scenarios.filter(s => !(s.stops || []).some(id => closedNow.has(id)));
@@ -1000,7 +1017,7 @@ async function runPipeline(opts, deps, box) {
   const newLeak = leakOf({ p: auto.places, e: auto.events, s: auto.scenarios },
     srcNames.filter(n => !leakOf({ p: was.places, e: was.events, s: was.scenarios }, [n])));
   if (newLeak) throw new Error(`assets/auto.js: в новых данных нашлось имя источника (${labelOf(newLeak)}) — запись остановлена`);
-  if (changes && !opts.dry) await writeAtomic(path.join(repoDir, 'assets/auto.js'), after);
+  if (changes && !opts.dry && !exchangeWait) await writeAtomic(path.join(repoDir, 'assets/auto.js'), after);
 
   // ответ в issue ящика: что сделали и придёт ли PR. Закрывает их close-inbox.mjs, когда PR уже создан
   const inboxComment = (p, failed) => {
@@ -1015,7 +1032,7 @@ async function runPipeline(opts, deps, box) {
   // что модель не разобрала: повторим в следующий раз, но не больше MAX_ATTEMPTS.
   // Сбой связи, нехватка времени, отложенное и не влезшее в лимит — ждут без счёта попыток
   const processed = new Set(items.map(i => i.post_key));
-  if (!opts.dry && !outage) {
+  if (!opts.dry && !outage && !exchangeWait) {
     const wait = p => { state.retry[p.key] = { post: p, n: (state.retry[p.key] && state.retry[p.key].n) || 0 }; res.waiting++; };
     // issues ящика в seen не кладём: открытый issue и так придёт снова, а закрытый — не придёт
     const done = (p, failed) => {
@@ -1039,9 +1056,9 @@ async function runPipeline(opts, deps, box) {
   }
   trimCache(state.geocache);
   // в пробном запуске и когда модель недоступна сохраняем только кеш геокодера
-  const stateOut = opts.dry || outage ? { ...normState(stateRaw), geocache: state.geocache } : state;
+  const stateOut = opts.dry || outage || exchangeWait ? { ...normState(stateRaw), geocache: state.geocache } : state;
   await writeAtomic(path.join(stateDir, 'state.json'), JSON.stringify(stateOut, null, 1) + '\n');
-  if (!opts.dry) {
+  if (!opts.dry && !exchangeWait) {
     if (inboxClose.length) await writeAtomic(inboxFile, JSON.stringify(inboxClose, null, 1) + '\n');
     else await fs.rm(inboxFile, { force: true });
   }
@@ -1057,6 +1074,7 @@ async function runPipeline(opts, deps, box) {
     + `обновлений в отчёте: ${res.updates.length}, отклонено: ${res.rejected.length + res.plansRejected.length}, отложено: ${res.deferred.length}`);
   out(`Модель: вызовов ${usage.calls}, ≈ $${cost(usage).toFixed(2)}`);
   if (opts.dry) out('Пробный запуск: assets/ и прочитанные посты не тронуты.');
+  if (exchangeWait) out(`EXCHANGE_PENDING=${llm.stats.pending} (ответы — в ${opts.exchange}; assets/ и прочитанные посты не тронуты)`);
   for (const l of [...warnings, ...fatal.map(f => `::error title=Конвейер каталога::${f}`)]) out(l);
   out(`CHANGES=${changes}`);
   return { changes, res, usage, auto, report, inboxClose, fatal: fatal.join('; ') || undefined };

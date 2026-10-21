@@ -694,3 +694,28 @@ test('leakOf и safeHref: имя источника в тексте или сс�
   assert.equal(leakOf({ cat: 'coffee', note: 'Кофе.' }, ['coffee']), '', 'коды разделов — не текст');
   assert.equal(safeHref('https://e.org/a)b[c]*'), 'https://e.org/a%29b%5Bc%5D%2A');
 });
+
+test('--exchange: без ответов — подготовительный круг; с ответами исполнителя итог как у прогона с моделью', async () => {
+  const { requestKey } = await import('../lib/llm.mjs');
+  const s = await setup();
+  const X = { repo: await makeRepo(path.join(s.tmp, 'ex/repo')), state: await makeState(path.join(s.tmp, 'ex/state')) };
+  const ex = path.join(s.tmp, 'ex/exchange');
+  const auto0 = readAuto(X.repo);
+  let r, rounds = 0;
+  for (;;) {
+    r = await run(['--exchange', ex], X);
+    const pending = r.lines.find(l => l.startsWith('EXCHANGE_PENDING='));
+    if (!pending) break;
+    assert.equal(readAuto(X.repo), auto0, 'в подготовительном круге auto.js не тронут');
+    assert.deepEqual(readState(X.state).seen || {}, {}, 'и посты не помечены прочитанными');
+    // «исполнитель» отвечает записанными ответами модели (сообщение API целиком)
+    for (const f of (await fs.readdir(ex)).filter(f => f.endsWith('.request.json'))) {
+      const q = JSON.parse(readFileSync(path.join(ex, f), 'utf8'));
+      if (existsSync(path.join(ex, q.key + '.json'))) continue;
+      await fs.copyFile(path.join(s.mockDir, requestKey(q.user) + '.json'), path.join(ex, q.key + '.json'));
+    }
+    assert.ok(++rounds <= 4, 'запросы сходятся за несколько кругов');
+  }
+  assert.ok(rounds >= 1);
+  assert.equal(readAuto(X.repo), s.autoB);
+});
