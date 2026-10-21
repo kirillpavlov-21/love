@@ -155,12 +155,12 @@ async function posts(slug, days) {
   const { fetchChannel } = await import('../pipeline/lib/sources/telegram.mjs');
   const src = readJson(path.join(KUDA, 'pipeline-data/sources.json'), {});
   const chans = [...(src.telegram || []).map(c => ['msk', c]), ...(((src.cities || {}).spb || {}).telegram || []).map(c => ['spb', c])];
-  const rx = o.pick.evText || o.pick.text || new RegExp(o.title.split(' ')[0], 'i');
+  const rx = o.words;   // только слова самого повода: общие слова («ночь») цепляют новости
   const since = Date.now() - days * 864e5, found = [];
   for (const [city, ch] of chans) {
     try {
-      const ps = await fetchChannel(ch, { maxPosts: 40, delayMs: 1500 });
-      for (const p of ps) if ((!p.date || Date.parse(p.date) >= since) && (rx.test(p.text) || new RegExp(o.title, 'i').test(p.text))) found.push({ city, channel: ch, url: p.url, date: p.date, text: p.text.slice(0, 1500) });
+      const { posts: ps } = await fetchChannel(ch, { maxPosts: 40, delayMs: 1500 });
+      for (const p of ps) if ((!p.date || Date.parse(p.date) >= since) && rx.test(p.text)) found.push({ city, channel: ch, url: p.url, date: p.date, text: p.text.slice(0, 1500) });
     } catch (e) { console.error(`канал пропущен: ${e.message}`); }
   }
   const out = path.join(KUDA, 'occasion-posts', slug + '.json');

@@ -5,6 +5,7 @@
    ─ title, emoji, lead — заголовок до 40 знаков и вступление своими словами до 300 знаков (общие или { msk, spb });
    ─ date(год) → 'YYYY-MM-DD' — день повода; days — сколько дней длится (1); before — за сколько дней показывать (7);
      approx — дата вычислена по правилу и может сдвинуться: её подтверждают в scripts/occasion-dates.json;
+   ─ words — по каким словам искать посты каналов о поводе (scripts/occasions.mjs --posts);
    ─ cities — ['msk', 'spb'] по умолчанию; mode — для каких поводов на сайте, без поля — для всех;
    ─ pick — как отобрать пункты из каталога: hint (подсказки мест), cat (разделы мест), kind / text (рег. выражения по типу
      и описанию места), ev / evText (категории и рег. выражение по названию события в дни подборки), plan (теги и рег. выражение
@@ -28,97 +29,97 @@ export function orthodoxEaster(y) {
 
 export const OCCASIONS = [
   {
-    slug: 'novyy-god', emoji: '🎄', title: 'Новогодние выходные', date: fixed(12, 31), days: 9, before: 10,
+    slug: 'novyy-god', words: /новогодн|новый год|ёлк|рождеств/i, emoji: '🎄', title: 'Новогодние выходные', date: fixed(12, 31), days: 9, before: 10,
     lead: 'Катки, ёлки и огни, ресторан на последний ужин года и места, куда сбежать с друзьями в долгие праздники. Отметь пару вариантов и отправь на голосование — первое января тоже нужно чем-то занять.',
     pick: { hint: ['newyear'], text: /каток|ёлк|ярмарк|новогод|гирлянд|иллюминац/i, ev: ['show', 'festival', 'concert'], evText: /новогод|ёлк|рождеств|зимн/i, plan: { tags: ['newyear'], title: /новогод|каток|ёлк|зимн/i } },
   },
   {
-    slug: 'staryy-novyy-god', emoji: '🥂', title: 'Старый Новый год', date: fixed(1, 13), before: 4,
+    slug: 'staryy-novyy-god', words: /старый новый год/i, emoji: '🥂', title: 'Старый Новый год', date: fixed(1, 13), before: 4,
     lead: 'Второй шанс отметить: ужин без новогодней спешки, бар с друзьями или каток под огнями, пока гирлянды ещё не сняли.',
     pick: { cat: ['bar', 'food'], hint: ['newyear'], text: /каток|гирлянд|огн/i, plan: { title: /каток|ужин|бар/i } },
   },
   {
-    slug: 'tatyanin-den', emoji: '🎓', title: 'Татьянин день', date: fixed(1, 25), before: 5, mode: ['guys', 'girls'],
+    slug: 'tatyanin-den', words: /татьянин|день студент/i, emoji: '🎓', title: 'Татьянин день', date: fixed(1, 25), before: 5, mode: ['guys', 'girls'],
     lead: 'День студентов: недорогие бары, караоке, квесты и музеи, куда по студенческому дешевле. Хороший повод собрать старую компанию с курса.',
     pick: { hint: ['budget', 'company'], cat: ['bar', 'fun'], text: /караоке|квест|бильярд|студен/i, ev: ['standup', 'party'] },
   },
   {
-    slug: 'valentin', emoji: '💘', title: 'День всех влюблённых', date: fixed(2, 14), before: 7, mode: ['date'],
+    slug: 'valentin', words: /14 февраля|валентин|влюблённ/i, emoji: '💘', title: 'День всех влюблённых', date: fixed(2, 14), before: 7, mode: ['date'],
     lead: 'Ужин с видом, спектакль на двоих, каток, звёзды в планетарии или тихая кофейня — свидания на любой вкус. Столики на 14-е разбирают заранее, так что выбирать лучше уже сейчас.',
     pick: { hint: ['first', 'view'], cat: ['food', 'culture'], text: /ужин|романт|вид|панорам|планетар|каток/i, ev: ['concert', 'theatre', 'show'], evText: /любов|романт|валентин|свидан|джаз|свеч/i, plan: { title: /ужин|вид|свидан|звёзд|свеч/i } },
   },
   {
-    slug: '23-fevralya', emoji: '🎖️', title: 'Куда сходить на 23 февраля', date: fixed(2, 23), before: 7, mode: ['guys', 'girls'],
+    slug: '23-fevralya', words: /23 февраля|защитник/i, emoji: '🎖️', title: 'Куда сходить на 23 февраля', date: fixed(2, 23), before: 7, mode: ['guys', 'girls'],
     lead: 'Тир, картинг, баня, стейк-хаус или компьютерный клуб на всю компанию — чем занять выходной и что подарить вместо очередных носков.',
     pick: { cat: ['fun', 'spa', 'pc'], text: /тир|картинг|бан[ия]|стейк|пейнтбол|лазертаг|бильярд|vr/i, ev: ['sport', 'standup'], plan: { title: /тир|картинг|бан|стейк/i } },
   },
   {
-    slug: 'maslenitsa', emoji: '🥞', title: 'Масленица', date: y => addDays(orthodoxEaster(y), -55), days: 7, before: 5,
+    slug: 'maslenitsa', words: /маслениц/i, emoji: '🥞', title: 'Масленица', date: y => addDays(orthodoxEaster(y), -55), days: 7, before: 5,
     lead: 'Блинная неделя: гуляния в парках и усадьбах, ярмарки, блины в старых трактирах и чучело в воскресенье. Одевайся теплее — большая часть веселья на улице.',
     pick: { cat: ['walk', 'food'], text: /усадьб|парк|блин|трактир|русск|ярмарк/i, ev: ['festival', 'show'], evText: /маслениц|блин|гуляни/i, plan: { title: /усадьб|парк|блин/i } },
   },
   {
-    slug: '8-marta', emoji: '🌷', title: '8 Марта', date: fixed(3, 8), before: 7, mode: ['date', 'girls'],
+    slug: '8-marta', words: /8 марта|женский день/i, emoji: '🌷', title: '8 Марта', date: fixed(3, 8), before: 7, mode: ['date', 'girls'],
     lead: 'Бранч с подругами, спа и баня, цветочные оранжереи, спектакль или ужин с видом — места, где весенний выходной пройдёт красиво. Столики на 8-е лучше бронировать заранее.',
     pick: { cat: ['spa', 'food', 'culture'], text: /бранч|спа|оранжере|цвет|ботаническ|вид|панорам/i, ev: ['concert', 'theatre', 'exhibition'], plan: { title: /бранч|спа|ужин|сад/i } },
   },
   {
-    slug: 'den-teatra', emoji: '🎭', title: 'День театра', date: fixed(3, 27), before: 6,
+    slug: 'den-teatra', words: /день театра/i, emoji: '🎭', title: 'День театра', date: fixed(3, 27), before: 6,
     lead: 'Большие сцены и маленькие студии, иммерсивные спектакли и стендап — повод наконец выбраться в театр. Билеты на выходные уходят быстро.',
     pick: { kind: /театр/i, ev: ['theatre', 'show'], plan: { title: /театр|спектакл/i } },
   },
   {
-    slug: '1-aprelya', emoji: '🤡', title: 'День смеха', date: fixed(4, 1), before: 4, mode: ['guys', 'girls'],
+    slug: '1-aprelya', words: /1 апреля|день смеха/i, emoji: '🤡', title: 'День смеха', date: fixed(4, 1), before: 4, mode: ['guys', 'girls'],
     lead: 'Стендап, импровизация и комедийные шоу — вечер, после которого болят щёки. Можно добавить бар или караоке, чтобы не расходиться сразу.',
     pick: { text: /стендап|импров|комед|караоке/i, ev: ['standup', 'show'], plan: { title: /стендап|караоке/i } },
   },
   {
-    slug: 'mayskie', emoji: '🌳', title: 'Майские праздники', date: fixed(5, 1), days: 11, before: 7,
+    slug: 'mayskie', words: /майск/i, emoji: '🌳', title: 'Майские праздники', date: fixed(5, 1), days: 11, before: 7,
     lead: 'Первые веранды, парки и усадьбы в цвету, прогулки на теплоходе и смотровые площадки — длинные выходные под открытым небом. На случай дождя есть музеи и бани.',
     pick: { cat: ['walk'], hint: ['scenic', 'view'], text: /веранд|теплоход|усадьб|парк|набережн/i, ev: ['festival', 'concert'], plan: { title: /парк|усадьб|теплоход|набережн|прогулк/i } },
   },
   {
-    slug: 'den-goroda-spb', emoji: '⚓', title: 'День города', date: fixed(5, 27), before: 7, cities: ['spb'],
+    slug: 'den-goroda-spb', words: /день города|день рождения петербург/i, emoji: '⚓', title: 'День города', date: fixed(5, 27), before: 7, cities: ['spb'],
     lead: 'Петербург празднует день рождения: концерты на площадях, набережные, сады и кораблики. Выбери прогулку, а вечер заверши ужином у воды.',
     pick: { cat: ['walk', 'culture'], text: /набережн|сад|теплоход|прогулк|мост/i, ev: ['festival', 'concert'], plan: { title: /набережн|сад|мост|прогулк/i } },
   },
   {
-    slug: 'noch-muzeev', emoji: '🏛️', title: 'Ночь музеев', date: y => nthSat(y, 5, 3), before: 7, approx: true,
+    slug: 'noch-muzeev', words: /ночь музеев/i, emoji: '🏛️', title: 'Ночь музеев', date: y => nthSat(y, 5, 3), before: 7, approx: true,
     lead: 'Одна ночь в году, когда музеи и галереи открыты допоздна, часто с концертами и экскурсиями. Составь маршрут из двух-трёх мест рядом — так успеешь больше.',
     pick: { kind: /музе|галере|выстав/i, ev: ['exhibition', 'lecture'], plan: { title: /музе|галере/i } },
   },
   {
-    slug: 'belye-nochi', emoji: '🌅', title: 'Белые ночи', date: fixed(6, 10), days: 31, before: 5, cities: ['spb'],
+    slug: 'belye-nochi', words: /белые ночи|алые паруса/i, emoji: '🌅', title: 'Белые ночи', date: fixed(6, 10), days: 31, before: 5, cities: ['spb'],
     lead: 'Светло почти до утра: разводные мосты, набережные, крыши и ночные кораблики. Самое время для долгой прогулки после ужина.',
     pick: { cat: ['walk'], hint: ['view', 'night', 'scenic'], text: /мост|набережн|крыш|теплоход|ночн/i, plan: { title: /мост|набережн|ночн|крыш/i } },
   },
   {
-    slug: 'den-semi', emoji: '🌼', title: 'День семьи, любви и верности', date: fixed(7, 8), before: 6, mode: ['date'],
+    slug: 'den-semi', words: /день семьи|петра и февронии/i, emoji: '🌼', title: 'День семьи, любви и верности', date: fixed(7, 8), before: 6, mode: ['date'],
     lead: 'Летний повод для свидания: прогулка по саду или усадьбе, пикник, ужин на веранде и закат над водой.',
     pick: { cat: ['walk', 'food'], hint: ['scenic', 'first'], text: /сад|усадьб|веранд|ромашк|набережн/i, plan: { title: /сад|усадьб|ужин|закат/i } },
   },
   {
-    slug: 'den-goroda-msk', emoji: '🎉', title: 'День города', date: y => satFrom(y, 9, 5), days: 2, before: 7, cities: ['msk'], approx: true,
+    slug: 'den-goroda-msk', words: /день города|день рождения москв/i, emoji: '🎉', title: 'День города', date: y => satFrom(y, 9, 5), days: 2, before: 7, cities: ['msk'], approx: true,
     lead: 'Москва празднует день рождения: концерты и фестивали в парках, бульвары и площади без машин. Выбери место для прогулки, а вечер заверши на смотровой или веранде.',
     pick: { cat: ['walk'], hint: ['view', 'scenic'], text: /парк|бульвар|набережн|смотров/i, ev: ['festival', 'concert'], plan: { title: /парк|бульвар|набережн/i } },
   },
   {
-    slug: 'oktoberfest', emoji: '🍺', title: 'Пивные выходные', date: fixed(9, 20), days: 16, before: 4, mode: ['guys', 'girls'],
+    slug: 'oktoberfest', words: /октоберфест|oktoberfest/i, emoji: '🍺', title: 'Пивные выходные', date: fixed(9, 20), days: 16, before: 4, mode: ['guys', 'girls'],
     lead: 'Сезон пенного: крафтовые бары, пивоварни с дегустациями, колбаски и пабы с большим столом на всю компанию.',
     pick: { cat: ['bar'], text: /крафт|пив|паб|пивовар|колбас/i, plan: { title: /бар|паб|пив/i } },
   },
   {
-    slug: 'den-kofe', emoji: '☕', title: 'День кофе', date: fixed(10, 1), before: 5,
+    slug: 'den-kofe', words: /день кофе/i, emoji: '☕', title: 'День кофе', date: fixed(10, 1), before: 5,
     lead: 'Спешелти-кофейни, обжарщики и пекарни, где хочется задержаться подольше. Обойди пару мест и сравни, где эспрессо лучше.',
     pick: { cat: ['coffee'], text: /спешелти|обжар|кофе/i, plan: { title: /коф/i } },
   },
   {
-    slug: 'hellouin', emoji: '🎃', title: 'Хэллоуин', date: fixed(10, 31), before: 10,
+    slug: 'hellouin', words: /хэллоуин|halloween/i, emoji: '🎃', title: 'Хэллоуин', date: fixed(10, 31), before: 10,
     lead: 'Квесты с актёрами, бункеры, готические особняки, мистические музеи и вечеринки в костюмах. Для смелых — страшно, для остальных — просто атмосферно.',
     pick: { hint: ['halloween'], text: /квест|бункер|мистик|готич|хоррор/i, ev: ['party', 'show'], evText: /хэллоуин|halloween|мистик|ужас|страш/i, plan: { tags: ['halloween'] } },
   },
   {
-    slug: 'noch-iskusstv', emoji: '🖼️', title: 'Ночь искусств', date: fixed(11, 3), before: 6, cities: ['msk'],
+    slug: 'noch-iskusstv', words: /ночь искусств/i, emoji: '🖼️', title: 'Ночь искусств', date: fixed(11, 3), before: 6,
     lead: 'Музеи, галереи и концертные залы открыты допоздна, многие — с бесплатным входом. Наметь два-три места рядом друг с другом и иди вечером.',
     pick: { kind: /музе|галере|концерт|выстав/i, ev: ['exhibition', 'concert', 'lecture'], plan: { title: /музе|галере|концерт/i } },
   },
