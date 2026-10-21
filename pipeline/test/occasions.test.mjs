@@ -45,6 +45,7 @@ test('у каждого повода: slug, заголовок до 40 знак�
     assert.ok(o.title.length <= 40, o.slug);
     for (const l of typeof o.lead === 'string' ? [o.lead] : Object.values(o.lead)) assert.ok(l.length > 40 && l.length <= 300, o.slug);
     assert.match(o.date(2026), /^2026-\d\d-\d\d$/);
+    assert.ok(o.words instanceof RegExp && !o.words.test('Работает ПВО, атака ночью'), o.slug + ': слова для поиска постов');
   }
 });
 
