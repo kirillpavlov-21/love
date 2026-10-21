@@ -376,6 +376,7 @@ export function makeLLM({
   model = 'claude-opus-5-5',
   mockDir,
   recordDir,
+  exchangeDir,
   client,
   today = moscowToday(),
   batchSize = 6,
@@ -395,8 +396,30 @@ export function makeLLM({
   async function call(label, body) {
     const key = requestKey(body.messages[0].content);
     let res;
+    /* обмен с внешним исполнителем (ежедневная задача Claude на ноутбуке, без ключа API): ответа <key>.json нет —
+       выкладываем запрос <key>.request.json и откладываем пачку; ответ — сам JSON по схеме или сообщение API целиком */
+    if (exchangeDir) {
+      // ключ обмена — и по системному тексту: поменялись правила или каталог — старый ответ не подойдёт
+      const sysText = (Array.isArray(body.system) ? body.system.map(b => b && b.text || '').join('\n\n') : String(body.system || ''));
+      const sysKey = requestKey(sysText).slice(0, 12);
+      const exKey = requestKey(sysKey + '\n' + JSON.stringify(body.messages[0].content));
+      try {
+        const raw = JSON.parse(await readFile(path.join(exchangeDir, exKey + '.json'), 'utf8'));
+        res = raw && Array.isArray(raw.content) ? raw : { content: [{ type: 'text', text: JSON.stringify(raw) }], stop_reason: 'end_turn', usage: {} };
+      } catch (err) {
+        if (err.code !== 'ENOENT') { log(`${label}: ответ ${exKey}.json не разобрался: ${err.message}`); return { fail: 'transient' }; }
+        await mkdir(exchangeDir, { recursive: true });
+        // системный текст (правила + каталог мест ~100 КБ) одинаковый у всех запросов — один файл system-<хэш>.md
+        const sysFile = path.join(exchangeDir, `system-${sysKey}.md`);
+        try { await readFile(sysFile); } catch { await writeFile(sysFile, sysText + '\n'); }
+        await writeFile(path.join(exchangeDir, exKey + '.request.json'), JSON.stringify({ key: exKey, label, system_file: path.basename(sysFile), user: body.messages[0].content,
+          schema: body.output_config && body.output_config.format && body.output_config.format.schema }, null, 1) + '\n');
+        stats.pending = (stats.pending || 0) + 1;
+        return { fail: 'transient' };
+      }
+    }
     try {
-      res = mockDir
+      if (!res) res = mockDir
         ? JSON.parse(await readFile(path.join(mockDir, key + '.json'), 'utf8'))
         : await api().beta.messages.create(body);
     } catch (err) {
@@ -552,6 +575,8 @@ export function makeLLM({
       return i >= 0 && i < list.length ? pos[i] : -1;
     },
 
+    /* режим обмена: сколько запросов выложено без ответа */
+    get stats() { return { pending: stats.pending || 0 }; },
     usage() {
       return { ...stats };
     },

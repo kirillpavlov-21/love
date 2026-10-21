@@ -23,7 +23,7 @@
   const esc = K.esc;
   const I = K.icon;
   const CFG = window.DATE_CONFIG || {};
-  const T = window.KudaTrack, G = window.KudaGeo, AU = window.KudaAuth, GAL = window.KudaGallery;
+  const T = window.KudaTrack, G = window.KudaGeo, AU = window.KudaAuth;
   /* Свой сервер (assets/api.js): живые голоса, «Мои приглашения», сообщения об ошибках. Нет модуля или пустой api.url — работаем без него */
   const API = window.KudaAPI || null;
   const LIVE = !!(API && API.on);
@@ -827,7 +827,6 @@
     const okr = p.okr && OKR_NAME[p.okr] && p.okr !== 'all' ? ' · ' + esc(OKR_NAME[p.okr]) : '';
     openSheet(`
       ${ph ? heroPh(ph, p.name) : placeCover(p)}
-      ${ph && ph.file ? '<div class="gal hidden" role="group" aria-label="Ещё фото"></div>' : ''}
       <p class="eyebrow">${esc(p.kind)} · <span title="${esc(K.priceHint(p.price))}">${K.priceText(p.price)}</span>${okr}</p>
       <div class="ttl-row"><h3>${esc(p.name)}</h3>${favBtn('place:' + id)}</div>
       ${p.mich ? `<p class="mich-line"><span class="mich">M</span>${MICH[p.mich]}</p>` : ''}
@@ -860,7 +859,6 @@
       <div class="sheet-slot" data-slot="reviews"></div>
       ${reportBox('place', id, p.name)}`, Object.assign({ kind: 'place', id, url: sheetUrl('place=' + encodeURIComponent(id)) }, so));
     T.ev('open_place', { kind: 'place', id, mode });
-    if (ph && ph.file) GAL.load(id, ph).then(items => renderGallery(id, items)).catch(() => { /* Commons недоступен — одно фото */ });
     mountReviews(id, p, so && so.reviews);
     return true;
   }
@@ -900,14 +898,6 @@
     const evs = safe(() => A.upcoming({ city: K.cityOf(id) }), []).filter(e => e.place === id).slice(0, 3);
     return evs.length ? `<div class="in-plans"><p class="k">Скоро здесь</p>${evs.map(e =>
       `<button type="button" class="chip ev-row" data-open-event="${esc(e.id)}"><span class="ev-e" aria-hidden="true">${esc(e.emoji || '📅')}</span><span><b>${esc(e.title)}</b> <small>${esc(evWhen(e))}</small></span></button>`).join('')}</div>` : '';
-  }
-  /* Ещё фото места (Wikimedia Commons) лентой превью; по нажатию — крупно с автором и лицензией */
-  function renderGallery(id, items) {
-    const box = $('#sheet .gal');
-    if (!box || !SH.isOpen() || $('#sheet').dataset.id !== id || !items.length) return;
-    box.innerHTML = items.map((x, i) => `<button type="button" class="gal-it" data-gal="${i}" aria-label="Фото ${i + 2}: ${esc(x.a)}"><img src="${esc(x.t || x.s)}" alt="" loading="lazy" decoding="async"></button>`).join('');
-    box.classList.remove('hidden');
-    box._items = items;
   }
   /* Фото крупно — отдельный диалог поверх карточки: Esc и × закрывают, фокус возвращается к превью */
   function showPhoto(x, from) {
@@ -1338,8 +1328,6 @@
     }
     const pc = e.target.closest('[data-code]');
     if (pc) { if (navigator.clipboard) navigator.clipboard.writeText(pc.dataset.code).then(() => toast('Промокод скопирован'), () => {}); T.ev('promo_copy', { kind: 'place', id: sk.id }); return; }
-    const gi = e.target.closest('[data-gal]');
-    if (gi) { const box = gi.closest('.gal'); if (box && box._items) showPhoto(box._items[+gi.dataset.gal], gi); return; }
     const act = e.target.closest('[data-act]');
     if (act && (sk.kind === 'place' || sk.kind === 'plan')) T.ev(act.dataset.act, { kind: sk.kind, id: sk.id, mode });
     if (e.target.closest('[data-goto-rv]')) { goReviews(); return; }
