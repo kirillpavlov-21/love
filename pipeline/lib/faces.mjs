@@ -20,6 +20,8 @@ function playwright() {
 /* Отклонённые снимки — scripts/photos-blocked.json: { "<файл Commons или адрес страницы фото>": "причина" }.
    Их больше не предлагаем ни одному месту */
 const blockedPath = root => path.join(root, 'scripts/photos-blocked.json');
+/* ключ снимка для сравнения: без «File:», расширения и подчёркиваний — один и тот же кадр приходит с Commons и через Openverse по-разному */
+export const photoKey = s => String(s || '').replace(/^File:/i, '').replace(/\.(jpe?g|png|webp|tiff?|gif)$/i, '').replace(/_/g, ' ').normalize('NFC').trim().toLowerCase();
 export function loadBlocked(root) {
   try { return JSON.parse(fs.readFileSync(blockedPath(root), 'utf8')); } catch { return {}; }
 }

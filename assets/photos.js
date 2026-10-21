@@ -303,6 +303,8 @@
     "alexander-garden": ["Александровский_сад_1.JPG","Надежда Пивоварова","CC BY-SA 3.0"],
     "icity": ["Музей-Смотровая_Москва-Сити.jpg","Дарья Симоненко","CC BY-SA 4.0"],
     "spb-bellevue": ["Центр_города_летним_вечером._Вид_из_ресторана_Bellevue_на_крыше_гостиницы_Кемпински_Мойка_22._Санкт-Петербург.jpg","Moneycantbuy","CC BY-SA 4.0"],
+    // —— добор 2026-10-21 ——
+    "tsaritsyno": ["Царицыно_(Москва).jpg","MS.Malysheva","CC BY-SA 4.0"],
   };
   const places = (window.KUDA || {}).places || {};
   Object.keys(PH).forEach(id => {

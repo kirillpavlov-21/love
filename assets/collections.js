@@ -9,6 +9,7 @@
    ─ mode — для каких поводов ('date' | 'guys' | 'girls'), без поля — для всех;
    ─ season — сезоны ('winter', 'spring', 'summer', 'autumn'), from / until — 'YYYY-MM-DD' (until — последний день включительно);
    ─ filter — фильтр готовых планов, чью сезонную плашку подборка заменяет на полке ('halloween', 'pc');
+   ─ occasion — slug повода из scripts/occasions-calendar.mjs: подборка редакции к поводу, авто-подборку к нему не делаем;
    ─ updated — когда правили.
    Место закрылось, событие прошло, пункт из другого города или вне сезона — его не видно. Живых пунктов меньше 4 —
    подборки не видно нигде: ни на главной, ни по ссылке, ни на странице подборки.
@@ -35,7 +36,7 @@
     updated: '2026-10-16',
   },
   {
-    id: 'c-halloween', kind: 'editorial', emoji: '🎃', title: 'Хэллоуин: страшно интересно', from: '2026-10-01', until: '2026-11-01', filter: 'halloween',
+    id: 'c-halloween', kind: 'editorial', emoji: '🎃', title: 'Хэллоуин: страшно интересно', from: '2026-10-01', until: '2026-11-01', filter: 'halloween', occasion: 'hellouin',
     lead: 'Бункер холодной войны глубоко под Таганкой, ужин в полной темноте, иммерсивные спектакли и квесты с актёрами, после которых не сразу уснёшь. Кому нужно потише — мистика Булгакова и Гоголя, готический дворец и орган в неоготическом соборе.',
     items: ['bunker42', 'vtemnote', 'osobnyak-dashkov-5', 'mosspektakl', 'inkubo', 'blekvud', 'komponent-kvest', 'hooligan-group', 'chistyy-razum',
       'bulgakov', 'gogol-house', 'petrovsky-palace', 'catholic-cathedral'],
@@ -145,7 +146,7 @@
     updated: '2026-10-19',
   },
   {
-    id: 'spb-c-halloween', kind: 'editorial', emoji: '🎃', title: 'Хэллоуин по-петербургски', filter: 'halloween', from: '2026-10-01', until: '2026-11-01',
+    id: 'spb-c-halloween', kind: 'editorial', emoji: '🎃', title: 'Хэллоуин по-петербургски', filter: 'halloween', from: '2026-10-01', until: '2026-11-01', occasion: 'hellouin',
     lead: 'Замок Павла I с мрачной историей, подвал Юсуповского дворца, где убили Распутина, склеп в Шуваловском парке, заспиртованные диковины Кунсткамеры и хорроры с живыми актёрами.',
     items: ['spb-mikhaylovskiy-inzhenernyy', 'spb-yusupovskiy-dvorets', 'spb-shuvalovskiy-park', 'spb-kunstkamera', 'spb-vzaperti-kazanskoy', 'spb-vzaperti-solyanom', 'spb-tishine', 'spb-g-horror-kazanskaya'],
     updated: '2026-10-19',
