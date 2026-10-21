@@ -8,3 +8,6 @@ pipeline-report.md
 deploy/vps/.env
 deploy/vps/Caddyfile
 private/
+
+# отчёт scripts/daily.mjs для текста PR
+.daily-report.md

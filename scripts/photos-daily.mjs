@@ -4,6 +4,7 @@
      1) Wikimedia Commons рядом с точкой места (до 150 м) — в названии файла есть слово из имени места;
      2) Commons по названию — файл с координатами не дальше 400 м или с городом в названии/описании;
      3) Openverse (фото Flickr под CC) — слово из имени места в заголовке и город в заголовке или тегах.
+   У заведений (еда, бары, бани…) название часто — обычное слово, поэтому для них только снимки с координатами рядом (шаги 1 и 2).
    Сохраняет assets/ph/<id>.webp (720 px) и assets/ph/t/<id>.webp (240×240), дописывает assets/photos.js.
    Лиц людей на сайте быть не должно: снимки из scripts/photos-blocked.json не берём, скачанные проверяем детектором лиц
    (pipeline/lib/faces.mjs) — с лицом фото не ставим и заносим в тот же список; мелкие лица потом ищут глазами (photos-review.mjs).
@@ -16,7 +17,7 @@ import os from 'node:os';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { findCommonsCandidates, freeLicense, cleanArtist, stripHtml, UA } from '../pipeline/lib/photos.mjs';
-import { facesIn, loadBlocked, addBlocked } from '../pipeline/lib/faces.mjs';
+import { facesIn, loadBlocked, addBlocked, photoKey } from '../pipeline/lib/faces.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const sharp = createRequire(path.join(ROOT, 'pipeline/package.json'))('sharp');
@@ -49,7 +50,8 @@ vm.createContext(ctx);
 for (const f of ['assets/places.js', 'assets/places-spb.js', 'assets/photos.js']) vm.runInContext(fs.readFileSync(path.join(ROOT, f), 'utf8'), ctx, { filename: f });
 const K = ctx.window.KUDA, ADULT = new Set(K.adult || []);
 // занятые и отклонённые снимки: файл Commons или страница фото
-const used = new Set(Object.values(K.places).map(p => p.ph && p.ph.file).filter(Boolean).concat(Object.keys(loadBlocked(ROOT))));
+const usedRaw = Object.values(K.places).map(p => p.ph && p.ph.file).filter(Boolean).concat(Object.keys(loadBlocked(ROOT)));
+const used = { keys: new Set(usedRaw.map(photoKey)), has(k) { return this.keys.has(photoKey(k)); }, add(k) { this.keys.add(photoKey(k)); } };
 const inPlans = new Map();
 (K.scenarios || []).forEach(s => (s.stops || []).forEach(id => inPlans.set(id, (inPlans.get(id) || 0) + 1)));
 const tried = (() => { try { return JSON.parse(fs.readFileSync(TRIED_FILE, 'utf8')); } catch { return {}; } })();
@@ -73,6 +75,9 @@ const cityOf = id => (id.startsWith('spb-') ? 'spb' : 'msk');
 const R = 6371000, rad = x => x * Math.PI / 180;
 const distM = (a, b) => { const dLat = rad(b.lat - a.lat), dLon = rad(b.lon - a.lon); const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLon / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(h)); };
 
+/* достопримечательность (парк, музей, театр…) узнаётся по названию; заведение — только по координатам снимка */
+const landmark = p => ['walk', 'culture'].includes(p.cat) || (!p.cat && /парк|сад|музе|театр|усадьб|собор|храм|монастыр|дворец|набережн|площад|мост/i.test(p.kind || ''));
+
 /* ---------- источники ---------- */
 async function getJson(url) {
   const r = await fetch(url, { headers: { 'User-Agent': UA, Accept: 'application/json' } });
@@ -92,7 +97,8 @@ async function commonsByName(id, p, keys) {
     const desc = stripHtml((md.ImageDescription || {}).value || '');
     if (!hasKey(title, keys)) continue;
     const co = pg.coordinates && pg.coordinates[0];
-    if (co ? distM(p, { lat: co.lat, lon: co.lon }) > 400 : !CITY_RX[city].test(title + ' ' + desc)) continue;
+    // у заведения название — часто обычное слово («Огород», «Рябчик»): без координат рядом снимок не берём
+    if (co ? distM(p, { lat: co.lat, lon: co.lon }) > 400 : !landmark(p) || !CITY_RX[city].test(title + ' ' + desc)) continue;
     const license = freeLicense((md.LicenseShortName || {}).value, (md.License || {}).value);
     let artist = cleanArtist((md.Artist || {}).value || '') || cleanArtist((md.Credit || {}).value || '');
     if (/own work|собственн/i.test(artist)) artist = '';
@@ -116,7 +122,8 @@ async function openverse(id, p, keys) {
     if (!lic || !r.url || !/^https:/.test(r.url)) continue;
     const license = lic + (r.license_version && !/CC0|достояние/.test(lic) ? ' ' + r.license_version : '');
     if (!r.creator && !/CC0|достояние/.test(lic)) continue;
-    if (used.has(r.url) || used.has(r.foreign_landing_url)) continue;
+    if (used.has(r.url) || used.has(r.foreign_landing_url) || used.has(title)) continue;
+    if (r.provider === 'wikimedia' || r.source === 'wikimedia') continue;   // Commons смотрим напрямую, с координатами
     const src = r.source === 'flickr' ? 'Flickr' : r.provider === 'wikimedia' ? 'Wikimedia Commons' : (r.source || 'Openverse');
     return { kind: 'ext', file: title.slice(0, 120), thumb: r.url, artist: String(r.creator || 'неизвестный автор').slice(0, 80), license, src, u: r.foreign_landing_url || r.url };
   }
@@ -155,7 +162,7 @@ for (const [id, p] of todo) {
   for (const step of [
     async () => { const cs = await findCommonsCandidates(p, { radiusM: 150, limit: 12 }); const x = cs.find(x => !used.has(x.file) && hasKey(x.title, keys)); return x ? { kind: 'commons', file: x.file, thumb: x.thumb, artist: x.artist, license: x.license } : null; },
     () => commonsByName(id, p, keys),
-    () => openverse(id, p, keys),
+    ...(landmark(p) ? [() => openverse(id, p, keys)] : []),
   ]) {
     try { c = await step(); } catch (e) { log.push(`${id}: ${e.message}`); }
     await sleep(600);
