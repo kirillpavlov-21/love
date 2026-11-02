@@ -305,6 +305,10 @@
     "spb-bellevue": ["Центр_города_летним_вечером._Вид_из_ресторана_Bellevue_на_крыше_гостиницы_Кемпински_Мойка_22._Санкт-Петербург.jpg","Moneycantbuy","CC BY-SA 4.0"],
     // —— добор 2026-10-21 ——
     "tsaritsyno": ["Царицыно_(Москва).jpg","MS.Malysheva","CC BY-SA 4.0"],
+    // —— добор 2026-11-02 ——
+    "spb-glavnyy-shtab": ["Здание_Главного_штаба_со_стороны_Эрмитажа.JPG","Max A. Khlopov","CC BY-SA 3.0"],
+    "spb-artmuza": ["Артмуза,_внутренний_двор_зимой.jpg","SoulMaker","CC BY-SA 4.0"],
+    "spb-sevkabel-port": ["Арт-пространство_порт_Севкабель.jpg","Бегущий из города","CC BY-SA 4.0"],
   };
   const places = (window.KUDA || {}).places || {};
   Object.keys(PH).forEach(id => {

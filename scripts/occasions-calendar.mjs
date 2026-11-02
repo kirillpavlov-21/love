@@ -119,7 +119,7 @@ export const OCCASIONS = [
     pick: { hint: ['halloween'], text: /квест|бункер|мистик|готич|хоррор/i, ev: ['party', 'show'], evText: /хэллоуин|halloween|мистик|ужас|страш/i, plan: { tags: ['halloween'] } },
   },
   {
-    slug: 'noch-iskusstv', words: /ночь искусств/i, emoji: '🖼️', title: 'Ночь искусств', date: fixed(11, 3), before: 6,
+    slug: 'noch-iskusstv', words: /ночь искусств/i, emoji: '🖼️', title: 'Ночь искусств', date: fixed(11, 3), days: 2, before: 6,
     lead: 'Музеи, галереи и концертные залы открыты допоздна, многие — с бесплатным входом. Наметь два-три места рядом друг с другом и иди вечером.',
     pick: { kind: /музе|галере|концерт|выстав/i, ev: ['exhibition', 'concert', 'lecture'], plan: { title: /музе|галере|концерт/i } },
   },

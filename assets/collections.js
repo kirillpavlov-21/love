@@ -36,13 +36,6 @@
     updated: '2026-10-16',
   },
   {
-    id: 'c-halloween', kind: 'editorial', emoji: '🎃', title: 'Хэллоуин: страшно интересно', from: '2026-10-01', until: '2026-11-01', filter: 'halloween', occasion: 'hellouin',
-    lead: 'Бункер холодной войны глубоко под Таганкой, ужин в полной темноте, иммерсивные спектакли и квесты с актёрами, после которых не сразу уснёшь. Кому нужно потише — мистика Булгакова и Гоголя, готический дворец и орган в неоготическом соборе.',
-    items: ['bunker42', 'vtemnote', 'osobnyak-dashkov-5', 'mosspektakl', 'inkubo', 'blekvud', 'komponent-kvest', 'hooligan-group', 'chistyy-razum',
-      'bulgakov', 'gogol-house', 'petrovsky-palace', 'catholic-cathedral'],
-    updated: '2026-10-16',
-  },
-  {
     id: 'c-bani', kind: 'editorial', emoji: '🧖', title: 'Бани на компанию', mode: ['guys', 'girls'],
     lead: 'От недорогих терм, где парения уже входят в билет, до срубов на дровах на всю компанию. Почти везде можно взять отдельный кабинет или зал на 6–15 человек и не делить парную с чужими.',
     items: ['termy-los', 'termburg', 'dyuzhina', 'izmaylovskie-bani', 'bani-sokolinaya-gora', 'astrakhanskie-bani', 'sanduny', 'vorontsovskie-bani',
@@ -143,12 +136,6 @@
     id: 'spb-c-kompy', kind: 'editorial', emoji: '🎮', title: 'Компы с пацанами', mode: ['guys'], filter: 'pc',
     lead: 'Круглосуточные клубы у метро: премиум-залы с топовым железом, буткемпы на команду, приставки и кальян в лаунжах. Самые недорогие — порядка 150 ₽ за час.',
     items: ['spb-colizeum-premium', 'spb-colizeum-premium-petrogradka', 'spb-colizeum-zagorodnyy', 'spb-colizeum-ligov', 'spb-cyberx', 'spb-n7-omega', 'spb-kiberprayd', 'spb-community-heroes', 'spb-kibersporta', 'spb-full-focus', 'spb-divinity-space', 'spb-yotunkheym', 'spb-tron-kiber', 'spb-xarena', 'spb-fobos'],
-    updated: '2026-10-19',
-  },
-  {
-    id: 'spb-c-halloween', kind: 'editorial', emoji: '🎃', title: 'Хэллоуин по-петербургски', filter: 'halloween', from: '2026-10-01', until: '2026-11-01', occasion: 'hellouin',
-    lead: 'Замок Павла I с мрачной историей, подвал Юсуповского дворца, где убили Распутина, склеп в Шуваловском парке, заспиртованные диковины Кунсткамеры и хорроры с живыми актёрами.',
-    items: ['spb-mikhaylovskiy-inzhenernyy', 'spb-yusupovskiy-dvorets', 'spb-shuvalovskiy-park', 'spb-kunstkamera', 'spb-vzaperti-kazanskoy', 'spb-vzaperti-solyanom', 'spb-tishine', 'spb-g-horror-kazanskaya'],
     updated: '2026-10-19',
   },
   {

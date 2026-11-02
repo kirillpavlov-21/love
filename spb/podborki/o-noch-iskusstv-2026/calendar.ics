@@ -1,0 +1,143 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//kuda-idem//scripts/build-seo.mjs//RU
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:Куда идём? · Ночь искусств
+X-WR-CALDESC:События из подборки «Ночь искусст
+ в» в Петербурге.
+X-WR-TIMEZONE:Europe/Moscow
+REFRESH-INTERVAL;VALUE=DURATION:PT12H
+X-PUBLISHED-TTL:PT12H
+BEGIN:VTIMEZONE
+TZID:Europe/Moscow
+BEGIN:STANDARD
+DTSTART:19700101T000000
+TZOFFSETFROM:+0300
+TZOFFSETTO:+0300
+TZNAME:MSK
+END:STANDARD
+END:VTIMEZONE
+BEGIN:VEVENT
+UID:ev-spb-imperatorskiy-kitay-dinastiya-tsin-20260624@kirillpavlov-21.gith
+ ub.io
+DTSTAMP:20261019T000000Z
+DTSTART;VALUE=DATE:20260624
+DTEND;VALUE=DATE:20261123
+SUMMARY:Императорский Китай. Династия Цин (164
+ 4–1911)
+LOCATION:Эрмитаж\, Главный музейный комплекс\
+ , Дворцовая пл.\, 2
+GEO:59.940463;30.315189
+DESCRIPTION:Шёлковые придворные халаты\, портр
+ еты цинских полководцев и воссозданный 
+ кабинет китайского учёного в Гербовом з
+ але. Выставка работает до 22 ноября — усп
+ ейте.\nБилеты и подробности: https://www.hermitagemu
+ seum.org/what-s-on/china26?lng=ru\nПозвать друзей — в «К
+ уда идём?»: https://kirillpavlov-21.github.io/love/start.html?even
+ t=ev-spb-imperatorskiy-kitay-dinastiya-tsin-20260624&m=date&city=spb
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-spb-imperato
+ rskiy-kitay-dinastiya-tsin-20260624&m=date&city=spb
+CATEGORIES:Выставка
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ev-spb-rossiya-1896-20260924@kirillpavlov-21.github.io
+DTSTAMP:20261019T000000Z
+DTSTART;VALUE=DATE:20260924
+DTEND;VALUE=DATE:20261123
+SUMMARY:Россия 1896. К юбилею Нижегородской пр
+ омышленной и художественной выставки
+LOCATION:РОСФОТО\, Большая Морская ул.\, 35
+GEO:59.933581;30.310177
+DESCRIPTION:Нижний Новгород 1896-го на старинных
+  снимках: павильоны большой Всероссийск
+ ой выставки\, электрическая дорога и воз
+ духоплавательный парк. Тихий музей рядо
+ м с Исаакием.\n0+\nБилеты и подробности: https
+ ://rosphoto.org/events/rossiya-1896/\nПозвать друзей — в 
+ «Куда идём?»: https://kirillpavlov-21.github.io/love/start.html?
+ event=ev-spb-rossiya-1896-20260924&m=date&city=spb
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-spb-rossiya-
+ 1896-20260924&m=date&city=spb
+CATEGORIES:Выставка
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ev-spb-bardo-fabiani-pamyat-o-prekrasnom-proshlom-20260925@kirillpavlov
+ -21.github.io
+DTSTAMP:20261019T000000Z
+DTSTART;VALUE=DATE:20260925
+DTEND;VALUE=DATE:20261214
+SUMMARY:Бардо Фабиани. Память о прекрасном п
+ рошлом
+LOCATION:Музей «Эрарта»\, 29-я линия В.О.\, 2
+GEO:59.931939;30.251740
+DESCRIPTION:Итальянский фэшн-фотограф\, четвер
+ ть века работавший с Vogue Italia: портреты зв
+ ёзд\, моделей и дизайнеров эпохи большой 
+ моды. Легко и красиво смотреть с подруга
+ ми.\n1 500–2 950 ₽\nБилеты и подробности: https
+ ://www.erarta.com/ru/calendar/exhibitions/detail/010626/\nПозвать 
+ друзей — в «Куда идём?»: https://kirillpavlov-21.github
+ .io/love/start.html?event=ev-spb-bardo-fabiani-pamyat-o-prekrasnom-proshlo
+ m-20260925&m=girls&city=spb
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-spb-bardo-fa
+ biani-pamyat-o-prekrasnom-proshlom-20260925&m=girls&city=spb
+CATEGORIES:Выставка
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ev-spb-art-stena-supernova-20261001@kirillpavlov-21.github.io
+DTSTAMP:20261019T000000Z
+DTSTART;VALUE=DATE:20261001
+DTEND;VALUE=DATE:20261109
+SUMMARY:Арт-Стена. Супернова
+LOCATION:Центр современного искусства им. Се
+ ргея Курёхина\, Средний пр. В.О.\, 93
+GEO:59.934075;30.246220
+DESCRIPTION:Юбилейный\, десятый фестиваль улич
+ ного искусства: больше тридцати стрит-ар
+ тистов переносят свои работы в залы Цент
+ ра Курёхина. В программе есть лекции о гр
+ аффити.\nБилеты и подробности: https://www.kuryokh
+ in.net/art-stena_supernova\nПозвать друзей — в «Куда 
+ идём?»: https://kirillpavlov-21.github.io/love/start.html?event=ev-sp
+ b-art-stena-supernova-20261001&m=guys&city=spb
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-spb-art-sten
+ a-supernova-20261001&m=guys&city=spb
+CATEGORIES:Выставка
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ev-spb-linii-sveta-shveytsarskie-risunki-dlya-vitrazhey-20261028@kirill
+ pavlov-21.github.io
+DTSTAMP:20261019T000000Z
+DTSTART;VALUE=DATE:20261028
+DTEND;VALUE=DATE:20270301
+SUMMARY:Линии света. Швейцарские рисунки для
+  витражей XVI–XVII веков
+LOCATION:Эрмитаж\, Главный музейный комплекс\
+ , Дворцовая пл.\, 2
+GEO:59.940463;30.315189
+DESCRIPTION:Эскизы\, по которым швейцарские ма
+ стера собирали цветные окна для ратуш и 
+ домов. Тонкая графика в небольшой галере
+ е — приятная пауза после парадных залов.
+ \nБилеты и подробности: https://www.hermitagemuseum.org/
+ what-s-on/switzerland_drawings?lng=ru\nПозвать друзей — в 
+ «Куда идём?»: https://kirillpavlov-21.github.io/love/start.html?
+ event=ev-spb-linii-sveta-shveytsarskie-risunki-dlya-vitrazhey-20261028&m=d
+ ate&city=spb
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-spb-linii-sv
+ eta-shveytsarskie-risunki-dlya-vitrazhey-20261028&m=date&city=spb
+CATEGORIES:Выставка
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+END:VCALENDAR
