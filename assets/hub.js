@@ -2015,7 +2015,7 @@
       <div class="qr-foot">
         ${found.length >= askN && plans.length >= askN && askN < NOW_MAX ? `<button type="button" class="btn ghost" data-now-more>${I('redo')}Ещё варианты</button>` : ''}
         ${inv && plans.length > 1 ? `<a class="btn ghost" href="${esc(inv)}" data-now-invite>${group ? '🗳️ Голосовать за эти' : '💌 Пусть выберет из этих'}</a>` : ''}
-        ${tgPollUrl(ids) ? `<a class="btn ghost" href="${esc(tgPollUrl(ids))}" target="_blank" rel="noopener" data-now-tg>✈️ Голосование в Telegram</a>` : ''}
+        ${tgPollUrl(ids) ? `<a class="btn ghost" href="${esc(tgPollUrl(ids))}" target="_blank" rel="noopener" data-now-tg>${document.documentElement.classList.contains('tg') ? '🗳️ Голосование в чат' : '✈️ Голосование в Telegram'}</a>` : ''}
       </div>
       ${evs.length ? `<p class="qr-k">В афише</p><div class="qr-list">${evs.map(nowEventHtml).join('')}</div>` : ''}
       ${placesFirst ? '' : placeBlock}
@@ -2055,10 +2055,9 @@
       : [['1', '💸', `До 1${NB}500${NB}₽ на человека`], ['2', '💳', `1${NB}500–3${NB}000${NB}₽ на человека`], ['3', '⭐', 'Можно и дороже'], ['0', '🤷', 'По-разному']], 'bud')}${nav('', 'Пропустить')}`;
     if (id === 'avoid') return `${head}<h3 id="tqQ" tabindex="-1">Чего точно не надо?</h3>${many(AVOID, 'avoid')}${nav('', TQ.avoid.size ? '' : 'Ничего такого')}`;
     if (id === 'station') {
-      const names = safe(() => G.stations(city), []).map(x => x.name);
       return `${head}<h3 id="tqQ" tabindex="-1">Откуда обычно едешь?</h3>
         <p class="muted">Станция метро у дома или работы — поднимем планы, до которых недалеко.</p>
-        <select class="field" id="tqSt" aria-label="Станция метро"><option value="">Выбери станцию</option>${names.map(x => `<option${TQ.station === x ? ' selected' : ''}>${esc(x)}</option>`).join('')}</select>
+        <div id="tqSt"></div>
         ${nav(tqVisible().includes('names') ? 'Дальше' : 'Готово', 'Пропустить')}`;
     }
     return `${head}<h3 id="tqQ" tabindex="-1">Как вас зовут?</h3><p class="muted">Подставим в приглашение: «Саша зовёт Машу на свидание». По желанию.</p>
@@ -2073,19 +2072,26 @@
       station: (t.station && t.station.name) || '', me: t.me || '', partner: t.partner || '' };
     while (tqSkip(TQ_STEPS[TQ.step])) TQ.step++;
     openSheet(`<div class="qz tq" id="tq">${tasteHtml()}</div>`, { kind: 'taste', label: 'Знакомство' });
+    tqMount();
     T.ev('taste_open', { mode, v: TQ.edit ? 'edit' : o && o.auto ? 'auto' : 'card' });
     return true;
+  }
+  // станция в знакомстве — тот же выбор, что «Откуда искать?»: поиск и чипы со значком линии
+  function tqMount() {
+    const box = $('#tqSt');
+    if (box) K.stationPicker(box, { list: safe(() => G.stations(city), []), value: TQ.station, city, onPick: v => { TQ.station = v; } });
   }
   function tasteStep(dir) {
     const b = $('#tq');
     if (!b) return;
-    // текст со страницы «Имена» и станцию держим, пока листаем
-    const me = $('#tqMe'), pa = $('#tqPartner'), sel = $('#tqSt');
-    if (me) TQ.me = me.value; if (pa) TQ.partner = pa.value; if (sel) TQ.station = sel.value;
+    // текст со страницы «Имена» держим, пока листаем (станцию выбор пишет в TQ сам)
+    const me = $('#tqMe'), pa = $('#tqPartner');
+    if (me) TQ.me = me.value; if (pa) TQ.partner = pa.value;
     do { TQ.step += dir; } while (TQ.step > 0 && TQ.step < TQ_STEPS.length && tqSkip(TQ_STEPS[TQ.step]));
     if (TQ.step < 0) TQ.step = 0;
     if (TQ.step >= TQ_STEPS.length) { tasteDone(); return; }
     b.innerHTML = tasteHtml();
+    tqMount();
     const h = $('#tqQ');
     if (h) h.focus({ preventScroll: true });
   }

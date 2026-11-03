@@ -1138,13 +1138,57 @@
 </svg>`;
   }
 
+  /* Выбор станции метро — как «Откуда искать?» на главной: поиск и чипы со значком линии (вместо длинного <select>).
+     o.list — [{ name, line?, n? }] (n — сколько мест рядом: без запроса показываем самые нужные станции), o.value — выбранная или '',
+     o.city — город (цвет значка), o.onPick(name) — выбор; повторный тап по выбранной снимает выбор (onPick('')) */
+  function stationPicker(el, o) {
+    const list = (o.list || []).filter(x => x && x.name);
+    const norm = t => String(t || '').toLowerCase().replace(/ё/g, 'е');
+    const top = list.slice().sort((a, b) => (b.n || 0) - (a.n || 0) || a.name.localeCompare(b.name, 'ru')).slice(0, 8);
+    let value = list.some(x => x.name === o.value) ? o.value : '';
+    el.classList.add('stp');
+    el.dataset.city = o.city || 'msk';
+    el.innerHTML = `<label class="stp-q"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input type="search" placeholder="${esc(o.placeholder || 'Найти станцию')}" autocomplete="off" enterkeyhint="done" aria-label="Найти станцию метро"></label>
+      <div class="stp-list" role="listbox" aria-label="Станции метро"></div>`;
+    const inp = el.querySelector('input'), box = el.querySelector('.stp-list');
+    const chip = x => `<button type="button" class="stp-chip${x.name === value ? ' on' : ''}" role="option" aria-selected="${x.name === value}" data-st="${esc(x.name)}"><span class="stp-m${x.line ? ' l' + x.line : ''}" aria-hidden="true">М</span>${esc(x.name)}${x.name === value ? '<i aria-hidden="true">✓</i>' : ''}</button>`;
+    const rows = () => {
+      const q = norm(inp.value).trim();
+      if (!q) {
+        const cur = list.find(x => x.name === value);
+        return (cur ? [cur] : []).concat(top.filter(x => x !== cur)).slice(0, 8);
+      }
+      // сначала станции, где запрос — начало слова («восст» → Площадь Восстания), потом — где он внутри
+      const head = [], mid = [];
+      list.forEach(x => { const n = norm(x.name); if (n.split(/[\s-]+/).some(w => w.startsWith(q)) || n.startsWith(q)) head.push(x); else if (n.includes(q)) mid.push(x); });
+      return head.concat(mid).slice(0, 30);
+    };
+    const draw = () => { box.innerHTML = rows().map(chip).join('') || '<p class="stp-none">Такой станции нет — проверь название</p>'; };
+    const pick = name => {
+      value = value === name ? '' : name;
+      inp.value = '';
+      draw();
+      if (o.onPick) o.onPick(value);
+    };
+    box.addEventListener('click', e => { const b = e.target.closest('[data-st]'); if (b) pick(b.dataset.st); });
+    inp.addEventListener('input', draw);
+    inp.addEventListener('keydown', e => {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      const b = box.querySelector('[data-st]');
+      if (b && inp.value.trim()) { pick(b.dataset.st); inp.blur(); }
+    });
+    draw();
+    return { get value() { return value; } };
+  }
+
   window.DateKit = {
     BASE, merge, defaults, diffInvite, encodeInvite, decodeInvite, encodeData, decodeData, readHash, esc, fill, hash,
     leftText, bookStop, bookText, arriveAt, arriveWhen, telHref, telText, ohDays, openState, closedOn, openText, ymd, parseYmd, addDays, listDates, fmtDay, dayNum, numDay, toMin, fromMin, relaySend, relayRegister, relayTest, shortLink, goRoute, sitePath, toB64url,
     CATS, catVars, catSVG, HEART_D, STAR_D, markD, ICONS, icon, MODE_ICON, tgUser, tgLink, calendarLinks,
     MODES, modeOf, kuda, placeById, planById, planStops, catOf, photo, planPhoto, photoCredit, cleanAuthor, HINTS, placeHints, planHints, hintChip, seasonHints,
     todayMsk, seasonNow, seasonOk, eventById, events, eventDays, sheet, homeRisk, bridgesToday, BRIDGES, LAST_METRO,
-    distM, walkMin, priceText, priceHint, isMetro, metroText, mapUrl, routeUrl,
+    distM, walkMin, priceText, priceHint, isMetro, metroText, mapUrl, routeUrl, stationPicker,
     CITIES, city, setCity, cityOf, cityConf, inCity, cityByPoint,
     THEMES: ['pink', 'lavender', 'peach', 'mint', 'sport'],
   };

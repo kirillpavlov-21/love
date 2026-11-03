@@ -570,17 +570,7 @@
     <rect x="3" y="7" width="94" height="12" rx="6" fill="#22212A" stroke="#F4F1EA" stroke-width="3"/>
     <path d="${K.markD(MODE)}" transform="translate(41.5 24) scale(.7)" fill="var(--accent)"/>
   </svg>`;
-  const BCOL = ['#FF6F91', '#B9A1FF', '#D7F25C', '#FFA463', '#6EE7B7', '#7CC4FF', '#F5C451', '#FF9ED2'];
-  function balloonSVG(color) {
-    return `<svg viewBox="0 0 100 150" aria-hidden="true">
-      <path d="M50 116 C43 126 57 134 49 150" fill="none" stroke="rgba(244,241,234,.35)" stroke-width="2"/>
-      <path d="M50 4 C79 4 95 27 95 52 C95 82 70 106 50 110 C30 106 5 82 5 52 C5 27 21 4 50 4 Z" fill="${color}" stroke="rgba(0,0,0,.08)" stroke-width="2"/>
-      <path d="M43 118 L50 108 L57 118 Z" fill="${color}"/>
-      <ellipse cx="29" cy="33" rx="8" ry="15" fill="#fff" opacity=".35" transform="rotate(28 29 33)"/>
-      <ellipse cx="38" cy="16" rx="3" ry="4" fill="#fff" opacity=".3"/>
-    </svg>`;
-  }
-  const FCOL = ['#ffd6e0', '#ffe7b8', '#d4ecff', '#e3dbff', '#d2f5e6', '#ffdccf', '#fff1b8', '#ffd9f1'];
+  const FCOL = ['#FF6F91', '#FFA463', '#7CC4FF', '#B9A1FF', '#6EE7B7', '#FF8A65', '#F5C451', '#FF9ED2'];   // подсветка карточки без фото
   const CLOUD = '<svg viewBox="0 0 100 50" aria-hidden="true"><path d="M20 45 Q2 45 5 32 Q8 20 22 24 Q26 8 44 10 Q60 2 70 18 Q88 14 92 30 Q98 45 80 45 Z" fill="#fff" opacity=".92"/></svg>';
   function citySVG() {
     let s = 11;
@@ -751,11 +741,18 @@
       .catch(() => { if (ticket.busy === p) ticket.busy = null; });
   }
   /* «Откуда поедешь?» — станция метро города приглашения (необязательно): итоги покажут, кому сколько ехать */
-  function stationPick() {
-    const M = window.KudaMetro, c = invCity() || 'msk';
+  function stationList() {
+    const M = window.KudaMetro, G = window.KudaGeo, c = invCity() || 'msk';
     const names = M ? M.names(c) : [];
-    if (!names.length) return '';
-    return `<label class="st-row"><span>🚇 Откуда поедешь?</span><select class="field st-pick"><option value="">не скажу</option>${names.map(n => `<option${n === S.a.st ? ' selected' : ''}>${esc(n)}</option>`).join('')}</select></label>`;
+    if (!names.length) return [];
+    const T = G.table(c);
+    // сколько мест у станции — самые нужные покажем без поиска
+    let near = new Map();
+    try { near = new Map(G.stations(c).map(x => [x.name, x.n])); } catch (e) { /* каталог мест не загрузился — просто по алфавиту */ }
+    return names.map(name => ({ name, line: T[name] && T[name][2], n: near.get(name) || 0 }));
+  }
+  function stationPick() {
+    return stationList().length ? `<div class="st-row"><span>🚇 Откуда поедешь? <small>необязательно</small></span><div class="st-pick"></div></div>` : '';
   }
   /* «≈ 25 мин в среднем · дольше всех — Петя, 40» у варианта: голоса за него со станцией (от двух) */
   function travelLine(x, t) {
@@ -1323,7 +1320,7 @@
     return () => timers.forEach(clearTimeout);
   }
 
-  /* ================= Уровень: шарики с местами (или карточка события) ================= */
+  /* ================= Уровень: места свайпами (или карточка события) ================= */
   /* Места из приглашения: свои, готовые планы, «Сюрприз», «Свой вариант» */
   function placeOpts() {
     const opts = (INV.places || []).filter(p => p && (p.title || K.planById(p.plan))).map(p => {
@@ -1339,7 +1336,7 @@
     const done = () => { save(); restep(); next(); };
     // смена вида по кнопке — фокус на новый заголовок (первый вид фокусирует mount)
     const swap = (f, focus) => { if (stop) stop(); stop = f(); if (focus) refocus($('h2', el)); };
-    if (EVENT) swap(eventView); else swap(balloonView);
+    if (EVENT) swap(eventView); else swap(swipeView);
     return () => { if (stop) stop(); };
 
     function eventView() {
@@ -1377,89 +1374,70 @@
         timer = setTimeout(done, 450);
       };
       const altBtn = $('.ev-alt', el);
-      if (altBtn) altBtn.onclick = () => { Sfx.click(); swap(balloonView, true); };
+      if (altBtn) altBtn.onclick = () => { Sfx.click(); swap(swipeView, true); };
       return () => clearTimeout(timer);
     }
 
-    function balloonView() {
-      const opts = placeOpts();
-      const cols = opts.length <= 4 ? 2 : 3;
-      el.innerHTML = `
-        ${head(step, 'Куда пойдём?', 'Лопни шарик с местом, которое нравится')}
-        <div class="balloons c${cols}" style="--cols:${cols}">${opts.map((o, i) => `
-          <button class="balloon" data-i="${i}" style="--dur:${rand(2.4, 3.6).toFixed(2)}s;--d:${(-rand(0, 3)).toFixed(2)}s">
-            <span class="bl-in" style="--id:${(i * 0.07).toFixed(2)}s">
-              <span class="bl-body">${balloonSVG(BCOL[i % BCOL.length])}<span class="bl-emoji">${esc(o.emoji)}</span></span>
-              <span class="bl-label">${esc(o.title)}</span>
-            </span>
-          </button>`).join('')}
-        </div>
-        ${EVENT ? `<button class="link-btn ev-back">${I('arrow')}Всё-таки «${esc(EVENT.title)}»</button>` : ''}`;
+    /* Свайпы по местам (как еда и голосование компании): вправо — хочу, влево — не то.
+       Понравилось одно — оно и выбрано; несколько — выбираешь из них; ни одного — листаешь заново */
+    function swipeView() {
+      const opts = placeOpts().map(o => Object.assign({}, o, { note: o.note ? T(o.note) : '', stops: o.plan ? stopsLine(K.planById(o.plan)) : '' }));
+      const choose = o => { S.a.place = { emoji: o.emoji, title: o.title, kind: o.kind || '', plan: o.plan || '' }; save(); };
+      const custom = `<input class="field pl-custom hidden" maxlength="80" placeholder="Например: каток в парке" aria-label="Куда тебе хочется" value="${esc(S.a.placeText)}">`;
+      swipeLevel(el, done, step, {
+        title: 'Куда пойдём?', sub: 'Свайпай: вправо — хочу, влево — не то', items: opts,
+        likeTag: 'ХОЧУ', nopeTag: 'НЕ ТО', likeName: 'Хочу сюда', nopeName: 'Не то',
+        foot: EVENT ? `<button class="link-btn ev-back">${I('arrow')}Всё-таки «${esc(EVENT.title)}»</button>` : '',
+        onReset: () => { S.a.place = null; save(); },
+        onFinish: () => {},
+        result: liked => {
+          if (!liked.length) return `<div class="food-emojis"><span>🤔</span></div><h3>Ничего не зацепило?</h3>
+            ${miniCat('Пролистай ещё раз — может, со второго взгляда 😉', 'wow')}`;
+          if (liked.length === 1) {
+            const o = liked[0];
+            return `<h3>Идём сюда!</h3>
+              <div class="pl-one">
+                ${o.ph ? `<figure class="sheet-ph"><img src="${esc(o.ph.s)}" alt="${esc(o.title)}" decoding="async"><figcaption>${K.photoCredit(o.ph)}</figcaption></figure>` : `<div class="pl-emoji" aria-hidden="true">${esc(o.emoji)}</div>`}
+                <b>${esc(o.title)}</b>${o.stops ? `<span class="opt-stops">${esc(o.stops)}</span>` : ''}
+              </div>${custom}${miniCat('Отличный выбор! Записал 📝', 'happy')}`;
+          }
+          return `<h3>Куда больше хочется?</h3>
+            <div class="pl-pick" role="radiogroup" aria-label="Из понравившихся">${liked.map((o, i) => `
+              <button type="button" class="pl-opt" role="radio" aria-checked="false" data-k="${i}"><span class="pl-e" aria-hidden="true">${esc(o.emoji)}</span><span class="pl-t"><b>${esc(o.title)}</b>${o.stops ? `<small>${esc(o.stops)}</small>` : ''}</span></button>`).join('')}
+            </div>${custom}`;
+        },
+        mount: (res, ok, liked) => {
+          const inp = $('.pl-custom', res);
+          const sync = o => {
+            const isCustom = !!o && o.kind === 'custom';
+            if (inp) inp.classList.toggle('hidden', !isCustom);
+            ok.disabled = !o || (isCustom && !(inp && inp.value.trim()));
+          };
+          if (inp) inp.oninput = () => sync(S.a.place && liked.find(x => x.title === S.a.place.title));
+          if (!liked.length) { ok.classList.add('hidden'); return; }
+          if (liked.length === 1) { choose(liked[0]); sync(liked[0]); return; }
+          S.a.place = null; save(); sync(null);
+          const box = $('.pl-pick', res);
+          box.addEventListener('click', e => {
+            const b = e.target.closest('.pl-opt');
+            if (!b) return;
+            $$('.pl-opt', box).forEach(x => x.setAttribute('aria-checked', String(x === b)));
+            const o = liked[+b.dataset.k];
+            choose(o); sync(o);
+            Sfx.pop(); vibrate(12);
+            if (o.kind === 'custom' && inp) inp.focus();
+          });
+        },
+        onNext: () => {
+          const inp = $('.pl-custom', el);
+          if (inp && !inp.classList.contains('hidden')) S.a.placeText = inp.value.trim();
+          if (EVENT) dropEvent();
+          done();
+        },
+      });
       const back = $('.ev-back', el);
       if (back) back.onclick = () => { Sfx.click(); S.a.place = null; save(); swap(eventView, true); };
-      let busy = false, timer = 0, picked = null;
-      const box = $('.balloons', el);
-      box.addEventListener('click', e => {
-        const b = e.target.closest('.balloon');
-        if (!b || busy) return;
-        busy = true;
-        picked = b;
-        const i = +b.dataset.i, o = opts[i];
-        Sfx.init(); Sfx.pop(); vibrate(20);
-        const r = $('.bl-body', b).getBoundingClientRect();
-        FX.burst({ x: r.left + r.width / 2, y: r.top + r.height * 0.38, n: 44, power: 0.7, colors: [BCOL[i % BCOL.length], '#ffffff', BCOL[(i + 3) % BCOL.length]] });
-        b.classList.add('pop');
-        $$('.balloon', el).forEach(x => {
-          if (x === b) return;
-          x.style.setProperty('--fd', rand(0, 0.25).toFixed(2) + 's');
-          x.classList.add('fly');
-        });
-        timer = setTimeout(() => sheet(o), 480);
-      });
-      function sheet(o) {
-        S.a.place = { emoji: o.emoji, title: o.title, kind: o.kind || '', plan: o.plan || '' };
-        save();
-        const sh = document.createElement('div');
-        sh.className = 'sheet';
-        sh.innerHTML = `
-          ${o.ph ? `<figure class="sheet-ph"><img src="${esc(o.ph.s)}" alt="${esc(o.title)}" decoding="async"><figcaption>${K.photoCredit(o.ph)}</figcaption></figure>` : `<div class="sheet-emoji">${esc(o.emoji)}</div>`}
-          <h3>${esc(o.title)}</h3>
-          ${o.note ? `<p>${esc(T(o.note))}</p>` : ''}
-          ${o.plan ? `<p class="opt-stops">${esc(stopsLine(K.planById(o.plan)))}</p>` : ''}
-          ${o.kind === 'custom' ? `<input class="field" maxlength="80" placeholder="Например: каток в парке" aria-label="Куда тебе хочется" value="${esc(S.a.placeText)}">` : ''}
-          <div class="row"><button class="btn btn-soft again">${I('redo')}Другое</button><button class="btn btn-primary ok">Дальше${I('arrow')}</button></div>`;
-        el.appendChild(sh);
-        // улетевшие шарики — невидимые кнопки: пока открыта карточка, их нет ни для Tab, ни для читалки; фокус — на карточку
-        box.setAttribute('inert', '');
-        refocus($('h3', sh));
-        Sfx.catch();
-        const inp = $('input', sh), ok = $('.ok', sh);
-        if (inp) {
-          ok.disabled = !inp.value.trim();
-          inp.oninput = () => { ok.disabled = !inp.value.trim(); };
-        }
-        $('.again', sh).onclick = () => { Sfx.click(); sh.remove(); reset(); };
-        ok.onclick = () => {
-          if (ok.disabled) return;
-          if (inp) S.a.placeText = inp.value.trim();
-          if (EVENT) dropEvent();
-          Sfx.click(); done();
-        };
-      }
-      function reset() {
-        busy = false;
-        S.a.place = null; save();
-        box.removeAttribute('inert');
-        $$('.balloon', el).forEach(x => {
-          x.classList.remove('pop', 'fly');
-          const bi = $('.bl-in', x);
-          bi.style.animation = 'none';
-          void bi.offsetWidth;
-          bi.style.animation = '';
-        });
-        refocus(picked);
-      }
-      return () => clearTimeout(timer);
+      return () => {};
     }
   }
 
@@ -1726,7 +1704,8 @@
       <p class="vh deck-live" role="status" aria-live="polite"></p>
       <div class="swipe-btns"><button class="round nope" aria-label="${esc(nopeName)}">${I('x')}</button><button class="round like" aria-label="${esc(likeName)}">${I(GROUP ? 'check' : 'heart')}</button></div>
       <div class="food-result hidden"></div>
-      <div class="actions hidden"><div class="row"><button class="btn btn-soft again">${I('redo')}Заново</button><button class="btn btn-primary ok">Дальше${I('arrow')}</button></div></div>`;
+      <div class="actions hidden"><div class="row"><button class="btn btn-soft again">${I('redo')}Заново</button><button class="btn btn-primary ok">Дальше${I('arrow')}</button></div></div>
+      ${cfg.foot || ''}`;
     const deck = $('.deck', el), cnt = $('.deck-count', el), btns = $('.swipe-btns', el), res = $('.food-result', el), acts = $('.actions', el);
     const sr = $('.deck-live', el), nopeBtn = $('.nope', btns), likeBtn = $('.like', btns);
     let idx = 0, liked = [], likedIdx = [], busy = false;
@@ -1735,14 +1714,17 @@
     function build() {
       idx = 0; liked = []; likedIdx = []; busy = false;
       deck.innerHTML = items.map((f, i) => `
-        <div class="fcard${f.ph ? ' has-ph' : ''}" data-i="${i}" style="--c:${FCOL[i % FCOL.length]};z-index:${items.length - i}">
+        <div class="fcard${f.ph ? ' has-ph' : ''}" data-i="${i}" data-e="${esc(f.emoji)}" style="--c:${FCOL[i % FCOL.length]};z-index:${items.length - i}">
           <span class="tag like" aria-hidden="true">${cfg.likeTag}</span><span class="tag nope" aria-hidden="true">${cfg.nopeTag}</span>
           ${f.ph ? `<div class="fph"><img src="${esc(f.ph.s)}" alt="" draggable="false" decoding="async"><span class="fcap">© ${esc(phAuthor(f.ph))}, ${esc(f.ph.l)}</span></div>` : ''}
           <div class="fe">${esc(f.emoji)}</div>${f.when ? `<div class="fdate">${I('calendar')}${esc(f.whenShort || f.when)}</div>` : ''}<div class="ft${f.title.length > 40 ? ' xs' : f.title.length > 24 ? ' s' : ''}">${esc(f.title)}</div>${f.note ? `<div class="fn${f.title.length > 24 || f.when ? ' s' : ''}">${esc(f.note)}</div>` : ''}
+          ${f.tags && f.tags.length ? `<div class="ftags">${f.tags.map(t => `<span>${esc(t)}</span>`).join('')}</div>` : ''}
           ${f.stops ? `<div class="opt-stops">${esc(f.stops)}</div>` : ''}
         </div>`).join('');
       [deck, cnt, btns].forEach(x => x.classList.remove('hidden'));
       res.classList.add('hidden'); acts.classList.add('hidden');
+      const ok = $('.ok', acts);
+      ok.disabled = false; ok.classList.remove('hidden');
       layout();
     }
     function layout() {
@@ -1817,6 +1799,7 @@
       [deck, cnt, btns].forEach(x => x.classList.add('hidden'));
       res.classList.remove('hidden'); acts.classList.remove('hidden');
       res.innerHTML = cfg.result(liked);
+      if (cfg.mount) cfg.mount(res, $('.ok', acts), liked);
       sr.textContent = '';
       Sfx.success();
       // кнопки с фокусом спрятаны — фокус на итог
@@ -1824,13 +1807,42 @@
     }
     nopeBtn.onclick = () => decide(false);
     likeBtn.onclick = () => decide(true);
-    $('.again', acts).onclick = () => { Sfx.click(); build(); refocus($('.lvl-head h2', el)); };
-    $('.ok', acts).onclick = () => { Sfx.click(); next(); };
+    $('.again', acts).onclick = () => { Sfx.click(); if (cfg.onReset) cfg.onReset(); build(); refocus($('.lvl-head h2', el)); };
+    $('.ok', acts).onclick = e => { if (e.currentTarget.disabled) return; Sfx.click(); (cfg.onNext || next)(); };
     build();
   }
 
+  /* Карточка еды без фото: короткое вкусное описание и метки (если в приглашении своего описания нет) */
+  const FOOD_INFO = [
+    [/пицц/, 'Тонкое тесто и тянущийся сыр — кусочки делим на двоих', ['🔥 классика', '🤝 на двоих']],
+    [/ролл|суши/, 'Филадельфия, запечённые и палочки, которыми никто толком не умеет', ['🥢 Азия', '✨ легко']],
+    [/бургер/, 'Сочная котлета, картошка фри и соус по пальцам', ['🍟 сытно', '😋 без пафоса']],
+    [/паст/, 'Карбонара или с морепродуктами — и бокал к ней', ['🇮🇹 Италия', '🕯 романтично']],
+    [/десерт|сладк|торт|чизкейк/, 'Чизкейк, тирамису или круассан — сладкое тоже ужин', ['🍰 сладкое', '☕ к кофе']],
+    [/рамен|лапш|фо\b|удон/, 'Густой бульон, яйцо и лапша — греет лучше любого шарфа', ['🍜 горячо', '🌧 в холод']],
+    [/стейк|мяс|гриль/, 'Прожарка на выбор и красное вино — по-взрослому', ['🥩 мясо', '🍷 к вину']],
+    [/лёгк|легк|салат|боул|поке/, 'Салаты, боулы и поке — чтобы осталось место для прогулки', ['🥗 легко', '🌿 свежо']],
+    [/хинкал|хачапур|грузин/, 'Хинкали, хачапури по-аджарски и тёплый лаваш', ['🇬🇪 Грузия', '🫶 душевно']],
+    [/шаурм|шаверм|донер/, 'Быстро, горячо и честно — лучший перекус после прогулки', ['🌯 на ходу', '💸 недорого']],
+    [/тако|мексик|буррито/, 'Тако, гуакамоле и немного остроты для настроения', ['🌶 остренько', '🎉 весело']],
+    [/вок|китай|дим ?сам|пельмен|дамплинг/, 'Дим-самы, вок и пельмени — заказываем всё и пробуем друг у друга', ['🥟 делиться', '🥢 Азия']],
+    [/корей|кимчи/, 'Кимчи, токпокки и курочка в глазури', ['🇰🇷 Корея', '🌶 остренько']],
+    [/морепрод|устриц|рыб/, 'Устрицы, креветки и белое вино — немного Средиземноморья', ['🦐 море', '🥂 празднично']],
+    [/шашлык|плов|узбек/, 'Плов, самса и шашлык — щедро и по-домашнему', ['🍢 сытно', '🫶 душевно']],
+    [/завтрак|бранч|блин|сырник/, 'Сырники, яйца бенедикт и большой капучино', ['🍳 бранч', '☕ к кофе']],
+    [/кофе|кофейн/, 'Капучино, круассан и разговор на пару часов', ['☕ уютно', '💬 поговорить']],
+    [/мороженое|джелато/, 'Пара шариков — и гулять дальше', ['🍦 сладкое', '🚶 на ходу']],
+  ];
+  function foodInfo(title) {
+    const t = String(title || '').toLowerCase();
+    const hit = FOOD_INFO.find(([rx]) => rx.test(t));
+    return hit ? { d: hit[1], tags: hit[2] } : { d: '', tags: [] };
+  }
   function lvlFood(el, next, step) {
-    const items = (INV.food || []).filter(f => f && f.title).map(f => ({ emoji: f.emoji || '🍽', title: f.title, note: f.note || '' }));
+    const items = (INV.food || []).filter(f => f && f.title).map(f => {
+      const info = foodInfo(f.title);
+      return { emoji: f.emoji || '🍽', title: f.title, note: f.note || info.d, tags: info.tags };
+    });
     swipeLevel(el, next, step, {
       title: 'Что будем есть?', sub: 'Свайпай: вправо — хочу, влево — не хочу', items, likeTag: 'ХОЧУ', nopeTag: 'НЕТ', likeName: 'Хочу', nopeName: 'Не хочу',
       onFinish: liked => { S.a.food = liked.map(f => ({ emoji: f.emoji, title: f.title })); },
@@ -2501,7 +2513,7 @@
     const form = $('.name-box', el), inp = $('.nm', el), btn = $('.send', el), twinBox = $('.twin', el);
     const plusN = $('.pl-n', el);
     const stp = $('.st-pick', el);
-    if (stp) stp.onchange = () => { S.a.st = stp.value; save(); };
+    if (stp) K.stationPicker(stp, { list: stationList(), value: S.a.st, city: invCity() || 'msk', onPick: v => { S.a.st = v; save(); } });
     const setPlus = n => { S.a.plus = Math.max(0, Math.min(5, n)); save(); if (plusN) plusN.textContent = '+' + S.a.plus; };
     if (plusN) { $('.pl-dec', el).onclick = () => { Sfx.click(); setPlus((S.a.plus || 0) - 1); }; $('.pl-inc', el).onclick = () => { Sfx.click(); setPlus((S.a.plus || 0) + 1); }; }
     // «Изменить голос» ведёт сразу к вариантам, мимо письма с «Не смогу» — отказаться можно здесь

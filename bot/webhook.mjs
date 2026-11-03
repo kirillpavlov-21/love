@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url';
 import { telegram, botToken } from './tg.mjs';
 import { fileStore } from './store.mjs';
 import { loadCatalog, SITE } from './catalog.mjs';
-import { createBot, COMMANDS } from './core.mjs';
+import { createBot, setupBot, COMMANDS } from './core.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const site = process.env.SITE_URL || SITE;
@@ -49,6 +49,7 @@ const server = http.createServer((req, res) => {
 server.listen(+process.env.PORT || 8080, async () => {
   await api('setWebhook', { url: pub + '/tg', secret_token: secret, allowed_updates: ['message', 'callback_query', 'inline_query'] });
   await api('setMyCommands', { commands: COMMANDS }).catch(e => log('команды не поставились:', e.message));
+  await setupBot(api, site, log);   // кнопка меню → Mini App, описание бота, если своего нет
   log(`бот @${me.username} на вебхуке ${pub}/tg`);
 });
 for (const sig of ['SIGINT', 'SIGTERM']) process.on(sig, () => { store.flush(); process.exit(0); });

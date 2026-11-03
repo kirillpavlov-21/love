@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url';
 import { telegram, botToken } from './tg.mjs';
 import { fileStore } from './store.mjs';
 import { loadCatalog, SITE } from './catalog.mjs';
-import { createBot, COMMANDS } from './core.mjs';
+import { createBot, setupBot, COMMANDS } from './core.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const site = process.env.SITE_URL || SITE;
@@ -27,6 +27,7 @@ const store = fileStore(process.env.BOT_STORE || path.join(os.homedir(), '.kuda'
 const me = await api('getMe');
 await api('deleteWebhook', { drop_pending_updates: false });
 await api('setMyCommands', { commands: COMMANDS }).catch(e => log('команды не поставились:', e.message));
+await setupBot(api, site, log);   // кнопка меню → Mini App, описание бота, если своего нет
 const C = await loadCatalog(src);
 log(`каталог: ${C.D.scenarios.length} планов${C.missing.length ? ' (не загрузились: ' + C.missing.join(', ') + ')' : ''}`);
 const bot = createBot({ api, store, catalog: () => loadCatalog(src), site, name: me.username, log });

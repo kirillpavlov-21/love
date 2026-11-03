@@ -6,7 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildCatalog } from '../catalog.mjs';
 import { memoryStore } from '../store.mjs';
-import { createBot } from '../core.mjs';
+import { createBot, setupBot } from '../core.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const NOW = Date.UTC(2026, 10, 3, 16, 0);
@@ -99,17 +99,40 @@ const priv = { id: 1, type: 'private' }, group = { id: -5, type: 'supergroup' };
 const ann = { id: 11, first_name: 'Аня', is_bot: false }, pete = { id: 12, first_name: 'Петя', is_bot: false };
 const msg = (text, chat = priv, from = ann) => ({ message: { message_id: 1, chat, from, text } });
 
-test('бот: фраза в личке → планы, «почему» и кнопки', async () => {
+test('бот: фраза в личке → карточка плана с фото, «почему» и кнопками', async () => {
   const { T, bot } = make();
   await bot.handle(msg('свидание недорого, если дождь'));
   const m = T.last('sendMessage');
   assert.ok(m, 'ответил');
-  assert.match(m.params.text, /Понял так: 💕 свидание/);
-  assert.match(m.params.text, /1️⃣ <b>/);
-  assert.match(m.params.text, /https:\/\/example\.org\/love\/start\.html\?plan=/);
+  assert.match(m.params.text, /🔎 <i>💕 свидание/);
+  assert.match(m.params.text, /^.+ <b>.+<\/b>\n<i>.+<\/i>/m, 'название и остановки');
+  const lp = m.params.link_preview_options;
+  assert.ok(lp.is_disabled || (/^https:\/\/upload\.wikimedia\.org\/wikipedia\/commons\/thumb\/[0-9a-f]\/[0-9a-f]{2}\/.+\/960px-/.test(lp.url) && lp.show_above_text && /📷 .+ · Wikimedia Commons/.test(m.params.text)),
+    'фото над текстом — только с автором и лицензией');
   const kb = m.params.reply_markup.inline_keyboard.flat();
+  assert.ok(kb.some(b => /^g\|[A-Za-z0-9]{8}\|1$/.test(b.callback_data || '')), 'листать ›');
+  assert.ok(kb.some(b => b.web_app && /^https:\/\/example\.org\/love\/start\.html\?tg=1&plan=/.test(b.web_app.url)), '«Подробнее» — Mini App');
   assert.ok(kb.some(b => /^опрос [A-Za-z0-9]{8}$/.test(b.switch_inline_query || '')), 'кнопка «Голосование в чат»');
   assert.ok(kb.some(b => /create\.html\?mode=date&list=/.test(b.url || '')), 'кнопка «Позвать игрой» со списком планов');
+});
+
+test('бот: ‹ › и «Другие варианты» меняют ту же карточку', async () => {
+  const { T, bot } = make();
+  await bot.handle(msg('с друзьями баня или бар'));
+  const m = T.last('sendMessage').params, title = t => (/<b>([^<]+)<\/b>\n<i>/.exec(t) || [])[1];
+  const pager = m.reply_markup.inline_keyboard[0], next = pager[2].callback_data;   // ‹ · «1 из N» · ›
+  const cb = (data, n) => bot.handle({ callback_query: { id: 'g' + n, from: ann, data, message: { message_id: 101, chat: priv } } });
+  await cb(next, 1);
+  const e1 = T.last('editMessageText').params;
+  assert.equal(e1.message_id, 101);
+  assert.notEqual(title(e1.text), title(m.text), '› — другой план');
+  assert.match(pager[1].text, /^1 из \d$/);
+  assert.match(e1.reply_markup.inline_keyboard[0][1].text, /^2 из \d$/);
+  const more = m.reply_markup.inline_keyboard.flat().find(b => /^m\|/.test(b.callback_data || '')).callback_data;
+  await cb(more, 2);
+  const e2 = T.last('editMessageText').params;
+  assert.ok(![title(m.text), title(e1.text)].includes(title(e2.text)), 'другие варианты — новые планы');
+  assert.equal(T.all('sendMessage').length, 1, 'новых сообщений нет');
 });
 
 test('бот: голосование кнопками — голоса, снятие голоса, лидер', async () => {
@@ -128,11 +151,11 @@ test('бот: голосование кнопками — голоса, снят
   await vote(pete, 1, 3);
   let e = T.last('editMessageText').params;
   assert.equal(e.inline_message_id, 'im1');
-  assert.match(e.text, /— <b>2<\/b>: Аня, Петя/);
+  assert.match(e.text, /▰+▱* <b>2<\/b> · Аня, Петя/);
   assert.match(e.text, /👑 Лидирует/);
   await vote(ann, 0, 4);   // Аня передумала
   e = T.last('editMessageText').params;
-  assert.match(e.text, /— <b>1<\/b>: Петя/);
+  assert.match(e.text, /<b>1<\/b> · Петя/);
   assert.match(e.text, /🤝 Поровну/);
   assert.equal(T.last('answerCallbackQuery').params.text, 'Голос снят');
 });
@@ -169,13 +192,20 @@ test('бот: ссылка с сайта t.me/бот?start=poll_… и горо�
   const { T, bot, store } = make();
   const ids = C.D.scenarios.filter(s => s.mode === 'guys' && C.K.cityOf(s) === 'msk').slice(0, 3);
   await bot.handle(msg('/start poll_' + ids.map(s => bot.ref(s.id)).join('_')));
-  const m = T.last('sendMessage').params;
+  const m = T.last('sendMessage').params, html = t => t.replace(/&/g, '&amp;').replace(/</g, '&lt;');
   assert.match(m.text, /Варианты для голосования/);
-  ids.forEach(s => assert.ok(m.text.includes(s.title.replace(/&/g, '&amp;').replace(/</g, '&lt;'))));
+  assert.ok(m.text.includes(html(ids[0].title)));
+  const qid = m.reply_markup.inline_keyboard.flat().find(b => b.switch_inline_query).switch_inline_query.split(' ')[1];
+  assert.deepEqual((await store.get('q:' + qid)).ids, ids.map(s => s.id), 'все три плана — в карточке, листаются ‹ ›');
+  // из Mini App: «опрос <номер> <номер>…» в inline-режиме — голосование без хранилища
+  await bot.handle({ inline_query: { id: 'iq2', from: ann, query: 'опрос ' + ids.map(s => bot.ref(s.id)).join(' ') } });
+  const art = T.last('answerInlineQuery').params.results[0];
+  assert.equal(art.reply_markup.inline_keyboard.filter(r => r[0].callback_data).length, 3);
+  ids.forEach(s => assert.ok(art.input_message_content.message_text.includes(html(s.title))));
   await bot.handle({ callback_query: { id: 'c1', from: ann, data: 'c|spb', message: { message_id: 3, chat: priv } } });
   assert.equal((await store.get('u:11')).city, 'spb');
   await bot.handle(msg('бар с видом'));
-  assert.match(T.last('sendMessage').params.text, /city=spb/);
+  assert.match(JSON.stringify(T.last('sendMessage').params.reply_markup), /city=spb/);
 });
 
 test('номер плана на сайте (hub.js: tgRef) совпадает с номером в боте', async () => {
@@ -267,4 +297,13 @@ test('токен: TG_TOKEN важнее файла, файл получает п
     assert.equal(botToken({ TG_TOKEN: ' 9:z ', TG_TOKEN_FILE: file }), '9:z');
     assert.equal(botToken({ TG_TOKEN_FILE: path.join(dir, 'нет') }), '');
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('оформление: кнопка меню открывает Mini App, своё описание владельца не трогаем', async () => {
+  const T = fakeApi();
+  const api = async (method, params) => { await T.api(method, params); return method === 'getMyDescription' ? { description: 'своё' } : method === 'getMyShortDescription' ? { short_description: '' } : true; };
+  await setupBot(api, 'https://example.org/love');
+  assert.equal(T.last('setChatMenuButton').params.menu_button.web_app.url, 'https://example.org/love/start.html?tg=1');
+  assert.equal(T.all('setMyDescription').length, 0, 'описание владельца осталось');
+  assert.equal(T.all('setMyShortDescription').length, 1);
 });

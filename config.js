@@ -105,8 +105,8 @@ window.DATE_CONFIG = {
       { emoji: '🍝', title: 'Ресторан', note: 'Красиво поужинаем' },
       { emoji: '⛸️', title: 'Каток', note: 'Возьмёмся за руки — и никто не упадёт' },
     ],
-    placeSurprise: true,         // шарик «Сюрприз» (выбираешь ты)
-    placeCustom: true,           // шарик «Свой вариант» (она пишет сама)
+    placeSurprise: true,         // карточка «Сюрприз» (выбираешь ты)
+    placeCustom: true,           // карточка «Свой вариант» (она пишет сама)
 
     // Даты. mode: 'next' — ближайшие N дней, 'list' — только даты из list
     dates: {

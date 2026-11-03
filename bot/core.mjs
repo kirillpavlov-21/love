@@ -1,4 +1,6 @@
 /* Бот «Куда идём?» для Telegram — то же, что главная сайта, только в чате.
+   ─ Ответ — одна карточка, как в приложении: фото плана над текстом, «почему», факты, описание свёрнутой цитатой;
+     ‹ › листают планы, «Другие варианты» меняют их — всё в том же сообщении. «Подробнее» в личке открывает сайт как Mini App.
    ─ Любая фраза в личке («свидание недорого под крышей», «нас пятеро в субботу, баня») → три плана с «почему» и события из афиши.
      Подбор — тот же, что на сайте: KudaIntent + KudaPick из assets/ (bot/catalog.mjs грузит их вместе с каталогом).
      Кнопки: «Голосование в чат», «Ещё варианты», «Позвать игрой» (конструктор сайта с этими планами), «Открыть на сайте».
@@ -11,9 +13,10 @@
    Имена каналов и источников бот не пишет: тексты планов и событий — те же, что на сайте.
    createBot({ api, store, catalog, site, name, log }) → { handle(update), COMMANDS } */
 
-const NUM = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟', '11.', '12.'];
 const TTL = { user: 365 * 86400, query: 2 * 86400, fresh: 3 * 3600, vote: 30 * 86400 };
 const MAX_POLL = 10;
+import { createHash } from 'node:crypto';
+
 const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const cut = (s, n) => { s = String(s || '').trim(); return s.length <= n ? s : s.slice(0, n - 1).replace(/\s+\S*$/, '') + '…'; };
 const ALPHA = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
@@ -22,6 +25,18 @@ const rid = (n = 8) => Array.from(crypto.getRandomValues(new Uint8Array(n)), x =
 const ref = id => { let h = 0x811c9dc5; for (const ch of String(id)) { h ^= ch.codePointAt(0); h = Math.imul(h, 0x01000193) >>> 0; } return h.toString(36).padStart(6, '0').slice(-6); };
 const b64u = s => Buffer.from(s, 'utf8').toString('base64url');
 const unb64u = s => { try { return Buffer.from(s, 'base64url').toString('utf8'); } catch (e) { return ''; } };
+/* Фото плана для превью над текстом: тот же снимок Wikimedia Commons, что на сайте, но jpg 960 px с upload.wikimedia.org
+   (webp с сайта Telegram показывает плохо). Путь превью Commons — md5 от имени файла: /thumb/a/ab/Имя/960px-Имя */
+const commonsThumb = (file, w = 960) => {
+  const name = String(file || '').replace(/ /g, '_');
+  if (!/\.(jpe?g|png)$/i.test(name)) return '';
+  const h = createHash('md5').update(name).digest('hex'), e = encodeURIComponent(name);
+  return `https://upload.wikimedia.org/wikipedia/commons/thumb/${h[0]}/${h.slice(0, 2)}/${e}/${w}px-${e}`;
+};
+// «м. Арбатская»; МЦД и электрички — как есть («Переделкино (МЦД-4)»), «Мытищи (ж/д)» → «ж/д Мытищи» (как DateKit.metroText)
+const metroText = m => (/\(ж\/д\)$/.test(m) ? 'ж/д ' + m.replace(/\s*\(ж\/д\)$/, '') : /\(МЦД[^)]*\)$/.test(m) ? m : 'м. ' + m);
+const PRICE_W = ['', '💸 недорого', '💳 средний чек', '💎 можно шикануть'];
+const WHEN_W = { утро: '🌅 утром', день: '☀️ днём', вечер: '🌆 вечером', ночь: '🌙 ночью' };
 const WD = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
 const MON = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
 const MODE_WORD = { date: 'свидание', guys: 'с друзьями', girls: 'с подругами' };
@@ -35,6 +50,21 @@ export const COMMANDS = [
   { command: 'gorod', description: 'Москва или Петербург' },
   { command: 'help', description: 'Как пользоваться' },
 ];
+
+/* Оформление бота при запуске: кнопка меню слева от поля ввода открывает сайт как Mini App (start.html?tg=1);
+   описание («Что умеет бот») и короткое описание ставим, только если владелец не задал свои в @BotFather */
+const DESCRIPTION = 'Подскажу, куда пойти в Москве и Петербурге: на свидание, с друзьями или с подругами. ' +
+  'Напиши обычными словами, что хочется, — «свидание недорого, если дождь» — и получишь готовые планы с маршрутом. ' +
+  'В любом чате набери моё имя и что хотите — соберу голосование «куда идём».';
+const SHORT = 'Готовые планы на вечер в Москве и Петербурге и голосование «куда идём» в любом чате';
+export async function setupBot(api, site, log = () => {}) {
+  const url = String(site || 'https://kirillpavlov-21.github.io/love/').replace(/\/?$/, '/') + 'start.html?tg=1';
+  await api('setChatMenuButton', { menu_button: { type: 'web_app', text: 'Куда идём?', web_app: { url } } }).catch(e => log('кнопка меню не поставилась:', e.message));
+  const d = await api('getMyDescription').catch(() => null);
+  if (d && !d.description) await api('setMyDescription', { description: DESCRIPTION }).catch(e => log('описание не поставилось:', e.message));
+  const s = await api('getMyShortDescription').catch(() => null);
+  if (s && !s.short_description) await api('setMyShortDescription', { short_description: SHORT }).catch(e => log('короткое описание не поставилось:', e.message));
+}
 
 export function createBot({ api, store, catalog, site, name = '', log = () => {} }) {
   const SITE = (site || 'https://kirillpavlov-21.github.io/love/').replace(/\/?$/, '/');
@@ -55,6 +85,8 @@ export function createBot({ api, store, catalog, site, name = '', log = () => {}
     route: p => SITE + 'go.html#r=' + encodeURIComponent(p.id),
     event: (e, c) => SITE + 'start.html?event=' + encodeURIComponent(e.id) + cq(c),
     ask: (t, c, m) => SITE + 'start.html?m=' + (m || 'date') + cq(c) + (t ? '&q=' + encodeURIComponent(cut(t, 120)) : ''),
+    // сайт как Mini App в Telegram (assets/tgapp.js): кнопки web_app в личке и меню чата
+    app: (c, extra) => SITE + 'start.html?tg=1' + cq(c) + (extra ? '&' + extra : ''),
     home: (c, tab) => SITE + 'start.html' + (c === 'spb' ? '?city=spb' : '') + (tab ? (c === 'spb' ? '&' : '?') + 'tab=' + tab : ''),
     invite: (C, ids, m, c, title) => {
       const v = C.encodeList(ids);
@@ -65,15 +97,14 @@ export function createBot({ api, store, catalog, site, name = '', log = () => {}
       return v ? SITE + 'start.html?list=' + v + cq(c) + '&t=' + encodeURIComponent(cut(title, 40)) : U.home(c);
     },
   };
-  const absUrl = u => { try { return new URL(u, SITE).href; } catch (e) { return ''; } };
 
   /* ---------- отправка ---------- */
   const NOPREV = { is_disabled: true };
   const send = (chatId, text, kb, extra) => api('sendMessage', Object.assign({ chat_id: chatId, text, parse_mode: 'HTML', link_preview_options: NOPREV }, kb ? { reply_markup: kb } : null, extra));
   const answerCb = (c, text) => api('answerCallbackQuery', Object.assign({ callback_query_id: c.id }, text ? { text } : null)).catch(() => {});
-  const editCb = (c, text, kb) => api('editMessageText', Object.assign(
+  const editCb = (c, text, kb, preview) => api('editMessageText', Object.assign(
     c.inline_message_id ? { inline_message_id: c.inline_message_id } : { chat_id: c.message.chat.id, message_id: c.message.message_id },
-    { text, parse_mode: 'HTML', link_preview_options: NOPREV }, kb ? { reply_markup: kb } : null)).catch(e => { if (!/not modified/i.test(e.description || '')) throw e; });
+    { text, parse_mode: 'HTML', link_preview_options: preview || NOPREV }, kb ? { reply_markup: kb } : null)).catch(e => { if (!/not modified/i.test(e.description || '')) throw e; });
   /* Голоса одного голосования меняем по очереди: два нажатия одновременно не должны потерять голос */
   const LOCKS = new Map();
   function locked(key, fn) {
@@ -110,36 +141,63 @@ export function createBot({ api, store, catalog, site, name = '', log = () => {}
     return { C, q, city, mode: q.mode || (plans[0] && plans[0].plan.mode) || mode, plans, events, places };
   }
   const whyText = why => (why && why.length ? esc(why.map(w => w.e + ' ' + w.t).join(' · ')) : '');
-  function planBlock(C, r, i, city) {
-    const p = r.plan, st = C.K.planStops(p), w = whyText(r.why);
-    return `${i == null ? '' : (NUM[i] || '•') + ' '}<b>${esc(p.title)}</b>\n${esc(st.map(x => x.name).join(' → '))}${w ? '\n' + w : ''}\n` +
-      `<a href="${esc(U.plan(p, city))}">Подробнее</a> · <a href="${esc(U.route(p))}">Маршрут</a>`;
+  /* Карточка плана — одно сообщение, как в приложении: снимок над текстом (превью ссылки на фото Commons), название и остановки,
+     «почему» и короткие факты, описание — свёрнутой цитатой, внизу автор и лицензия снимка (без них фото не показываем) */
+  function planCard(C, p, why, city, o = {}) {
+    const st = C.K.planStops(p), ph = C.K.planPhoto(p);
+    const img = ph && ph.src !== 'Flickr' ? commonsThumb(ph.file) : '';
+    const price = Math.max(0, ...st.map(x => +x.price || 0));
+    const facts = [st[0] && st[0].metro ? '🚇 ' + esc(metroText(st[0].metro)) : '', PRICE_W[price] || '', WHEN_W[p.when] || ''].filter(Boolean).join(' · ');
+    const w = whyText(why), out = [];
+    if (o.top) out.push(o.top, '');
+    out.push(`${esc(p.emoji || '📍')} <b>${esc(p.title)}</b>`, `<i>${esc(st.map(x => x.name).join(' → '))}</i>`);
+    if (w || facts) out.push('', ...[w, facts].filter(Boolean));
+    if (p.why) out.push('', `<blockquote expandable>${esc(p.why)}</blockquote>`);
+    if (o.foot) out.push('', o.foot);
+    if (img) out.push('', `<i>📷 ${esc(C.K.cleanAuthor(ph.a) || 'автор на Wikimedia Commons')}${ph.l ? ', ' + esc(ph.l) : ''} · Wikimedia Commons</i>`);
+    return { text: out.join('\n'), preview: img ? { url: img, prefer_large_media: true, show_above_text: true } : NOPREV };
   }
-  const eventLine = (r, city) => `• <a href="${esc(U.event(r.ev, city))}">${esc(r.ev.title)}</a>${r.why.length ? ' — ' + whyText(r.why) : ''}`;
-  const placeLine = (r, city) => `• <a href="${esc(U.place(r.place, city))}">${esc(r.place.name)}</a> — ${esc(r.place.kind || '')}${r.why.length ? ' · ' + whyText(r.why) : ''}`;
+  /* Кнопки карточки: листать ‹ ›, «Подробнее» (в личке — сразу Mini App), маршрут, голосование и игра-приглашение, другие варианты */
+  function cardKb(C, Q, qid, i, p, priv) {
+    const n = Q.ids.length, rows = [];
+    if (n > 1) rows.push([{ text: '‹', callback_data: `g|${qid}|${(i + n - 1) % n}` }, { text: `${i + 1} из ${n}`, callback_data: 'x' }, { text: '›', callback_data: `g|${qid}|${(i + 1) % n}` }]);
+    rows.push([priv ? { text: '✨ Подробнее', web_app: { url: U.app(Q.city, 'plan=' + encodeURIComponent(p.id)) } } : { text: '✨ Подробнее', url: U.plan(p, Q.city) },
+      { text: '🗺 Маршрут', url: U.route(p) }]);
+    const vote = n < 2 ? { text: '🗳️ Обсудить в чате', switch_inline_query: cut(p.title, 40) }
+      : priv ? { text: '🗳️ Голосование в чат', switch_inline_query: 'опрос ' + qid } : { text: '🗳️ Опрос в чате', callback_data: 'p|' + qid };
+    rows.push([vote, { text: Q.mode === 'date' ? '💌 Позвать игрой' : '🎮 Позвать игрой', url: U.invite(C, Q.ids, Q.mode, Q.city, Q.text || Q.title || 'Куда идём?') }]);
+    if (!Q.fixed) rows.push([{ text: '🔄 Другие варианты', callback_data: 'm|' + qid }]);
+    return { inline_keyboard: rows };
+  }
+  function queryCard(C, Q, qid, i, priv) {
+    const p = C.K.planById(Q.ids[i]);
+    if (!p) return { text: 'Этот план убрали из каталога — посмотри другие варианты.', preview: NOPREV, kb: { inline_keyboard: [[{ text: '🔄 Другие варианты', callback_data: 'm|' + qid }]] } };
+    return Object.assign(planCard(C, p, (Q.why || [])[i], Q.city, { top: Q.top, foot: Q.foot }), { kb: cardKb(C, Q, qid, i, p, priv) });
+  }
+  const cardArgs = card => [card.text, card.kb, card.preview];
+  const sendCard = (chatId, card) => send(chatId, card.text, card.kb, { link_preview_options: card.preview });
+  const eventLine = (r, city) => `${esc(r.ev.emoji || '🎫')} <a href="${esc(U.event(r.ev, city))}"><b>${esc(r.ev.title)}</b></a>` +
+    (r.why.length || r.ev.venue ? `\n<i>${[whyText(r.why), r.ev.venue ? esc(cut(r.ev.venue, 48)) : ''].filter(Boolean).join(' · ')}</i>` : '');
+  const placeLine = (r, city) => `📍 <a href="${esc(U.place(r.place, city))}"><b>${esc(r.place.name)}</b></a>${r.place.kind ? ' — ' + esc(r.place.kind) : ''}${r.why.length ? '\n<i>' + whyText(r.why) + '</i>' : ''}`;
   const titleOf = q => {
     const day = q.chips.find(c => c.k === 'day');
     return 'Куда идём' + (day ? ' ' + day.t : '') + '?';
   };
-  function resultsText(R, head) {
-    const { C, q, city } = R, out = [];
-    const got = q.chips.length ? 'Понял так: ' + q.chips.map(c => c.e + ' ' + c.t).join(' · ') : '';
-    out.push(`<b>${esc(head || (R.plans.length ? 'Вот что подходит' : 'Планов под это не нашлось'))}</b>${got ? '\n' + esc(got) : ''}`);
-    if (R.places.length && !R.plans.length) out.push('📍 <b>Места</b>\n' + R.places.map(r => placeLine(r, city)).join('\n'));
-    R.plans.forEach((r, i) => out.push(planBlock(C, r, i, city)));
-    if (!R.plans.length) out.push('Попробуй проще: «свидание вечером», «бар с видом», «компы до утра».');
-    if (R.places.length && R.plans.length) out.push('📍 <b>Места</b>\n' + R.places.map(r => placeLine(r, city)).join('\n'));
-    if (R.events.length) out.push('📅 <b>В афише</b>\n' + R.events.map(r => eventLine(r, city)).join('\n'));
-    return out.join('\n\n');
+  // шапка карточки: как поняли запрос («🔎 свидание · вечером»), над ней — заголовок квиза или «Ещё варианты»
+  const topOf = (R, head) => [head ? `<b>${esc(head)}</b>` : '', R.q.chips.length ? '🔎 <i>' + esc(R.q.chips.map(c => c.e + ' ' + c.t).join(' · ')) + '</i>' : ''].filter(Boolean).join('\n');
+  const evFoot = R => (R.events.length ? '📅 <b>В афише</b>\n' + R.events.map(r => eventLine(r, R.city)).join('\n') : '');
+  const queryOf = (R, text, head) => ({ text, city: R.city, mode: R.mode, title: titleOf(R.q), ids: R.plans.map(r => r.plan.id), why: R.plans.map(r => r.why), top: topOf(R, head), foot: evFoot(R) });
+  function emptyText(R) {
+    const out = [topOf(R, 'Планов под это не нашлось')];
+    if (R.places.length) out.push('', '<b>Зато есть места</b>', R.places.map(r => placeLine(r, R.city)).join('\n'));
+    if (R.events.length) out.push('', evFoot(R));
+    out.push('', '<i>Попробуй проще: «свидание вечером», «бар с видом», «компы до утра».</i>');
+    return out.join('\n');
   }
-  function resultsKb(R, qid, chatType, text) {
-    const ids = R.plans.map(r => r.plan.id), rows = [];
-    if (ids.length > 1) rows.push([chatType === 'private' ? { text: '🗳️ Голосование в чат', switch_inline_query: 'опрос ' + qid } : { text: '🗳️ Сделать опрос', callback_data: 'p|' + qid }]);
-    const more = { text: '🔄 Ещё варианты', callback_data: 'm|' + qid };
-    rows.push(ids.length ? [more, { text: R.mode === 'date' ? '💌 Позвать игрой' : '🎮 Позвать игрой', url: U.invite(R.C, ids, R.mode, R.city, text || titleOf(R.q)) }] : [more]);
-    rows.push([{ text: '🌐 Открыть на сайте', url: U.ask(text, R.city, R.mode) }]);
-    return { inline_keyboard: rows };
-  }
+  const emptyKb = (R, text) => ({ inline_keyboard: [
+    [{ text: '🎯 Подобрать за 10 секунд', callback_data: 'z' }, { text: '🎲 Удиви меня', callback_data: 's' }],
+    [{ text: '🌐 Поискать на сайте', url: U.ask(text, R.city, R.mode) }],
+  ] });
   async function answerQuery(chat, from, u, text, o = {}) {
     text = String(text || '').slice(0, 120);
     const R = await pick(text, u, Object.assign({ mode: chat.type === 'private' ? 'date' : 'guys' }, o));
@@ -148,9 +206,10 @@ export function createBot({ api, store, catalog, site, name = '', log = () => {}
       u.city = R.q.city || u.city; u.mode = R.q.mode || u.mode;
       await saveUser(from.id, u);
     }
-    const qid = rid();
-    await store.set('q:' + qid, { text, city: R.city, mode: R.mode, ids: R.plans.map(r => r.plan.id) }, TTL.query);
-    return send(chat.id, resultsText(R, o.head), resultsKb(R, qid, chat.type, text));
+    if (!R.plans.length) return send(chat.id, emptyText(R), emptyKb(R, text));
+    const qid = rid(), Q = queryOf(R, text, o.head);
+    await store.set('q:' + qid, Q, TTL.query);
+    return sendCard(chat.id, queryCard(R.C, Q, qid, 0, chat.type === 'private'));
   }
 
   /* ---------- голосование кнопками: работает в любом чате ---------- */
@@ -175,18 +234,22 @@ export function createBot({ api, store, catalog, site, name = '', log = () => {}
     const tally = V.opts.map((o, i) => V.votes[i] || []);
     const max = Math.max(0, ...tally.map(t => t.length));
     const people = new Set(tally.flat().map(v => v[0])).size;
+    const lead = max ? V.opts.filter((o, i) => tally[i].length === max) : [];
+    // у каждого варианта — полоска доли голосов ▰▰▱▱ и кто за него; лидер — с короной
     const lines = V.opts.map((o, i) => {
       const vs = tally[i], names = vs.slice(0, 5).map(v => esc(v[1])).join(', ') + (vs.length > 5 ? ` +${vs.length - 5}` : '');
-      return `${NUM[i] || '•'} ${o.url ? `<a href="${esc(o.url)}">${esc(o.t)}</a>` : esc(o.t)}${vs.length ? ` — <b>${vs.length}</b>: ${names}` : ''}`;
+      const k = people ? Math.round(vs.length / people * 8) : 0;
+      const crown = lead.length === 1 && vs.length === max ? ' 👑' : '';
+      const bar = people ? `\n${'▰'.repeat(k)}${'▱'.repeat(8 - k)} ${vs.length ? `<b>${vs.length}</b> · ${names}` : '0'}` : '';
+      return `<b>${i + 1}.</b> ${o.url ? `<a href="${esc(o.url)}">${esc(o.t)}</a>` : esc(o.t)}${crown}${bar}`;
     });
-    const lead = max ? V.opts.filter((o, i) => tally[i].length === max) : [];
-    const foot = !people ? 'Пока никто не голосовал.'
+    const foot = !people ? '<i>Пока никто не голосовал — будь первым</i>'
       : lead.length === 1 ? `👑 Лидирует: <b>${esc(lead[0].t)}</b> · проголосовали: ${people}`
         : `🤝 Поровну: ${lead.map(o => esc(o.t)).join(' и ')} · проголосовали: ${people}`;
-    return `🗳️ <b>${esc(V.title)}</b>\nЖми на подходящие варианты — можно несколько. Нажмёшь ещё раз — голос снимется.\n\n${lines.join('\n')}\n\n${foot}`;
+    return `🗳️ <b>${esc(V.title)}</b>\n<i>Жми на всё, что подходит — можно несколько. Нажмёшь ещё раз — голос снимется.</i>\n\n${lines.join('\n\n')}\n\n${foot}`;
   }
   function voteKb(pid, V) {
-    const rows = V.opts.map((o, i) => [{ text: `${NUM[i] || i + 1 + '.'} ${cut(o.t, 38)}${(V.votes[i] || []).length ? ' · ' + V.votes[i].length : ''}`, callback_data: `v|${pid}|${i}` }]);
+    const rows = V.opts.map((o, i) => [{ text: `${i + 1}. ${cut(o.t, 34)}${(V.votes[i] || []).length ? '  ·  ' + V.votes[i].length : ''}`, callback_data: `v|${pid}|${i}` }]);
     if (V.link) rows.push([{ text: '🌐 Все варианты на сайте', url: V.link }]);
     return { inline_keyboard: rows };
   }
@@ -237,41 +300,46 @@ export function createBot({ api, store, catalog, site, name = '', log = () => {}
     const n = C ? C.D.scenarios.filter(s => (String(s.id).startsWith('spb-') ? 'spb' : 'msk') === u.city).length : 0;
     const cityName = u.city === 'spb' ? 'Петербурге' : 'Москве';
     const at = botName ? '@' + botName : 'меня';
-    const text = `Привет! Подскажу, куда пойти в ${cityName}: на свидание, с друзьями или с подругами${n ? ` — у меня ${Math.floor(n / 10) * 10}+ готовых планов` : ''}.\n\n` +
-      'Напиши, что хочется, обычными словами:\n• <i>свидание недорого, если дождь</i>\n• <i>нас пятеро в субботу, баня</i>\n• <i>бар с видом у Чистых прудов</i>\n\n' +
-      `В любом чате набери ${esc(at)} и что хотите — соберу голосование «куда идём», добавлять меня в чат не нужно.`;
-    const rows = [
+    const text = `👋 <b>Привет! Я — «Куда идём?»</b>\nПодскажу, куда пойти в ${cityName}: на свидание, с друзьями или с подругами${n ? ` — у меня ${Math.floor(n / 10) * 10}+ готовых планов` : ''}.\n\n` +
+      '<b>Напиши, что хочется, обычными словами</b>\n<blockquote>свидание недорого, если дождь\nнас пятеро в субботу, баня\nбар с видом у Чистых прудов</blockquote>\n\n' +
+      `🗳️ В любом чате набери <code>${esc(at)}</code> и что хотите — соберу голосование «куда идём». Добавлять меня в чат не нужно.`;
+    const rows = [];
+    if (chat.type === 'private') rows.push([{ text: '✨ Открыть приложение', web_app: { url: U.app(u.city) } }]);
+    rows.push(
       [{ text: '🎯 Подобрать за 10 секунд', callback_data: 'z' }, { text: '🎲 Удиви меня', callback_data: 's' }],
       [{ text: '📅 Афиша сегодня', callback_data: 'a|today' }, { text: '🗳️ Голосование в чат', switch_inline_query: '' }],
-      [{ text: `📍 Город: ${u.city === 'spb' ? 'Петербург' : 'Москва'} · сменить`, callback_data: 'c|' + (u.city === 'spb' ? 'msk' : 'spb') }],
-    ];
-    if (chat.type === 'private') rows.push([{ text: '🌐 Открыть приложение', web_app: { url: U.home(u.city) } }]);
-    return send(chat.id, text, { inline_keyboard: rows });
+      [{ text: `📍 ${u.city === 'spb' ? 'Петербург' : 'Москва'} · сменить город`, callback_data: 'c|' + (u.city === 'spb' ? 'msk' : 'spb') }],
+    );
+    // картинка сверху — обложка сайта (assets/og-hub.png), превью большой картинкой над текстом
+    return send(chat.id, text, { inline_keyboard: rows }, { link_preview_options: { url: SITE + 'assets/og-hub.png', prefer_large_media: true, show_above_text: true } });
   }
   async function start(msg, u, arg) {
-    const chat = msg.chat;
+    const chat = msg.chat, priv = chat.type === 'private';
     let m;
     if ((m = /^plan_([a-z0-9]{6})$/i.exec(arg))) {
       const C = await catalog(), p = planByRef(C, m[1].toLowerCase());
-      if (p) return send(chat.id, planBlock(C, { plan: p, why: [] }, null, C.K.cityOf(p)), { inline_keyboard: [[{ text: '🗳️ Голосование в чат', switch_inline_query: p.title.slice(0, 40) }]] });
+      if (p) {
+        const qid = rid(), Q = { text: '', city: C.K.cityOf(p), mode: p.mode, title: 'Куда идём?', ids: [p.id], why: [], top: '', foot: '', fixed: true };
+        await store.set('q:' + qid, Q, TTL.query);
+        return sendCard(chat.id, queryCard(C, Q, qid, 0, priv));
+      }
     }
     if ((m = /^q_([A-Za-z0-9_-]{2,60})$/.exec(arg))) { const t = unb64u(m[1]); if (t) return answerQuery(chat, msg.from, u, t); }
     // с сайта: «Голосование в Telegram» — t.me/<бот>?start=poll_<номер>_<номер>…
     if ((m = /^poll_((?:[a-z0-9]{6}_){1,9}[a-z0-9]{6})$/i.exec(arg))) {
       const C = await catalog(), plans = m[1].toLowerCase().split('_').map(r => planByRef(C, r)).filter(Boolean);
       if (plans.length > 1) {
-        const city = C.K.cityOf(plans[0]), qid = rid();
-        await store.set('q:' + qid, { text: '', city, mode: plans[0].mode, ids: plans.map(p => p.id) }, TTL.query);
-        const body = plans.map((p, i) => planBlock(C, { plan: p, why: [] }, i, city)).join('\n\n');
-        return send(chat.id, `<b>Варианты для голосования</b>\n\n${body}\n\nЖми «Голосование в чат» и выбери чат компании — там появится карточка с кнопками.`,
-          { inline_keyboard: [[{ text: '🗳️ Голосование в чат', switch_inline_query: 'опрос ' + qid }]] });
+        const qid = rid(), Q = { text: '', city: C.K.cityOf(plans[0]), mode: plans[0].mode, title: 'Куда идём?', ids: plans.map(p => p.id), why: [], foot: '', fixed: true,
+          top: '🗳️ <b>Варианты для голосования</b>\n<i>Листай ‹ › и жми «Голосование в чат» — выбери чат компании, там появится карточка с кнопками</i>' };
+        await store.set('q:' + qid, Q, TTL.query);
+        return sendCard(chat.id, queryCard(C, Q, qid, 0, priv));
       }
     }
     return welcome(chat, u);
   }
   const help = (chat, u) => welcome(chat, u);
 
-  /* Квиз: с кем → бюджет → когда; ответы — в данных кнопок (z|date|1|eve), хранилище не нужно */
+  /* Квиз: с кем → бюджет → когда; ответы — в данных кнопок (z|date|1|eve), хранилище не нужно. Шаги — в одном сообщении */
   const QUIZ = {
     who: [['date', '💕 Свидание'], ['guys', '🍻 С друзьями'], ['girls', '💅 С подругами']],
     bud: [['1', `💸 До 1 500 ₽`], ['2', `💳 До 3 000 ₽`], ['0', '✨ Неважно']],
@@ -279,52 +347,52 @@ export function createBot({ api, store, catalog, site, name = '', log = () => {}
   };
   const QUIZ_TEXT = { bud: { 1: 'недорого', 2: 'до 3000', 0: '' }, when: { eve: 'сегодня вечером', tom: 'завтра вечером', wke: 'на выходных', late: 'сегодня допоздна' } };
   const qzKb = (pre, list) => ({ inline_keyboard: list.map(([v, t]) => [{ text: t, callback_data: pre + '|' + v }]) });
+  const qzHead = (n, q) => `🎯 <b>Подобрать за 10 секунд</b>\n<i>${'●'.repeat(n)}${'○'.repeat(3 - n)}  шаг ${n} из 3</i>\n\n${q}`;
   async function quiz(c, parts) {
     const chat = c.message.chat;
     const [, who, bud, when] = parts;
     if (!who) return quizStart(chat);   // с кнопки приветствия — новым сообщением, приветствие остаётся
-    if (bud == null) return editCb(c, '<b>Подобрать за 10 секунд</b> · 2 из 3\nБюджет на человека?', qzKb('z|' + who, QUIZ.bud));
-    if (!when) return editCb(c, '<b>Подобрать за 10 секунд</b> · 3 из 3\nКогда?', qzKb('z|' + who + '|' + bud, QUIZ.when));
+    if (bud == null) return editCb(c, qzHead(2, 'Бюджет на человека?'), qzKb('z|' + who, QUIZ.bud));
+    if (!when) return editCb(c, qzHead(3, 'Когда?'), qzKb('z|' + who + '|' + bud, QUIZ.when));
     const text = [MODE_WORD[who] || '', QUIZ_TEXT.bud[bud] || '', QUIZ_TEXT.when[when] || ''].filter(Boolean).join(' ');
     const u = await userOf(c.from.id);
     if (MODE_WORD[who]) { u.mode = who; await saveUser(c.from.id, u); }
-    await editCb(c, `<b>Подобрать за 10 секунд</b> ✓\n${esc(text)}`);
+    await editCb(c, `🎯 <b>Подобрать за 10 секунд</b> ✓\n<i>${esc(text)}</i>`);
     return answerQuery(chat, c.from, u, text, { head: 'Подобрал' });
   }
   async function quizStart(chat) {
-    return send(chat.id, '<b>Подобрать за 10 секунд</b> · 1 из 3\nС кем идёшь?', qzKb('z', QUIZ.who));
+    return send(chat.id, qzHead(1, 'С кем идёшь?'), qzKb('z', QUIZ.who));
   }
 
-  async function surprise(chat, u) {
+  /* «Удиви меня»: карточка случайного плана; «Ещё раз» на самой карточке меняет её на месте */
+  async function surprise(chat, u, c) {
     const C = await catalog(), city = u.city || 'msk', mode = u.mode || (chat.type === 'private' ? 'date' : 'guys');
     const r = C.P.plans(C.I.parse('удиви меня', { city }), { city, mode, limit: 1 })[0];
     if (!r) return send(chat.id, 'Сейчас нечего предложить — попробуй позже.');
-    const p = r.plan, ph = C.K.planPhoto(p);
-    const kb = { inline_keyboard: [[{ text: '🎲 Ещё раз', callback_data: 's' }, { text: p.mode === 'date' ? '💌 Позвать сюда' : '🎮 Позвать сюда', url: SITE + 'create.html?mode=' + p.mode + '&plan=' + encodeURIComponent(p.id) + cq(city) }]] };
-    const caption = '🎲 <b>Удиви меня</b>\n\n' + planBlock(C, r, null, city);
-    const src = ph ? absUrl(ph.s) : '';
-    // фото — только снимки со свободной лицензией из assets/photos.js; подпись автора и лицензии обязательна
-    if (src && /^https:/.test(src) && !/\.webp(\?|$)/i.test(src)) {
-      const credit = `\n\n<i>Фото: ${esc(C.K.cleanAuthor(ph.a) || 'автор на Wikimedia Commons')}${ph.l ? ', ' + esc(ph.l) : ''} · ${ph.src === 'Flickr' ? 'Flickr' : 'Wikimedia Commons'}</i>`;
-      try { return await api('sendPhoto', { chat_id: chat.id, photo: src, caption: cut(caption, 900) + credit, parse_mode: 'HTML', reply_markup: kb }); } catch (e) { log('sendPhoto', e.message); }
-    }
-    return send(chat.id, caption, kb);
+    const p = r.plan, card = planCard(C, p, r.why, city, { top: '🎲 <b>Удиви меня</b>' });
+    const kb = { inline_keyboard: [
+      [{ text: '🎲 Ещё раз', callback_data: 's|e' }, { text: p.mode === 'date' ? '💌 Позвать сюда' : '🎮 Позвать сюда', url: SITE + 'create.html?mode=' + p.mode + '&plan=' + encodeURIComponent(p.id) + cq(city) }],
+      [chat.type === 'private' ? { text: '✨ Подробнее', web_app: { url: U.app(city, 'plan=' + encodeURIComponent(p.id)) } } : { text: '✨ Подробнее', url: U.plan(p, city) }, { text: '🗺 Маршрут', url: U.route(p) }],
+    ] };
+    return c ? editCb(c, card.text, kb, card.preview) : send(chat.id, card.text, kb, { link_preview_options: card.preview });
   }
 
   const AF = { today: 'сегодня', tomorrow: 'завтра', weekend: 'на выходных' };
-  async function afisha(chat, u, arg) {
+  /* Афиша: события столбиком (эмодзи, название-ссылка, когда · сколько · где); переключатель дня меняет это же сообщение */
+  async function afisha(chat, u, arg, c) {
     const C = await catalog(), city = u.city || 'msk';
     const when = /tomorrow|завтр/i.test(arg || '') ? 'tomorrow' : /weekend|выходн/i.test(arg || '') ? 'weekend' : 'today';
     const extra = String(arg || '').replace(/today|tomorrow|weekend|сегодня|завтра|на выходных|выходные/ig, '').trim();
     const q = C.I.parse(AF[when] + ' ' + extra, { city });
     const evs = C.P.events(q, { city, limit: 8 });
     const head = `📅 <b>Афиша ${city === 'spb' ? 'Петербурга' : 'Москвы'} · ${AF[when]}</b>`;
-    const body = evs.length ? evs.map(r => eventLine(r, city)).join('\n') : 'Пока ничего не нашлось — загляни во всю афишу на сайте.';
+    const body = evs.length ? evs.map(r => eventLine(r, city)).join('\n\n') : '<i>Пока ничего не нашлось — загляни во всю афишу на сайте.</i>';
+    const all = chat.type === 'private' ? { text: '✨ Вся афиша в приложении', web_app: { url: U.app(city, 'tab=events') } } : { text: '🌐 Вся афиша', url: U.home(city, 'events') };
     const kb = { inline_keyboard: [
-      Object.keys(AF).map(k => ({ text: (k === when ? '• ' : '') + AF[k].replace(/^./, s => s.toUpperCase()), callback_data: 'a|' + k })),
-      [{ text: '🌐 Вся афиша', url: U.home(city, 'events') }],
+      Object.keys(AF).map(k => ({ text: (k === when ? '• ' : '') + AF[k].replace(/^./, s => s.toUpperCase()), callback_data: 'a|' + k + '|e' })),
+      [all],
     ] };
-    return send(chat.id, head + '\n\n' + body, kb);
+    return c ? editCb(c, head + '\n\n' + body, kb) : send(chat.id, head + '\n\n' + body, kb);
   }
 
   async function groupPoll(msg, u, arg) {
@@ -332,8 +400,8 @@ export function createBot({ api, store, catalog, site, name = '', log = () => {}
     if (chat.type === 'private') return answerQuery(chat, msg.from, u, arg || (u.mode === 'date' ? 'свидание' : 'с друзьями'), { limit: 4, head: 'Варианты для опроса' });
     const R = await pick(arg, u, { mode: 'guys', limit: 4, noEvents: true });
     const opts = planOpts(R.C, R.plans.map(r => r.plan), R.city);
-    const links = R.plans.map((r, i) => `${NUM[i]} <a href="${esc(U.plan(r.plan, R.city))}">${esc(r.plan.title)}</a>${r.why.length ? ' — ' + whyText(r.why) : ''}`).join('\n');
-    return nativePoll(chat.id, titleOf(R.q), opts, links ? 'Подробнее о вариантах:\n' + links + '\n\nКогда удобно — /kogda' : '');
+    const links = R.plans.map((r, i) => `<b>${i + 1}.</b> <a href="${esc(U.plan(r.plan, R.city))}">${esc(r.plan.title)}</a>${r.why.length ? '\n<i>' + whyText(r.why) + '</i>' : ''}`).join('\n\n');
+    return nativePoll(chat.id, titleOf(R.q), opts, links ? '📋 <b>Подробнее о вариантах</b>\n\n' + links + '\n\n<i>Когда всем удобно — /kogda</i>' : '');
   }
   async function daysPoll(msg) {
     const chat = msg.chat, C = await catalog();
@@ -382,27 +450,35 @@ export function createBot({ api, store, catalog, site, name = '', log = () => {}
     if (!c.message) return answerCb(c);
     const chat = c.message.chat, u = await userOf(c.from.id);
     if (k === 'z') { await answerCb(c); return quiz(c, parts); }
-    if (k === 's') { await answerCb(c); return surprise(chat, u); }
-    if (k === 'a') { await answerCb(c); return afisha(chat, u, parts[1]); }
+    if (k === 's') { await answerCb(c); return surprise(chat, u, parts[1] === 'e' ? c : null); }
+    if (k === 'a') { await answerCb(c); return afisha(chat, u, parts[1], parts[2] === 'e' ? c : null); }
     if (k === 'c') {
       u.city = parts[1] === 'spb' ? 'spb' : 'msk';
       await saveUser(c.from.id, u);
       await answerCb(c, u.city === 'spb' ? 'Теперь — Петербург' : 'Теперь — Москва');
       return send(chat.id, `📍 Подбираю ${u.city === 'spb' ? 'в Петербурге' : 'в Москве'}. Напиши, что хочется, или /podobrat.`);
     }
-    if (k === 'm' || k === 'p') {
+    if (k === 'm' || k === 'p' || k === 'g') {
       const Q = /^[A-Za-z0-9]{8}$/.test(parts[1] || '') ? await store.get('q:' + parts[1]) : null;
       if (!Q) return answerCb(c, 'Запрос устарел — напиши его ещё раз');
-      await answerCb(c);
-      const uu = Object.assign({}, u, { city: Q.city, mode: Q.mode });
-      if (k === 'm') {
-        const R = await pick(Q.text, uu, { skip: Q.ids, mode: Q.mode, noEvents: true });
-        if (!R.plans.length) return send(chat.id, 'Больше вариантов под этот запрос нет — попробуй другие слова.');
-        Q.ids = Q.ids.concat(R.plans.map(r => r.plan.id)).slice(-30);
-        await store.set('q:' + parts[1], Q, TTL.query);
-        return send(chat.id, resultsText(R, 'Ещё варианты'), resultsKb(R, parts[1], chat.type, Q.text));
+      const C = await catalog(), priv = chat.type === 'private';
+      // ‹ › — та же карточка, другой план
+      if (k === 'g') {
+        await answerCb(c);
+        return editCb(c, ...cardArgs(queryCard(C, Q, parts[1], Math.max(0, Math.min(Q.ids.length - 1, +parts[2] || 0)), priv)));
       }
-      const C = await catalog(), plans = Q.ids.map(id => C.K.planById(id)).filter(Boolean).slice(-MAX_POLL);
+      // «Другие варианты» — новые планы в этом же сообщении, показанные не повторяем
+      if (k === 'm') {
+        const seen = (Q.seen || Q.ids).slice(-30);
+        const R = await pick(Q.text, Object.assign({}, u, { city: Q.city, mode: Q.mode }), { skip: seen, mode: Q.mode, noEvents: true });
+        if (!R.plans.length) return answerCb(c, 'Больше вариантов под этот запрос нет — попробуй другие слова');
+        await answerCb(c);
+        Object.assign(Q, { ids: R.plans.map(r => r.plan.id), why: R.plans.map(r => r.why), seen: seen.concat(R.plans.map(r => r.plan.id)).slice(-30) });
+        await store.set('q:' + parts[1], Q, TTL.query);
+        return editCb(c, ...cardArgs(queryCard(C, Q, parts[1], 0, priv)));
+      }
+      await answerCb(c);
+      const plans = Q.ids.map(id => C.K.planById(id)).filter(Boolean).slice(-MAX_POLL);
       return nativePoll(chat.id, titleOf(C.I.parse(Q.text, { city: Q.city })), planOpts(C, plans, Q.city));
     }
     return answerCb(c);
@@ -413,7 +489,15 @@ export function createBot({ api, store, catalog, site, name = '', log = () => {}
     const u = await userOf(iq.from.id);
     const results = [];
     let m;
-    if ((m = /^(?:опрос|голосование)\s+([A-Za-z0-9]{8})$/i.exec(text))) {
+    if ((m = /^(?:опрос|голосование)\s+((?:[a-z0-9]{6}\s+){1,7}[a-z0-9]{6})$/i.exec(text))) {
+      // из Mini App (assets/tgapp.js): номера планов прямо в запросе — хранилище не нужно
+      const C = await catalog(), plans = m[1].toLowerCase().split(/\s+/).map(r => planByRef(C, r)).filter(Boolean);
+      if (plans.length > 1) {
+        const city = C.K.cityOf(plans[0]);
+        results.push(await voteArticle('Куда идём?', planOpts(C, plans, city), U.list(C, plans.map(p => p.id), city, 'Куда идём'), '', iq.from.id));
+      }
+    } else if ((m = /^(?:опрос|голосование)\s+([A-Za-z0-9]{8})$/i.exec(text))) {
+
       const Q = await store.get('q:' + m[1]);
       const C = await catalog();
       const plans = Q ? Q.ids.map(id => C.K.planById(id)).filter(Boolean).slice(0, MAX_POLL) : [];
@@ -426,13 +510,13 @@ export function createBot({ api, store, catalog, site, name = '', log = () => {}
       const plans = R.plans.map(r => r.plan);
       if (plans.length > 1) results.push(await voteArticle(titleOf(R.q), planOpts(R.C, plans.slice(0, 4), R.city), U.list(R.C, plans.slice(0, 4).map(p => p.id), R.city, text || 'Куда идём'), 'Голосование: ' + plans.slice(0, 4).map(p => p.title).join(' · '), iq.from.id));
       R.plans.forEach(r => {
-        const p = r.plan, ph = R.C.K.planPhoto(p), th = ph ? absUrl(ph.t) : '';
+        const p = r.plan, ph = R.C.K.planPhoto(p), th = ph && ph.src !== 'Flickr' ? commonsThumb(ph.file, 330) : '', card = planCard(R.C, p, r.why, R.city);
         results.push(Object.assign({
           type: 'article', id: 'p' + ref(p.id), title: p.title,
           description: cut(R.C.K.planStops(p).map(x => x.name).join(' → ') + (r.why.length ? ' · ' + r.why.map(w => w.t).join(' · ') : ''), 200),
-          input_message_content: { message_text: planBlock(R.C, r, null, R.city), parse_mode: 'HTML', link_preview_options: NOPREV },
-          reply_markup: { inline_keyboard: [[{ text: 'Подробнее', url: U.plan(p, R.city) }, { text: 'Маршрут', url: U.route(p) }]] },
-        }, th && /^https:/.test(th) && !/\.webp(\?|$)/i.test(th) ? { thumbnail_url: th } : null));
+          input_message_content: { message_text: card.text, parse_mode: 'HTML', link_preview_options: card.preview },
+          reply_markup: { inline_keyboard: [[{ text: '✨ Подробнее', url: U.plan(p, R.city) }, { text: '🗺 Маршрут', url: U.route(p) }]] },
+        }, th ? { thumbnail_url: th } : null));
       });
     }
     return api('answerInlineQuery', { inline_query_id: iq.id, results: results.slice(0, 20), cache_time: 0, is_personal: true,

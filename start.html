@@ -20,7 +20,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preload" href="assets/hub.css?v=41" as="style">
+  <link rel="preload" href="assets/hub.css?v=42" as="style">
   <!-- Какие скрипты нужны этой странице. Каталог и афиша — только своего города: Москва — places.js, places-info.js, events.js;
        Петербург — places-spb.js, events-spb.js (так первый план появляется на 1–2 секунды раньше). Город — как у hub.js:
        карточка из ссылки (?plan=, ?place=, ?event=, ?col=, ?list=) → ?city= → выбранный раньше (localStorage 'kuda-city') → Москва;
@@ -48,6 +48,13 @@
       ['assets/sport.js', 'assets/auto.js', 'assets/photos.js', 'assets/collections.js', 'assets/collections-auto.js', 'assets/cols.js',
         'assets/intent.js', 'assets/pick.js', '@api', 'assets/afisha.js', 'assets/promos.js', 'assets/track.js', 'assets/geo.js', 'assets/metro.js',
         'assets/auth.js', 'assets/qr.js', 'assets/share-card.js', 'assets/hub.js', 'assets/pwa.js']);
+    // открыли из Telegram (кнопки бота — ?tg=1, или данные Mini App в адресе): режим приложения — assets/tgapp.js,
+    // библиотеку Telegram берём асинхронно, чтобы медленная сеть до telegram.org не держала показ страницы
+    if (q.get('tg') === '1' || /tgWebApp/.test(location.hash)) {
+      document.documentElement.classList.add('tg');
+      files.push('assets/tgapp.js');
+      var t = document.createElement('script'); t.async = true; t.src = 'https://telegram.org/js/telegram-web-app.js'; document.head.appendChild(t);
+    }
     window.KUDA_BOOT = { cities: cities, v: V, files: files };
     files.forEach(function (f) {
       if (f.charAt(0) === '@') return;
@@ -58,9 +65,9 @@
   <!-- шрифты не держат первый показ: сначала текст системным шрифтом, Unbounded и Onest подменят его, когда загрузятся -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;600;700&display=swap"></noscript>
-  <link rel="stylesheet" href="assets/hub.css?v=41">
-  <link rel="stylesheet" href="assets/afisha.css?v=41">
-  <link rel="stylesheet" href="assets/reviews.css?v=41">
+  <link rel="stylesheet" href="assets/hub.css?v=42">
+  <link rel="stylesheet" href="assets/afisha.css?v=42">
+  <link rel="stylesheet" href="assets/reviews.css?v=42">
   <!-- без JavaScript карточек планов не будет — место под них и под их число (hub.css) не держим -->
   <noscript><style>.cards:empty { min-height: 0; } #count:empty::before { content: none; }</style></noscript>
 </head>
@@ -227,7 +234,7 @@
     <div class="row"><button class="btn ghost" id="consentNo" type="button">Только нужное</button><button class="btn primary" id="consentYes" type="button">Разрешить</button></div>
   </div>
 
-  <script src="config.js?v=41"></script>
+  <script src="config.js?v=42"></script>
   <!-- Загрузчик: те же скрипты и в том же порядке, что раньше стояли тегами, но каталог и афиша — только города из KUDA_BOOT (см. <head>),
        а сервер и отзывы (api.js, reviews.js) — только когда сервер включён в config.js (api.url).
        Нет KUDA_BOOT (страница из старого кэша) — подключаем всё, как раньше. Петербург без Москвы: каталог начинается пустым
