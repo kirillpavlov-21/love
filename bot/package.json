@@ -1,0 +1,12 @@
+{
+  "name": "kuda-bot",
+  "private": true,
+  "description": "Telegram-бот «Куда идём?»: подбор планов, афиша, голосования. Без зависимостей, Node 22+",
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "start": "node poll.mjs",
+    "webhook": "node webhook.mjs",
+    "test": "node --test \"test/*.test.mjs\""
+  }
+}

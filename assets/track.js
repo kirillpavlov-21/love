@@ -127,7 +127,9 @@
     log.push(Object.assign({ t: type, ts: Date.now() }, data));
     if (log.length > MAX_LOG) log.splice(0, log.length - MAX_LOG);
     LS.set(K_LOG, log);
-    if (data.kind && data.id && POS[type] && firstTime(type, data.kind, data.id)) learn(featsOf(data.kind, data.id), 1, POS[type]);
+    // открытие из «Удиви меня» выбрал случай, а не человек — модель на нём не учим
+    const chance = data.src === 'surprise' && DAILY[type];
+    if (data.kind && data.id && POS[type] && !chance && firstTime(type, data.kind, data.id)) learn(featsOf(data.kind, data.id), 1, POS[type]);
     // город — по самой карточке (место, план, событие), без карточки — не передаём
     if (ym) ym('reachGoal', type, { kind: data.kind, id: data.id, mode: data.mode, v: data.v, city: data.id ? cityOf(String(data.id)) : undefined });
   }
@@ -177,9 +179,34 @@
   function topLikes(n) {
     return Object.entries(M.w).filter(([f, w]) => w > 0.15 && FEAT_NAME[f]).sort((a, b) => b[1] - a[1]).slice(0, n).map(([f]) => FEAT_NAME[f]);
   }
-  /* «Сбросить»: стираем журнал, модель и память о пролистанных карточках — и в хранилище, и в памяти страницы */
-  function reset() { [K_LOG, K_MODEL, K_ONCE, 'kuda-neg'].forEach(LS.del); M = { v: 1, w: {}, b: 0, pos: 0, neg: 0 }; seenNeg = {}; }
+  /* ---------- явный вкус: ответы «это или то» на главной ----------
+     { v: 1, vibes: ['talk', 'culture', …] — теги и разделы, bud: 0–3 — бюджет на человека, station: { name, lat, lon } — «откуда обычно еду», at }.
+     Модель «Для тебя» учится медленно, а вкус работает с первого визита: KudaPick поднимает такие планы и пишет «ты любишь …» */
+  const K_TASTE = 'kuda-taste', K_NO = 'kuda-no', NO_DAYS = 30;
+  function taste() {
+    const t = LS.get(K_TASTE, null);
+    return t && t.v === 1 && Array.isArray(t.vibes) ? t : null;
+  }
+  function setTaste(t) {
+    if (!t) { LS.del(K_TASTE); return null; }
+    const st = t.station && t.station.name && isFinite(t.station.lat) && isFinite(t.station.lon) ? { name: String(t.station.name).slice(0, 60), lat: +t.station.lat, lon: +t.station.lon } : null;
+    const v = { v: 1, vibes: Array.from(new Set((t.vibes || []).map(String))).filter(x => /^[a-z]{2,12}$/.test(x)).slice(0, 12), bud: [0, 1, 2, 3].includes(+t.bud) ? +t.bud : 0, station: st, at: new Date().toISOString().slice(0, 10) };
+    LS.set(K_TASTE, v);
+    return v;
+  }
+  /* «Не то»: сильный отрицательный пример и 30 дней не показываем этот план в подборке «Сейчас» */
+  function notThis(kind, id) {
+    const no = LS.get(K_NO, {}), d = today();
+    Object.keys(no).forEach(k => { if (d - no[k] > NO_DAYS) delete no[k]; });
+    no[kind + ':' + id] = d;
+    LS.set(K_NO, no);
+    learn(featsOf(kind, id), 0, 1.5);
+  }
+  const noList = kind => { const no = LS.get(K_NO, {}), d = today(); return Object.keys(no).filter(k => k.startsWith(kind + ':') && d - no[k] <= NO_DAYS).map(k => k.slice(kind.length + 1)); };
+
+  /* «Сбросить»: стираем журнал, модель, вкус и память о пролистанных карточках — и в хранилище, и в памяти страницы */
+  function reset() { [K_LOG, K_MODEL, K_ONCE, 'kuda-neg', K_TASTE, K_NO].forEach(LS.del); M = { v: 1, w: {}, b: 0, pos: 0, neg: 0 }; seenNeg = {}; }
 
   if (consent() === 'all') loadMetrika();
-  window.KudaTrack = { setCat, ev, invited, skipped, score, ready, forYou, topLikes, favs, isFav, toggleFav, consent, setConsent, reset, featsOf };
+  window.KudaTrack = { setCat, ev, invited, skipped, score, ready, forYou, topLikes, favs, isFav, toggleFav, consent, setConsent, reset, featsOf, taste, setTaste, notThis, noList };
 })();

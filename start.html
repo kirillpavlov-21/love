@@ -21,9 +21,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="assets/hub.css?v=36">
-  <link rel="stylesheet" href="assets/afisha.css?v=36">
-  <link rel="stylesheet" href="assets/reviews.css?v=36">
+  <link rel="stylesheet" href="assets/hub.css?v=37">
+  <link rel="stylesheet" href="assets/afisha.css?v=37">
+  <link rel="stylesheet" href="assets/reviews.css?v=37">
   <!-- без JavaScript карточек планов не будет — место под них и под их число (hub.css) не держим -->
   <noscript><style>.cards:empty { min-height: 0; } #count:empty::before { content: none; }</style></noscript>
 </head>
@@ -59,6 +59,21 @@
     <h1 id="heroTitle">Куда идём? Решим за&nbsp;пару минут</h1>
     <!-- Тексты здесь — для сайта без своего сервера (config.js → api.url пустой); с сервером hub.js (applyLiveCopy) меняет их на «живые» -->
     <p class="hero-sub" id="heroSub"><span id="planCount">450+ готовых планов</span> на вечер <span id="heroCity">в Москве</span>: место, ужин рядом и маршрут. <span id="heroSubEnd">Кинь ссылку в чат — каждый отметит, что ему подходит.</span></p>
+    <!-- «Что хочется?»: запрос обычными словами (assets/intent.js → assets/pick.js) и быстрые чипы; ту же разметку чипов рисует hub.js (renderAsk) -->
+    <form class="ask" id="ask" role="search" action="start.html">
+      <label class="ask-f"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="askQ" name="q" type="search" enterkeyhint="search" autocomplete="off" maxlength="120" placeholder="Опиши вечер словами" aria-label="Что хочется? Напиши обычными словами"></label>
+      <button class="btn primary ask-go" type="submit" aria-label="Подобрать"><span class="l">Подобрать</span><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></button>
+    </form>
+    <div class="ask-chips" id="askChips" role="group" aria-label="Быстрый подбор">
+      <div class="ask-row"><button type="button" class="ask-chip" data-tok="сейчас" aria-pressed="false">⏱️ Сейчас</button><button type="button" class="ask-chip" data-tok="сегодня вечером" aria-pressed="false">🌆 Сегодня вечером</button><button type="button" class="ask-chip" data-tok="завтра" aria-pressed="false">Завтра</button><button type="button" class="ask-chip" data-tok="на выходных" aria-pressed="false">На выходных</button></div>
+      <div class="ask-row"><button type="button" class="ask-chip" data-tok="поговорить" aria-pressed="false">💬 Поговорить</button><button type="button" class="ask-chip" data-tok="под крышей" aria-pressed="false">☔ Под крышей</button><button type="button" class="ask-chip" data-tok="с видом" aria-pressed="false">🏙️ С видом</button><button type="button" class="ask-chip" data-tok="активно" aria-pressed="false">⚡ Активно</button><button type="button" class="ask-chip" data-tok="культура" aria-pressed="false">🏛️ Культура</button><button type="button" class="ask-chip" data-tok="бар" aria-pressed="false">🍷 Бар</button><button type="button" class="ask-chip" data-tok="недорого" aria-pressed="false">💸 Недорого</button><button type="button" class="ask-chip" data-tok="допоздна" aria-pressed="false">🌙 Допоздна</button></div>
+    </div>
+  </section>
+  <!-- «Сейчас для тебя» и ответ на запрос: три плана с «почему», события и места — рисует hub.js (renderNow) -->
+  <section class="block now" id="nowBlock" aria-labelledby="nowTitle">
+    <div id="now" aria-live="polite"><div class="now-head"><h2 id="nowTitle">Куда пойти сегодня</h2></div><div class="now-wait" aria-hidden="true"><i></i><i></i><i></i></div></div>
+  </section>
+  <section class="block invite" aria-label="Позвать игрой">
     <div class="hero-mode" id="heroMode">
       <p class="hero-hook"><b>Не пиши «го?». Позови игрой</b>Ссылка-игра: сердечки, письмо, выбор места, дня и времени из твоих вариантов. Ответ вернётся к тебе с готовым маршрутом.</p>
       <div class="hero-actions">
@@ -175,30 +190,32 @@
     <div class="row"><button class="btn ghost" id="consentNo" type="button">Только нужное</button><button class="btn primary" id="consentYes" type="button">Разрешить</button></div>
   </div>
 
-  <script src="config.js?v=36"></script>
-  <script src="assets/shared.js?v=36"></script>
-  <script src="assets/places.js?v=36"></script>
-  <script src="assets/places-spb.js?v=36"></script>
-  <script src="assets/places-info.js?v=36"></script>
-  <script src="assets/events.js?v=36"></script>
-  <script src="assets/events-spb.js?v=36"></script>
-  <script src="assets/sport.js?v=36"></script>
-  <script src="assets/auto.js?v=36"></script>
-  <script src="assets/photos.js?v=36"></script>
-  <script src="assets/collections.js?v=36"></script>
-  <script src="assets/collections-auto.js?v=36"></script>
-  <script src="assets/cols.js?v=36"></script>
-  <script src="assets/api.js?v=36"></script>
-  <script src="assets/reviews.js?v=36"></script>
-  <script src="assets/afisha.js?v=36"></script>
-  <script src="assets/promos.js?v=36"></script>
-  <script src="assets/track.js?v=36"></script>
-  <script src="assets/geo.js?v=36"></script>
-  <script src="assets/metro.js?v=36"></script>
-  <script src="assets/auth.js?v=36"></script>
-  <script src="assets/qr.js?v=36"></script>
-  <script src="assets/share-card.js?v=36"></script>
-  <script src="assets/hub.js?v=36"></script>
-  <script src="assets/pwa.js?v=36"></script>
+  <script src="config.js?v=37"></script>
+  <script src="assets/shared.js?v=37"></script>
+  <script src="assets/places.js?v=37"></script>
+  <script src="assets/places-spb.js?v=37"></script>
+  <script src="assets/places-info.js?v=37"></script>
+  <script src="assets/events.js?v=37"></script>
+  <script src="assets/events-spb.js?v=37"></script>
+  <script src="assets/sport.js?v=37"></script>
+  <script src="assets/auto.js?v=37"></script>
+  <script src="assets/photos.js?v=37"></script>
+  <script src="assets/collections.js?v=37"></script>
+  <script src="assets/collections-auto.js?v=37"></script>
+  <script src="assets/cols.js?v=37"></script>
+  <script src="assets/intent.js?v=37"></script>
+  <script src="assets/pick.js?v=37"></script>
+  <script src="assets/api.js?v=37"></script>
+  <script src="assets/reviews.js?v=37"></script>
+  <script src="assets/afisha.js?v=37"></script>
+  <script src="assets/promos.js?v=37"></script>
+  <script src="assets/track.js?v=37"></script>
+  <script src="assets/geo.js?v=37"></script>
+  <script src="assets/metro.js?v=37"></script>
+  <script src="assets/auth.js?v=37"></script>
+  <script src="assets/qr.js?v=37"></script>
+  <script src="assets/share-card.js?v=37"></script>
+  <script src="assets/hub.js?v=37"></script>
+  <script src="assets/pwa.js?v=37"></script>
 </body>
 </html>

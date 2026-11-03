@@ -530,9 +530,11 @@ body.sheet-open .consent { display: none; }
 .mini.accent .ic { color: currentColor; }
 #plansBlock > .block-head { flex-wrap: wrap; row-gap: 10px; }
 @media (max-width: 559px) {
-  /* на телефоне: заголовок и «Удиви меня» в строку, «Подобрать за 10 секунд» — во всю ширину под ними */
+  /* на телефоне: заголовок — своей строкой (рядом с «Нас несколько» он налезал на кнопку), под ним «Нас несколько» и «Удиви меня»,
+     «Подобрать за 10 секунд» — во всю ширину */
   #plansActions { display: contents; }
-  #plansBlock > .block-head h2 { flex: 1 1 0; min-width: 0; }
+  #plansBlock > .block-head h2 { flex: 1 0 100%; min-width: 0; }
+  #plansActions #midway, #plansActions #random { flex: 1 1 0; justify-content: center; min-height: 44px; }
   #plansActions #quiz { order: 3; flex: 1 0 100%; justify-content: center; min-height: 46px; font-size: 15px; border-radius: 14px; }
   #plansActions #quiz .ic { width: 18px; height: 18px; }
 }
@@ -733,3 +735,82 @@ html[data-city="spb"] .metro.l6 { background: #7B4B2A; }
 .buzz-line { margin: 4px 0; font-size: 14px; font-weight: 700; color: #ffb36b; }
 .mid-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0 4px; }
 .mid-grid select { margin: 0; min-width: 0; }
+
+/* «Что хочется?» — поле запроса обычными словами и чипы в герое (hub.js: renderAsk) */
+.ask { position: relative; display: flex; gap: 8px; margin-top: 4px; }
+.ask-f { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; height: 54px; padding: 0 14px; border-radius: 16px; background: var(--bg); border: 1px solid var(--line-2); color: var(--muted); }
+.ask-f:focus-within { border-color: var(--accent); }
+.ask-f .ic { width: 18px; height: 18px; flex: none; }
+.ask-f input { flex: 1; min-width: 0; height: 100%; border: 0; outline: none; background: transparent; color: var(--text); font: 500 16px var(--body); }
+.ask-f input::placeholder { color: #77727F; }
+.ask-f input::-webkit-search-cancel-button { filter: invert(1) opacity(.55); }
+.hero .ask-go { flex: none; margin-top: 0; min-height: 54px; padding: 0 18px; }
+.ask-chips { position: relative; display: grid; gap: 8px; margin: 2px -16px 0; }
+.ask-row { display: flex; gap: 8px; overflow-x: auto; padding: 0 16px 2px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.ask-row::-webkit-scrollbar { display: none; }
+.ask-chip { flex: none; min-height: 44px; padding: 0 15px; border-radius: 99px; border: 1px solid var(--line-2); background: rgba(15, 14, 19, .55); color: var(--text); font: 600 14px var(--body); white-space: nowrap; cursor: pointer; transition: background .15s, border-color .15s; }
+.ask-chip:active { transform: scale(.96); }
+.ask-chip.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.ask-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (min-width: 620px) { .ask-chips { margin: 2px 0 0; } .ask-row { flex-wrap: wrap; overflow: visible; padding: 0; } }
+
+/* «Куда пойти сегодня» — три плана с «почему», события и места (hub.js: renderNow) */
+.now { margin-top: 18px; }
+.now-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+.now-head h2 { margin: 0; font: 700 21px/1.2 var(--display); letter-spacing: -.02em; }
+.now-head h2:focus { outline: none; }
+.now-head .mini .ic { color: var(--muted-2); }
+.now-sub { margin: 0 0 12px; font-size: 13.5px; line-height: 1.45; color: var(--muted); }
+.now-got { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 12px; font-size: 13px; color: var(--muted); }
+.now-got span:not(.k) { padding: 4px 10px; border-radius: 99px; background: var(--surface-2); color: var(--muted-2); }
+.now-msg { margin: -4px 0 12px; }
+.now-it { position: relative; display: flex; align-items: stretch; min-width: 0; }
+.now-it .now-main { flex: 1; min-width: 0; padding-right: 52px; }
+.now-no { position: absolute; top: 0; right: 0; bottom: 0; width: 48px; display: grid; place-items: center; border: 0; border-left: 1px solid var(--line); border-radius: 0 16px 16px 0; background: transparent; color: var(--muted); cursor: pointer; }
+.now-no .ic { width: 16px; height: 16px; }
+.now-no:hover { color: var(--text); }
+.now-no:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.now-why { display: flex; flex-wrap: wrap; gap: 2px 10px; margin-top: 3px; font-size: 12.5px; line-height: 1.4; color: var(--muted-2); }
+.now-why span { min-width: 0; overflow-wrap: anywhere; }
+.now .qr-list .qr-it { background: var(--surface); }
+.now .qr-ph { width: 72px; height: 72px; }
+.now-taste { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; align-items: start; margin: 0 0 12px; padding: 14px; border-radius: 18px; border: 1px dashed var(--line-2); background: linear-gradient(160deg, var(--glow), transparent 60%), var(--surface); }
+.now-taste .e { font-size: 26px; line-height: 1; }
+.now-taste p { margin: 0; font-size: 14px; line-height: 1.4; color: var(--muted-2); }
+.now-taste p b { display: block; margin-bottom: 2px; color: var(--text); font: 700 15px/1.3 var(--display); letter-spacing: -.01em; }
+.now-taste .row { grid-column: 1 / -1; align-items: center; gap: 14px; }
+.now-taste .btn { flex: 0 0 auto; min-height: 44px; padding: 0 18px; font-size: 15px; }
+.now-foot { margin: 14px 0 0; font-size: 12.5px; line-height: 1.6; color: var(--muted); }
+.now-foot a, .now-foot .link { color: var(--muted-2); font: 500 12.5px var(--body); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.link { background: none; border: 0; padding: 0; color: var(--accent); font: 600 14px var(--body); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.now-wait { display: grid; gap: 10px; }
+.now-wait i { display: block; height: 92px; border-radius: 16px; background: var(--surface); animation: nowPulse 1.2s ease-in-out infinite alternate; }
+@keyframes nowPulse { from { opacity: .55; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .now-wait i { animation: none; } }
+
+/* «Позвать игрой» — после подборки, второстепенно */
+.invite { padding: 16px; border-radius: 22px; background: var(--surface); border: 1px solid var(--line); }
+.invite .hero-mode { border-top: 0; padding-top: 0; margin-top: 0; }
+.invite .hero-hook { margin: 0; font-size: 14px; line-height: 1.45; color: #B3AEBE; }
+.invite .demo[aria-disabled="true"] { opacity: .6; cursor: progress; }
+.invite .demo .l-short { display: none; }
+.invite .usp { margin-top: 12px; }
+@media (max-width: 420px) {
+  .invite .hero-actions { flex-direction: row; gap: 8px; }
+  .invite .hero-actions .btn { min-height: 48px; padding: 0 14px; font-size: 15px; white-space: nowrap; }
+  .invite .hero-actions .btn.primary { flex: 1 1 auto; min-width: 0; }
+  .invite .hero-actions .btn.primary .ic { display: none; }
+  .invite .hero-actions .btn.demo { flex: 0 0 auto; gap: 6px; padding: 0 12px; }
+  .invite .demo .l-long { display: none; }
+  .invite .demo .l-short { display: inline; }
+}
+/* «Твой вкус»: станция метро в шторке */
+.psheet select.field { width: 100%; height: 50px; padding: 0 14px; border-radius: 14px; border: 1px solid var(--line-2); background: var(--surface); color: var(--text); font: 500 16px var(--body); }
+.psheet select.field:focus { outline: none; border-color: var(--accent); }
+.ask-go .ic { display: none; }
+@media (max-width: 420px) {
+  .hero .ask-go { width: 54px; padding: 0; }
+  .ask-go .l { display: none; }
+  .ask-go .ic { display: inline; width: 22px; height: 22px; }
+  .hero #heroSubEnd { display: none; }
+}
