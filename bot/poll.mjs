@@ -2,7 +2,7 @@
 /* Бот «Куда идём?» на ноутбуке или своём сервере: long polling — без вебхука, домена и открытых портов.
      TG_TOKEN=123456:AA… node bot/poll.mjs
    Переменные окружения:
-     TG_TOKEN   — токен от @BotFather (обязательно; в репозиторий не кладём);
+     TG_TOKEN   — токен от @BotFather (в репозиторий не кладём); нет — берётся из файла ~/.kuda/tg-token (TG_TOKEN_FILE);
      SITE_URL   — адрес сайта (по умолчанию GitHub Pages) для ссылок в ответах;
      BOT_DATA   — site: брать каталог с сайта, а не из этой папки репозитория (по умолчанию — из папки);
      BOT_STORE  — файл хранилища (по умолчанию ~/.kuda/bot-store.json — вне репозитория);
@@ -11,7 +11,7 @@
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { telegram } from './tg.mjs';
+import { telegram, botToken } from './tg.mjs';
 import { fileStore } from './store.mjs';
 import { loadCatalog, SITE } from './catalog.mjs';
 import { createBot, COMMANDS } from './core.mjs';
@@ -21,7 +21,7 @@ const site = process.env.SITE_URL || SITE;
 // каталог — из этой папки (её обновляет ежедневная задача и git pull); BOT_DATA=site — прямо с сайта
 const src = process.env.BOT_DATA === 'site' ? { base: site } : { dir: ROOT, site };
 const log = (...a) => console.log(new Date().toISOString().slice(0, 19).replace('T', ' '), ...a);
-const api = telegram(process.env.TG_TOKEN, { base: process.env.TG_API || undefined });   // TG_API — свой сервер Bot API (по умолчанию api.telegram.org)
+const api = telegram(botToken(), { base: process.env.TG_API || undefined });   // TG_API — свой сервер Bot API (по умолчанию api.telegram.org)
 const store = fileStore(process.env.BOT_STORE || path.join(os.homedir(), '.kuda', 'bot-store.json'));
 
 const me = await api('getMe');

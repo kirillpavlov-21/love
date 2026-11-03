@@ -10,7 +10,7 @@ import os from 'node:os';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { telegram } from './tg.mjs';
+import { telegram, botToken } from './tg.mjs';
 import { fileStore } from './store.mjs';
 import { loadCatalog, SITE } from './catalog.mjs';
 import { createBot, COMMANDS } from './core.mjs';
@@ -25,7 +25,7 @@ const log = (...a) => console.log(new Date().toISOString().slice(0, 19).replace(
 if (!pub || !/^https:\/\//.test(pub)) { console.error('PUBLIC_URL — https-адрес этого сервера, например https://bot.example.com'); process.exit(1); }
 if (secret.length < 16 || !/^[A-Za-z0-9_-]+$/.test(secret)) { console.error('TG_SECRET — от 16 знаков: латиница, цифры, _ и -'); process.exit(1); }
 
-const api = telegram(process.env.TG_TOKEN, { base: process.env.TG_API || undefined });   // TG_API — свой сервер Bot API (по умолчанию api.telegram.org)
+const api = telegram(botToken(), { base: process.env.TG_API || undefined });   // TG_API — свой сервер Bot API (по умолчанию api.telegram.org)
 const store = fileStore(process.env.BOT_STORE || path.join(os.homedir(), '.kuda', 'bot-store.json'));
 const me = await api('getMe');
 const bot = createBot({ api, store, catalog: () => loadCatalog(src), site, name: me.username, log });

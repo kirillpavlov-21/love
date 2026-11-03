@@ -253,3 +253,18 @@ test('хранилище в файле: права только у владел�
     assert.deepEqual(await fileStore(file).get('u:1'), { city: 'spb' });
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
+
+test('токен: TG_TOKEN важнее файла, файл получает права только владельца, нет ничего — пусто', async () => {
+  const fs = await import('node:fs');
+  const os = await import('node:os');
+  const { botToken } = await import('../tg.mjs');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kuda-tok-'));
+  const file = path.join(dir, 'tg-token');
+  try {
+    fs.writeFileSync(file, '123:abc\n', { mode: 0o644 });
+    assert.equal(botToken({ TG_TOKEN_FILE: file }), '123:abc');
+    assert.equal(fs.statSync(file).mode & 0o777, 0o600);
+    assert.equal(botToken({ TG_TOKEN: ' 9:z ', TG_TOKEN_FILE: file }), '9:z');
+    assert.equal(botToken({ TG_TOKEN_FILE: path.join(dir, 'нет') }), '');
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
