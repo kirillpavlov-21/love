@@ -309,6 +309,7 @@
     "spb-glavnyy-shtab": ["Здание_Главного_штаба_со_стороны_Эрмитажа.JPG","Max A. Khlopov","CC BY-SA 3.0"],
     "spb-artmuza": ["Артмуза,_внутренний_двор_зимой.jpg","SoulMaker","CC BY-SA 4.0"],
     "spb-sevkabel-port": ["Арт-пространство_порт_Севкабель.jpg","Бегущий из города","CC BY-SA 4.0"],
+    // —— добор 2026-11-03 ——
   };
   const places = (window.KUDA || {}).places || {};
   Object.keys(PH).forEach(id => {
