@@ -44,8 +44,9 @@ async function makeRepo(dir) {
   const src = f => path.join(ROOT, 'assets', f);
   await fs.writeFile(path.join(dir, 'assets/places.js'), readFileSync(src('places.js'), 'utf8') + EXTRA_PLACES);
   for (const f of ['geo.js', 'photos.js']) await fs.copyFile(src(f), path.join(dir, 'assets', f));
-  // заглушки events.js и auto.js — как в репозитории
-  for (const f of ['events.js', 'auto.js']) await fs.copyFile(src(f), path.join(dir, 'assets', f));
+  // заглушка events.js — как в репозитории; auto.js — пустой, в репозитории он уже с данными конвейера
+  await fs.copyFile(src('events.js'), path.join(dir, 'assets/events.js'));
+  await fs.writeFile(path.join(dir, 'assets/auto.js'), renderAutoJs(emptyAutoData()));
   return dir;
 }
 
@@ -543,7 +544,8 @@ test('код слияния auto.js: свои места не перезапис
   assert.deepEqual(plain(ctx.KUDA_EVENTS.map(e => e.id)), ['ev-1']);
   // данные читаются обратно тем же разбором, что в catalog.mjs
   assert.deepEqual(parseAutoJs(js), { ...data, closed: ['b'] });
-  assert.deepEqual(parseAutoJs(readFileSync(path.join(ROOT, 'assets/auto.js'), 'utf8')), emptyAutoData());
+  // auto.js репозитория читается тем же разбором (данные в нём меняет конвейер)
+  assert.deepEqual(Object.keys(parseAutoJs(readFileSync(path.join(ROOT, 'assets/auto.js'), 'utf8'))).sort(), Object.keys(emptyAutoData()).sort());
 });
 
 /* ---------- сбои и защита ---------- */
