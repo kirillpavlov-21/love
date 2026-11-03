@@ -181,10 +181,17 @@
   function topLikes(n) {
     return Object.entries(M.w).filter(([f, w]) => w > 0.15 && FEAT_NAME[f]).sort((a, b) => b[1] - a[1]).slice(0, n).map(([f]) => FEAT_NAME[f]);
   }
-  /* ---------- явный вкус: ответы «это или то» на главной ----------
-     { v: 1, vibes: ['talk', 'culture', …] — теги и разделы, bud: 0–3 — бюджет на человека, station: { name, lat, lon } — «откуда обычно еду», at }.
-     Модель «Для тебя» учится медленно, а вкус работает с первого визита: KudaPick поднимает такие планы и пишет «ты любишь …» */
+  /* ---------- знакомство: ответы на первом входе (hub.js, «Давай познакомимся») ----------
+     { v: 1, who: 'date' | 'guys' | 'girls' — с кем чаще, stage: 'first' | 'new' | 'long' — первые свидания, недавно вместе, давно вместе,
+       likes — что нравится (теги, разделы, жанры: culture, theatre, walk, bar…), mood — настроение (talk, party, romantic, fresh),
+       avoid — чего не надо (sober, loud, outdoor, late, far), vibes — likes и mood вместе (их читает KudaPick),
+       bud: 0–3 — бюджет на человека, station: { name, lat, lon } — «откуда обычно еду», me и partner — имена для приглашений, at }.
+     Модель «Для тебя» учится медленно, а это работает с первого визита: KudaPick поднимает такие планы и пишет «вы любите …».
+     Всё — только в этом браузере */
   const K_TASTE = 'kuda-taste', K_NO = 'kuda-no', NO_DAYS = 30;
+  const SLUG = /^[a-z]{2,12}$/;
+  const slugs = (a, n) => Array.from(new Set((Array.isArray(a) ? a : []).map(String))).filter(x => SLUG.test(x)).slice(0, n || 16);
+  const nameOf = s => String(s || '').replace(/[\u0000-\u001f\u007f<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, 30);
   function taste() {
     const t = LS.get(K_TASTE, null);
     return t && t.v === 1 && Array.isArray(t.vibes) ? t : null;
@@ -192,9 +199,52 @@
   function setTaste(t) {
     if (!t) { LS.del(K_TASTE); return null; }
     const st = t.station && t.station.name && isFinite(t.station.lat) && isFinite(t.station.lon) ? { name: String(t.station.name).slice(0, 60), lat: +t.station.lat, lon: +t.station.lon } : null;
-    const v = { v: 1, vibes: Array.from(new Set((t.vibes || []).map(String))).filter(x => /^[a-z]{2,12}$/.test(x)).slice(0, 12), bud: [0, 1, 2, 3].includes(+t.bud) ? +t.bud : 0, station: st, at: new Date().toISOString().slice(0, 10) };
+    const likes = slugs(t.likes), mood = slugs(t.mood, 8);
+    const v = { v: 1, who: ['date', 'guys', 'girls'].includes(t.who) ? t.who : '', stage: ['first', 'new', 'long'].includes(t.stage) ? t.stage : '',
+      likes, mood, avoid: slugs(t.avoid, 8), vibes: slugs((t.vibes || []).concat(likes, mood), 20), bud: [0, 1, 2, 3].includes(+t.bud) ? +t.bud : 0,
+      station: st, me: nameOf(t.me), partner: nameOf(t.partner), at: new Date().toISOString().slice(0, 10) };
     LS.set(K_TASTE, v);
     return v;
+  }
+  /* Поправить знакомство одной деталью («Не то → дорого»: бюджет ниже) */
+  const tweakTaste = patch => setTaste(Object.assign({ v: 1, vibes: [] }, taste() || {}, patch));
+
+  /* ---------- «Уже были» и «Как прошло?» ----------
+     kuda-been: { 'plan:<id>': день } — где уже были: полгода не предлагаем в подборке; kuda-rated: { 'plan:<id>': { r, d } } — ответ на «Как прошло?».
+     Спрашиваем про последний план, куда звали, строили маршрут или звонили (журнал действий), — не раньше чем через 12 часов и не позже двух недель */
+  const K_BEEN = 'kuda-been', K_RATED = 'kuda-rated', BEEN_DAYS = 180;
+  function been(kind, id) {
+    const b = LS.get(K_BEEN, {}), d = today();
+    Object.keys(b).forEach(k => { if (d - b[k] > BEEN_DAYS) delete b[k]; });
+    b[kind + ':' + id] = d;
+    LS.set(K_BEEN, b);
+  }
+  const beenList = kind => { const b = LS.get(K_BEEN, {}), d = today(); return Object.keys(b).filter(k => k.startsWith(kind + ':') && d - b[k] <= BEEN_DAYS).map(k => k.slice(kind.length + 1)); };
+  const INTENT = ['create', 'route', 'invite', 'call', 'site'];
+  function pendingVisit(now) {
+    now = now == null ? Date.now() : now;
+    const rated = LS.get(K_RATED, {}), log = LS.get(K_LOG, []);
+    for (let i = log.length - 1; i >= 0; i--) {
+      const e = log[i];
+      if (!e || e.kind !== 'plan' || !e.id || !INTENT.includes(e.t)) continue;
+      const age = now - e.ts;
+      if (age < 12 * 3600e3) continue;   // ещё не успели сходить
+      if (age > 14 * 864e5) break;       // давно — не спрашиваем
+      if (!rated['plan:' + e.id]) return { kind: 'plan', id: e.id, ts: e.ts };
+    }
+    return null;
+  }
+  /* r: 'great' — отлично (сильный плюс), 'ok' — нормально, 'bad' — не наше (минус), 'skip' — не ходили (просто не спрашиваем) */
+  function rate(kind, id, r) {
+    const rated = LS.get(K_RATED, {}), keys = Object.keys(rated);
+    rated[kind + ':' + id] = { r, d: today() };
+    if (keys.length > 300) keys.slice(0, keys.length - 300).forEach(k => delete rated[k]);
+    LS.set(K_RATED, rated);
+    if (r === 'skip') return;
+    been(kind, id);
+    if (r === 'great') learn(featsOf(kind, id), 1, 3);
+    if (r === 'bad') learn(featsOf(kind, id), 0, 1.5);
+    ev('rate', { kind, id, v: r });
   }
   /* «Не то»: сильный отрицательный пример и 30 дней не показываем этот план в подборке «Сейчас» */
   function notThis(kind, id) {
@@ -207,8 +257,9 @@
   const noList = kind => { const no = LS.get(K_NO, {}), d = today(); return Object.keys(no).filter(k => k.startsWith(kind + ':') && d - no[k] <= NO_DAYS).map(k => k.slice(kind.length + 1)); };
 
   /* «Сбросить»: стираем журнал, модель, вкус и память о пролистанных карточках — и в хранилище, и в памяти страницы */
-  function reset() { [K_LOG, K_MODEL, K_ONCE, 'kuda-neg', K_TASTE, K_NO, 'kuda-taste-skip'].forEach(LS.del); M = { v: 1, w: {}, b: 0, pos: 0, neg: 0 }; seenNeg = {}; }
+  function reset() { [K_LOG, K_MODEL, K_ONCE, 'kuda-neg', K_TASTE, K_NO, 'kuda-taste-skip', K_BEEN, K_RATED].forEach(LS.del); M = { v: 1, w: {}, b: 0, pos: 0, neg: 0 }; seenNeg = {}; }
 
   if (consent() === 'all') loadMetrika();
-  window.KudaTrack = { setCat, ev, invited, skipped, score, ready, forYou, topLikes, favs, isFav, toggleFav, consent, setConsent, reset, featsOf, taste, setTaste, notThis, noList };
+  window.KudaTrack = { setCat, ev, invited, skipped, score, ready, forYou, topLikes, favs, isFav, toggleFav, consent, setConsent, reset, featsOf,
+    taste, setTaste, tweakTaste, notThis, noList, been, beenList, pendingVisit, rate };
 })();

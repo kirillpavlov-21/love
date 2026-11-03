@@ -73,6 +73,8 @@
 
   const DEF = K.defaults();
   // пришли по чужому приглашению (?ref= — 8 знаков хэша его кода): метка уйдёт на сервер вместе с регистрацией
+  /* режим из ссылки — до того, как applyUrlParams уберёт параметры из адреса (нужен подстановке имён из знакомства) */
+  const QS_MODE = new URLSearchParams(location.search).get('mode') || '';
   const REF = (/^[a-z0-9]{8}$/.exec(new URLSearchParams(location.search).get('ref') || (() => { try { return sessionStorage.getItem('kuda-ref') || ''; } catch (e) { return ''; } })()) || [''])[0];
   const state = {
     mode: 'date', cat: 'line', theme: 'pink', who: 'f',
@@ -1641,6 +1643,13 @@
     if (r.pastEvent) toast('Событие из черновика уже прошло — убрал его');
     const user = window.KudaAuth && window.KudaAuth.user && window.KudaAuth.user();
     if (user && user.name && user.name !== 'Ты' && !$('#me').value.trim()) $('#me').value = user.name;
+    // имена из знакомства на главной (kuda-taste: me — своё, partner — второй половинки) — только в пустую форму свидания
+    const prof = readJson('kuda-taste', null);
+    if (isObj(prof) && prof.v === 1 && (!QS_MODE || QS_MODE === 'date') && state.mode === 'date') {
+      const nm = s => String(s || '').replace(/[\u0000-\u001f\u007f<>]/g, '').trim().slice(0, 30);
+      if (nm(prof.me) && !$('#me').value.trim()) $('#me').value = nm(prof.me);
+      if (nm(prof.partner) && !$('#her').value.trim()) $('#her').value = nm(prof.partner);
+    }
     saveName(false);   // имя из черновика или входа — только если игра ещё не знает имени
     tgStatus();
     renderHist();

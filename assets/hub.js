@@ -1934,6 +1934,10 @@
   const whyHtml = why => why.length ? `<span class="now-why">${why.map(w => `<span>${esc(w.e)}${NB}${esc(w.t)}</span>`).join('')}</span>` : '';
   function nowPlanHtml(r) {
     const p = r.plan, { st } = planMeta(p), ph = K.planPhoto(p);
+    // нажали «Не то» — спрашиваем почему: от ответа зависит, что поменять (бюджет, расстояние, формат или «уже были»)
+    if (noAsk === p.id) return `<div class="now-it now-noask" role="group" aria-label="Почему не подходит «${esc(p.title)}»">
+      <p><b>Почему не то?</b><small>${esc(p.title)}</small></p>
+      <div class="rate-row"><button type="button" data-no-why="price">💸 Дорого</button><button type="button" data-no-why="far">🚇 Далеко</button><button type="button" data-no-why="format">🙅 Не наш формат</button><button type="button" data-no-why="been">✅ Уже были</button><button type="button" class="link" data-no-why="cancel">Отмена</button></div></div>`;
     const other = p.mode && p.mode !== mode && K.MODES[p.mode] ? ' · ' + K.MODES[p.mode].label : '';
     return `<div class="now-it">
       <button type="button" class="qr-it now-main" data-plan="${esc(p.id)}">
@@ -1980,7 +1984,7 @@
     if (q.city && q.city !== city && isCity(q.city)) { setCity(q.city); return; }
     if (q.near && !near) askLocate();
     const asked = !!askQ.trim();
-    const skip = new Set(T.noList ? T.noList('plan') : []);
+    const skip = new Set((T.noList ? T.noList('plan') : []).concat(T.beenList ? T.beenList('plan') : []));
     // без запроса — только свой режим; спросили «компы» на вкладке «Свидание» — смотрим планы всех режимов
     const found = safe(() => PK.plans(q, pickCtx({ limit: askN, skip, anyMode: asked && !q.mode })), []);
     // назвали что-то конкретное (слова, настроение, раздел, жанр) — только планы, где это есть; иначе честное «не нашлось»
@@ -1993,9 +1997,11 @@
     const placesFirst = q.words.length && pls.length && !plans.length;
     const got = asked && q.chips.length ? `<p class="now-got"><span class="k">Понял так:</span>${q.chips.map(c => `<span>${esc(c.e)}${NB}${esc(c.t)}</span>`).join('')}</p>` : '';
     const locMsg = q.near && !near ? `<p class="muted now-msg" role="status">${askLoc === 2 ? 'Не получилось узнать, где ты, — напиши станцию метро, например «у Чистых прудов».' : 'Определяем, где ты…'}</p>` : '';
-    const taste = !asked && !(T.taste && T.taste()) && !T.ready() && !tasteSkipped()
-      ? `<div class="now-taste"><span class="e" aria-hidden="true">🎯</span><p><b>Подстроим под тебя</b>Четыре вопроса «это или то» — и подборка станет точнее.</p>
+    const prof = T.taste ? T.taste() : null;
+    const taste = asked ? '' : prof ? profileLine(prof)
+      : !tasteSkipped() ? `<div class="now-taste"><span class="e" aria-hidden="true">👋</span><p><b>Давай познакомимся</b>Пара вопросов: с кем ходишь, что вам нравится и чего не надо, — и подборка будет под вас.</p>
           <div class="row"><button type="button" class="btn primary" data-taste>Начать</button><button type="button" class="link" data-taste-skip>Не сейчас</button></div></div>` : '';
+    const rate = asked ? '' : rateCard();
     const planBlock = plans.length ? `<div class="qr-list">${plans.map(nowPlanHtml).join('')}</div>`
       : `<p class="pl-empty">${pls.length || evs.length ? 'Готовых планов под это нет — ниже места и события.' : 'Под такой запрос ничего не нашлось — убери пару слов или нажми «Очистить».'}</p>`;
     const placeBlock = pls.length ? `<p class="qr-k">Места</p><div class="qr-list">${pls.map(nowPlaceHtml).join('')}</div>` : '';
@@ -2004,7 +2010,7 @@
     const learned = (T.taste && T.taste()) || T.ready();
     box.innerHTML = `
       <div class="now-head"><h2 id="nowTitle">${esc(asked ? 'Что нашлось' : nowTitle(mo))}</h2>${asked ? `<button type="button" class="mini" data-now-clear>${I('x')}Очистить</button>` : ''}</div>
-      ${asked ? got : `<p class="now-sub">${esc(nowSub(mo, q))}</p>`}${locMsg}${taste}
+      ${asked ? got : `<p class="now-sub">${esc(nowSub(mo, q))}</p>`}${locMsg}${rate}${taste}
       ${placesFirst ? placeBlock : ''}${planBlock}
       <div class="qr-foot">
         ${found.length >= askN && plans.length >= askN && askN < NOW_MAX ? `<button type="button" class="btn ghost" data-now-more>${I('redo')}Ещё варианты</button>` : ''}
@@ -2013,59 +2019,210 @@
       </div>
       ${evs.length ? `<p class="qr-k">В афише</p><div class="qr-list">${evs.map(nowEventHtml).join('')}</div>` : ''}
       ${placesFirst ? '' : placeBlock}
-      <p class="now-foot">${T.taste && T.taste() ? '<button type="button" class="link" data-taste>Мой вкус</button> · ' : ''}<a href="rules.html">Как работают рекомендации</a>${learned ? ' · <button type="button" class="link" data-now-reset>Забыть мои вкусы</button>' : ''}</p>`;
+      <p class="now-foot"><button type="button" class="link" data-taste>${prof ? 'Мой профиль' : 'Рассказать о себе'}</button> · <button type="button" class="link" data-remind>🔔 Напоминать о ${mode === 'date' ? 'свиданиях' : 'встречах'}</button> · <a href="rules.html">Как работают рекомендации</a>${learned ? ' · <button type="button" class="link" data-now-reset>Забыть мои вкусы</button>' : ''}</p>`;
   }
 
-  /* «Это или то»: четыре пары, бюджет и «откуда обычно едешь» → KudaTrack.setTaste. Любой шаг можно пропустить */
-  const TASTE_Q = [
-    { q: 'Что тебе ближе?', o: [['talk', '💬', 'Посидеть и поговорить'], ['active', '⚡', 'Подвигаться']] },
-    { q: 'А так?', o: [['culture', '🏛️', 'Музей, театр, выставка'], ['bar', '🍷', 'Бар или ресторан']] },
-    { q: 'Если выбирать…', o: [['walk', '🌳', 'Погулять'], ['rain', '☔', 'Под крышей']] },
-    { q: 'И последнее про настроение', o: [['view', '🏙️', 'Красивый вид'], ['food', '🍽️', 'Вкусно поесть']] },
-    { q: 'Бюджет на человека', bud: true, o: [['1', '💸', `До 1${NB}500${NB}₽`], ['2', '💳', `До 3${NB}000${NB}₽`], ['3', '⭐', 'Можно шикарно']] },
-  ];
+  /* ---------- «Давай познакомимся»: опрос при первом входе → KudaTrack.setTaste (только в этом браузере) ----------
+     С кем чаще ходишь (и первые ли свидания или давно вместе), что вам нравится, какое настроение, бюджет, чего не надо,
+     откуда обычно едешь и — для свиданий — имена для приглашений. Каждый шаг можно пропустить; «Мой профиль» — пройти заново
+     с прежними ответами. Первый раз опрос открывается сам, если человек пришёл не по ссылке на карточку или приглашение */
+  const LIKES = [['culture', '🏛️', 'Музеи и выставки'], ['theatre', '🎭', 'Театр'], ['concert', '🎤', 'Концерты'], ['standup', '🎙️', 'Стендап'],
+    ['walk', '🌳', 'Прогулки и парки'], ['view', '🏙️', 'Красивые виды'], ['food', '🍽️', 'Вкусно поесть'], ['bar', '🍷', 'Бары и вино'],
+    ['coffee', '☕', 'Кофе и десерты'], ['active', '⚡', 'Что-то активное'], ['banya', '🧖', 'Баня и спа'], ['kino', '🎬', 'Кино'],
+    ['karaoke', '🎶', 'Караоке'], ['quest', '🔐', 'Квесты'], ['pc', '🎮', 'Компы и игры'], ['books', '📚', 'Книжные']];
+  const MOODS = [['talk', '💬', 'Тихо, чтобы поговорить'], ['party', '🎉', 'Весело и шумно'], ['romantic', '✨', 'Романтично, красиво'], ['fresh', '🆕', 'Новое, где ещё не были']];
+  const AVOID = [['sober', '🚫', 'Без алкоголя'], ['loud', '🔇', 'Без шума и толпы'], ['outdoor', '🧥', 'Недолго на улице'], ['late', '🌙', 'Не допоздна'], ['far', '🚇', 'Недалеко от дома']];
+  const LABEL = Object.fromEntries(LIKES.concat(MOODS, AVOID).map(([k, e, t]) => [k, [e, t]]));
+  const TQ_STEPS = ['hi', 'who', 'stage', 'likes', 'mood', 'bud', 'avoid', 'station', 'names'];
   let TQ = null;
+  const tqSkip = id => (id === 'stage' && (TQ.who !== 'date' || TQ.stage === 'first')) || (id === 'names' && TQ.who !== 'date') || (id === 'hi' && TQ.edit);
+  const tqVisible = () => TQ_STEPS.filter(id => !tqSkip(id));
   function tasteHtml() {
-    const n = TASTE_Q.length + 1, i = TQ.step;
-    const head = `<p class="eyebrow">Твой вкус · ${i + 1} из ${n}</p><div class="qz-prog" aria-hidden="true">${Array.from({ length: n }, (x, k) => `<i${k <= i ? ' class="on"' : ''}></i>`).join('')}</div>`;
-    if (i < TASTE_Q.length) {
-      const s = TASTE_Q[i];
-      return `${head}<h3 id="tqQ" tabindex="-1">${esc(s.q)}</h3>
-        <div class="qz-opts" role="group" aria-labelledby="tqQ">${s.o.map(([v, e, t]) => `<button type="button" class="qz-opt" data-tq="${v}"><span class="qz-e" aria-hidden="true">${e}</span><span>${esc(t)}</span></button>`).join('')}</div>
-        <button type="button" class="link qz-back" data-tq="">${s.bud ? 'Неважно' : 'И то и другое'}</button>`;
+    const steps = tqVisible(), id = TQ_STEPS[TQ.step], n = steps.length, i = steps.indexOf(id), pair = TQ.who === 'date' || (!TQ.who && mode === 'date');
+    const head = id === 'hi' ? '' : `<p class="eyebrow">Знакомство · ${i + (steps[0] === 'hi' ? 0 : 1)} из ${n - (steps[0] === 'hi' ? 1 : 0)}</p><div class="qz-prog" aria-hidden="true">${steps.filter(x => x !== 'hi').map((x, k) => `<i${k < i + (steps[0] === 'hi' ? 0 : 1) ? ' class="on"' : ''}></i>`).join('')}</div>`;
+    const one = (opts, key) => `<div class="qz-opts" role="group" aria-labelledby="tqQ">${opts.map(([v, e, t]) => `<button type="button" class="qz-opt${String(TQ[key]) === String(v) ? ' on' : ''}" data-tq-one="${key}" data-v="${v}"><span class="qz-e" aria-hidden="true">${e}</span><span>${esc(t)}</span></button>`).join('')}</div>`;
+    const many = (opts, key) => `<div class="tq-chips" role="group" aria-labelledby="tqQ">${opts.map(([v, e, t]) => { const on = TQ[key].has(v); return `<button type="button" class="tq-chip${on ? ' on' : ''}" aria-pressed="${on}" data-tq-many="${key}" data-v="${v}">${e}${NB}${esc(t)}</button>`; }).join('')}</div>`;
+    const nav = (next, skip) => `<div class="row two tq-nav"><button type="button" class="btn ghost" data-tq-back${TQ.step ? '' : ' disabled'}>${I('arrow')}Назад</button><button type="button" class="btn primary" data-tq-next>${next || 'Дальше'}</button></div>${skip ? `<button type="button" class="link qz-back" data-tq-next>${skip}</button>` : ''}`;
+    if (id === 'hi') return `<div class="tq-hi"><span class="tq-hi-e" aria-hidden="true">👋</span><h3 id="tqQ" tabindex="-1">Давай познакомимся</h3>
+      <p class="muted">Несколько коротких вопросов — с кем ходишь, что вам нравится и чего не надо. Потом подборка, квиз и «Удиви меня» будут под вас. Ответы остаются только в этом браузере, их можно поменять в любой момент.</p>
+      <div class="row two"><button type="button" class="btn ghost" data-tq-later>Позже</button><button type="button" class="btn primary" data-tq-next>Поехали</button></div></div>`;
+    if (id === 'who') return `${head}<h3 id="tqQ" tabindex="-1">С кем ты чаще ходишь куда-то?</h3>${one([['date', '💕', 'Со второй половинкой'], ['first', '💘', 'Хожу на первые свидания'], ['guys', '🍻', 'С друзьями'], ['girls', '💅', 'С подругами']], 'whoKey')}${nav('', 'Пропустить')}`;
+    if (id === 'stage') return `${head}<h3 id="tqQ" tabindex="-1">Вы вместе…</h3>${one([['new', '🌱', 'Недавно — всё только начинается'], ['long', '🏡', 'Давно — хочется нового и необычного']], 'stage')}${nav('', 'Пропустить')}`;
+    if (id === 'likes') return `${head}<h3 id="tqQ" tabindex="-1">${pair ? 'Что нравится вам двоим?' : 'Что любит ваша компания?'}</h3><p class="muted">${pair ? 'Подумай и о том, куда хочется сводить вторую половинку.' : 'Отметь всё, что заходит.'} Можно несколько.</p>${many(LIKES, 'likes')}${nav()}`;
+    if (id === 'mood') return `${head}<h3 id="tqQ" tabindex="-1">Какое настроение вам ближе?</h3>${many(MOODS, 'mood')}${nav()}`;
+    if (id === 'bud') return `${head}<h3 id="tqQ" tabindex="-1">Сколько обычно тратите?</h3>${one(pair
+      ? [['1', '💸', `До 3${NB}000${NB}₽ на двоих`], ['2', '💳', `3–6${NB}тыс.${NB}₽ на двоих`], ['3', '⭐', 'Можно и дороже'], ['0', '🤷', 'По-разному']]
+      : [['1', '💸', `До 1${NB}500${NB}₽ на человека`], ['2', '💳', `1${NB}500–3${NB}000${NB}₽ на человека`], ['3', '⭐', 'Можно и дороже'], ['0', '🤷', 'По-разному']], 'bud')}${nav('', 'Пропустить')}`;
+    if (id === 'avoid') return `${head}<h3 id="tqQ" tabindex="-1">Чего точно не надо?</h3>${many(AVOID, 'avoid')}${nav('', TQ.avoid.size ? '' : 'Ничего такого')}`;
+    if (id === 'station') {
+      const names = safe(() => G.stations(city), []).map(x => x.name);
+      return `${head}<h3 id="tqQ" tabindex="-1">Откуда обычно едешь?</h3>
+        <p class="muted">Станция метро у дома или работы — поднимем планы, до которых недалеко.</p>
+        <select class="field" id="tqSt" aria-label="Станция метро"><option value="">Выбери станцию</option>${names.map(x => `<option${TQ.station === x ? ' selected' : ''}>${esc(x)}</option>`).join('')}</select>
+        ${nav(tqVisible().includes('names') ? 'Дальше' : 'Готово', 'Пропустить')}`;
     }
-    const names = safe(() => G.stations(city), []).map(x => x.name);
-    return `${head}<h3 id="tqQ" tabindex="-1">Откуда обычно едешь?</h3>
-      <p class="muted">Станция метро у дома или работы — поднимем планы, до которых недалеко. Хранится только в этом браузере.</p>
-      <select class="field" id="tqSt" aria-label="Станция метро"><option value="">Выбери станцию</option>${names.map(x => `<option>${esc(x)}</option>`).join('')}</select>
-      <div class="row two"><button type="button" class="btn ghost" data-tq-done="skip">Пропустить</button><button type="button" class="btn primary" data-tq-done="ok">Готово</button></div>`;
+    return `${head}<h3 id="tqQ" tabindex="-1">Как вас зовут?</h3><p class="muted">Подставим в приглашение: «Саша зовёт Машу на свидание». По желанию.</p>
+      <label class="tq-f"><span>Твоё имя</span><input class="field" id="tqMe" maxlength="30" autocomplete="given-name" value="${esc(TQ.me)}"></label>
+      <label class="tq-f"><span>Имя второй половинки</span><input class="field" id="tqPartner" maxlength="30" autocomplete="off" value="${esc(TQ.partner)}"></label>
+      ${nav('Готово')}`;
   }
-  function openTaste() {
-    TQ = { step: 0, vibes: [], bud: 0 };
-    openSheet(`<div class="qz" id="tq">${tasteHtml()}</div>`, { kind: 'taste', label: 'Твой вкус' });
-    T.ev('taste_open', { mode });
+  function openTaste(o) {
+    const t = (T.taste && T.taste()) || {};
+    TQ = { step: 0, edit: !!(o && o.edit), whoKey: t.stage === 'first' ? 'first' : t.who || '', who: t.who || '', stage: t.stage || '',
+      likes: new Set(t.likes || []), mood: new Set(t.mood || []), avoid: new Set(t.avoid || []), bud: t.bud == null ? '' : String(t.bud),
+      station: (t.station && t.station.name) || '', me: t.me || '', partner: t.partner || '' };
+    while (tqSkip(TQ_STEPS[TQ.step])) TQ.step++;
+    openSheet(`<div class="qz tq" id="tq">${tasteHtml()}</div>`, { kind: 'taste', label: 'Знакомство' });
+    T.ev('taste_open', { mode, v: TQ.edit ? 'edit' : o && o.auto ? 'auto' : 'card' });
     return true;
   }
-  function tasteStep() { const b = $('#tq'); if (!b) return; b.innerHTML = tasteHtml(); const h = $('#tqQ'); if (h) h.focus({ preventScroll: true }); }
-  function tasteDone(withStation) {
-    const name = withStation ? ($('#tqSt') || {}).value : '';
-    const st = name ? safe(() => G.stations(city), []).find(x => x.name === name) : null;
-    T.setTaste({ vibes: TQ.vibes, bud: TQ.bud, station: st ? { name: st.name, lat: st.lat, lon: st.lon } : null });
-    T.ev('taste_done', { mode, v: String(TQ.vibes.length) });
+  function tasteStep(dir) {
+    const b = $('#tq');
+    if (!b) return;
+    // текст со страницы «Имена» и станцию держим, пока листаем
+    const me = $('#tqMe'), pa = $('#tqPartner'), sel = $('#tqSt');
+    if (me) TQ.me = me.value; if (pa) TQ.partner = pa.value; if (sel) TQ.station = sel.value;
+    do { TQ.step += dir; } while (TQ.step > 0 && TQ.step < TQ_STEPS.length && tqSkip(TQ_STEPS[TQ.step]));
+    if (TQ.step < 0) TQ.step = 0;
+    if (TQ.step >= TQ_STEPS.length) { tasteDone(); return; }
+    b.innerHTML = tasteHtml();
+    const h = $('#tqQ');
+    if (h) h.focus({ preventScroll: true });
+  }
+  function tasteDone() {
+    const st = TQ.station ? safe(() => G.stations(city), []).find(x => x.name === TQ.station) : null;
+    const t = T.setTaste({ who: TQ.who, stage: TQ.stage, likes: Array.from(TQ.likes), mood: Array.from(TQ.mood), avoid: Array.from(TQ.avoid),
+      bud: TQ.bud === '' ? 0 : +TQ.bud, station: st ? { name: st.name, lat: st.lat, lon: st.lon } : null, me: TQ.me, partner: TQ.partner });
+    T.ev('taste_done', { mode, v: [t.who || '-', t.likes.length, t.avoid.length].join('|') });
+    try { localStorage.removeItem(TASTE_SKIP); } catch (e) { /* приватный режим */ }
+    const who = t.who;
     TQ = null;
-    closeSheet(() => { askN = 3; renderNow(); toast('Запомнили — подборка уже под тебя'); });
+    closeSheet(() => {
+      askN = 3;
+      if (who && who !== mode) setMode(who); else renderNow();
+      toast('Запомнил — теперь подбираю под вас');
+      const b = $('#nowBlock');
+      if (b) b.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
   }
   $('#sheet').addEventListener('click', e => {
     if (!TQ || $('#sheet').dataset.kind !== 'taste') return;
-    const d = e.target.closest('[data-tq-done]');
-    if (d) { tasteDone(d.dataset.tqDone === 'ok'); return; }
-    const b = e.target.closest('[data-tq]');
-    if (!b) return;
-    const s = TASTE_Q[TQ.step], v = b.dataset.tq;
-    if (s && s.bud) TQ.bud = +v || 0;
-    else if (v) TQ.vibes.push(v);
-    TQ.step++;
-    tasteStep();
+    const t = e.target;
+    if (t.closest('[data-tq-later]')) { try { localStorage.setItem(TASTE_SKIP, '1'); } catch (err) { /* приватный режим */ } TQ = null; closeSheet(() => renderNow()); return; }
+    if (t.closest('[data-tq-back]')) { tasteStep(-1); return; }
+    if (t.closest('[data-tq-next]')) { tasteStep(1); return; }
+    const o = t.closest('[data-tq-one]');
+    if (o) {
+      const k = o.dataset.tqOne, v = o.dataset.v;
+      if (k === 'whoKey') { TQ.whoKey = v; TQ.who = v === 'first' ? 'date' : v; if (v === 'first') TQ.stage = 'first'; else if (TQ.stage === 'first') TQ.stage = ''; }
+      else TQ[k] = v;
+      tasteStep(1);
+      return;
+    }
+    const m = t.closest('[data-tq-many]');
+    if (m) {
+      const set = TQ[m.dataset.tqMany], v = m.dataset.v;
+      if (set.has(v)) set.delete(v); else set.add(v);
+      const on = set.has(v);
+      m.classList.toggle('on', on);
+      m.setAttribute('aria-pressed', String(on));
+      // «Ничего такого» превращается в «Дальше», когда что-то выбрали
+      if (m.dataset.tqMany === 'avoid') { const b = $('#tq .qz-back[data-tq-next]'); if (b) b.classList.toggle('hidden', set.size > 0); }
+    }
+  });
+  /* Строка «Под вас: …» под заголовком подборки — что запомнили, и «Изменить» */
+  function profileLine(t) {
+    const out = [];
+    if (t.stage === 'first') out.push(['💘', 'первые свидания']); else if (t.stage === 'long') out.push(['🏡', 'давно вместе']);
+    (t.likes || []).slice(0, 3).forEach(k => LABEL[k] && out.push([LABEL[k][0], LABEL[k][1].toLowerCase()]));
+    if ((t.likes || []).length > 3) out.push(['', '+' + ((t.likes || []).length - 3)]);
+    (t.mood || []).slice(0, 1).forEach(k => LABEL[k] && out.push([LABEL[k][0], LABEL[k][1].toLowerCase()]));
+    if (t.bud) out.push(['💸', t.bud === 1 ? (mode === 'date' ? `до 3${NB}000${NB}₽ на двоих` : `до 1${NB}500${NB}₽`) : t.bud === 2 ? (mode === 'date' ? `до 6${NB}000${NB}₽ на двоих` : `до 3${NB}000${NB}₽`) : 'можно дороже']);
+    (t.avoid || []).forEach(k => LABEL[k] && out.push([LABEL[k][0], LABEL[k][1].toLowerCase()]));
+    if (!out.length) return '';
+    return `<p class="now-got now-me"><span class="k">Под вас:</span>${out.map(([e, x]) => `<span>${e ? esc(e) + NB : ''}${esc(x)}</span>`).join('')}<button type="button" class="link" data-taste-edit>Изменить</button></p>`;
+  }
+  /* Первый вход: опрос открывается сам — после первой отрисовки, если пришли не по ссылке на карточку, подборку или приглашение */
+  function autoTaste() {
+    if (!IN || !PK || (T.taste && T.taste()) || tasteSkipped() || SH.isOpen()) return;
+    const q = new URLSearchParams(location.search);
+    if (['plan', 'place', 'event', 'col', 'list', 'q', 'quiz', 'tab', 'from', 'ref'].some(k => q.has(k)) || location.hash.length > 1) return;
+    openTaste({ auto: true });
+  }
+
+  /* ---------- «Как прошло?»: после похода — один тап (KudaTrack.pendingVisit / rate) ----------
+     Спрашиваем про последний план, куда звали, строили маршрут или звонили, — через 12 часов и до двух недель.
+     «Отлично» — сильно поднимает похожее, «Не наше» — опускает; оба и «Нормально» — 180 дней не предлагаем этот план снова */
+  function rateCard() {
+    const v = T.pendingVisit ? T.pendingVisit() : null;
+    const p = v && K.planById(v.id);
+    if (!p || K.cityOf(p) !== city) return '';
+    return `<div class="now-rate" data-rate-id="${esc(p.id)}"><p><b>Как прошло: «${esc(p.title)}»?</b><small>Ответ поможет подбирать точнее</small></p>
+      <div class="rate-row"><button type="button" data-rate="great">😍 Отлично</button><button type="button" data-rate="ok">🙂 Нормально</button><button type="button" data-rate="bad">😕 Не наше</button><button type="button" data-rate="skip">Не ходили</button></div></div>`;
+  }
+
+  /* ---------- «Не то» с причиной: дорого, далеко, не наш формат, уже были ---------- */
+  let noAsk = '';
+  function noWhy(id, why) {
+    const p = K.planById(id), t = T.taste ? T.taste() : null;
+    noAsk = '';
+    if (!p || why === 'cancel') { renderNow(); return; }
+    if (why === 'been') { T.been('plan', id); toast('Отметил: уже были — такое больше не предложу'); }
+    else {
+      T.notThis('plan', id);
+      if (why === 'price') { const pr = planPrice(p); if (pr > 1 && (!t || !t.bud || t.bud >= pr)) T.tweakTaste({ bud: pr - 1 }); toast('Понял — дальше подешевле'); }
+      else if (why === 'far') {
+        if (t && t.station) { T.tweakTaste({ avoid: Array.from(new Set((t.avoid || []).concat('far'))) }); toast('Понял — дальше поближе к дому'); }
+        else toast('Подберу поближе, если в «Моём профиле» указать, откуда едешь');
+      } else toast('Понял — такого будет меньше');
+    }
+    T.ev('not_this', { kind: 'plan', id, v: why });
+    renderNow();
+  }
+
+  /* ---------- «Напоминать о свиданиях»: повторяющееся событие в своём календаре (без сервера) ---------- */
+  const WD_ICS = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
+  let RM = null;
+  function remindHtml() {
+    const pair = mode === 'date';
+    const pick = (k, opts) => `<div class="tq-chips" role="group">${opts.map(([v, t]) => `<button type="button" class="tq-chip${String(RM[k]) === String(v) ? ' on' : ''}" aria-pressed="${String(RM[k]) === String(v)}" data-rm="${k}" data-v="${v}">${esc(t)}</button>`).join('')}</div>`;
+    const links = remindLinks();
+    return `<p class="eyebrow">Напоминание</p><h3 id="rmQ" tabindex="-1">${pair ? 'Как часто напоминать о свидании?' : 'Как часто собираться?'}</h3>
+      ${pick('every', [[1, 'Каждую неделю'], [2, 'Раз в две недели'], [4, 'Раз в месяц']])}
+      <p class="muted">В какой день?</p>${pick('wd', [[4, 'Четверг'], [5, 'Пятница'], [6, 'Суббота'], [0, 'Воскресенье']])}
+      <p class="muted">Событие появится в твоём календаре и напомнит в 12:00 — со ссылкой на подборку. Удалить его можно там же, как обычное событие.</p>
+      <div class="row two"><a class="btn ghost" href="${esc(links.google)}" target="_blank" rel="noopener" data-rm-go="google">Google Календарь</a><a class="btn primary" href="${esc(links.ics)}" download="kuda-napominanie.ics" data-rm-go="ics">Другой календарь</a></div>`;
+  }
+  function remindLinks() {
+    const pair = mode === 'date', title = pair ? '💕 Пора на свидание — куда идём?' : '🍻 Пора собраться — куда идём?';
+    const site = location.origin + location.pathname + '?m=' + mode + (city !== 'msk' ? '&city=' + city : '');
+    const details = 'Подборка на сегодня: ' + site;
+    // ближайший такой день недели (сегодня — тоже), 12:00 по Москве
+    const d0 = new Date(Date.now() + 3 * 3600e3), add = (RM.wd - d0.getUTCDay() + 7) % 7;
+    const start = Date.UTC(d0.getUTCFullYear(), d0.getUTCMonth(), d0.getUTCDate() + add, 12 - 3, 0);
+    const stamp = ms => new Date(ms).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+    const rrule = `RRULE:FREQ=WEEKLY;INTERVAL=${RM.every};BYDAY=${WD_ICS[RM.wd]}`;
+    const google = 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + encodeURIComponent(title) + '&dates=' + stamp(start) + '/' + stamp(start + 30 * 60e3) +
+      '&details=' + encodeURIComponent(details) + '&recur=' + encodeURIComponent(rrule) + '&ctz=Europe/Moscow';
+    const e1 = t => String(t).replace(/\\/g, '\\\\').replace(/[,;]/g, x => '\\' + x).replace(/\n/g, '\\n');
+    const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Kuda idem//RU', 'CALSCALE:GREGORIAN', 'BEGIN:VEVENT', 'UID:remind-' + Date.now().toString(36) + '@kuda-idem',
+      'DTSTAMP:' + stamp(Date.now()), 'DTSTART:' + stamp(start), 'DTEND:' + stamp(start + 30 * 60e3), rrule, 'SUMMARY:' + e1(title), 'DESCRIPTION:' + e1(details), 'URL:' + site,
+      'BEGIN:VALARM', 'TRIGGER:PT0S', 'ACTION:DISPLAY', 'DESCRIPTION:' + e1(title), 'END:VALARM', 'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
+    if (RM.blob) URL.revokeObjectURL(RM.blob);
+    RM.blob = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' }));
+    return { google, ics: RM.blob };
+  }
+  function openRemind() {
+    RM = { every: mode === 'date' ? 2 : 4, wd: 5, blob: '' };
+    openSheet(`<div class="qz rm" id="rm">${remindHtml()}</div>`, { kind: 'remind', label: 'Напоминание', onClose: () => { if (RM && RM.blob) URL.revokeObjectURL(RM.blob); RM = null; } });
+    T.ev('remind_open', { mode });
+  }
+  $('#sheet').addEventListener('click', e => {
+    if (!RM || $('#sheet').dataset.kind !== 'remind') return;
+    const b = e.target.closest('[data-rm]');
+    if (b) { RM[b.dataset.rm] = +b.dataset.v; const box = $('#rm'); if (box) box.innerHTML = remindHtml(); return; }
+    const g = e.target.closest('[data-rm-go]');
+    if (g) { T.ev('remind', { mode, v: g.dataset.rmGo + '|' + RM.every }); toast('Добавь событие в календаре — и он напомнит'); }
   });
 
   const askForm = $('#ask');
@@ -2095,10 +2252,22 @@
   if (nowBox) nowBox.addEventListener('click', e => {
     const t = e.target;
     const no = t.closest('[data-no]');
-    if (no) { T.notThis('plan', no.dataset.no); toast('Понял — покажу другое'); renderNow(); return; }
+    if (no) { noAsk = no.dataset.no; renderNow(); const q = $('#now .now-noask button'); if (q) q.focus({ preventScroll: true }); return; }
+    const nw = t.closest('[data-no-why]');
+    if (nw) { noWhy(noAsk, nw.dataset.noWhy); return; }
+    const rt = t.closest('[data-rate]'), rc = t.closest('[data-rate-id]');
+    if (rt && rc) {
+      const r = rt.dataset.rate;
+      T.rate('plan', rc.dataset.rateId, r);
+      toast(r === 'great' ? 'Здорово! Буду предлагать похожее' : r === 'bad' ? 'Понял — такого будет меньше' : r === 'ok' ? 'Спасибо! Дальше — что-то новое' : 'Хорошо, не спрашиваю');
+      renderNow();
+      return;
+    }
+    if (t.closest('[data-taste-edit]')) { openTaste({ edit: true }); return; }
+    if (t.closest('[data-remind]')) { openRemind(); return; }
     if (t.closest('[data-now-more]')) { askN = Math.min(NOW_MAX, askN + 3); renderNow(); return; }
     if (t.closest('[data-now-clear]')) { askQ = ''; $('#askQ').value = ''; askN = 3; renderAsk(); syncUrl(); $('#askQ').focus(); return; }
-    if (t.closest('[data-taste]')) { openTaste(); return; }
+    if (t.closest('[data-taste]')) { openTaste({ edit: !!(T.taste && T.taste()) }); return; }
     if (t.closest('[data-taste-skip]')) { try { localStorage.setItem(TASTE_SKIP, '1'); } catch (err) { /* приватный режим */ } renderNow(); return; }
     if (t.closest('[data-now-reset]')) { T.reset(); renderNow(); toast('Забыли твои вкусы'); return; }
     if (t.closest('[data-now-invite]')) { T.ev('now_invite', { mode }); return; }
@@ -2364,6 +2533,7 @@
   if (!openFromQuery(QS, { adopt: restoring, rv: toRv }) && restoring) syncUrl(true);
   guestStrip();
   afterPaint(() => {
+    setTimeout(autoTaste, 600);
     bootAfisha();
     if (!WX) loadWx();
     cityAsk();

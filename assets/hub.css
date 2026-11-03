@@ -814,3 +814,37 @@ html[data-city="spb"] .metro.l6 { background: #7B4B2A; }
   .ask-go .ic { display: inline; width: 22px; height: 22px; }
   .hero #heroSubEnd { display: none; }
 }
+
+/* «Давай познакомимся» — опрос в шторке (hub.js: tasteHtml) */
+.tq .qz-opt.on { border-color: var(--accent); background: linear-gradient(160deg, var(--glow), transparent 70%), var(--surface); }
+.tq-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.tq-chip { min-height: 44px; padding: 0 14px; border-radius: 99px; border: 1px solid var(--line-2); background: var(--surface); color: var(--text); font: 600 14px var(--body); cursor: pointer; }
+.tq-chip.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.tq-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.tq-nav { margin-top: 4px; }
+.tq-nav .btn { min-height: 50px; }
+.tq-nav [data-tq-back] .ic { transform: scaleX(-1); }
+.tq-nav [data-tq-back][disabled] { visibility: hidden; }
+.tq-hi { display: grid; gap: 12px; text-align: left; }
+.tq-hi-e { font-size: 44px; line-height: 1; }
+.tq-hi .muted { margin: 0; }
+.tq-f { display: grid; gap: 6px; font-size: 14px; color: var(--muted-2); }
+.psheet .tq-f input.field { width: 100%; height: 50px; padding: 0 14px; border-radius: 14px; border: 1px solid var(--line-2); background: var(--surface); color: var(--text); font: 500 16px var(--body); }
+.psheet .tq-f input.field:focus { outline: none; border-color: var(--accent); }
+.tq .link.hidden { display: none; }
+
+/* «Под вас: …», «Как прошло?», «Почему не то?» в подборке */
+.now-me { align-items: center; }
+.now-me .link { font-size: 13px; color: var(--accent); }
+.now-rate, .now-noask { display: grid; gap: 10px; margin: 0 0 12px; padding: 14px; border-radius: 18px; border: 1px solid var(--accent); background: linear-gradient(160deg, var(--glow), transparent 65%), var(--surface); }
+.now-noask { margin: 0; border-style: dashed; }
+.now-rate p, .now-noask p { margin: 0; font-size: 14px; line-height: 1.4; color: var(--muted-2); }
+.now-rate p b, .now-noask p b { display: block; color: var(--text); font: 700 15px/1.3 var(--display); letter-spacing: -.01em; }
+.now-rate p small, .now-noask p small { color: var(--muted); font-size: 13px; }
+.rate-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.rate-row button:not(.link) { min-height: 42px; padding: 0 13px; border-radius: 99px; border: 1px solid var(--line-2); background: var(--surface-2); color: var(--text); font: 600 14px var(--body); cursor: pointer; }
+.rate-row button:not(.link):hover { border-color: var(--accent); }
+.rate-row button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.rate-row .link { align-self: center; padding: 0 4px; color: var(--muted-2); font-weight: 500; }
+.rm .tq-chips { margin-bottom: 4px; }
+.rm .muted { margin: 2px 0 0; }

@@ -71,9 +71,11 @@
     first: ['💘', 'для первого свидания'], newyear: ['🎄', 'новогоднее'], budget: ['💸', 'недорого'],
   };
   /* Вкус «это или то» в подписи: «ты любишь культуру» */
-  const LIKE = { talk: 'ты любишь поговорить', active: 'ты любишь подвигаться', culture: 'ты любишь культуру', bar: 'ты любишь бары',
-    walk: 'ты любишь гулять', rain: 'ты выбираешь «под крышей»', view: 'ты любишь красивые виды', food: 'ты любишь вкусно поесть',
-    coffee: 'ты любишь кофейни', spa: 'ты любишь спа', banya: 'ты любишь баню', pc: 'ты любишь компы' };
+  const LIKE = { talk: 'вы любите поговорить', active: 'вы любите подвигаться', culture: 'вы любите музеи и выставки', bar: 'вы любите бары',
+    walk: 'вы любите гулять', rain: 'вы выбираете «под крышей»', view: 'вы любите красивые виды', food: 'вы любите вкусно поесть',
+    coffee: 'вы любите кофейни', spa: 'вы любите спа', banya: 'вы любите баню', pc: 'вы любите компы', theatre: 'вы любите театр',
+    concert: 'вы любите живую музыку', standup: 'вы любите стендап', kino: 'вы любите кино', karaoke: 'вы любите караоке', quest: 'вы любите квесты',
+    books: 'вы любите книжные', party: 'вы любите повеселиться', romantic: 'вы любите, чтобы было красиво', fresh: 'вы любите новые места' };
   const CAT_WHY = { food: ['🍽️', 'с ужином'], coffee: ['☕', 'с кофе'], bar: ['🍷', 'с баром'], walk: ['🚶', 'с прогулкой'], books: ['📚', 'книжный'] };
   /* Жанр афиши → тип места в плане */
   const GENRE_KIND = {
@@ -208,17 +210,32 @@
       if (ctx.rating) { const r = st.map(x => +ctx.rating(x.id) || 0).filter(Boolean); if (r.length) s += 2 * (r.reduce((a, b) => a + b, 0) / r.length - 4.2); }
       if (ctx.learned) { const z = +ctx.learned('plan', p.id) || 0; s += 2 * (sig(z) - 0.5); }
       if (taste) {
+        // что нравится: тег, подсказка, раздел места, жанр (театр, стендап…), кино, «красиво», «новое»
+        const likeHit = t => hasTag(p, t) || hints.includes(t) || st.some(x => k.catOf(x) === t)
+          || (GENRE_KIND[t] && st.some(x => GENRE_KIND[t][0].test(x.kind || '') || GENRE_KIND[t][0].test(x.name || '')))
+          || (t === 'kino' && st.some(x => /кино/i.test(x.kind || ''))) || (t === 'romantic' && (hasTag(p, 'view') || hints.includes('view') || hints.includes('scenic')))
+          || (t === 'fresh' && (isNew(p, today) || st.some(x => isNew(x, today))));
+        let liked = 0;
         (taste.vibes || []).forEach(t => {
-          if (hasTag(p, t) || hints.includes(t) || st.some(x => k.catOf(x) === t)) {
-            s += 1.2;
-            const w = TAG_WHY[t] || CAT_WHY[t];
-            if (LIKE[t] && !(w && why.some(x => x.t === w[1]))) add('💛', LIKE[t], 1.5);
-          }
+          if (!likeHit(t)) return;
+          liked++;
+          s += liked <= 3 ? 1.2 : 0.4;   // много совпадений — не перевешивают время, часы работы и бюджет
+          const w = TAG_WHY[t] || CAT_WHY[t];
+          if (LIKE[t] && !(w && why.some(x => x.t === w[1]))) add('💛', LIKE[t], 1.5);
         });
+        // чего не надо
+        const avoid = taste.avoid || [];
+        if (avoid.includes('sober') && !hasTag(p, 'sober') && st.some(x => k.catOf(x) === 'bar')) s -= 3;
+        if (avoid.includes('loud') && (hasTag(p, 'karaoke') || hasTag(p, 'late') || st.some(x => /клуб|караоке|кальян|рейв/i.test(x.kind || '')))) s -= 2;
+        if (avoid.includes('outdoor') && !indoorPlan(p)) s -= 1.5;
+        if (avoid.includes('late') && (p.when === 'ночь' || hasTag(p, 'late'))) s -= 2.5;
+        // где вы сейчас: первые свидания — «для первого свидания» выше, давно вместе — новое и праздничное
+        if (taste.stage === 'first' && hints.includes('first')) { s += 2; add('💘', 'для первого свидания', 2); }
+        if (taste.stage === 'long' && (isNew(p, today) || st.some(x => isNew(x, today)) || hasTag(p, 'anniversary'))) s += 1;
         if (!bud && taste.bud && price > taste.bud) s -= 1.5 * (price - taste.bud);
         if (!pt && taste.station && st[0].lat != null) {
-          const d = k.distM(taste.station, st[0]);
-          s += Math.max(-1.5, 1.5 - d / 4000);
+          const d = k.distM(taste.station, st[0]), far = avoid.includes('far');
+          s += far ? Math.max(-4, 2.5 - d / 2000) : Math.max(-1.5, 1.5 - d / 4000);
           if (d < 3000) add('🏠', distWhy(d, 'от м.' + NB + taste.station.name), 2);
         }
       }
@@ -284,6 +301,10 @@
       }
       if (e.long) s -= (q.ev || []).includes('exhibition') ? 0 : 1;
       if (day === today && !q.day) s += 0.5;
+      const tl = ctx.taste ? ctx.taste.vibes || [] : [], tg = { theatre: 'theatre', concert: 'concert', standup: 'standup', culture: 'exhibition', party: 'party' };
+      const lk = Object.keys(tg).find(t => tl.includes(t) && tg[t] === e.cat);
+      if (lk) { s += 1.5; if (LIKE[lk]) add('💛', LIKE[lk], 2); }
+      if (ctx.taste && (ctx.taste.avoid || []).includes('late') && e.time && e.time >= '22:00') s -= 2;
       add('📅', dayLine(day, e, today), 5);
       return { ev: e, day, score: s, why: tidy(why), i };
     }).filter(Boolean).sort((a, b) => (b.score - a.score) || a.i - b.i);
