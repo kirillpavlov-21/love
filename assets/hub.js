@@ -351,7 +351,6 @@
     if (bud) q.set('b', String(bud));
     if (pcat !== 'all' && pcat !== 'saved') q.set('cat', pcat);
     if (pokr !== 'all') q.set('okr', pokr);
-    if (askQ.trim()) q.set('q', askQ.trim());
     // чужие параметры (utm_*, from, event…) не теряем
     new URLSearchParams(location.search).forEach((v, k) => { if (!OWN_PARAMS.includes(k) && !q.has(k)) q.set(k, v); });
     return q.toString();
@@ -437,7 +436,7 @@
     // «по Москве» — как в start.html: строка и со шрифтом Onest, и с системным переносится одинаково (страница не прыгает, когда шрифт догрузится)
     setText('#uspPlaces', `${txt} ${plural(round, 'место', 'места', 'мест')}` + (fresh ? `, проверены в ${MONTH_IN[+top.slice(5, 7) - 1]}` : ' ' + ctxt('po')));
     // галочки уже есть в start.html; дорисовываем, где их нет (в #uspPlaces текст только что заменили)
-    $$('#hero .usp span').forEach(s => { if (!s.querySelector('.ic')) s.insertAdjacentHTML('afterbegin', I('check')); });
+    $$('.usp span').forEach(s => { if (!s.querySelector('.ic')) s.insertAdjacentHTML('afterbegin', I('check')); });
   }
   /* В start.html — честные тексты для сайта без своего сервера: голоса живут в ссылках.
      Со своим сервером меняем их на обещания общего итога и хранения на сервере */
@@ -639,7 +638,8 @@
     const inSeason = p => (p.tags || []).some(t => SEASON.includes(t));
     let plans = all.filter(p => fn(p) && budOk(planPrice(p))).map((p, i) => [p, i]).sort((a, b) => (inSeason(b[0]) - inSeason(a[0])) || (!!K.planPhoto(b[0]) - !!K.planPhoto(a[0])) || a[1] - b[1]).map(x => x[0]);
     if (PK && plans.length > 1) {
-      const sc = new Map(safe(() => PK.plans({}, pickCtx({ plans, limit: plans.length, diverse: false, anyMode: false })), []).map((r, i) => [r.plan.id, i]));
+      // одинаково для всех в этот момент: без вкуса и модели «Для тебя» (так обещает rules.html)
+      const sc = new Map(safe(() => PK.plans({}, pickCtx({ plans, limit: plans.length, diverse: false, anyMode: false, taste: null, learned: null })), []).map((r, i) => [r.plan.id, i]));
       if (sc.size === plans.length) plans = plans.slice().sort((a, b) => sc.get(a.id) - sc.get(b.id));
     }
     $('#count').textContent = `${plans.length} ${plural(plans.length, 'план', 'плана', 'планов')}`;
@@ -1666,6 +1666,7 @@
     day: { 'день': 3, 'утро': 2.5, 'закат': 1, 'вечер': -1.5, 'ночь': -3 },
     late: { 'ночь': 3, 'вечер': 0.5, 'закат': -0.5, 'день': -3, 'утро': -3 },
   };
+  WHEN_W.tom = WHEN_W.eve;   // «Завтра вечером» — как вечер (запасной подбор квиза, если нет assets/pick.js)
   let Q = null, quizRes = null;
   function quizHtml(msg) {
     const s = QZ[Q.step];
@@ -1855,7 +1856,8 @@
      Пустой запрос — подбор на ближайшее время (день, вечер, ночь) с погодой, часами работы мест и вкусом человека;
      запрос обычными словами — KudaIntent.parse → те же оценки KudaPick: три разных плана, до двух событий и места,
      если назвали что-то словами. Под каждым планом — «почему»: открыто до…, под крышей, сколько идти от метро, «ты любишь…».
-     Чипы под полем дописывают и убирают слова запроса; ?q=… в адресе — сразу этот запрос (ссылкой можно поделиться).
+     Чипы под полем дописывают и убирают слова запроса. ?q=… в ссылке (из бота) — сразу этот запрос; в адресе страницы он не остаётся,
+     чтобы текст запроса не уходил в Метрику и историю браузера.
      «Не то» — 30 дней не показываем этот план здесь (KudaTrack.notThis). Вкус «это или то» — KudaTrack.taste */
   const IN = window.KudaIntent && typeof window.KudaIntent.parse === 'function' ? window.KudaIntent : null;
   const PK = window.KudaPick && typeof window.KudaPick.plans === 'function' ? window.KudaPick : null;
@@ -1887,10 +1889,12 @@
     $$('#askChips [data-tok]').forEach(b => { const on = !!IN && askHas(askQ, b.dataset.tok); b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); });
     renderNow();
   }
+  /* Непогода в день встречи: сегодня — по сейчас и прогнозу на день, другие дни — по прогнозу Open-Meteo (WX.days) */
+  const wetOn = ymd => !!WX && WX.day === todayYmd && (ymd === todayYmd ? !!wxHint(WX) : wxWetDay(WX.days && WX.days[ymd]));
   /* Контекст подбора: город, режим, погода, точка «рядом», вкус, модель «Для тебя», оценки гостей */
   function pickCtx(o) {
     return Object.assign({
-      city, mode, anyMode: true, wet: !!wxHint(WX), point: near, taste: T.taste ? T.taste() : null,
+      city, mode, anyMode: true, wetOn, point: near, taste: T.taste ? T.taste() : null,
       learned: T.ready() ? (kind, id) => T.score(kind, id) : null,
       rating: RV ? id => safe(() => RV.score(id), 0) : null,
     }, o);
@@ -1963,19 +1967,22 @@
     const asked = !!askQ.trim();
     const skip = new Set(T.noList ? T.noList('plan') : []);
     // без запроса — только свой режим; спросили «компы» на вкладке «Свидание» — смотрим планы всех режимов
-    const plans = safe(() => PK.plans(q, pickCtx({ limit: askN, skip, anyMode: asked && !q.mode })), []);
+    const found = safe(() => PK.plans(q, pickCtx({ limit: askN, skip, anyMode: asked && !q.mode })), []);
+    // назвали что-то конкретное (слова, настроение, раздел, жанр) — только планы, где это есть; иначе честное «не нашлось»
+    const specific = q.words.length || q.tags.length || q.cats.length || q.kinds.length || q.ev.length || q.hints.length;
+    const plans = specific ? found.filter(r => r.match) : found;
     const evs = safe(() => PK.events(q, pickCtx({ limit: 2 })), []);
     const pls = safe(() => PK.places(q, pickCtx({ limit: 4 })), []);
     const mo = PK.moment(q);
     // слова запроса нашлись в местах, а в планах — нет: места показываем первыми
-    const placesFirst = q.words.length && pls.length && !plans.some(r => r.match);
+    const placesFirst = q.words.length && pls.length && !plans.length;
     const got = asked && q.chips.length ? `<p class="now-got"><span class="k">Понял так:</span>${q.chips.map(c => `<span>${esc(c.e)}${NB}${esc(c.t)}</span>`).join('')}</p>` : '';
     const locMsg = q.near && !near ? `<p class="muted now-msg" role="status">${askLoc === 2 ? 'Не получилось узнать, где ты, — напиши станцию метро, например «у Чистых прудов».' : 'Определяем, где ты…'}</p>` : '';
     const taste = !asked && !(T.taste && T.taste()) && !T.ready() && !tasteSkipped()
       ? `<div class="now-taste"><span class="e" aria-hidden="true">🎯</span><p><b>Подстроим под тебя</b>Четыре вопроса «это или то» — и подборка станет точнее.</p>
           <div class="row"><button type="button" class="btn primary" data-taste>Начать</button><button type="button" class="link" data-taste-skip>Не сейчас</button></div></div>` : '';
     const planBlock = plans.length ? `<div class="qr-list">${plans.map(nowPlanHtml).join('')}</div>`
-      : `<p class="pl-empty">Под такой запрос планов не нашлось — убери пару слов или нажми «Очистить».</p>`;
+      : `<p class="pl-empty">${pls.length || evs.length ? 'Готовых планов под это нет — ниже места и события.' : 'Под такой запрос ничего не нашлось — убери пару слов или нажми «Очистить».'}</p>`;
     const placeBlock = pls.length ? `<p class="qr-k">Места</p><div class="qr-list">${pls.map(nowPlaceHtml).join('')}</div>` : '';
     const ids = plans.map(r => r.plan.id), group = mode !== 'date';
     const inv = nowInviteUrl(ids, asked ? askQ : nowTitle(mo).replace(/^Куда пойти /, 'Куда идём '));
@@ -1985,7 +1992,7 @@
       ${asked ? got : `<p class="now-sub">${esc(nowSub(mo, q))}</p>`}${locMsg}${taste}
       ${placesFirst ? placeBlock : ''}${planBlock}
       <div class="qr-foot">
-        ${plans.length >= askN && askN < NOW_MAX ? `<button type="button" class="btn ghost" data-now-more>${I('redo')}Ещё варианты</button>` : ''}
+        ${found.length >= askN && plans.length >= askN && askN < NOW_MAX ? `<button type="button" class="btn ghost" data-now-more>${I('redo')}Ещё варианты</button>` : ''}
         ${inv && plans.length > 1 ? `<a class="btn ghost" href="${esc(inv)}" data-now-invite>${group ? '🗳️ Голосовать за эти' : '💌 Пусть выберет из этих'}</a>` : ''}
         ${tgPollUrl(ids) ? `<a class="btn ghost" href="${esc(tgPollUrl(ids))}" target="_blank" rel="noopener" data-now-tg>✈️ Голосование в Telegram</a>` : ''}
       </div>

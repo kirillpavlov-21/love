@@ -57,11 +57,11 @@ export function createBot({ api, store, catalog, site, name = '', log = () => {}
     ask: (t, c, m) => SITE + 'start.html?m=' + (m || 'date') + cq(c) + (t ? '&q=' + encodeURIComponent(cut(t, 120)) : ''),
     home: (c, tab) => SITE + 'start.html' + (c === 'spb' ? '?city=spb' : '') + (tab ? (c === 'spb' ? '&' : '?') + 'tab=' + tab : ''),
     invite: (C, ids, m, c, title) => {
-      const v = C.W.KudaCols && typeof C.W.KudaCols.encodeList === 'function' ? C.W.KudaCols.encodeList(ids) : '';
+      const v = C.encodeList(ids);
       return SITE + 'create.html?mode=' + (m || 'date') + cq(c) + (v ? '&list=' + v + '&t=' + encodeURIComponent(cut(title, 40)) : '');
     },
     list: (C, ids, c, title) => {
-      const v = C.W.KudaCols && typeof C.W.KudaCols.encodeList === 'function' ? C.W.KudaCols.encodeList(ids) : '';
+      const v = C.encodeList(ids);
       return v ? SITE + 'start.html?list=' + v + cq(c) + '&t=' + encodeURIComponent(cut(title, 40)) : U.home(c);
     },
   };
@@ -79,19 +79,32 @@ export function createBot({ api, store, catalog, site, name = '', log = () => {}
   function locked(key, fn) {
     const prev = LOCKS.get(key) || Promise.resolve();
     const next = prev.then(fn, fn);
-    LOCKS.set(key, next.catch(() => {}));
-    next.finally(() => { if (LOCKS.get(key) === next) LOCKS.delete(key); }).catch(() => {});
+    const tail = next.catch(() => {});
+    LOCKS.set(key, tail);
+    tail.then(() => { if (LOCKS.get(key) === tail) LOCKS.delete(key); });   // последний в очереди — убираем запись
     return next;
+  }
+  /* Не больше 40 обращений в минуту от одного человека: лишние молча пропускаем (бота нельзя «залить») */
+  const RATE = new Map();
+  function tooMany(uid) {
+    if (!uid) return false;
+    const t = Date.now(), r = RATE.get(uid);
+    if (!r || t - r[1] > 60e3) { RATE.set(uid, [1, t]); if (RATE.size > 5000) RATE.clear(); return false; }
+    r[0]++;
+    return r[0] > 40;
   }
 
   /* ---------- подбор ---------- */
   async function pick(text, u, o = {}) {
     const C = await catalog();
-    const q = C.I.parse(text || '', { city: u.city });
+    const q = C.I.parse(String(text || '').slice(0, 120), { city: u.city });
     const city = q.city || u.city || 'msk';
     const mode = q.mode || u.mode || o.mode || 'date';
     const skip = new Set(o.skip || []);
-    const plans = C.P.plans(q, { city, mode, anyMode: !q.mode, limit: o.limit || 3, skip });
+    const found = C.P.plans(q, { city, mode, anyMode: !q.mode, limit: o.limit || 3, skip });
+    // назвали что-то конкретное — только планы, где это есть; иначе честное «не нашлось» и места
+    const specific = q.words.length || q.tags.length || q.cats.length || q.kinds.length || q.ev.length || q.hints.length;
+    const plans = specific ? found.filter(r => r.match) : found;
     const events = o.noEvents ? [] : C.P.events(q, { city, mode: q.mode || null, limit: 2 });
     const places = q.words.length ? C.P.places(q, { city, limit: 3 }) : [];
     return { C, q, city, mode: q.mode || (plans[0] && plans[0].plan.mode) || mode, plans, events, places };
@@ -112,10 +125,10 @@ export function createBot({ api, store, catalog, site, name = '', log = () => {}
     const { C, q, city } = R, out = [];
     const got = q.chips.length ? 'Понял так: ' + q.chips.map(c => c.e + ' ' + c.t).join(' · ') : '';
     out.push(`<b>${esc(head || (R.plans.length ? 'Вот что подходит' : 'Планов под это не нашлось'))}</b>${got ? '\n' + esc(got) : ''}`);
-    if (R.places.length && !R.plans.some(r => r.match)) out.push('📍 <b>Места</b>\n' + R.places.map(r => placeLine(r, city)).join('\n'));
+    if (R.places.length && !R.plans.length) out.push('📍 <b>Места</b>\n' + R.places.map(r => placeLine(r, city)).join('\n'));
     R.plans.forEach((r, i) => out.push(planBlock(C, r, i, city)));
     if (!R.plans.length) out.push('Попробуй проще: «свидание вечером», «бар с видом», «компы до утра».');
-    if (R.places.length && R.plans.some(r => r.match)) out.push('📍 <b>Места</b>\n' + R.places.map(r => placeLine(r, city)).join('\n'));
+    if (R.places.length && R.plans.length) out.push('📍 <b>Места</b>\n' + R.places.map(r => placeLine(r, city)).join('\n'));
     if (R.events.length) out.push('📅 <b>В афише</b>\n' + R.events.map(r => eventLine(r, city)).join('\n'));
     return out.join('\n\n');
   }
@@ -128,6 +141,7 @@ export function createBot({ api, store, catalog, site, name = '', log = () => {}
     return { inline_keyboard: rows };
   }
   async function answerQuery(chat, from, u, text, o = {}) {
+    text = String(text || '').slice(0, 120);
     const R = await pick(text, u, Object.assign({ mode: chat.type === 'private' ? 'date' : 'guys' }, o));
     // город и «с кем» из запроса запоминаем — в следующий раз подберём там же
     if ((R.q.city && R.q.city !== u.city) || (R.q.mode && R.q.mode !== u.mode)) {
@@ -140,10 +154,21 @@ export function createBot({ api, store, catalog, site, name = '', log = () => {}
   }
 
   /* ---------- голосование кнопками: работает в любом чате ---------- */
-  async function newVote(title, opts, link) {
+  const DRAFTS = 15;
+  async function newVote(title, opts, link, uid) {
     const pid = rid();
     const V = { title, opts, link: link || '', votes: {}, at: Date.now() };
     await store.set('v:' + pid, V, TTL.fresh);   // не отправили — само исчезнет; первый голос продлит до 30 дней
+    if (uid) {
+      // inline-запрос приходит на каждое изменение текста: держим у человека не больше DRAFTS черновиков без голосов
+      const key = 'd:' + uid, list = (await store.get(key)) || [];
+      list.push(pid);
+      while (list.length > DRAFTS) {
+        const old = list.shift(), ov = await store.get('v:' + old);
+        if (ov && !Object.keys(ov.votes || {}).some(k => (ov.votes[k] || []).length)) await store.del('v:' + old);
+      }
+      await store.set(key, list, TTL.fresh);
+    }
     return { pid, V };
   }
   function voteText(V) {
@@ -190,8 +215,8 @@ export function createBot({ api, store, catalog, site, name = '', log = () => {}
     }
     return out;
   }
-  async function voteArticle(title, opts, link, desc) {
-    const { pid, V } = await newVote(title, opts, link);
+  async function voteArticle(title, opts, link, desc, uid) {
+    const { pid, V } = await newVote(title, opts, link, uid);
     return {
       type: 'article', id: 'v' + pid, title: '🗳️ ' + title, description: desc || opts.map(o => o.t).join(' · ').slice(0, 200),
       input_message_content: { message_text: voteText(V), parse_mode: 'HTML', link_preview_options: NOPREV },
@@ -208,7 +233,8 @@ export function createBot({ api, store, catalog, site, name = '', log = () => {}
   /* ---------- сценарии ---------- */
   async function welcome(chat, u) {
     const C = await catalog().catch(() => null);
-    const n = C ? C.D.scenarios.filter(s => C.K.cityOf(s) === u.city).length : 0;
+    // город плана — по id (spb-… — Петербург), как DateKit.cityOf: без 650 вопросов песочнице
+    const n = C ? C.D.scenarios.filter(s => (String(s.id).startsWith('spb-') ? 'spb' : 'msk') === u.city).length : 0;
     const cityName = u.city === 'spb' ? 'Петербурге' : 'Москве';
     const at = botName ? '@' + botName : 'меня';
     const text = `Привет! Подскажу, куда пойти в ${cityName}: на свидание, с друзьями или с подругами${n ? ` — у меня ${Math.floor(n / 10) * 10}+ готовых планов` : ''}.\n\n` +
@@ -391,14 +417,14 @@ export function createBot({ api, store, catalog, site, name = '', log = () => {}
       const Q = await store.get('q:' + m[1]);
       const C = await catalog();
       const plans = Q ? Q.ids.map(id => C.K.planById(id)).filter(Boolean).slice(0, MAX_POLL) : [];
-      if (plans.length > 1) results.push(await voteArticle(titleOf(C.I.parse(Q.text, { city: Q.city })), planOpts(C, plans, Q.city), U.list(C, plans.map(p => p.id), Q.city, Q.text || 'Куда идём')));
+      if (plans.length > 1) results.push(await voteArticle(titleOf(C.I.parse(Q.text, { city: Q.city })), planOpts(C, plans, Q.city), U.list(C, plans.map(p => p.id), Q.city, Q.text || 'Куда идём'), '', iq.from.id));
     } else if (/^(когда|дни|дата|по дням)$/i.test(text)) {
       const C = await catalog();
-      results.push(await voteArticle('Когда всем удобно?', dayOpts(C, 7), '', 'Ближайшие 7 дней — каждый отметит свои'));
+      results.push(await voteArticle('Когда всем удобно?', dayOpts(C, 7), '', 'Ближайшие 7 дней — каждый отметит свои', iq.from.id));
     } else {
       const R = await pick(text, u, { limit: 5, mode: u.mode || 'guys', noEvents: true });
       const plans = R.plans.map(r => r.plan);
-      if (plans.length > 1) results.push(await voteArticle(titleOf(R.q), planOpts(R.C, plans.slice(0, 4), R.city), U.list(R.C, plans.slice(0, 4).map(p => p.id), R.city, text || 'Куда идём'), 'Голосование: ' + plans.slice(0, 4).map(p => p.title).join(' · ')));
+      if (plans.length > 1) results.push(await voteArticle(titleOf(R.q), planOpts(R.C, plans.slice(0, 4), R.city), U.list(R.C, plans.slice(0, 4).map(p => p.id), R.city, text || 'Куда идём'), 'Голосование: ' + plans.slice(0, 4).map(p => p.title).join(' · '), iq.from.id));
       R.plans.forEach(r => {
         const p = r.plan, ph = R.C.K.planPhoto(p), th = ph ? absUrl(ph.t) : '';
         results.push(Object.assign({
@@ -414,6 +440,8 @@ export function createBot({ api, store, catalog, site, name = '', log = () => {}
   }
 
   async function handle(update) {
+    const from = (update.message || update.callback_query || update.inline_query || {}).from;
+    if (tooMany(from && from.id)) return null;
     try {
       if (update.message) return await onMessage(update.message);
       if (update.callback_query) return await onCallback(update.callback_query);

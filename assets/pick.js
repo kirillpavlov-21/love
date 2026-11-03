@@ -3,7 +3,7 @@
    KudaPick.events(q, ctx) → [{ ev, day, score, why }];   KudaPick.places(q, ctx) → [{ place, score, why }] (только когда есть что искать);
    KudaPick.moment(q, now) → { when, ts, day, label } — на какое время подбираем, если человек не сказал: сейчас вечер — значит вечер.
    ctx: { city, mode — если в запросе нет, anyMode — планы всех режимов (свой — выше), skip — Set id, которые не показывать («Не то»),
-          now, wet — непогода, point — где человек ({ lat, lon }), nearAlways — считать расстояние от point без «рядом» в запросе,
+          now, wetOn(день) — непогода в этот день по прогнозу (или wet — непогода сегодня), point — где человек ({ lat, lon }), nearAlways — считать расстояние от point без «рядом» в запросе,
           taste — явный вкус (KudaTrack.taste),
           learned(kind, id) — поправка модели «Для тебя» (−∞…+∞), rating(id места) — оценка гостей, seen — Set id (показанное — ниже),
           limit, diverse — без общих остановок, plans — свой список планов (иначе все планы города и режима) }
@@ -101,15 +101,29 @@
   /* Слово запроса в тексте: по корню («грузинскую» → «грузинск») */
   const hit = (txt, w) => txt.includes(' ' + stem(w));
   const isNew = (x, today) => { const a = x && x.added; return !!a && /^\d{4}-\d{2}-\d{2}$/.test(a) && a <= today && K().dayNum(today) - K().dayNum(a) <= 30; };
-  /* Кому из остановок назначено время: «открыто до 23:00» — по самой ранней из известных */
+  /* Часы работы по ходу плана: к каждой остановке приходим после предыдущих (сколько там пробудем — как STAY в shared.js,
+     плюс дорога пешком); место должно быть открыто ещё хотя бы MIN_OPEN минут. «Открыто до» — по той остановке, что закрывается раньше */
+  const STAY = { culture: 90, food: 90, bar: 120, walk: 60, coffee: 45, fun: 90, spa: 150, pc: 120, books: 40 };
+  const MIN_OPEN = 45;
+  const mskMin = ts => { const d = new Date(ts + MSK); return d.getUTCHours() * 60 + d.getUTCMinutes(); };
+  const hmMin = t => { const [h, m] = String(t).split(':').map(Number); return h * 60 + (m || 0); };
+  /* Сколько минут место ещё открыто в момент ts (null — часов нет или круглосуточно) */
+  function leftOpen(o, ts) {
+    if (!o || !o.open || o.allDay || !o.until) return null;
+    let left = hmMin(o.until) - mskMin(ts);
+    if (left <= 0) left += 1440;
+    return left;
+  }
   function openAt(st, ts) {
-    let closed = null, until = '', known = 0;
-    st.forEach(p => {
-      const o = K().openState(p, ts);
+    let closed = null, until = '', known = 0, t = ts;
+    st.forEach((p, i) => {
+      if (i) { const w = K().walkMin(st[i - 1], p); t += ((STAY[K().catOf(st[i - 1])] || 90) + (isFinite(w) ? w : 15)) * 60e3; }
+      const o = K().openState(p, t);
       if (!o) return;
       known++;
-      if (!o.open) { if (!closed) closed = { p, o }; return; }
-      if (!o.allDay && o.until && (!until || cmpUntil(o.until, until) < 0)) until = o.until;
+      const left = leftOpen(o, t);
+      if (!o.open || (left != null && left < MIN_OPEN)) { if (!closed) closed = { p, o }; return; }
+      if (left != null && (!until || cmpUntil(o.until, until) < 0)) until = o.until;
     });
     return { closed, until, known };
   }
@@ -127,7 +141,8 @@
     const pool = (ctx.plans || D.scenarios.filter(s => s && (any || s.mode === mode) && Array.isArray(s.stops) && s.stops.length &&
       s.stops.every(id => k.placeById(id)) && k.seasonOk(s) && k.cityOf(s) === city)).filter(s => !(ctx.skip && ctx.skip.has(s.id)));
     const genreRx = (q.ev || []).map(g => GENRE_KIND[g]).filter(Boolean);
-    const wet = !!q.indoor || (!!ctx.wet && mo.day === today);   // погода из ctx — сегодняшняя: на завтра и выходные её не переносим
+    // непогода в день встречи: ctx.wetOn(день) — по прогнозу (главная), иначе ctx.wet — только на сегодня
+    const wet = !!q.indoor || (typeof ctx.wetOn === 'function' ? !!ctx.wetOn(mo.day) : !!ctx.wet && mo.day === today);
     const from = q.station ? 'от м.' + NB + q.station.name : 'от тебя';
     const pt = q.station || (q.near || ctx.nearAlways ? ctx.point : null) || null;
     const taste = ctx.taste || null;
@@ -304,8 +319,8 @@
       (q.tags || []).forEach(t => { if (k.placeHints(p).includes(t)) s += 1.5; });
       if (!rel && !(pt && !words.length && !(q.cats || []).length)) return null;
       if (pt && p.lat != null) { const d = k.distM(pt, p); s += Math.max(-5, 4 - d / 600); add('📍', distWhy(d, q.station ? 'от м.' + NB + q.station.name : 'от тебя'), 3); }
-      const o = k.openState(p, mo.ts);
-      if (o) { if (o.open) { s += 1; if (mo.now && o.until) add('🕐', 'открыто до ' + o.until, 4); } else s -= 2.5; }
+      const o = k.openState(p, mo.ts), left = leftOpen(o, mo.ts);
+      if (o) { if (o.open && !(left != null && left < MIN_OPEN)) { s += 1; if (mo.now && o.until) add('🕐', 'открыто до ' + o.until, 4); } else s -= 2.5; }
       if (q.bud && (p.price || 1) > q.bud) s -= 2 * ((p.price || 1) - q.bud);
       if (q.indoor && !indoorPlace(p)) s -= 2;
       if (p.ph) s += 0.3;

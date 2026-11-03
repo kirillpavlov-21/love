@@ -3,8 +3,8 @@
      TG_TOKEN=123456:AA… node bot/poll.mjs
    Переменные окружения:
      TG_TOKEN   — токен от @BotFather (обязательно; в репозиторий не кладём);
-     SITE_URL   — адрес сайта (по умолчанию GitHub Pages): ссылки в ответах и каталог, который бот берёт с сайта;
-     BOT_DATA   — local: каталог из этой папки репозитория, а не с сайта (для проверки правок до публикации);
+     SITE_URL   — адрес сайта (по умолчанию GitHub Pages) для ссылок в ответах;
+     BOT_DATA   — site: брать каталог с сайта, а не из этой папки репозитория (по умолчанию — из папки);
      BOT_STORE  — файл хранилища (по умолчанию ~/.kuda/bot-store.json — вне репозитория);
      TG_API     — адрес своего сервера Bot API, если он есть (по умолчанию https://api.telegram.org).
    При запуске бот снимает вебхук (иначе getUpdates не работает) и ставит список команд. Ctrl+C — остановить. */
@@ -18,7 +18,8 @@ import { createBot, COMMANDS } from './core.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const site = process.env.SITE_URL || SITE;
-const src = process.env.BOT_DATA === 'local' ? { dir: ROOT, site } : { base: site };
+// каталог — из этой папки (её обновляет ежедневная задача и git pull); BOT_DATA=site — прямо с сайта
+const src = process.env.BOT_DATA === 'site' ? { base: site } : { dir: ROOT, site };
 const log = (...a) => console.log(new Date().toISOString().slice(0, 19).replace('T', ' '), ...a);
 const api = telegram(process.env.TG_TOKEN, { base: process.env.TG_API || undefined });   // TG_API — свой сервер Bot API (по умолчанию api.telegram.org)
 const store = fileStore(process.env.BOT_STORE || path.join(os.homedir(), '.kuda', 'bot-store.json'));

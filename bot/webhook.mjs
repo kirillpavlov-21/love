@@ -17,7 +17,8 @@ import { createBot, COMMANDS } from './core.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const site = process.env.SITE_URL || SITE;
-const src = process.env.BOT_DATA === 'local' ? { dir: ROOT, site } : { base: site };
+// каталог — из этой папки (её обновляет ежедневная задача и git pull); BOT_DATA=site — прямо с сайта
+const src = process.env.BOT_DATA === 'site' ? { base: site } : { dir: ROOT, site };
 const secret = process.env.TG_SECRET || '';
 const pub = String(process.env.PUBLIC_URL || '').replace(/\/+$/, '');
 const log = (...a) => console.log(new Date().toISOString().slice(0, 19).replace('T', ' '), ...a);

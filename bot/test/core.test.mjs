@@ -187,3 +187,69 @@ test('номер плана на сайте (hub.js: tgRef) совпадает �
   const { bot } = make();
   C.D.scenarios.slice(0, 50).forEach(s => assert.equal(tgRef(s.id), bot.ref(s.id)));
 });
+
+test('песочница: подменённый файл сайта не достаёт до process и токена', async () => {
+  const fs = await import('node:fs');
+  const os = await import('node:os');
+  const { FILES } = await import('../catalog.mjs');
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'kuda-sbx-'));
+  try {
+    for (const [f] of FILES) { fs.mkdirSync(path.dirname(path.join(tmp, f)), { recursive: true }); if (fs.existsSync(path.join(ROOT, f))) fs.copyFileSync(path.join(ROOT, f), path.join(tmp, f)); }
+    const evil = `(() => { const tries = [
+      () => this.constructor.constructor('return process')(),
+      () => globalThis.constructor.constructor('return process')(),
+      () => console.log.constructor('return process')(),
+      () => Date.now.constructor('return process')(),
+      () => location.constructor.constructor('return process')(),
+    ]; window.__leak = tries.map(t => { try { const p = t(); return p && p.env ? 'LEAK' : 'нет'; } catch (e) { return 'нет'; } }); })();\n`;
+    fs.writeFileSync(path.join(tmp, 'config.js'), evil + fs.readFileSync(path.join(ROOT, 'config.js'), 'utf8') + '\nwindow.DATE_CONFIG.__leak = window.__leak;');
+    const X = await buildCatalog({ dir: tmp, clock: NOW });
+    assert.deepEqual(plain(X.cfg.__leak), ['нет', 'нет', 'нет', 'нет', 'нет']);
+    assert.ok(X.D.scenarios.length > 300, 'каталог при этом загрузился');
+  } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
+});
+
+test('разбор: даты с «на», завтрак, время вместо денег, Ленинградка', () => {
+  const v = parse('свидание на 14 февраля');
+  assert.equal(v.mode, 'date');
+  assert.equal(v.day, '2027-02-14');
+  assert.equal(parse('на 8 марта с подругами').day, '2027-03-08');
+  assert.equal(parse('стол на 6 человек').group, true);
+  const b = parse('завтрак в субботу');
+  assert.equal(b.day, '2026-11-07');
+  assert.ok(b.tags.includes('brunch'));
+  assert.equal(parse('бар до 23:00').premium, false);
+  assert.equal(parse('бар до 23:00').bud, 0);
+  assert.equal(parse('до 2 ночи').when, 'late');
+  assert.equal(parse('ужин до 3к').bud, 2);
+  assert.equal(parse('у Ленинградского вокзала бар').city, null);
+});
+
+test('бот: бессмыслица — честное «не нашлось», без случайных планов', async () => {
+  const { T, bot } = make();
+  await bot.handle(msg('ааабббввв'));
+  const m = T.last('sendMessage').params;
+  assert.match(m.text, /Планов под это не нашлось/);
+  assert.ok(!/1️⃣/.test(m.text));
+});
+
+test('бот: черновиков голосований от одного человека не больше 15', async () => {
+  const { bot, store } = make();
+  for (let i = 0; i < 25; i++) await bot.handle({ inline_query: { id: 'q' + i, from: ann, query: 'бар ' + 'с видом'.slice(0, i % 7) } });
+  assert.ok(store.size() <= 17, 'записей в хранилище: ' + store.size());
+});
+
+test('хранилище в файле: права только у владельца, запись переживает перезапуск', async () => {
+  const fs = await import('node:fs');
+  const os = await import('node:os');
+  const { fileStore } = await import('../store.mjs');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kuda-store-')), file = path.join(dir, 'sub', 'bot.json');
+  try {
+    const s = fileStore(file);
+    await s.set('u:1', { city: 'spb' }, 60);
+    s.flush();
+    assert.equal(fs.statSync(file).mode & 0o777, 0o600);
+    assert.equal(fs.statSync(path.dirname(file)).mode & 0o777, 0o700);
+    assert.deepEqual(await fileStore(file).get('u:1'), { city: 'spb' });
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});

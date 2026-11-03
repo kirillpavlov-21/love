@@ -101,7 +101,9 @@
     /* Без автоматического хита и без отслеживания ссылок: в #… приглашения зашиты имена и тексты,
        а в ссылках календаря — имена. Хит отправляем сами, адрес — без # */
     window.ym(id, 'init', { defer: true, clickmap: true, trackLinks: false, accurateTrackBounce: true, webvisor: false });
-    window.ym(id, 'hit', location.origin + location.pathname + location.search, { referer: document.referrer.split('#')[0] });
+    // и без текстов из адреса: q — запрос «Что хочется?» (ссылка из бота), t — название списка в ссылке «Позвать»
+    const bare = u => { try { const x = new URL(u); ['q', 't'].forEach(k => x.searchParams.delete(k)); x.hash = ''; return x.href; } catch (e) { return ''; } };
+    window.ym(id, 'hit', bare(location.href), { referer: bare(document.referrer) });
     ym = (...a) => window.ym(id, ...a);
   }
   /* Согласие отозвали: больше ничего не отправляем, отключаем уже загруженный счётчик
@@ -205,7 +207,7 @@
   const noList = kind => { const no = LS.get(K_NO, {}), d = today(); return Object.keys(no).filter(k => k.startsWith(kind + ':') && d - no[k] <= NO_DAYS).map(k => k.slice(kind.length + 1)); };
 
   /* «Сбросить»: стираем журнал, модель, вкус и память о пролистанных карточках — и в хранилище, и в памяти страницы */
-  function reset() { [K_LOG, K_MODEL, K_ONCE, 'kuda-neg', K_TASTE, K_NO].forEach(LS.del); M = { v: 1, w: {}, b: 0, pos: 0, neg: 0 }; seenNeg = {}; }
+  function reset() { [K_LOG, K_MODEL, K_ONCE, 'kuda-neg', K_TASTE, K_NO, 'kuda-taste-skip'].forEach(LS.del); M = { v: 1, w: {}, b: 0, pos: 0, neg: 0 }; seenNeg = {}; }
 
   if (consent() === 'all') loadMetrika();
   window.KudaTrack = { setCat, ev, invited, skipped, score, ready, forYou, topLikes, favs, isFav, toggleFav, consent, setConsent, reset, featsOf, taste, setTaste, notThis, noList };
