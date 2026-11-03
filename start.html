@@ -20,10 +20,47 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="assets/hub.css?v=38">
-  <link rel="stylesheet" href="assets/afisha.css?v=38">
-  <link rel="stylesheet" href="assets/reviews.css?v=38">
+  <link rel="preload" href="assets/hub.css?v=39" as="style">
+  <!-- Какие скрипты нужны этой странице. Каталог и афиша — только своего города: Москва — places.js, places-info.js, events.js;
+       Петербург — places-spb.js, events-spb.js (так первый план появляется на 1–2 секунды раньше). Город — как у hub.js:
+       карточка из ссылки (?plan=, ?place=, ?event=, ?col=, ?list=) → ?city= → выбранный раньше (localStorage 'kuda-city') → Москва;
+       матч или непонятная ссылка — оба города. Файлы начинают качаться сразу (preload), подключает их по порядку загрузчик
+       внизу страницы. Версия ?v= — та же, что у hub.css (preload над загрузчиком; номер поднимает ежедневная задача). Загрузчик стоит выше стилей:
+       inline-скрипт после <link rel="stylesheet"> ждал бы, пока они загрузятся, и скрипты начинали бы качаться на полсекунды позже. Сменили город — hub.js открывает
+       главную заново (KUDA_BOOT.cities). -->
+  <script>
+  (function () {
+    var css = document.querySelector('link[rel="preload"][href*="hub.css?v="]'), V = css ? (/\?v=\d+/.exec(css.getAttribute('href')) || [''])[0] : '';
+    var SPB = /^(spb-|ev-spb-|p-spb-)/, c = '', both = false, q;
+    try { q = new URLSearchParams(location.search); } catch (e) { q = { get: function () { return null; } }; }
+    ['plan', 'place', 'event', 'col'].forEach(function (k) {
+      var v = q.get(k);
+      if (!v || c || both) return;
+      if (SPB.test(v)) c = 'spb'; else if (/^ev-fb-/.test(v) || (k === 'col' && !/^c-/.test(v))) both = true; else c = 'msk';
+    });
+    var list = q.get('list');
+    if (list && !c && !both) { try { var id = atob(list.replace(/-/g, '+').replace(/_/g, '/')).split(',')[0] || ''; c = SPB.test(id) ? 'spb' : 'msk'; } catch (e) { both = true; } }
+    if (!c && !both) c = q.get('city') === 'spb' ? 'spb' : q.get('city') === 'msk' ? 'msk' : '';
+    if (!c && !both) { try { c = localStorage.getItem('kuda-city') === 'spb' ? 'spb' : 'msk'; } catch (e) { c = 'msk'; } }
+    var cities = both ? ['msk', 'spb'] : [c], has = function (x) { return cities.indexOf(x) >= 0; };
+    var files = ['assets/shared.js'].concat(has('msk') ? ['assets/places.js'] : [], has('spb') ? ['assets/places-spb.js'] : [],
+      has('msk') ? ['assets/places-info.js', 'assets/events.js'] : [], has('spb') ? ['assets/events-spb.js'] : [],
+      ['assets/sport.js', 'assets/auto.js', 'assets/photos.js', 'assets/collections.js', 'assets/collections-auto.js', 'assets/cols.js',
+        'assets/intent.js', 'assets/pick.js', '@api', 'assets/afisha.js', 'assets/promos.js', 'assets/track.js', 'assets/geo.js', 'assets/metro.js',
+        'assets/auth.js', 'assets/qr.js', 'assets/share-card.js', 'assets/hub.js', 'assets/pwa.js']);
+    window.KUDA_BOOT = { cities: cities, v: V, files: files };
+    files.forEach(function (f) {
+      if (f.charAt(0) === '@') return;
+      var l = document.createElement('link'); l.rel = 'preload'; l.as = 'script'; l.href = f + V; document.head.appendChild(l);
+    });
+  })();
+  </script>
+  <!-- шрифты не держат первый показ: сначала текст системным шрифтом, Unbounded и Onest подменят его, когда загрузятся -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;600;700&display=swap"></noscript>
+  <link rel="stylesheet" href="assets/hub.css?v=39">
+  <link rel="stylesheet" href="assets/afisha.css?v=39">
+  <link rel="stylesheet" href="assets/reviews.css?v=39">
   <!-- без JavaScript карточек планов не будет — место под них и под их число (hub.css) не держим -->
   <noscript><style>.cards:empty { min-height: 0; } #count:empty::before { content: none; }</style></noscript>
 </head>
@@ -163,7 +200,7 @@
     <details><summary>Как собрать компанию?</summary><p id="faqGroup">Выбери «Пацаны» или «Подружки», отметь подходящие планы и кинь ссылку в общий чат. Каждый отметит, куда и в какие дни может, и перешлёт обновлённую ссылку в чат — так голоса складываются. При ничьей поможет колесо.</p></details>
     <details><summary>Где найти комп рядом?</summary><p>В разделе «Все места» выбери «🎮 Компы» и нажми «📍 Рядом со мной» — клубы встанут по расстоянию. Цены и свободные места лучше уточнить у клуба: у сетей бывают ночные пакеты и скидки по будням.</p></details>
     <details><summary>Где хранятся имена и ответы?</summary><p id="faqStore">В самой ссылке и в твоём браузере — аккаунтов и базы с приглашениями нет. Чтобы ссылка была короткой, она может пройти через сервис коротких ссылок. Подробнее — в <a href="privacy.html">политике конфиденциальности</a>.</p></details>
-    <details><summary>В каких городах есть места?</summary><p>В Москве с ближним Подмосковьем и в Петербурге с пригородами — <span id="faqPlaces">960+</span> мест: от парков, усадеб и музеев до ресторанов, баров, бань и компьютерных клубов. Город переключается в шапке страницы. В конструкторе можно добавить любые свои варианты, в том числе в другом городе.</p></details>
+    <details><summary>В каких городах есть места?</summary><p>В Москве с ближним Подмосковьем и в Петербурге с пригородами — <span id="faqPlaces">1340+</span> мест: от парков, усадеб и музеев до ресторанов, баров, бань и компьютерных клубов. Город переключается в шапке страницы. В конструкторе можно добавить любые свои варианты, в том числе в другом городе.</p></details>
   </section>
   </main>
 
@@ -190,32 +227,27 @@
     <div class="row"><button class="btn ghost" id="consentNo" type="button">Только нужное</button><button class="btn primary" id="consentYes" type="button">Разрешить</button></div>
   </div>
 
-  <script src="config.js?v=38"></script>
-  <script src="assets/shared.js?v=38"></script>
-  <script src="assets/places.js?v=38"></script>
-  <script src="assets/places-spb.js?v=38"></script>
-  <script src="assets/places-info.js?v=38"></script>
-  <script src="assets/events.js?v=38"></script>
-  <script src="assets/events-spb.js?v=38"></script>
-  <script src="assets/sport.js?v=38"></script>
-  <script src="assets/auto.js?v=38"></script>
-  <script src="assets/photos.js?v=38"></script>
-  <script src="assets/collections.js?v=38"></script>
-  <script src="assets/collections-auto.js?v=38"></script>
-  <script src="assets/cols.js?v=38"></script>
-  <script src="assets/intent.js?v=38"></script>
-  <script src="assets/pick.js?v=38"></script>
-  <script src="assets/api.js?v=38"></script>
-  <script src="assets/reviews.js?v=38"></script>
-  <script src="assets/afisha.js?v=38"></script>
-  <script src="assets/promos.js?v=38"></script>
-  <script src="assets/track.js?v=38"></script>
-  <script src="assets/geo.js?v=38"></script>
-  <script src="assets/metro.js?v=38"></script>
-  <script src="assets/auth.js?v=38"></script>
-  <script src="assets/qr.js?v=38"></script>
-  <script src="assets/share-card.js?v=38"></script>
-  <script src="assets/hub.js?v=38"></script>
-  <script src="assets/pwa.js?v=38"></script>
+  <script src="config.js?v=39"></script>
+  <!-- Загрузчик: те же скрипты и в том же порядке, что раньше стояли тегами, но каталог и афиша — только города из KUDA_BOOT (см. <head>),
+       а сервер и отзывы (api.js, reviews.js) — только когда сервер включён в config.js (api.url).
+       Нет KUDA_BOOT (страница из старого кэша) — подключаем всё, как раньше. Петербург без Москвы: каталог начинается пустым
+       (places-spb.js только дописывает своё в window.KUDA) -->
+  <script>
+  (function () {
+    var B = window.KUDA_BOOT, C = window.DATE_CONFIG || {}, V = B && B.v != null ? B.v : '';
+    var all = ['assets/shared.js', 'assets/places.js', 'assets/places-spb.js', 'assets/places-info.js', 'assets/events.js', 'assets/events-spb.js',
+      'assets/sport.js', 'assets/auto.js', 'assets/photos.js', 'assets/collections.js', 'assets/collections-auto.js', 'assets/cols.js', 'assets/intent.js',
+      'assets/pick.js', '@api', 'assets/afisha.js', 'assets/promos.js', 'assets/track.js', 'assets/geo.js', 'assets/metro.js', 'assets/auth.js', 'assets/qr.js',
+      'assets/share-card.js', 'assets/hub.js', 'assets/pwa.js'];
+    var files = B && B.files ? B.files : all, out = '';
+    var tag = function (src) { return '<script src="' + src + V + '"><\/script>'; };
+    if (B && B.cities && B.cities.indexOf('msk') < 0) window.KUDA = window.KUDA || { updated: '', places: {}, scenarios: [], adult: [] };
+    files.forEach(function (f) {
+      if (f === '@api') { if (C.api && C.api.url) out += tag('assets/api.js') + tag('assets/reviews.js'); return; }
+      out += tag(f);
+    });
+    document.write(out);
+  })();
+  </script>
 </body>
 </html>

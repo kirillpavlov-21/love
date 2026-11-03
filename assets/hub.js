@@ -130,6 +130,9 @@
   const LINK_CITY = linkCity(QS0);
   let city = LINK_CITY || K.city();
   if (!isCity(city)) city = 'msk';
+  // на странице каталог одного города (start.html → KUDA_BOOT): он и есть город страницы, даже если карточки из ссылки уже нет
+  const BOOT_CITIES = window.KUDA_BOOT && Array.isArray(window.KUDA_BOOT.cities) ? window.KUDA_BOOT.cities.filter(isCity) : [];
+  if (BOOT_CITIES.length === 1 && city !== BOOT_CITIES[0]) city = BOOT_CITIES[0];
   if (LINK_CITY || isCity(QS0.get('city'))) K.setCity(city);
   const cityConf = () => K.cityConf(city);
   const ctxt = k => (CITY_TXT[city] || CITY_TXT.msk)[k];
@@ -424,8 +427,9 @@
     setText('#planCount', `${np >= 20 ? rp + '+' : np} ${plural(rp, 'готовый план', 'готовых плана', 'готовых планов')}`);
     const n = PLACES.length, round = roundN(n), txt = n >= 20 ? round + '+' : String(n);
     // в ответе «В каких городах?» — все города вместе
+    // только когда на странице оба каталога (start.html грузит свой город) — иначе остаётся число из start.html
     const na = PLACES_ALL.length;
-    setText('#faqPlaces', na >= 20 ? roundN(na) + '+' : String(na));
+    if (!window.KUDA_BOOT || (window.KUDA_BOOT.cities || []).length > 1) setText('#faqPlaces', na >= 20 ? roundN(na) + '+' : String(na));
     // «проверены в октябре»: самый частый месяц проверки (chk), если он не старше прошлого месяца
     // и так проверен почти весь каталог (95%) — иначе обещание было бы неправдой
     const cnt = {};
@@ -1046,6 +1050,17 @@
      Режим, фильтр планов, бюджет и поиск остаются. Возвращает true, если город сменился */
   function setCity(c) {
     if (!isCity(c) || c === city) return false;
+    // start.html грузит каталог только своего города (KUDA_BOOT в <head>): другого города на странице нет — открываем главную в нём
+    const boot = window.KUDA_BOOT;
+    if (boot && Array.isArray(boot.cities) && !boot.cities.includes(c)) {
+      K.setCity(c);
+      const qs = new URLSearchParams(baseQuery());
+      ['okr', 'plan', 'place', 'event', 'col', 'list', 't', 'tab', 'quiz'].forEach(k => qs.delete(k));
+      if (c === 'msk') qs.delete('city'); else qs.set('city', c);
+      if (askQ.trim()) qs.set('q', askQ.trim().slice(0, ASK_MAX));   // запрос «в Питере …» — открыть подборку уже там
+      location.assign('start.html?' + qs.toString());
+      return false;
+    }
     city = c;
     K.setCity(c);
     cityToUrl();

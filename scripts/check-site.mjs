@@ -38,10 +38,12 @@ async function pool(list, n, fn) { for (let i = 0; i < list.length; i += n) awai
 const start = await get(SITE + 'start.html');
 if (start.status !== 200) { issue(`start.html не открывается (HTTP ${start.status}${start.err ? ', ' + start.err : ''})`); console.log(`CHECK_ISSUES=${issues.length}`); process.exit(0); }
 const scripts = [...start.text.matchAll(/<script src="([^"]+)"/g)].map(m => m[1]).filter(s => !/^https?:/.test(s));
+const VER = (/\?v=(\d+)/.exec(start.text) || [])[1] || '';
 const want = ['config.js', 'assets/shared.js', 'assets/places.js', 'assets/places-spb.js', 'assets/events.js', 'assets/events-spb.js', 'assets/auto.js', 'assets/collections.js', 'assets/collections-auto.js', 'assets/photos.js'];
 const src = {};
 for (const f of want) {
-  const s = scripts.find(x => x.split('?')[0] === f) || f;
+  // главная подключает скрипты загрузчиком (KUDA_BOOT), а не тегами: тогда — с той же версией ?v=, что у страницы
+  const s = scripts.find(x => x.split('?')[0] === f) || (VER ? f + '?v=' + VER : f);
   const r = await get(SITE + s);
   if (r.status === 200) src[f] = r.text;
   else if (!/collections-auto/.test(f)) issue(`${s} не открывается (HTTP ${r.status})`);
