@@ -581,7 +581,8 @@ async function makeRepo(dir) {
   const src = f => path.join(ROOT, 'assets', f);
   await fs.writeFile(path.join(dir, 'assets/places.js'), readFileSync(src('places.js'), 'utf8') + MSK_EXTRA);
   await fs.writeFile(path.join(dir, 'assets/places-spb.js'), SPB_EXTRA);
-  for (const f of ['geo.js', 'photos.js', 'events.js', 'events-spb.js', 'sport.js', 'auto.js']) await fs.copyFile(src(f), path.join(dir, 'assets', f));
+  for (const f of ['geo.js', 'photos.js', 'events.js', 'events-spb.js', 'sport.js']) await fs.copyFile(src(f), path.join(dir, 'assets', f));
+  await fs.writeFile(path.join(dir, 'assets/auto.js'), renderAutoJs(emptyAutoData()));   // в репозитории auto.js уже с данными конвейера
   return dir;
 }
 
