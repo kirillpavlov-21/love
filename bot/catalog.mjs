@@ -55,6 +55,7 @@ const API = `(() => {
     plans: (q, c) => { c = c || {}; if (Array.isArray(c.skip)) c.skip = new Set(c.skip); return P.plans(q || {}, c); },
     events: (q, c) => P.events(q || {}, c || {}),
     places: (q, c) => P.places(q || {}, c || {}),
+    top: c => P.top(c || {}),
     indoorPlan: id => P.indoorPlan(plan(id)),
     planById: id => plan(id),
     planStops: id => K.planStops(plan(id)),
@@ -110,6 +111,7 @@ export async function buildCatalog(src) {
       plans: (q, c) => J('plans', q || {}, Object.assign({}, c, c && c.skip ? { skip: Array.from(c.skip) } : null)),
       events: (q, c) => J('events', q || {}, c || {}),
       places: (q, c) => J('places', q || {}, c || {}),
+      top: c => J('top', c || {}),
       indoorPlan: p => J('indoorPlan', idOf(p)),
     },
     K: {

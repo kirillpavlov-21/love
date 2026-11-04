@@ -840,3 +840,7 @@ form.name-box { margin: 0; }
 .pl-t b { font-size: 15px; font-weight: 600; line-height: 1.25; }
 .pl-t small { font-size: 12.5px; color: var(--muted); line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .food-result .pl-custom { max-width: 360px; }
+
+/* «Пропустить игру» — на старте и через 12 с игры: мини-игра по желанию */
+.pf-card .pf-skip-now { margin-top: 2px; }
+.pf-skip { align-self: center; margin-top: 6px; }

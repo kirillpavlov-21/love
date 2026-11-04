@@ -20,7 +20,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preload" href="assets/hub.css?v=42" as="style">
+  <link rel="preload" href="assets/hub.css?v=43" as="style">
   <!-- Какие скрипты нужны этой странице. Каталог и афиша — только своего города: Москва — places.js, places-info.js, events.js;
        Петербург — places-spb.js, events-spb.js (так первый план появляется на 1–2 секунды раньше). Город — как у hub.js:
        карточка из ссылки (?plan=, ?place=, ?event=, ?col=, ?list=) → ?city= → выбранный раньше (localStorage 'kuda-city') → Москва;
@@ -65,9 +65,9 @@
   <!-- шрифты не держат первый показ: сначала текст системным шрифтом, Unbounded и Onest подменят его, когда загрузятся -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;600;700&display=swap"></noscript>
-  <link rel="stylesheet" href="assets/hub.css?v=42">
-  <link rel="stylesheet" href="assets/afisha.css?v=42">
-  <link rel="stylesheet" href="assets/reviews.css?v=42">
+  <link rel="stylesheet" href="assets/hub.css?v=43">
+  <link rel="stylesheet" href="assets/afisha.css?v=43">
+  <link rel="stylesheet" href="assets/reviews.css?v=43">
   <!-- без JavaScript карточек планов не будет — место под них и под их число (hub.css) не держим -->
   <noscript><style>.cards:empty { min-height: 0; } #count:empty::before { content: none; }</style></noscript>
 </head>
@@ -93,7 +93,7 @@
   <!-- Режимы и блок героя «Свидание» — та же разметка, что рисует hub.js (renderModes, renderHero): страница не прыгает, когда он загрузится -->
   <nav class="modes" id="modes" aria-label="Повод">
     <button type="button" data-m="date" class="on" aria-pressed="true"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.35-7-10a4 4 0 0 1 7-2.65A4 4 0 0 1 19 10c0 5.65-7 10-7 10z"/></svg>Свидание</button>
-    <button type="button" data-m="guys" class="" aria-pressed="false"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 5h10v13a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z"/><path d="M16 9h2a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-2"/><path d="M6 9h10"/></svg>Пацаны</button>
+    <button type="button" data-m="guys" class="" aria-pressed="false"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 5h10v13a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z"/><path d="M16 9h2a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-2"/><path d="M6 9h10"/></svg>Друзья</button>
     <button type="button" data-m="girls" class="" aria-pressed="false"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 3v4"/><path d="M17 5h4"/></svg>Подружки</button>
   </nav>
 
@@ -117,6 +117,8 @@
   <section class="block now" id="nowBlock" aria-labelledby="nowTitle">
     <div id="now" aria-live="polite"><div class="now-head"><h2 id="nowTitle">Куда пойти сегодня</h2></div><div class="now-wait" aria-hidden="true"><i></i><i></i><i></i></div></div>
   </section>
+  <!-- «🔥 Топ дня» и «📅 Топ недели»: один главный вариант и семь на неделю — рисует hub.js (renderTop, KudaPick.top) -->
+  <section class="block top hidden" id="topBlock" aria-labelledby="topTitle"><div id="top"></div></section>
   <section class="block invite" aria-label="Позвать игрой">
     <div class="hero-mode" id="heroMode">
       <p class="hero-hook"><b>Не пиши «го?». Позови игрой</b>Ссылка-игра: сердечки, письмо, выбор места, дня и времени из твоих вариантов. Ответ вернётся к тебе с готовым маршрутом.</p>
@@ -204,7 +206,7 @@
     <details><summary>Это бесплатно?</summary><p>Да, и так останется. Мы зарабатываем на партнёрских предложениях заведений, а не на тебе.</p></details>
     <details><summary>Нужна регистрация или приложение?</summary><p>Нет. Собираешь приглашение в конструкторе и отправляешь ссылку в любой мессенджер. Получатель открывает её в обычном браузере.</p></details>
     <details><summary>Как я узнаю ответ?</summary><p id="faqAnswer">В конце игры получатель нажимает «Отправить ответ» — тебе придёт ссылка-билет с местом, днём и временем в любом мессенджере. Свои приглашения ищи в <a href="invites.html">«Моих приглашениях»</a> (значок в шапке).</p></details>
-    <details><summary>Как собрать компанию?</summary><p id="faqGroup">Выбери «Пацаны» или «Подружки», отметь подходящие планы и кинь ссылку в общий чат. Каждый отметит, куда и в какие дни может, и перешлёт обновлённую ссылку в чат — так голоса складываются. При ничьей поможет колесо.</p></details>
+    <details><summary>Как собрать компанию?</summary><p id="faqGroup">Выбери «Друзья» или «Подружки», отметь подходящие планы и кинь ссылку в общий чат. Каждый отметит, куда и в какие дни может, и перешлёт обновлённую ссылку в чат — так голоса складываются. При ничьей поможет колесо.</p></details>
     <details><summary>Где найти комп рядом?</summary><p>В разделе «Все места» выбери «🎮 Компы» и нажми «📍 Рядом со мной» — клубы встанут по расстоянию. Цены и свободные места лучше уточнить у клуба: у сетей бывают ночные пакеты и скидки по будням.</p></details>
     <details><summary>Где хранятся имена и ответы?</summary><p id="faqStore">В самой ссылке и в твоём браузере — аккаунтов и базы с приглашениями нет. Чтобы ссылка была короткой, она может пройти через сервис коротких ссылок. Подробнее — в <a href="privacy.html">политике конфиденциальности</a>.</p></details>
     <details><summary>В каких городах есть места?</summary><p>В Москве с ближним Подмосковьем и в Петербурге с пригородами — <span id="faqPlaces">1340+</span> мест: от парков, усадеб и музеев до ресторанов, баров, бань и компьютерных клубов. Город переключается в шапке страницы. В конструкторе можно добавить любые свои варианты, в том числе в другом городе.</p></details>
@@ -234,7 +236,7 @@
     <div class="row"><button class="btn ghost" id="consentNo" type="button">Только нужное</button><button class="btn primary" id="consentYes" type="button">Разрешить</button></div>
   </div>
 
-  <script src="config.js?v=42"></script>
+  <script src="config.js?v=43"></script>
   <!-- Загрузчик: те же скрипты и в том же порядке, что раньше стояли тегами, но каталог и афиша — только города из KUDA_BOOT (см. <head>),
        а сервер и отзывы (api.js, reviews.js) — только когда сервер включён в config.js (api.url).
        Нет KUDA_BOOT (страница из старого кэша) — подключаем всё, как раньше. Петербург без Москвы: каталог начинается пустым

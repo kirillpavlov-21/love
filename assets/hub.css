@@ -880,3 +880,32 @@ html[data-city="spb"] .metro.l6 { background: #7B4B2A; }
 /* ================= Внутри Telegram (Mini App, assets/tgapp.js): без «Установить приложение» — оно уже открыто в Telegram ================= */
 html.tg #pwaSlot, html.tg .kpwa-btn { display: none !important; }
 html.tg body { overscroll-behavior-y: none; }
+
+/* ================= «🔥 Топ дня» и «📅 Топ недели» (hub.js → renderTop) ================= */
+.top .block-head { align-items: baseline; }
+.top-when { color: var(--muted); font-size: 13px; font-weight: 500; }
+.top-day { display: grid; grid-template-columns: minmax(0, 1fr); width: 100%; min-width: 0; padding: 0; overflow: hidden; border-radius: 22px; border: 1px solid var(--line-2); background: var(--surface); color: var(--text); font: inherit; text-align: left; cursor: pointer; transition: transform .12s, border-color .15s; }
+.top-day:active { transform: scale(.985); }
+.top-day:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (hover: hover) { .top-day:hover { border-color: var(--accent); } }
+.top-ph { position: relative; display: grid; place-items: center; height: 176px; overflow: hidden; background: var(--surface-2); font-size: 64px; line-height: 1; }
+.top-ph .e, .top-rail .fy-ph .e { filter: drop-shadow(0 8px 16px rgba(0, 0, 0, .35)); }
+.top-ph img { width: 100%; height: 100%; object-fit: cover; }
+.top-ph::after { content: '🔥 Выбор дня'; position: absolute; left: 12px; top: 12px; padding: 5px 10px; border-radius: 99px; background: rgba(15, 14, 19, .78); color: var(--text); font: 600 12px/1 var(--body); }
+.top-txt { display: grid; gap: 6px; padding: 14px 16px 16px; min-width: 0; }
+.top-txt b { font: 700 20px/1.2 var(--display); overflow-wrap: break-word; }
+.top-txt small { color: var(--muted-2); font-size: 14px; line-height: 1.35; }
+.top-wk { margin-top: 18px; }
+.top-wk .muted { font-size: 13px; }
+.top-rail .fy-card { position: relative; }
+.top-n { position: absolute; top: 16px; left: 16px; display: grid; place-items: center; min-width: 24px; height: 24px; padding: 0 6px; border-radius: 99px; background: rgba(15, 14, 19, .8); color: var(--text); font: 700 12px/1 var(--display); font-style: normal; }
+.top-note { margin-top: 10px; }
+
+/* «С кем сегодня?» — один вопрос прямо в подборке вместо окна-опроса при первом входе */
+.tq-quick { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 4px 0 2px; }
+.tq-quick button { display: flex; align-items: center; gap: 8px; min-height: 46px; padding: 8px 12px; border-radius: 14px; border: 1px solid var(--line-2); background: var(--surface-2); color: var(--text); font: 600 14px/1.2 var(--body); text-align: left; cursor: pointer; transition: border-color .15s, transform .1s; }
+.tq-quick button:active { transform: scale(.97); }
+.tq-quick button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (hover: hover) { .tq-quick button:hover { border-color: var(--accent); } }
+.tq-quick span { font-size: 18px; }
+.now-taste > .link { grid-column: 1 / -1; justify-self: start; }

@@ -122,6 +122,44 @@
     } catch (e) { /* ок */ }
   }
 
+  /* ---------- интересы из афиши: «смотрел концерт Макана» → потом ненавязчиво подсказать другой его концерт ----------
+     Ключ — исполнитель, спектакль или команда из названия события («Концерт. Макан» → «макан», «Динамо — ЦСКА» → «динамо»
+     и «цска»). Помним при открытии, «Следить», «Поделиться» (сильнее), до 40 ключей на полгода — только в этом браузере */
+  const K_INT = 'kuda-int', INT_MAX = 40, INT_DAYS = 180, INT_W = { event_open: 1, event_watch: 3, event_share: 2 };
+  const keyNorm = s => String(s || '').toLowerCase().replace(/ё/g, 'е').replace(/[«»"“”„()]/g, '').replace(/\s+/g, ' ').trim();
+  function eventKeys(e) {
+    if (!e || !e.title) return [];
+    // «Концерт. Полина Гагарина. Шоу «Навсегда»» → «Полина Гагарина»; «Стендап. Ваня Усович. Сольный концерт» → «Ваня Усович»
+    const t = String(e.title).replace(/^(концерт|спектакль|стендап|шоу|выставка|фестиваль|вечеринка|спорт|футбол|лекция|мюзикл|опера|балет)\.\s*/i, '');
+    const head = t.split(/\.\s|\s«|:\s/)[0].trim();
+    if (e.cat === 'football' || e.cat === 'sport' || / — /.test(head)) return head.split(/\s+—\s+/).map(x => x.replace(/\s*\(.*$/, '')).map(keyNorm).filter(k => k.length > 2).map(k => ({ k, label: k.replace(/^./, c => c.toUpperCase()) }));
+    const k = keyNorm(head);
+    return k.length > 2 && k.split(' ').length <= 6 ? [{ k, label: head }] : [];
+  }
+  function noteInterest(type, id) {
+    const w = INT_W[type], e = w && K().eventById ? K().eventById(id) : null;
+    if (!e) return;
+    const m = LS.get(K_INT, {}), d = today();
+    eventKeys(e).forEach(({ k, label }) => {
+      const x = m[k] || { n: 0, label, cat: e.cat || '', ids: [] };
+      x.n += w; x.at = d; x.label = label;
+      if (!x.ids.includes(e.id)) x.ids = x.ids.concat(e.id).slice(-5);
+      m[k] = x;
+    });
+    const keys = Object.keys(m).filter(k => d - (m[k].at || 0) <= INT_DAYS).sort((a, b) => (m[b].at - m[a].at) || (m[b].n - m[a].n)).slice(0, INT_MAX);
+    LS.set(K_INT, Object.fromEntries(keys.map(k => [k, m[k]])));
+  }
+  /* Чем событие e близко человеку: { label, seen } — тот же исполнитель или спектакль (seen — это событие уже открывали), иначе null */
+  function interestOf(e) {
+    const m = LS.get(K_INT, {}), d = today();
+    for (const { k } of eventKeys(e)) {
+      const x = m[k];
+      if (x && d - (x.at || 0) <= INT_DAYS) return { label: x.label, seen: (x.ids || []).includes(e.id), n: x.n };
+    }
+    return null;
+  }
+  const interests = () => { const m = LS.get(K_INT, {}); return Object.keys(m).sort((a, b) => m[b].n - m[a].n).map(k => ({ key: k, label: m[k].label, n: m[k].n, cat: m[k].cat })); };
+
   /* ---------- события ---------- */
   function ev(type, data) {
     data = data || {};
@@ -129,6 +167,7 @@
     log.push(Object.assign({ t: type, ts: Date.now() }, data));
     if (log.length > MAX_LOG) log.splice(0, log.length - MAX_LOG);
     LS.set(K_LOG, log);
+    if (data.kind === 'event' && data.id && INT_W[type]) noteInterest(type, data.id);
     // открытие из «Удиви меня» выбрал случай, а не человек — модель на нём не учим
     const chance = data.src === 'surprise' && DAILY[type];
     if (data.kind && data.id && POS[type] && !chance && firstTime(type, data.kind, data.id)) learn(featsOf(data.kind, data.id), 1, POS[type]);
@@ -257,9 +296,9 @@
   const noList = kind => { const no = LS.get(K_NO, {}), d = today(); return Object.keys(no).filter(k => k.startsWith(kind + ':') && d - no[k] <= NO_DAYS).map(k => k.slice(kind.length + 1)); };
 
   /* «Сбросить»: стираем журнал, модель, вкус и память о пролистанных карточках — и в хранилище, и в памяти страницы */
-  function reset() { [K_LOG, K_MODEL, K_ONCE, 'kuda-neg', K_TASTE, K_NO, 'kuda-taste-skip', K_BEEN, K_RATED].forEach(LS.del); M = { v: 1, w: {}, b: 0, pos: 0, neg: 0 }; seenNeg = {}; }
+  function reset() { [K_LOG, K_MODEL, K_ONCE, 'kuda-neg', K_TASTE, K_NO, 'kuda-taste-skip', K_BEEN, K_RATED, K_INT].forEach(LS.del); M = { v: 1, w: {}, b: 0, pos: 0, neg: 0 }; seenNeg = {}; }
 
   if (consent() === 'all') loadMetrika();
   window.KudaTrack = { setCat, ev, invited, skipped, score, ready, forYou, topLikes, favs, isFav, toggleFav, consent, setConsent, reset, featsOf,
-    taste, setTaste, tweakTaste, notThis, noList, been, beenList, pendingVisit, rate };
+    taste, setTaste, tweakTaste, notThis, noList, been, beenList, pendingVisit, rate, interestOf, interests, eventKeys };
 })();

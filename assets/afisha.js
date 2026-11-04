@@ -46,6 +46,7 @@
   const NEAR_Q = { date: 'кафе', guys: 'бар', girls: 'кафе' };
   const GRACE_FB = 120;     // матч идёт два часа: «где смотреть» ещё нужно, пока он не кончился
   const SHELF_N = 10;       // карточек в ленте подборки до «Все →»
+  const SHELF_SHOW = 3;   // лент на обзоре сразу, остальные — «Ещё категории»
   const WATCH_N = 6;        // баров в «Где смотреть»
 
   /* ---------- подборки: чипы сверху вкладки и ленты в её обзоре ----------
@@ -825,7 +826,7 @@
   function overviewHtml(m, all, ctx) {
     const st = m.st, mode = m.mode;
     const base = { ctx, mode, fit: st.fit, when: 'all' };
-    let html = '';
+    let html = '', n = 0;
     (OVERVIEW[mode] || OVERVIEW.date).forEach(id => {
       const smart = SMART[id];
       const o = Object.assign({}, base, id === 'free' ? { free: true } : id === 'weekend' ? { when: 'weekend' } : { col: id });
@@ -834,11 +835,15 @@
       if (smart) items = items.filter(it => !it.long).concat(items.filter(it => it.long));
       const [name, emo] = smart || COLS[id], fb = id === 'football', hid = `${m.uid}-s-${id}`;
       const word = (fb ? matchWord : evWord)(items.length);
+      // первые SHELF_SHOW лент — сразу, остальные — по кнопке «Ещё категории»: 11 лент подряд — это стена выбора
+      if (n++ === SHELF_SHOW && !st.allShelves) html += '<div class="af-shs-more" hidden>';
       html += `<section class="af-tsh${fb ? ' af-tsh-fb' : ''}" aria-labelledby="${hid}"><div class="af-shelf-head">` +
         `<h3 class="af-shelf-h" id="${hid}"><span class="af-ce" aria-hidden="true">${emo}</span>${esc(name)}<span class="af-shn"><span class="af-vh">, </span>${items.length}</span></h3>` +
         `<button type="button" class="af-mini" data-af-col="${id}" aria-label="${esc(`${name}: смотреть все, ${word}`)}">Все${I('arrow')}</button></div>` +
         `<ul class="af-rail${fb ? ' af-mrail' : ''}">${items.slice(0, SHELF_N).map(it => (fb ? matchCardHtml(it, ctx, mode) : cardHtml(it, ctx))).join('')}</ul></section>`;
     });
+    const rest = n - SHELF_SHOW;
+    if (rest > 0 && !st.allShelves) html += `</div><button type="button" class="af-more af-shs-btn" data-af-shs-more>Ещё ${rest} ${rest === 1 ? 'категория' : rest < 5 ? 'категории' : 'категорий'}${I('arrow')}</button>`;
     return `<div class="af-shs">${html}</div>`;
   }
   /* Число в списке изменилось — говорим странице (один раз на изменение) */
@@ -924,6 +929,13 @@
     if (w) { watch(w.dataset.afWatch, m.opts); return; }
     const it = t.closest('[data-af-ev]');
     if (it) { open(it.dataset.afEv, m.opts); return; }
+    if (t.closest('[data-af-shs-more]')) {
+      st.allShelves = true;
+      const box = t.closest('.af-shs'), more = box && box.querySelector('.af-shs-more');
+      if (more) { more.hidden = false; const first = more.querySelector('.af-shelf-h'); t.closest('[data-af-shs-more]').remove(); if (first) { first.tabIndex = -1; first.focus({ preventScroll: true }); } }
+      track('event_filter', { v: 'shelves:all', mode: m.mode });
+      return;
+    }
     const sh = t.closest('[data-af-col]');
     if (sh) { openCol(m, sh.dataset.afCol); track('event_filter', { v: 'shelf:' + sh.dataset.afCol, mode: m.mode }); return; }
     const c = t.closest('[data-af-k]');
