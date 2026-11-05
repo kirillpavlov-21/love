@@ -357,3 +357,67 @@ test('тестеры: /start tester_код — журнал действий, «
   assert.equal(log.length, 3, 'после /stoptest — ничего');
   assert.equal((await store.get('u:11')).tester, undefined);
 });
+
+test('честное «нет»: «🔔 Напиши, когда появится» запоминает запрос, проверка пишет, когда нашлось, и снимает подписку', async () => {
+  const { T, bot, store } = make();
+  await bot.handle(msg('аниме кафе'));
+  const m = T.last('sendMessage').params;
+  const w = m.reply_markup.inline_keyboard.flat().find(b => /^w\|[A-Za-z0-9]{8}$/.test(b.callback_data || ''));
+  assert.ok(w, 'под ответом «по остальному» — подписка');
+  await bot.handle({ callback_query: { id: 'w1', from: ann, data: w.callback_data, message: { message_id: 101, chat: priv } } });
+  assert.match(T.last('sendMessage').params.text, /🔔 Запомнил: «аниме кафе»/);
+  assert.equal((await store.get('w:11')).length, 1);
+  assert.equal(await bot.checkWishes(), 0, 'точного всё ещё нет — молчим');
+  assert.equal((await store.get('w:11')).length, 1, 'подписка осталась');
+  // запрос, под который точное уже есть, — как будто план появился в каталоге
+  await store.set('w:11', [{ t: 'падел', c: 'msk', m: 'guys', chat: 1, ev: [], at: Date.now() }]);
+  const before = T.all('sendMessage').length;
+  assert.equal(await bot.checkWishes(), 1);
+  const sent = T.all('sendMessage').slice(before);
+  assert.equal(sent.length, 1);
+  assert.match(sent[0].params.text, /🔔 Появилось то, что ты искал: «падел»/);
+  assert.equal(await store.get('w:11'), null, 'подписку сняли');
+  await bot.handle(msg('/stopwish'));
+  assert.match(T.last('sendMessage').params.text, /больше не жду/);
+  // в группе подписки нет: писать будет некому
+  await bot.handle(msg('@kuda_test_bot аниме кафе', group));
+  assert.ok(!T.last('sendMessage').params.reply_markup.inline_keyboard.flat().some(b => /^w\|/.test(b.callback_data || '')));
+});
+
+test('без повторов: план, показанный в прошлые дни, назавтра уступает место другому', async () => {
+  const { T, bot, store } = make();
+  const title = t => (/<b>([^<]+)<\/b>\n<i>/.exec(t) || [])[1];
+  await bot.handle(msg('свидание сегодня вечером'));
+  const first = title(T.last('sendMessage').params.text);
+  const u = await store.get('u:11');
+  assert.ok(u.shown && u.shown.length >= 1, 'показанное запомнили');
+  // тот же день — тот же ответ
+  await bot.handle(msg('свидание сегодня вечером'));
+  assert.equal(title(T.last('sendMessage').params.text), first);
+  // «вчера» показывали — сегодня первым другой план
+  await store.set('u:11', Object.assign(u, { shown: u.shown.map(([id, d]) => [id, d - 1]) }));
+  await bot.handle(msg('свидание сегодня вечером'));
+  assert.notEqual(title(T.last('sendMessage').params.text), first);
+});
+
+test('«рядом» — не дальше 25 минут: со станцией дальние планы не предлагаем, в «почему» — минуты', () => {
+  const q = parse('свидание у Чистых прудов');
+  const r = C.P.plans(q, { city: 'msk', mode: 'date', limit: 3 });
+  assert.ok(r.length >= 1);
+  r.forEach(x => assert.ok(x.min == null || x.min <= 25, x.plan.title + ': ' + x.min + ' мин'));
+  assert.ok(r.some(x => x.why.some(w => /мин (пешком )?от м\. Чистые пруды/.test(w.t))), 'минуты от станции');
+});
+
+test('бот: «📷 Фото» — альбом снимков плана, у каждого место, автор и лицензия', async () => {
+  const p = C.D.scenarios.find(s => C.K.planStops(s).reduce((n, x) => n + (x.ph ? 1 + (x.gal || []).length : 0), 0) >= 3);
+  if (!p) return;   // галерей в каталоге нет — нечего проверять
+  const { T, bot } = make();
+  await bot.handle({ callback_query: { id: 'f1', from: ann, data: 'f|' + p.id, message: { message_id: 101, chat: priv } } });
+  const m = T.last('sendMediaGroup');
+  assert.ok(m, 'альбом отправлен');
+  assert.ok(m.params.media.length >= 2 && m.params.media.length <= 10);
+  m.params.media.forEach(x => {
+    assert.match(x.media, /^https:\/\/upload\.wikimedia\.org\/wikipedia\/commons\/thumb\//);
+    assert.match(x.caption, /📷 .+ · Wikimedia Commons$/);
+  });
+});

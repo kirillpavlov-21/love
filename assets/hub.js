@@ -319,7 +319,7 @@
   const planRate = plan => RV ? `<span class="card-rate" data-rate-plan="${esc(plan.id)}">${safe(() => RV.planBadge(plan), '')}</span>` : '';
   function planVisual(plan, st) {
     const ph = st.map(K.photo).filter((x, i, a) => x && a.findIndex(y => y && y.u === x.u) === i).slice(0, 3);
-    if (ph.length) return `<span class="card-ph n${ph.length}">${ph.map(x => `<img src="${esc(ph.length < 3 ? x.s : x.t)}" alt="" loading="lazy" decoding="async">`).join('')}${planRate(plan)}</span>`;
+    if (ph.length) return `<span class="card-ph n${ph.length}">${ph.map(x => `<img src="${esc(ph.length < 3 ? x.s : x.t)}" alt="" loading="lazy" decoding="async">`).join('')}${planRate(plan)}${phBadge(st, 4)}</span>`;
     return `<span class="card-ph cover ${cvOf(st[0])}">${coverEmo(st, plan)}${planRate(plan)}</span>`;
   }
   /* Значок оценки места в строке списка (короткий: «★ 4,6») */
@@ -327,7 +327,55 @@
   const emoTile = p => { const ph = K.photo(p);
     return ph ? `<span class="pl-emo ph" aria-hidden="true"><img src="${esc(ph.t)}" alt="" loading="lazy" decoding="async"></span>`
       : `<span class="pl-emo cover ${cvOf(p)}" aria-hidden="true">${esc(p.emoji)}</span>`; };
-  const heroPh = (ph, alt) => `<figure class="hero-ph"><img src="${esc(ph.s)}" alt="${esc(alt)}" decoding="async"><figcaption>${K.photoCredit(ph)}</figcaption></figure>`;
+  /* Галерея места: главное фото и ещё несколько (assets/gallery.js). Листается пальцем, у каждого снимка своя подпись автора,
+     сверху «2 / 5» и точки, на компьютере — стрелки; нажатие — во весь экран (showPhotos) */
+  const GALS = new Map();
+  let galN = 0;
+  function galleryHtml(list, alt, cls) {
+    const gid = 'g' + (++galN), one = list.length < 2;
+    GALS.set(gid, list);
+    if (GALS.size > 60) GALS.delete(GALS.keys().next().value);
+    return `<div class="gal ${cls}${one ? ' one' : ''}" data-gal="${gid}">
+      <div class="gal-track"${one ? '' : ` tabindex="0" role="group" aria-roledescription="галерея" aria-label="${esc(alt)}: ${list.length} фото, листай вбок"`}>${list.map((x, i) =>
+        `<figure class="gal-it"><button type="button" class="gal-zoom" data-zoom="${i}" aria-label="${one ? 'Фото' : `Фото ${i + 1} из ${list.length}`} крупно"><img src="${esc(x.s)}" alt="${i ? '' : esc(alt)}"${i ? ' loading="lazy"' : ''} decoding="async"></button><figcaption>${K.photoCredit(x)}</figcaption></figure>`).join('')}</div>
+      ${one ? '' : `<div class="gal-ui" aria-hidden="true"><span class="gal-n">1 / ${list.length}</span><span class="gal-dots">${list.map((_, i) => `<i${i ? '' : ' class="on"'}></i>`).join('')}</span></div>
+      <button type="button" class="gal-nav prev" data-gal-go="-1" aria-label="Предыдущее фото" hidden>${I('arrow')}</button><button type="button" class="gal-nav next" data-gal-go="1" aria-label="Следующее фото">${I('arrow')}</button>`}
+    </div>`;
+  }
+  const placePhotos = p => (K.photos ? K.photos(p) : [K.photo(p)].filter(Boolean));
+  /* сколько фото внутри плана (главные и галереи остановок, без повторов) — значок «📷 N» на карточке: выбирают глазами */
+  const phCount = st => new Set(st.flatMap(x => placePhotos(x)).map(x => x && x.u).filter(Boolean)).size;
+  const phBadge = (st, min = 3) => { const n = phCount(st); return n >= min ? `<span class="ph-cnt" aria-label="${n} фото внутри">${I('photo')}${n}</span>` : ''; };
+  const heroPh = (p, alt) => galleryHtml(placePhotos(p), alt, 'hero-ph');
+  // какой снимок сейчас на экране — ближайший к левому краю ленты
+  const galIdx = tr => { let best = 0, d = 1e9; [...tr.children].forEach((k, i) => { const x = Math.abs(k.offsetLeft - tr.scrollLeft); if (x < d) { d = x; best = i; } }); return best; };
+  function galSync(g) {
+    const tr = $('.gal-track', g);
+    if (!tr) return;
+    const n = tr.children.length, i = galIdx(tr), c = $('.gal-n', g), pv = $('.gal-nav.prev', g), nx = $('.gal-nav.next', g);
+    if (c) c.textContent = `${i + 1} / ${n}`;
+    $$('.gal-dots i', g).forEach((d, k) => d.classList.toggle('on', k === i));
+    if (pv) pv.hidden = i === 0;
+    if (nx) nx.hidden = i === n - 1;
+  }
+  // scroll не всплывает — ловим на погружении, пересчёт — раз в кадр
+  document.addEventListener('scroll', e => {
+    const t = e.target;
+    if (!t || !t.classList || !t.classList.contains('gal-track')) return;
+    cancelAnimationFrame(t._gr); t._gr = requestAnimationFrame(() => galSync(t.parentElement));
+  }, true);
+  document.addEventListener('click', e => {
+    const go = e.target.closest('[data-gal-go]');
+    if (go) {
+      // шаг — расстояние между соседними снимками; scrollBy складывается и с ещё идущей прокруткой (быстрые клики не теряются)
+      const tr = $('.gal-track', go.closest('.gal')), kids = tr ? [...tr.children] : [];
+      const step = kids.length > 1 ? kids[1].offsetLeft - kids[0].offsetLeft : (tr ? tr.clientWidth : 0);
+      if (step) tr.scrollBy({ left: step * +go.dataset.galGo, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+      return;
+    }
+    const z = e.target.closest('[data-zoom]'), g = z && z.closest('.gal');
+    if (g && GALS.has(g.dataset.gal)) showPhotos(GALS.get(g.dataset.gal), +z.dataset.zoom, z);
+  });
   const placeCover = p => `<div class="hero-cv cover ${cvOf(p)}" aria-hidden="true"><span class="cv-e">${esc(p.emoji)}</span><span class="cv-k">${esc(String(p.kind || '').split(' · ')[0])}</span></div>`;
 
   // город — и в конструктор: его выбор мест откроется на том же городе (без ?city= — Москва или город из хранилища)
@@ -839,7 +887,7 @@
     const ph = K.photo(p);
     const okr = p.okr && OKR_NAME[p.okr] && p.okr !== 'all' ? ' · ' + esc(OKR_NAME[p.okr]) : '';
     openSheet(`
-      ${ph ? heroPh(ph, p.name) : placeCover(p)}
+      ${ph ? heroPh(p, p.name) : placeCover(p)}
       <p class="eyebrow">${esc(p.kind)} · <span title="${esc(K.priceHint(p.price))}">${K.priceText(p.price)}</span>${okr}</p>
       <div class="ttl-row"><h3>${esc(p.name)}</h3>${favBtn('place:' + id)}</div>
       ${p.mich ? `<p class="mich-line"><span class="mich">M</span>${MICH[p.mich]}</p>` : ''}
@@ -912,24 +960,32 @@
     return evs.length ? `<div class="in-plans"><p class="k">Скоро здесь</p>${evs.map(e =>
       `<button type="button" class="chip ev-row" data-open-event="${esc(e.id)}"><span class="ev-e" aria-hidden="true">${esc(e.emoji || '📅')}</span><span><b>${esc(e.title)}</b> <small>${esc(evWhen(e))}</small></span></button>`).join('')}</div>` : '';
   }
-  /* Фото крупно — отдельный диалог поверх карточки: Esc и × закрывают, фокус возвращается к превью */
-  function showPhoto(x, from) {
+  /* Фото крупно — отдельный диалог поверх карточки: листается вбок (и стрелками ← →), Esc, × и нажатие закрывают,
+     фокус возвращается к превью */
+  function showPhotos(list, start, from) {
     const ov = document.createElement('div');
     ov.className = 'lightbox';
     ov.setAttribute('role', 'dialog');
     ov.setAttribute('aria-modal', 'true');
     ov.setAttribute('aria-label', 'Фото');
-    ov.innerHTML = `<figure><img src="${esc(x.s)}" alt=""><figcaption>${K.photoCredit(x)}</figcaption></figure><button type="button" class="lb-x" aria-label="Закрыть фото">${I('x')}</button>`;
+    ov.innerHTML = `<div class="lb-track">${list.map(x => `<figure><img src="${esc(x.s)}" alt="" decoding="async"><figcaption>${K.photoCredit(x)}</figcaption></figure>`).join('')}</div>`
+      + (list.length > 1 ? `<span class="lb-n" aria-live="polite">${start + 1} / ${list.length}</span>` : '')
+      + `<button type="button" class="lb-x" aria-label="Закрыть фото">${I('x')}</button>`;
+    const tr = $('.lb-track', ov), n = $('.lb-n', ov);
+    const go = d => { const i = Math.round(tr.scrollLeft / Math.max(1, tr.clientWidth)) + d; tr.scrollTo({ left: Math.max(0, Math.min(list.length - 1, i)) * tr.clientWidth }); };
+    tr.addEventListener('scroll', () => { if (n) n.textContent = `${Math.round(tr.scrollLeft / Math.max(1, tr.clientWidth)) + 1} / ${list.length}`; }, { passive: true });
     const close = () => { ov.remove(); if (from && from.isConnected) from.focus({ preventScroll: true }); };
     ov.addEventListener('click', e => { if (!e.target.closest('figcaption a')) close(); });
     ov.addEventListener('keydown', e => {
       if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(); return; }
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { e.preventDefault(); go(e.key === 'ArrowRight' ? 1 : -1); return; }
       if (e.key !== 'Tab') return;
       const f = $$('a[href], button', ov), i = f.indexOf(document.activeElement);
       e.preventDefault();
       f[(i + (e.shiftKey ? f.length - 1 : 1)) % f.length].focus();
     });
     document.body.appendChild(ov);
+    if (start) tr.scrollLeft = start * tr.clientWidth;
     $('.lb-x', ov).focus();
   }
 
@@ -978,8 +1034,9 @@
     const { st, legs, price } = planMeta(plan);
     if (!st.length) return false;
     const shown = new Set();
-    const stopPh = p => { const ph = K.photo(p); if (!ph || shown.has(ph.u)) return ''; shown.add(ph.u);
-      return `<figure class="stop-ph"><img src="${esc(ph.s)}" alt="${esc(p.name)}" loading="lazy" decoding="async"><figcaption>${K.photoCredit(ph)}</figcaption></figure>`; };
+    // у каждой остановки — своя галерея; снимок, уже показанный у другой остановки (общее здание), не повторяем
+    const stopPh = p => { const list = placePhotos(p).filter(x => x && !shown.has(x.u)); if (!list.length) return ''; list.forEach(x => shown.add(x.u));
+      return galleryHtml(list, p.name, 'stop-ph'); };
     // у мест из planStops нет id — берём его из плана, иначе промокоды остановок не находятся
     const ids = plan.stops.filter(x => K.placeById(x));
     const parts = st.map((p, i) => { const pr = promoOf(ids[i]); return (i ? `<span class="dash"></span><span class="walk">${legText(legs[i - 1], plan)}</span>` : '') + `
@@ -1911,9 +1968,20 @@
   /* Непогода в день встречи: сегодня — по сейчас и прогнозу на день, другие дни — по прогнозу Open-Meteo (WX.days) */
   const wetOn = ymd => !!WX && WX.day === todayYmd && (ymd === todayYmd ? !!wxHint(WX) : wxWetDay(WX.days && WX.days[ymd]));
   /* Контекст подбора: город, режим, погода, точка «рядом», вкус, модель «Для тебя», оценки гостей */
+  /* Повторы делают каталог маленьким (фокус-группа): что показывали в «Лучшее сейчас» в прошлые дни, в следующий раз — ниже.
+     Внутри одного дня список не перетасовываем. Хранится только у человека (kuda-shown: id плана → день), 10 дней */
+  const SHOWN_KEY = 'kuda-shown', SHOWN_DAYS = 10;
+  const shownMap = () => { try { return JSON.parse(localStorage.getItem(SHOWN_KEY) || '{}') || {}; } catch (e) { return {}; } };
+  function noteShown(ids) {
+    const m = shownMap(), d = K.dayNum(K.todayMsk());
+    ids.forEach(id => { m[id] = d; });
+    Object.keys(m).forEach(id => { if (!(d - m[id] <= SHOWN_DAYS)) delete m[id]; });
+    try { localStorage.setItem(SHOWN_KEY, JSON.stringify(m)); } catch (e) { /* приватный режим — без памяти */ }
+  }
+  const seenBefore = () => { const m = shownMap(), d = K.dayNum(K.todayMsk()); return new Set(Object.keys(m).filter(id => m[id] < d)); };
   function pickCtx(o) {
     return Object.assign({
-      city, mode, anyMode: true, wetOn, point: near, taste: T.taste ? T.taste() : null, interest: T.interestOf || null,
+      city, mode, anyMode: true, wetOn, point: near, taste: T.taste ? T.taste() : null, interest: T.interestOf || null, seen: seenBefore(),
       learned: T.ready() ? (kind, id) => T.score(kind, id) : null,
       rating: RV ? id => safe(() => RV.score(id), 0) : null,
     }, o);
@@ -1947,7 +2015,7 @@
     const other = p.mode && p.mode !== mode && K.MODES[p.mode] ? ' · ' + K.MODES[p.mode].label : '';
     return `<div class="now-it">
       <button type="button" class="qr-it now-main" data-plan="${esc(p.id)}">
-        ${ph ? `<span class="qr-ph"><img src="${esc(i === 0 ? ph.s : ph.t)}" alt="" loading="lazy" decoding="async">${i === 0 ? BEST : ''}</span>` : `<span class="qr-ph cover ${cvOf(st[0])}"><span class="cv-e" aria-hidden="true">${esc(p.emoji || (st[0] && st[0].emoji) || '📍')}</span>${i === 0 ? BEST : ''}</span>`}
+        ${ph ? `<span class="qr-ph"><img src="${esc(i === 0 ? ph.s : ph.t)}" alt="" loading="lazy" decoding="async">${i === 0 ? BEST + phBadge(st) : ''}</span>` : `<span class="qr-ph cover ${cvOf(st[0])}"><span class="cv-e" aria-hidden="true">${esc(p.emoji || (st[0] && st[0].emoji) || '📍')}</span>${i === 0 ? BEST : ''}</span>`}
         <span class="qr-main"><b>${esc(p.title)}</b><small>${esc(st.map(x => x.name).join(' → ') + other)}</small>${whyHtml(r.why)}</span>
       </button>
       <button type="button" class="now-no" data-no="${esc(p.id)}" aria-label="Не то: ${esc(p.title)} — показать другое" title="Не то — показать другое">${I('x')}</button>
@@ -1989,7 +2057,7 @@
       return `<span class="${big ? 'top-ph' : 'fy-ph'} afc-${esc(x.ev.cat || 'other')}"><span class="e" aria-hidden="true">${esc(x.ev.emoji || '🎫')}</span>${when ? `<span class="top-date" aria-hidden="true">${esc(when)}</span>` : ''}</span>`;
     }
     const { st } = planMeta(x.plan), ph = K.planPhoto(x.plan);
-    return ph ? `<span class="${big ? 'top-ph' : 'fy-ph'}"><img src="${esc(big ? ph.s : ph.t)}" alt="" loading="lazy" decoding="async"></span>`
+    return ph ? `<span class="${big ? 'top-ph' : 'fy-ph'}"><img src="${esc(big ? ph.s : ph.t)}" alt="" loading="lazy" decoding="async">${big ? phBadge(st) : ''}</span>`
       : `<span class="${big ? 'top-ph' : 'fy-ph'} cover ${cvOf(st[0])}">${coverEmo(st, x.plan)}</span>`;
   }
   const topAttr = x => (x.kind === 'event' ? `data-open-event="${esc(x.ev.id)}"` : `data-plan="${esc(x.plan.id)}"`);
@@ -2044,6 +2112,13 @@
     const strict = specific ? found.filter(r => r.match) : found;
     const soft = !!specific && !strict.length && found.length > 0 && (q.chips.length > 0 || q.kinds.length > 0);
     const pool = soft ? found : strict, plans = pool.slice(0, askN);
+    // выбирают глазами: крупная карточка «Лучшее сейчас» без фото проигрывает — если среди первых трёх есть план с фото
+    // почти той же оценки (разница до 1,5), он встаёт первым
+    if (plans.length > 1 && !K.planPhoto(plans[0].plan)) {
+      const j = plans.slice(1, 3).findIndex(r => K.planPhoto(r.plan) && r.score >= plans[0].score - 1.5) + 1;
+      if (j > 0) plans.unshift(plans.splice(j, 1)[0]);
+    }
+    noteShown(plans.map(r => r.plan.id));
     const evs = safe(() => PK.events(q, pickCtx({ limit: 2 })), []);
     const pls = safe(() => PK.places(q, pickCtx({ limit: 4 })), []);
     const mo = PK.moment(q);
