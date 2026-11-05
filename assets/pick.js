@@ -105,6 +105,18 @@
   const okrName = (c, id) => { try { return (K().CITIES[c].okrs.find(o => o[0] === id) || [])[1] || ''; } catch (e) { return ''; } };
   const minWalk = m => Math.max(1, Math.round(m * 1.3 / 75));
   const distWhy = (m, from) => (m < 2600 ? `${minWalk(m)}${NB}мин пешком ${from}` : `${(m / 1000).toFixed(m < 9950 ? 1 : 0).replace('.', ',')}${NB}км ${from}`);
+  /* Сколько минут добираться до места p от точки pt: пешком, если близко; от станции — по графу метро (assets/metro.js);
+     от точки на карте — грубо: 8 мин до метро и ожидание + 2,2 мин на км. «Рядом» люди понимают как 20–25 минут (фокус-группа) */
+  const NEAR_MIN = 25;
+  function travelMin(city, pt, p) {
+    const d = K().distM(pt, p);
+    if (d < 1800) return minWalk(d);
+    const M = typeof window !== 'undefined' && window.KudaMetro;
+    if (M && pt.name) { const m = safeMin(() => M.minutes(city, pt.name, p)); if (m != null) return Math.min(m, minWalk(d)); }
+    return Math.round(8 + d / 1000 * 2.2);
+  }
+  const safeMin = f => { try { const v = f(); return Number.isFinite(v) ? v : null; } catch (e) { return null; } };
+  const minWhy = (min, d, from) => (d < 1800 ? `${min}${NB}мин пешком ${from}` : `≈${NB}${min}${NB}мин ${from}`);
   /* Слово запроса в тексте: по корню («грузинскую» → «грузинск»). Корень короче, чем у станций метро: не меньше пяти букв и ~70 %
      слова («привет» не находит «приватный», «кальян» — «Игру в кальмара»), пятибуквенные — без последней («пиццу» → «пицц») */
   const stemQ = w => (w.length <= 4 ? w : w.length === 5 ? w.slice(0, 4) : w.slice(0, Math.max(5, Math.ceil(w.length * 0.7))));
@@ -185,10 +197,12 @@
       else if (bud) add(...priceWhy(price, priceMode), 2);
       if (q.premium) { if (price >= 3) s += 1.5; if (st.some(x => x.mich)) { s += 1.5; add('⭐', 'гид Michelin', 3); } }
       // где
+      let min = null;
       if (pt && st[0] && st[0].lat != null) {
         const d = k.distM(pt, st[0]);
-        s += Math.max(-6, 5 - d / 500);
-        add('📍', distWhy(d, from), 4);
+        min = travelMin(city, pt, st[0]);
+        s += min <= NEAR_MIN ? Math.max(0, 5 - min / 6) : -2 - Math.min(6, (min - NEAR_MIN) / 5);
+        add(min <= NEAR_MIN ? '📍' : '🚇', minWhy(min, d, from), 4);
       } else if (q.okr) {
         const inOkr = st[0].okr === q.okr ? 3 : st.some(x => x.okr === q.okr) ? 2 : -2.5;
         s += inOkr;
@@ -254,17 +268,19 @@
         if (taste.stage === 'long' && (isNew(p, today) || st.some(x => isNew(x, today)) || hasTag(p, 'anniversary'))) s += 1;
         if (!bud && taste.bud && price > taste.bud) s -= 1.5 * (price - taste.bud);
         if (!pt && taste.station && st[0].lat != null) {
-          const d = k.distM(taste.station, st[0]), far = avoid.includes('far');
-          s += far ? Math.max(-4, 2.5 - d / 2000) : Math.max(-1.5, 1.5 - d / 4000);
-          if (d < 3000) add('🏠', distWhy(d, 'от м.' + NB + taste.station.name), 2);
+          const d = k.distM(taste.station, st[0]), far = avoid.includes('far'), m = travelMin(city, taste.station, st[0]);
+          s += far ? Math.max(-4, 2.5 - m / 10) : Math.max(-1.5, 1.5 - m / 20);
+          if (m <= NEAR_MIN) add('🏠', minWhy(m, d, 'от м.' + NB + taste.station.name), 2);
         }
       }
       if (ctx.seen && ctx.seen.has(p.id)) s -= 1.5;
       if (q.random) s += (Math.random() - 0.5) * 5;
       if (!why.length || (bud === 0 && why.length < 2)) add(...priceWhy(price, priceMode), 0.5);
-      return { plan: p, score: s, why: tidy(why), closed: oa.closed ? oa.closed.p.name : '', match: matched && (!want || got > 0) && (!specWant || specGot > 0), i: idx };
+      return { plan: p, score: s, why: tidy(why), closed: oa.closed ? oa.closed.p.name : '', match: matched && (!want || got > 0) && (!specWant || specGot > 0), i: idx, min };
     }).filter(Boolean).sort((a, b) => (b.score - a.score) || a.i - b.i);
-    return pickTop(scored, ctx.limit || 3, ctx.diverse !== false, x => x.plan.stops);
+    const asked = !!(q.station || q.near);
+    const close = asked ? scored.filter(x => x.min == null || x.min <= NEAR_MIN) : scored;
+    return pickTop(close.length ? close : scored, ctx.limit || 3, ctx.diverse !== false, x => x.plan.stops);
   }
   /* Причины: важные — первыми, без повторов, не больше трёх */
   const tidy = why => why.sort((a, b) => b.w - a.w).filter((x, i, a) => a.findIndex(y => y.t === x.t) === i).slice(0, 3).map(({ e, t }) => ({ e, t }));

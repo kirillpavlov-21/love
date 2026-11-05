@@ -16,8 +16,8 @@ export const SITE = 'https://kirillpavlov-21.github.io/love/';
 /* [файл, обязателен] — порядок как на страницах сайта: города, матчи и находки робота дописывают своё в KUDA и KUDA_EVENTS */
 export const FILES = [
   ['config.js', true], ['assets/shared.js', true], ['assets/places.js', true], ['assets/places-spb.js'], ['assets/places-info.js'],
-  ['assets/events.js'], ['assets/events-spb.js'], ['assets/sport.js'], ['assets/auto.js'], ['assets/photos.js'],
-  ['assets/collections.js'], ['assets/collections-auto.js'], ['assets/cols.js'], ['assets/geo.js', true], ['assets/intent.js', true], ['assets/pick.js', true],
+  ['assets/events.js'], ['assets/events-spb.js'], ['assets/sport.js'], ['assets/auto.js'], ['assets/photos.js'], ['assets/gallery.js'],
+  ['assets/collections.js'], ['assets/collections-auto.js'], ['assets/cols.js'], ['assets/geo.js', true], ['assets/metro.js'], ['assets/intent.js', true], ['assets/pick.js', true],
 ];
 
 /* Окружение браузера — целиком внутри песочницы (код строкой, ничего снаружи) */
@@ -52,7 +52,7 @@ const API = `(() => {
   const F = {
     data: () => ({ places: K.kuda().places, scenarios: K.kuda().scenarios, cfg: g.DATE_CONFIG || {} }),
     parse: (t, o) => I.parse(String(t || ''), o || {}),
-    plans: (q, c) => { c = c || {}; if (Array.isArray(c.skip)) c.skip = new Set(c.skip); return P.plans(q || {}, c); },
+    plans: (q, c) => { c = c || {}; if (Array.isArray(c.skip)) c.skip = new Set(c.skip); if (Array.isArray(c.seen)) c.seen = new Set(c.seen); return P.plans(q || {}, c); },
     events: (q, c) => P.events(q || {}, c || {}),
     places: (q, c) => P.places(q || {}, c || {}),
     top: c => P.top(c || {}),
@@ -108,7 +108,7 @@ export async function buildCatalog(src) {
     D: { places: data.places, scenarios: data.scenarios }, cfg: data.cfg || {},
     I: { parse: (t, o) => J('parse', t, o || {}) },
     P: {
-      plans: (q, c) => J('plans', q || {}, Object.assign({}, c, c && c.skip ? { skip: Array.from(c.skip) } : null)),
+      plans: (q, c) => J('plans', q || {}, Object.assign({}, c, c && c.skip ? { skip: Array.from(c.skip) } : null, c && c.seen ? { seen: Array.from(c.seen) } : null)),
       events: (q, c) => J('events', q || {}, c || {}),
       places: (q, c) => J('places', q || {}, c || {}),
       top: c => J('top', c || {}),

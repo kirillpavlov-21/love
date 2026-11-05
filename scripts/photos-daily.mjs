@@ -47,10 +47,11 @@ if (!DRY) {
 /* ---------- каталог ---------- */
 const ctx = { window: {}, console };
 vm.createContext(ctx);
-for (const f of ['assets/places.js', 'assets/places-spb.js', 'assets/photos.js']) vm.runInContext(fs.readFileSync(path.join(ROOT, f), 'utf8'), ctx, { filename: f });
+// галереи (assets/gallery.js) — тоже: место с галереей уже с фото, а снимок галереи не отдаём другому месту
+for (const f of ['assets/places.js', 'assets/places-spb.js', 'assets/photos.js', 'assets/gallery.js']) if (fs.existsSync(path.join(ROOT, f))) vm.runInContext(fs.readFileSync(path.join(ROOT, f), 'utf8'), ctx, { filename: f });
 const K = ctx.window.KUDA, ADULT = new Set(K.adult || []);
 // занятые и отклонённые снимки: файл Commons или страница фото
-const usedRaw = Object.values(K.places).map(p => p.ph && p.ph.file).filter(Boolean).concat(Object.keys(loadBlocked(ROOT)));
+const usedRaw = Object.values(K.places).flatMap(p => [p.ph, ...(p.gal || [])].map(x => x && (x.file || x.u))).filter(Boolean).concat(Object.keys(loadBlocked(ROOT)));
 const used = { keys: new Set(usedRaw.map(photoKey)), has(k) { return this.keys.has(photoKey(k)); }, add(k) { this.keys.add(photoKey(k)); } };
 const inPlans = new Map();
 (K.scenarios || []).forEach(s => (s.stops || []).forEach(id => inPlans.set(id, (inPlans.get(id) || 0) + 1)));

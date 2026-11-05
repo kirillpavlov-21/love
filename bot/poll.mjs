@@ -8,6 +8,7 @@
      BOT_STORE  — файл хранилища (по умолчанию ~/.kuda/bot-store.json — вне репозитория);
      TG_API     — адрес своего сервера Bot API, если он есть (по умолчанию https://api.telegram.org).
    При запуске бот снимает вебхук (иначе getUpdates не работает) и ставит список команд. Ctrl+C — остановить. */
+import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -30,7 +31,14 @@ await api('setMyCommands', { commands: COMMANDS }).catch(e => log('команд�
 await setupBot(api, site, log);   // кнопка меню → Mini App, описание бота, если своего нет
 const C = await loadCatalog(src);
 log(`каталог: ${C.D.scenarios.length} планов${C.missing.length ? ' (не загрузились: ' + C.missing.join(', ') + ')' : ''}`);
-const bot = createBot({ api, store, catalog: () => loadCatalog(src), site, name: me.username, log });
+// журнал тестеров (/start tester_<код>): одна строка JSON на действие, только у автора бота (сводка — node bot/testers.mjs)
+const TESTERS = process.env.BOT_TESTERS || path.join(os.homedir(), '.kuda', 'logs', 'testers.jsonl');
+const audit = rec => fs.promises.mkdir(path.dirname(TESTERS), { recursive: true, mode: 0o700 }).then(() => fs.promises.appendFile(TESTERS, JSON.stringify(rec) + '\n', { mode: 0o600 })).catch(e => log('журнал тестеров:', e.message));
+const bot = createBot({ api, store, catalog: () => loadCatalog(src), site, name: me.username, audit, log });
+// «напиши, когда появится»: проверяем подписки раз в 6 часов (каталог и афиша обновляются раз в сутки)
+const wishes = () => bot.checkWishes().then(n => { if (n) log(`подписки: отправил ${n}`); }).catch(e => log(`подписки: ${e.message}`));
+setTimeout(wishes, 2 * 60e3).unref?.();
+setInterval(wishes, 6 * 3600e3).unref?.();
 log(`бот @${me.username} работает. Напиши ему в Telegram: https://t.me/${me.username}`);
 
 let offset = 0;

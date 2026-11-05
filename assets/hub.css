@@ -205,13 +205,34 @@ html[data-acc="shades"] .cat .acc-shades, html[data-acc="bow"] .cat .acc-bow { d
 .card-ph.n2 { --n: 2; }
 .card-ph.n3 { --n: 3; }
 .card-ph img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.hero-ph, .stop-ph { margin: 0; }
-.hero-ph img { display: block; width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 20px; background: var(--surface-2); }
-.stop-ph { margin: -14px -16px 6px; }
-.stop-ph img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 18px 18px 0 0; background: var(--surface-3); }
-.hero-ph figcaption, .stop-ph figcaption { margin-top: 6px; font-size: 11px; line-height: 1.35; color: var(--muted); }
-.stop-ph figcaption { padding: 0 16px; }
-.hero-ph figcaption a, .stop-ph figcaption a { color: inherit; text-decoration: underline; text-decoration-color: rgba(163, 158, 174, .4); font-size: 11px; font-weight: 400; display: inline; }
+/* Галерея места (hub.js galleryHtml): лента со снимками встык, листается пальцем с привязкой к кадру.
+   Счётчик и точки — поверх снимка (слой той же пропорции), подпись автора — под каждым снимком и уезжает вместе с ним */
+.gal { --ar: 16 / 10; --r: 20px; position: relative; margin: 0; }
+.stop-ph.gal { --ar: 16 / 9; --r: 18px 18px 0 0; margin: -14px -16px 6px; }
+.gal-track { position: relative; display: flex; gap: 8px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.stop-ph .gal-track { gap: 0; }
+.gal-track::-webkit-scrollbar { display: none; }
+.gal-track:focus-visible { outline: 2px solid var(--accent, #F2A7C8); outline-offset: 3px; border-radius: 20px; }
+.gal-it { flex: 0 0 100%; min-width: 0; margin: 0; scroll-snap-align: start; scroll-snap-stop: always; }
+.gal-zoom { display: block; width: 100%; padding: 0; border: 0; background: none; cursor: zoom-in; }
+.gal-it img { display: block; width: 100%; aspect-ratio: var(--ar); object-fit: cover; border-radius: var(--r); background: var(--surface-2); }
+.stop-ph .gal-it img { background: var(--surface-3); }
+.gal-it figcaption { margin-top: 6px; font-size: 11px; line-height: 1.35; color: var(--muted); }
+.stop-ph .gal-it figcaption { padding: 0 16px; }
+.gal-it figcaption a { color: inherit; text-decoration: underline; text-decoration-color: rgba(163, 158, 174, .4); font-size: 11px; font-weight: 400; display: inline; }
+.gal-ui { position: absolute; left: 0; right: 0; top: 0; aspect-ratio: var(--ar); pointer-events: none; }
+.gal-n { position: absolute; top: 10px; right: 10px; padding: 3px 9px; border-radius: 999px; background: rgba(12, 10, 16, .55); color: #fff; font: 600 12px/1.4 inherit; letter-spacing: .02em; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.gal-dots { position: absolute; left: 0; right: 0; bottom: 10px; display: flex; justify-content: center; gap: 5px; }
+.gal-dots i { width: 6px; height: 6px; border-radius: 3px; background: rgba(255, 255, 255, .55); box-shadow: 0 0 3px rgba(0, 0, 0, .35); transition: width .2s, background-color .2s; }
+.gal-dots i.on { width: 16px; background: #fff; }
+.gal-nav { position: absolute; top: calc((100% - 22px) / 2); display: grid; place-items: center; width: 36px; height: 36px; margin-top: -18px; border: 0; border-radius: 50%; background: rgba(12, 10, 16, .55); color: #fff; cursor: pointer; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.gal-nav .ic { width: 18px; height: 18px; }
+.gal-nav.prev { left: 10px; }
+.gal-nav.prev .ic { transform: scaleX(-1); }
+.gal-nav.next { right: 10px; }
+.gal-nav[hidden] { display: none; }
+@media (hover: none) { .gal-nav { display: none; } }
+@media (prefers-reduced-motion: reduce) { .gal-dots i { transition: none; } }
 
 /* ---------- округа, Michelin, карта ---------- */
 .filters.okrs { margin-top: -6px; }
@@ -305,11 +326,14 @@ html[data-acc="shades"] .cat .acc-shades, html[data-acc="bow"] .cat .acc-bow { d
 .pb-ic { color: #F5C451; }
 .pb-code { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; padding: 6px 10px; border-radius: 10px; border: 1px dashed #F5C451; background: transparent; color: #F5C451; font: 700 15px/1 ui-monospace, monospace; letter-spacing: .06em; cursor: pointer; }
 .pb-code .ic { width: 14px; height: 14px; }
-.lightbox { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 20px; background: rgba(8, 7, 11, .92); animation: fade .2s; cursor: zoom-out; }
-.lightbox figure { margin: 0; max-width: min(960px, 100%); }
-.lightbox img { display: block; max-width: 100%; max-height: 78vh; margin: 0 auto; border-radius: 14px; }
+.lightbox { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 20px 0; background: rgba(8, 7, 11, .94); animation: fade .2s; cursor: zoom-out; }
+.lb-track { display: flex; width: 100%; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior: contain; }
+.lb-track::-webkit-scrollbar { display: none; }
+.lightbox figure { flex: 0 0 100%; display: grid; place-items: center; align-content: center; margin: 0; padding: 0 16px; scroll-snap-align: center; scroll-snap-stop: always; }
+.lightbox img { display: block; max-width: min(960px, 100%); max-height: 78vh; margin: 0 auto; border-radius: 14px; }
 .lightbox figcaption { margin-top: 10px; color: var(--muted-2); font-size: 12px; text-align: center; }
 .lightbox figcaption a { color: var(--text); }
+.lb-n { position: absolute; top: calc(24px + env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); color: #fff; font-size: 13px; font-weight: 600; }
 .lb-x { position: absolute; top: calc(14px + env(safe-area-inset-top)); right: 14px; display: grid; place-items: center; width: 42px; height: 42px; border-radius: 50%; border: 0; background: var(--surface-2); color: var(--text); cursor: pointer; }
 .report { display: inline-flex; align-items: center; gap: 6px; align-self: center; color: var(--muted); font-size: 13px; text-decoration: none; }
 .report .ic { width: 14px; height: 14px; }
@@ -927,6 +951,10 @@ html.tg .hero, html.back .hero { padding-top: 14px; padding-bottom: 14px; gap: 1
 #now .qr-list > .now-it:first-child:not(.now-noask) .now-no { top: 16px; right: 16px; bottom: auto; width: 38px; height: 38px; border: 0; border-radius: 50%; background: rgba(15, 14, 19, .78); color: var(--text); }
 .now-best { display: none; }
 #now .qr-list > .now-it:first-child:not(.now-noask) .qr-ph { position: relative; }
+.ph-cnt { display: none; }
+.card-ph .ph-cnt, .top-ph .ph-cnt,
+#now .qr-list > .now-it:first-child:not(.now-noask) .ph-cnt { display: inline-flex; align-items: center; gap: 5px; position: absolute; right: 10px; top: 10px; padding: 5px 9px; border-radius: 99px; background: rgba(15, 14, 19, .8); color: var(--text); font: 600 12px/1 var(--body); }
+.ph-cnt .ic { width: 14px; height: 14px; }
 #now .qr-list > .now-it:first-child:not(.now-noask) .now-best { display: block; position: absolute; left: 10px; top: 10px; padding: 5px 10px; border-radius: 99px; background: rgba(15, 14, 19, .8); color: var(--text); font: 600 12px/1 var(--body); }
 /* «Топ дня» — событие: на обложке крупно, когда оно */
 .top-ph .e { position: absolute; right: 18px; top: 50%; transform: translateY(-50%); font-size: 72px; opacity: .9; }

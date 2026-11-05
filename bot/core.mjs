@@ -13,7 +13,8 @@
    Имена каналов и источников бот не пишет: тексты планов и событий — те же, что на сайте.
    createBot({ api, store, catalog, site, name, log }) → { handle(update), COMMANDS } */
 
-const TTL = { user: 365 * 86400, query: 2 * 86400, fresh: 3 * 3600, vote: 30 * 86400 };
+const TTL = { user: 365 * 86400, query: 2 * 86400, fresh: 3 * 3600, vote: 30 * 86400, wish: 45 * 86400 };
+const dayNo = () => Math.floor((Date.now() + 3 * 3600e3) / 864e5);   // день по Москве — что показывали «вчера и раньше»
 const MAX_POLL = 10;
 import { createHash } from 'node:crypto';
 
@@ -69,7 +70,8 @@ export async function setupBot(api, site, log = () => {}) {
   if (s && !s.short_description) await api('setMyShortDescription', { short_description: SHORT }).catch(e => log('короткое описание не поставилось:', e.message));
 }
 
-export function createBot({ api, store, catalog, site, name = '', log = () => {} }) {
+/* audit(запись) — только для тестеров (/start tester_<код>): что они пишут и нажимают — для разбора, где бот путает (poll.mjs пишет в ~/.kuda/logs/testers.jsonl) */
+export function createBot({ api, store, catalog, site, name = '', log = () => {}, audit = null }) {
   const SITE = (site || 'https://kirillpavlov-21.github.io/love/').replace(/\/?$/, '/');
   let botName = name;
   const REFS = new WeakMap();
@@ -80,7 +82,8 @@ export function createBot({ api, store, catalog, site, name = '', log = () => {}
 
   /* ---------- люди и ссылки ---------- */
   const userOf = async id => Object.assign({ city: 'msk', mode: '' }, await store.get('u:' + id));
-  const saveUser = (id, u) => store.set('u:' + id, { city: u.city, mode: u.mode }, TTL.user);
+  const saveUser = (id, u) => store.set('u:' + id, Object.assign({ city: u.city, mode: u.mode }, u.tester ? { tester: u.tester } : null,
+    u.shown && u.shown.length ? { shown: u.shown.slice(-40) } : null), TTL.user);
   const cq = c => (c === 'spb' ? '&city=spb' : '');
   const U = {
     plan: (p, c) => SITE + 'start.html?plan=' + encodeURIComponent(p.id) + cq(c),
@@ -136,15 +139,17 @@ export function createBot({ api, store, catalog, site, name = '', log = () => {}
     // одному — без «свидания» по умолчанию; сохранённый «с кем» человека тоже держим (иначе «баня» у парня — женская баня)
     const mode = q.mode || u.mode || (q.solo ? 'guys' : o.mode) || 'date';
     const skip = new Set(o.skip || []), n = o.limit || 3;
+    // показанное в прошлые дни — ниже: повторы делают каталог из 650 планов похожим на каталог из двадцати (фокус-группа)
+    const seen = (u.shown || []).filter(x => x[1] < dayNo()).map(x => x[0]);
     // берём с запасом и только потом оставляем n: иначе подходящие планы терялись за лимитом до фильтра
-    let found = C.P.plans(q, { city, mode, anyMode: !q.mode && (!u.mode || q.solo), limit: 30, skip });
+    let found = C.P.plans(q, { city, mode, anyMode: !q.mode && (!u.mode || q.solo), limit: 30, skip, seen });
     // назвали что-то конкретное — сначала планы, где это есть. Таких нет — лучшие по остальному с честной пометкой, а не пустой ответ:
     // в тестах «как пишут люди» треть запросов уходила в «не нашлось» из-за одного незнакомого слова
     const specific = q.words.length || q.tags.length || q.cats.length || q.kinds.length || q.ev.length || q.hints.length;
     let strict = specific ? found.filter(r => r.match) : found;
     // своего режима не хватило («батуты» у того, кто обычно с друзьями, есть только у подруг) — смотрим все режимы, раз «с кем» не сказали
     if (specific && !strict.length && !q.mode && u.mode) {
-      const any = C.P.plans(q, { city, mode, anyMode: true, limit: 30, skip }), hit = any.filter(r => r.match);
+      const any = C.P.plans(q, { city, mode, anyMode: true, limit: 30, skip, seen }), hit = any.filter(r => r.match);
       if (hit.length) { found = any; strict = hit; }
     }
     // «по остальному» — только если что-то кроме незнакомых слов поняли (с кем, когда, бюджет, занятие); на бессмыслицу — честное «не нашлось»
@@ -171,16 +176,28 @@ export function createBot({ api, store, catalog, site, name = '', log = () => {}
     if (img) out.push('', `<i>📷 ${esc(C.K.cleanAuthor(ph.a) || 'автор на Wikimedia Commons')}${ph.l ? ', ' + esc(ph.l) : ''} · Wikimedia Commons</i>`);
     return { text: out.join('\n'), preview: img ? { url: img, prefer_large_media: true, show_above_text: true } : NOPREV };
   }
+  /* Все снимки плана с Commons (главные и галереи остановок, assets/gallery.js) — для альбома «📷 Фото»: выбирают глазами */
+  const planPhotos = (C, p) => {
+    const seen = new Set(), out = [];
+    for (const x of C.K.planStops(p)) for (const ph of (x.ph ? [x.ph, ...(x.gal || [])] : [])) {
+      if (!ph || !ph.file || ph.src === 'Flickr' || seen.has(ph.file)) continue;
+      seen.add(ph.file); out.push({ ph, name: x.name });
+    }
+    return out;
+  };
   /* Кнопки карточки: листать ‹ ›, «Подробнее» (в личке — сразу Mini App), маршрут, голосование и игра-приглашение, другие варианты */
   function cardKb(C, Q, qid, i, p, priv) {
     const n = Q.ids.length, rows = [];
     if (n > 1) rows.push([{ text: '‹', callback_data: `g|${qid}|${(i + n - 1) % n}` }, { text: `${i + 1} из ${n}`, callback_data: 'x' }, { text: '›', callback_data: `g|${qid}|${(i + 1) % n}` }]);
     rows.push([priv ? { text: '✨ Подробнее', web_app: { url: U.app(Q.city, 'plan=' + encodeURIComponent(p.id)) } } : { text: '✨ Подробнее', url: U.plan(p, Q.city) },
       { text: '🗺 Маршрут', url: U.route(p) }]);
+    const nph = planPhotos(C, p).length;
+    if (nph >= 3) rows.push([{ text: `📷 Фото (${Math.min(nph, 10)})`, callback_data: 'f|' + p.id }]);
     const vote = n < 2 ? { text: '🗳️ Обсудить в чате', switch_inline_query: cut(p.title, 40) }
       : priv ? { text: '🗳️ Голосование в чат', switch_inline_query: 'опрос ' + qid } : { text: '🗳️ Опрос в чате', callback_data: 'p|' + qid };
     rows.push([vote, { text: Q.mode === 'date' ? '💌 Позвать игрой' : '🎮 Позвать игрой', url: U.invite(C, Q.ids, Q.mode, Q.city, Q.text || Q.title || 'Куда идём?') }]);
     if (!Q.fixed) rows.push([{ text: '🔄 Другие варианты', callback_data: 'm|' + qid }]);
+    if (Q.soft && priv) rows.push([{ text: '🔔 Напиши, когда появится', callback_data: 'w|' + qid }]);
     return { inline_keyboard: rows };
   }
   function queryCard(C, Q, qid, i, priv) {
@@ -202,7 +219,8 @@ export function createBot({ api, store, catalog, site, name = '', log = () => {}
     R.soft ? `🤔 <i>${R.q.words.length ? `Про «${esc(R.q.words.join(' '))}» готовых планов нет` : 'Точно под это готовых планов нет'} — подобрал по остальному</i>` : ''].filter(Boolean).join('\n');
   const evFoot = R => [R.places.length && R.soft ? '📍 <b>Нашлись места</b>\n' + R.places.map(r => placeLine(r, R.city)).join('\n') : '',
     R.events.length ? '📅 <b>В афише</b>\n' + R.events.map(r => eventLine(r, R.city)).join('\n') : ''].filter(Boolean).join('\n\n');
-  const queryOf = (R, text, head) => ({ text, city: R.city, mode: R.mode, title: titleOf(R.q), ids: R.plans.map(r => r.plan.id), why: R.plans.map(r => r.why), top: topOf(R, head), foot: evFoot(R) });
+  const queryOf = (R, text, head) => ({ text, city: R.city, mode: R.mode, title: titleOf(R.q), ids: R.plans.map(r => r.plan.id), why: R.plans.map(r => r.why), top: topOf(R, head), foot: evFoot(R),
+    soft: !!R.soft, ev: R.events.map(r => r.ev.id) });
   function emptyText(R) {
     const out = [topOf(R, 'Планов под это не нашлось')];
     if (R.places.length) out.push('', '<b>Зато есть места</b>', R.places.map(r => placeLine(r, R.city)).join('\n'));
@@ -210,7 +228,8 @@ export function createBot({ api, store, catalog, site, name = '', log = () => {}
     out.push('', '<i>Попробуй проще: «свидание вечером», «бар с видом», «компы до утра».</i>');
     return out.join('\n');
   }
-  const emptyKb = (R, text) => ({ inline_keyboard: [
+  const emptyKb = (R, text, qid) => ({ inline_keyboard: [
+    ...(qid ? [[{ text: '🔔 Напиши, когда появится', callback_data: 'w|' + qid }]] : []),
     [{ text: '🎯 Подобрать за 10 секунд', callback_data: 'z' }, { text: '🎲 Удиви меня', callback_data: 's' }],
     [{ text: '🌐 Поискать на сайте', url: U.ask(text, R.city, R.mode) }],
   ] });
@@ -222,10 +241,16 @@ export function createBot({ api, store, catalog, site, name = '', log = () => {}
       u.city = R.q.city || u.city; u.mode = R.q.mode || u.mode;
       await saveUser(from.id, u);
     }
-    if (!R.plans.length) return send(chat.id, emptyText(R), emptyKb(R, text));
-    const qid = rid(), Q = queryOf(R, text, o.head);
+    const qid = rid(), Q = queryOf(R, text, o.head), priv = chat.type === 'private';
+    // честное «нет» на конкретный запрос — с подпиской «напишу, когда появится» (только в личке: пишем человеку, а не в группу)
+    const specific = R.q.words.length || R.q.tags.length || R.q.kinds.length || R.q.ev.length;
+    if (!R.plans.length) {
+      if (priv && specific) await store.set('q:' + qid, Q, TTL.query);
+      return send(chat.id, emptyText(R), emptyKb(R, text, priv && specific ? qid : ''));
+    }
     await store.set('q:' + qid, Q, TTL.query);
-    return sendCard(chat.id, queryCard(R.C, Q, qid, 0, chat.type === 'private'));
+    if (priv) { const ids = Q.ids; u.shown = (u.shown || []).filter(x => !ids.includes(x[0])).concat(ids.map(id => [id, dayNo()])).slice(-40); await saveUser(from.id, u); }
+    return sendCard(chat.id, queryCard(R.C, Q, qid, 0, priv));
   }
 
   /* ---------- голосование кнопками: работает в любом чате ---------- */
@@ -320,7 +345,7 @@ export function createBot({ api, store, catalog, site, name = '', log = () => {}
       '<b>Напиши, что хочется, обычными словами</b>\n<blockquote>свидание недорого, если дождь\nнас пятеро в субботу, баня\nбар с видом у Чистых прудов</blockquote>\n\n' +
       `🗳️ В любом чате набери <code>${esc(at)}</code> и что хотите — соберу голосование «куда идём». Добавлять меня в чат не нужно.`;
     const rows = [];
-    if (chat.type === 'private') rows.push([{ text: '✨ Открыть приложение', web_app: { url: U.app(u.city) } }]);
+    if (chat.type === 'private') rows.push([{ text: '✨ Открыть приложение', web_app: { url: U.app(u.city, u.tester ? 'tester=' + encodeURIComponent(u.tester) : '') } }]);
     rows.push(
       [{ text: '🎯 Подобрать за 10 секунд', callback_data: 'z' }, { text: '🎲 Удиви меня', callback_data: 's' }],
       [{ text: '🔥 Топ недели', callback_data: 't' }, { text: '📅 Афиша сегодня', callback_data: 'a|today' }],
@@ -340,6 +365,13 @@ export function createBot({ api, store, catalog, site, name = '', log = () => {}
         await store.set('q:' + qid, Q, TTL.query);
         return sendCard(chat.id, queryCard(C, Q, qid, 0, priv));
       }
+    }
+    // тест с живыми людьми: t.me/<бот>?start=tester_<код>; выйти — /stoptest
+    if ((m = /^tester_([a-z0-9_-]{2,24})$/i.exec(arg)) && priv) {
+      u.tester = m[1].toLowerCase();
+      await saveUser(msg.from.id, u);
+      await send(chat.id, `🧪 <b>Спасибо, что тестируешь!</b>\nКод теста: <code>${esc(u.tester)}</code>. Пользуйся ботом и приложением как обычно и пиши как есть — так, как написал бы другу.\n\n<i>Пока идёт тест, твои сообщения и нажатия в этом боте сохраняются у автора, чтобы понять, где бот ошибается. Выйти из теста — /stoptest.</i>`);
+      return welcome(chat, u);
     }
     if ((m = /^q_([A-Za-z0-9_-]{2,60})$/.exec(arg))) { const t = unb64u(m[1]); if (t) return answerQuery(chat, msg.from, u, t); }
     // с сайта: «Голосование в Telegram» — t.me/<бот>?start=poll_<номер>_<номер>…
@@ -470,6 +502,8 @@ export function createBot({ api, store, catalog, site, name = '', log = () => {}
         case 'opros': case 'poll': return groupPoll(msg, u, arg);
         case 'kogda': case 'when': return daysPoll(msg);
         case 'gorod': case 'city': return cityMenu(chat, u);
+        case 'stoptest': delete u.tester; await saveUser(msg.from.id, u); return send(chat.id, 'Готово: тест закончен, больше ничего не сохраняю. Спасибо! 🙌');
+        case 'stopwish': await store.del('w:' + msg.from.id); return send(chat.id, 'Хорошо, больше не жду — подписки на «напиши, когда появится» удалены.');
         default: return priv ? help(chat, u) : null;
       }
     }
@@ -495,6 +529,21 @@ export function createBot({ api, store, catalog, site, name = '', log = () => {}
     if (k === 'z') { await answerCb(c); return quiz(c, parts); }
     if (k === 's') { await answerCb(c); return surprise(chat, u, parts[1] === 'e' ? c : null); }
     if (k === 't') { await answerCb(c); return topList(chat, u); }
+    // «📷 Фото»: альбом до 10 снимков плана, у каждого — место, автор и лицензия
+    if (k === 'f') {
+      const C = await catalog(), p = C.K.planById(String(parts[1] || '')), list = p ? planPhotos(C, p).slice(0, 10) : [];
+      if (list.length < 2) return answerCb(c, 'Других фото пока нет');
+      await answerCb(c);
+      return api('sendMediaGroup', { chat_id: chat.id, media: list.map(({ ph, name }) => ({ type: 'photo', media: commonsThumb(ph.file),
+        caption: cut(`${name} · 📷 ${C.K.cleanAuthor(ph.a) || 'автор на Commons'}${ph.l ? ', ' + ph.l : ''} · Wikimedia Commons`, 200) })) });
+    }
+    if (k === 'w') {
+      const Q = /^[A-Za-z0-9]{8}$/.test(parts[1] || '') ? await store.get('q:' + parts[1]) : null;
+      if (!Q || !Q.text || chat.type !== 'private') return answerCb(c, 'Запрос устарел — напиши его ещё раз');
+      await addWish(c.from.id, chat.id, Q);
+      await answerCb(c, '🔔 Запомнил');
+      return send(chat.id, `🔔 Запомнил: «${esc(Q.text)}». Как только в каталоге или афише появится подходящее — напишу сюда. Передумал — /stopwish`);
+    }
     if (k === 'a') { await answerCb(c); return afisha(chat, u, parts[1], parts[2] === 'e' ? c : null); }
     if (k === 'c') {
       u.city = parts[1] === 'spb' ? 'spb' : 'msk';
@@ -570,6 +619,14 @@ export function createBot({ api, store, catalog, site, name = '', log = () => {}
   async function handle(update) {
     const from = (update.message || update.callback_query || update.inline_query || {}).from;
     if (tooMany(from && from.id)) return null;
+    if (audit && from && !from.is_bot) {
+      const u = await userOf(from.id), m = update.message, c = update.callback_query, q = update.inline_query;
+      // /start tester_… — тоже в журнал: так видно, когда человек пришёл
+      const start = m && /^\/start tester_([a-z0-9_-]{2,24})$/i.exec(String(m.text || '').trim());
+      const code = u.tester || (start && start[1].toLowerCase());
+      if (code && !(m && /^\/stoptest/i.test(m.text || ''))) audit({ at: new Date().toISOString(), tester: code, chat: (m && m.chat.type) || (c && c.message && c.message.chat.type) || (q ? 'inline' : ''),
+        kind: m ? 'message' : c ? 'button' : 'inline', text: m ? String(m.text || '').slice(0, 300) : q ? String(q.query || '').slice(0, 120) : '', data: c ? String(c.data || '') : '' });
+    }
     try {
       if (update.message) return await onMessage(update.message);
       if (update.callback_query) return await onCallback(update.callback_query);
@@ -582,5 +639,44 @@ export function createBot({ api, store, catalog, site, name = '', log = () => {}
     }
     return null;
   }
-  return { handle, setName: n => { botName = n; }, ref, b64u, COMMANDS };
+  /* «Напиши, когда появится»: до 5 запросов на человека, 45 дней. Индекс w:all — у кого есть подписки */
+  async function addWish(uid, chatId, Q) {
+    const list = ((await store.get('w:' + uid)) || []).filter(w => w.t !== Q.text);
+    list.push({ t: Q.text, c: Q.city, m: Q.mode, chat: chatId, ev: Q.ev || [], at: Date.now() });
+    await store.set('w:' + uid, list.slice(-5), TTL.wish);
+    const idx = (await store.get('w:all')) || [];
+    if (!idx.includes(uid)) { idx.push(uid); await store.set('w:all', idx.slice(-5000), TTL.user); }
+  }
+  // событие «про это»: слово запроса (по корню) в названии или площадке — и его не было в ответе, когда подписывались
+  const stemW = w => w.slice(0, Math.max(4, Math.ceil(w.length * 0.7)));
+  const evHits = (R, w) => R.events.filter(r => !(w.ev || []).includes(r.ev.id) &&
+    R.q.words.some(x => x.length >= 4 && String(r.ev.title + ' ' + (r.ev.venue || '')).toLowerCase().replace(/ё/g, 'е').includes(stemW(x.toLowerCase().replace(/ё/g, 'е')))));
+  /* проверить подписки: нашлось точное — пишем и подписку снимаем. Вызывает poll.mjs / webhook.mjs раз в несколько часов */
+  async function checkWishes() {
+    const idx = (await store.get('w:all')) || [], keep = [];
+    let sent = 0;
+    for (const uid of idx) {
+      const left = [];
+      for (const w of (await store.get('w:' + uid)) || []) {
+        if (Date.now() - w.at > TTL.wish * 1000) continue;
+        let R;
+        try { R = await pick(w.t, { city: w.c, mode: w.m }, { mode: w.m }); } catch (e) { left.push(w); continue; }
+        const head = `🔔 Появилось то, что ты искал: «${esc(w.t)}»`, ev = evHits(R, w);
+        try {
+          if (R.plans.length && !R.soft) {
+            const qid = rid(), Q = queryOf(R, w.t, head);
+            await store.set('q:' + qid, Q, TTL.query);
+            await sendCard(w.chat, queryCard(R.C, Q, qid, 0, true));
+          } else if (ev.length) await send(w.chat, head + '\n\n' + ev.slice(0, 3).map(r => eventLine(r, R.city)).join('\n'));
+          else { left.push(w); continue; }
+          sent++;
+        } catch (e) { if (log) log(`подписка ${uid}: ${e.message}`); left.push(w); }
+      }
+      if (left.length) { await store.set('w:' + uid, left, TTL.wish); keep.push(uid); } else await store.del('w:' + uid);
+    }
+    await store.set('w:all', keep, TTL.user);
+    return sent;
+  }
+
+  return { handle, setName: n => { botName = n; }, ref, b64u, COMMANDS, checkWishes };
 }

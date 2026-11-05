@@ -21,6 +21,50 @@
   const MAX_LOG = 400;
   const today = () => Math.floor(Date.now() / 864e5);
 
+  /* ---------- тест с живыми людьми: личная ссылка ?tester=<код> (бот: /start tester_<код>) ----------
+     Код запоминаем в этом браузере (kuda-tester). Тестер видит плашку и сам соглашается — тогда включаем Метрику и подписываем
+     визиты кодом (userParams): в отчётах видно, кто что делал, без имён и аккаунтов Telegram. Запись экрана (Вебвизор) — только
+     на главной и без того, что вводят в поля; в игре-приглашении и конструкторе — только нажатия (там имена и тексты писем).
+     ?tester=off — выйти из теста */
+  const K_TESTER = 'kuda-tester', TESTER_RX = /^[a-z0-9_-]{2,24}$/i;
+  const tester = () => { const t = LS.get(K_TESTER, null); return t && TESTER_RX.test(t.code || '') ? t : null; };
+  (function readTester() {
+    let v = null;
+    try { v = new URLSearchParams(location.search).get('tester'); } catch (e) { return; }
+    if (v === 'off') { LS.del(K_TESTER); return; }
+    const t = tester();
+    if (v && TESTER_RX.test(v) && (!t || t.code !== v.toLowerCase())) LS.set(K_TESTER, { code: v.toLowerCase(), at: Date.now(), ok: false });
+  })();
+  const onHub = () => !!document.getElementById('nowBlock');
+  // поля ввода — без записи нажатий клавиш в Вебвизоре (класс Метрики ym-disable-keys), в том числе появившиеся позже
+  function noKeys(root) { (root.querySelectorAll ? root.querySelectorAll('input, textarea') : []).forEach(x => x.classList.add('ym-disable-keys')); }
+  function testerBanner() {
+    const t = tester();
+    if (!t || t.ok || document.getElementById('kudaTester') || !metrikaId()) return;
+    const b = document.createElement('div');
+    b.id = 'kudaTester';
+    b.setAttribute('role', 'dialog');
+    b.setAttribute('aria-label', 'Тестирование сайта');
+    b.style.cssText = 'position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:1200;max-width:460px;margin:0 auto;padding:16px;border-radius:18px;background:var(--surface,#1A1920);border:1px solid var(--line-2,rgba(244,241,234,.16));color:var(--text,#F4F1EA);font:500 14px/1.45 var(--body,system-ui,sans-serif);box-shadow:0 18px 48px rgba(0,0,0,.5)';
+    b.innerHTML = '<p style="margin:0 0 12px"><b style="display:block;margin-bottom:4px;font-size:15px">Ты в тесте «Куда идём?» 🙌</b>Смотрим, как ты пользуешься сайтом: куда нажимаешь и где путаешься (Яндекс Метрика, на главной — запись экрана). То, что ты вводишь в поля, имена и тексты приглашений не записываются. Код теста: <b>' +
+      t.code + '</b>.</p><div style="display:flex;gap:8px"><button type="button" data-t="ok" style="flex:1;min-height:44px;border:0;border-radius:12px;background:var(--accent,#FF6F91);color:var(--on-accent,#1C0A10);font:700 15px var(--body,system-ui,sans-serif);cursor:pointer">Согласен</button>' +
+      '<button type="button" data-t="no" style="min-height:44px;padding:0 16px;border:1px solid var(--line-2,rgba(244,241,234,.16));border-radius:12px;background:transparent;color:inherit;font:600 15px var(--body,system-ui,sans-serif);cursor:pointer">Не хочу</button></div>';
+    b.addEventListener('click', e => {
+      const a = e.target.closest('[data-t]');
+      if (!a) return;
+      if (a.dataset.t === 'ok') {
+        LS.set(K_TESTER, Object.assign({}, t, { ok: true }));
+        setConsent('all');
+        const c = document.getElementById('consent');
+        if (c) c.classList.add('hidden');
+      } else LS.del(K_TESTER);
+      b.remove();
+    });
+    document.body.appendChild(b);
+  }
+  // после разбора всего файла: плашке нужны metrikaId и setConsent ниже
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', testerBanner); else setTimeout(testerBanner, 0);
+
   /* ---------- признаки ---------- */
   const K = () => window.DateKit;
   /* Категория места: по умолчанию — из shared.js (поле cat или тип места) */
@@ -100,10 +144,16 @@
     })(window, document, 'script', 'https://mc.yandex.ru/metrika/tag.js', 'ym');
     /* Без автоматического хита и без отслеживания ссылок: в #… приглашения зашиты имена и тексты,
        а в ссылках календаря — имена. Хит отправляем сами, адрес — без # */
-    window.ym(id, 'init', { defer: true, clickmap: true, trackLinks: false, accurateTrackBounce: true, webvisor: false });
+    // запись экрана — только у тестера, который согласился, и только на главной (в игре и конструкторе — имена и тексты писем)
+    const t = tester(), wv = !!(t && t.ok && onHub());
+    if (wv) { noKeys(document); new MutationObserver(ms => ms.forEach(m => m.addedNodes.forEach(n => n.nodeType === 1 && noKeys(n)))).observe(document.body, { childList: true, subtree: true }); }
+    window.ym(id, 'init', { defer: true, clickmap: true, trackLinks: false, accurateTrackBounce: true, webvisor: wv });
     // и без текстов из адреса: q — запрос «Что хочется?» (ссылка из бота), t — название списка в ссылке «Позвать»
-    const bare = u => { try { const x = new URL(u); ['q', 't'].forEach(k => x.searchParams.delete(k)); x.hash = ''; return x.href; } catch (e) { return ''; } };
-    window.ym(id, 'hit', bare(location.href), { referer: bare(document.referrer) });
+    const bare = u => { try { const x = new URL(u); ['q', 't', 'tester'].forEach(k => x.searchParams.delete(k)); x.hash = ''; return x.href; } catch (e) { return ''; } };
+    // Mini App или браузер; у тестера — его код: в Метрике отчёты по каждому, без имён
+    const vp = { tg: document.documentElement.classList.contains('tg') ? 1 : 0 };
+    if (t && t.ok) { vp.tester = t.code; window.ym(id, 'userParams', { tester: t.code, UserID: t.code }); }
+    window.ym(id, 'hit', bare(location.href), { referer: bare(document.referrer), params: vp });
     ym = (...a) => window.ym(id, ...a);
   }
   /* Согласие отозвали: больше ничего не отправляем, отключаем уже загруженный счётчик
@@ -296,9 +346,9 @@
   const noList = kind => { const no = LS.get(K_NO, {}), d = today(); return Object.keys(no).filter(k => k.startsWith(kind + ':') && d - no[k] <= NO_DAYS).map(k => k.slice(kind.length + 1)); };
 
   /* «Сбросить»: стираем журнал, модель, вкус и память о пролистанных карточках — и в хранилище, и в памяти страницы */
-  function reset() { [K_LOG, K_MODEL, K_ONCE, 'kuda-neg', K_TASTE, K_NO, 'kuda-taste-skip', K_BEEN, K_RATED, K_INT].forEach(LS.del); M = { v: 1, w: {}, b: 0, pos: 0, neg: 0 }; seenNeg = {}; }
+  function reset() { [K_LOG, K_MODEL, K_ONCE, 'kuda-neg', K_TASTE, K_NO, 'kuda-taste-skip', K_BEEN, K_RATED, K_INT, 'kuda-shown'].forEach(LS.del); M = { v: 1, w: {}, b: 0, pos: 0, neg: 0 }; seenNeg = {}; }
 
   if (consent() === 'all') loadMetrika();
   window.KudaTrack = { setCat, ev, invited, skipped, score, ready, forYou, topLikes, favs, isFav, toggleFav, consent, setConsent, reset, featsOf,
-    taste, setTaste, tweakTaste, notThis, noList, been, beenList, pendingVisit, rate, interestOf, interests, eventKeys };
+    taste, setTaste, tweakTaste, notThis, noList, been, beenList, pendingVisit, rate, interestOf, interests, eventKeys, tester };
 })();

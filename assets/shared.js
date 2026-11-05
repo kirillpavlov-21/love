@@ -638,6 +638,8 @@
 
   /* Фото места из assets/photos.js: { s: большое, t: превью, a: автор, l: лицензия, u: страница файла, src?: источник (без него — Wikimedia Commons) } */
   const photo = p => (p && p.ph) || null;
+  /* все снимки места: главное фото и галерея (assets/gallery.js) */
+  const photos = p => (p && p.ph ? [p.ph, ...(p.gal || [])] : []);
   const planPhoto = plan => planStops(plan).map(photo).find(Boolean) || null;
   /* Подпись автора без лишнего: ссылки на соцсети и каналы, просьбы «подписывайте так-то» и хвосты длиннее 60 знаков убираем */
   const SOC = '(?:telegram|телеграм|t\\.me|tg:|instagram|инстаграм|vk\\.com|вконтакте|youtube)';
@@ -1187,7 +1189,7 @@
     BASE, merge, defaults, diffInvite, encodeInvite, decodeInvite, encodeData, decodeData, readHash, esc, fill, hash,
     leftText, bookStop, bookText, arriveAt, arriveWhen, telHref, telText, ohDays, openState, closedOn, openText, ymd, parseYmd, addDays, listDates, fmtDay, dayNum, numDay, toMin, fromMin, relaySend, relayRegister, relayTest, shortLink, goRoute, sitePath, toB64url,
     CATS, catVars, catSVG, HEART_D, STAR_D, markD, ICONS, icon, MODE_ICON, tgUser, tgLink, calendarLinks,
-    MODES, modeOf, kuda, placeById, planById, planStops, catOf, photo, planPhoto, photoCredit, cleanAuthor, HINTS, placeHints, planHints, hintChip, seasonHints,
+    MODES, modeOf, kuda, placeById, planById, planStops, catOf, photo, photos, planPhoto, photoCredit, cleanAuthor, HINTS, placeHints, planHints, hintChip, seasonHints,
     todayMsk, seasonNow, seasonOk, eventById, events, eventDays, sheet, homeRisk, bridgesToday, BRIDGES, LAST_METRO,
     distM, walkMin, priceText, priceHint, isMetro, metroText, mapUrl, routeUrl, stationPicker,
     CITIES, city, setCity, cityOf, cityConf, inCity, cityByPoint,
