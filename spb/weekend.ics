@@ -111,29 +111,6 @@ STATUS:CONFIRMED
 TRANSP:TRANSPARENT
 END:VEVENT
 BEGIN:VEVENT
-UID:ev-spb-art-stena-supernova-20261001-last@kirillpavlov-21.github.io
-DTSTAMP:20261019T000000Z
-DTSTART;VALUE=DATE:20261108
-DTEND;VALUE=DATE:20261109
-SUMMARY:Последний день: Арт-Стена. Супернова
-LOCATION:Центр современного искусства им. Се
- ргея Курёхина\, Средний пр. В.О.\, 93
-GEO:59.934075;30.246220
-DESCRIPTION:Юбилейный\, десятый фестиваль улич
- ного искусства: больше тридцати стрит-ар
- тистов переносят свои работы в залы Цент
- ра Курёхина. В программе есть лекции о гр
- аффити.\nБилеты и подробности: https://www.kuryokh
- in.net/art-stena_supernova\nПозвать друзей — в «Куда 
- идём?»: https://kirillpavlov-21.github.io/love/start.html?event=ev-sp
- b-art-stena-supernova-20261001&m=guys&city=spb
-URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-spb-art-sten
- a-supernova-20261001&m=guys&city=spb
-CATEGORIES:Выставка
-STATUS:CONFIRMED
-TRANSP:TRANSPARENT
-END:VEVENT
-BEGIN:VEVENT
 UID:ev-spb-do-svadby-dozhivet-20261017-20261108@kirillpavlov-21.github.io
 DTSTAMP:20261019T000000Z
 DTSTART;VALUE=DATE:20261108
