@@ -30,6 +30,9 @@
   const whenAt = h => (h >= 5 && h < 16 ? 'day' : h >= 16 && h < 21.5 ? 'eve' : 'late');
   /* Во сколько проверяем «открыто ли»: днём — 14:00, вечером — 19:30, поздно — 23:00; сегодня и уже позже — через полчаса */
   const AT = { day: 14, eve: 19.5, late: 23 };
+  /* Закат по месяцам, часы по Москве (середина месяца, без точности до минут): «на закате» в ноябре — это около 16:30 */
+  const SUNSET = { msk: [16.3, 17.3, 18.2, 19.9, 20.7, 21.3, 21.1, 20.1, 18.9, 17.7, 16.4, 16.0], spb: [16.1, 17.4, 18.5, 20.4, 21.6, 22.4, 22.2, 20.9, 19.4, 17.9, 16.3, 15.6] };
+  const sunsetAt = (c, ts) => (SUNSET[c] || SUNSET.msk)[new Date(ts + MSK).getUTCMonth()];
   function moment(q, now) {
     q = q || {};
     now = now == null ? Date.now() : +now;
@@ -81,7 +84,7 @@
   const GENRE_KIND = {
     standup: [/стендап|комеди|юмор/i, '🎙️', 'стендап'], theatre: [/театр|спектакл|опер|балет/i, '🎭', 'театр'],
     concert: [/концерт|джаз|филармони|музык|клуб живой/i, '🎤', 'живая музыка'], exhibition: [/музе|галере|выстав|арт-|центр современного/i, '🖼️', 'выставка'],
-    lecture: [/лекто|библиотек|просветит/i, '🧠', 'лекторий'], party: [/клуб|бар|танц/i, '🪩', 'вечеринка'], kids: [/детск|зоопарк|океанариум/i, '🧸', 'для детей'],
+    lecture: [/лекто|библиотек|просветит/i, '🧠', 'лекторий'], party: [/^(?!.*(компьютер|кибер|стендап|бильярд|шахмат|книжн)).*(клуб|бар|танц)/i, '🪩', 'вечеринка'], kids: [/детск|зоопарк|океанариум/i, '🧸', 'для детей'],
   };
   /* Время дня плана под «когда» — как в квизе главной */
   const WHEN_W = {
@@ -91,6 +94,8 @@
   };
 
   const hasTag = (p, t) => (p.tags || []).includes(t);
+  // теги-занятия: если назвали, план без них не «подходит» (в отличие от общих «активно», «поговорить», «культура»)
+  const SPEC_TAGS = new Set(['rink', 'banya', 'karaoke', 'quest', 'pc', 'spa', 'brunch', 'dog']);
   const planPrice = st => (st.length ? Math.max(...st.map(p => p.price || 1)) : 1);
   const priceWhy = (price, mode) => {
     const n = Math.max(1, Math.min(3, price || 1));
@@ -100,8 +105,10 @@
   const okrName = (c, id) => { try { return (K().CITIES[c].okrs.find(o => o[0] === id) || [])[1] || ''; } catch (e) { return ''; } };
   const minWalk = m => Math.max(1, Math.round(m * 1.3 / 75));
   const distWhy = (m, from) => (m < 2600 ? `${minWalk(m)}${NB}мин пешком ${from}` : `${(m / 1000).toFixed(m < 9950 ? 1 : 0).replace('.', ',')}${NB}км ${from}`);
-  /* Слово запроса в тексте: по корню («грузинскую» → «грузинск») */
-  const hit = (txt, w) => txt.includes(' ' + stem(w));
+  /* Слово запроса в тексте: по корню («грузинскую» → «грузинск»). Корень короче, чем у станций метро: не меньше пяти букв и ~70 %
+     слова («привет» не находит «приватный», «кальян» — «Игру в кальмара»), пятибуквенные — без последней («пиццу» → «пицц») */
+  const stemQ = w => (w.length <= 4 ? w : w.length === 5 ? w.slice(0, 4) : w.slice(0, Math.max(5, Math.ceil(w.length * 0.7))));
+  const hit = (txt, w) => txt.includes(' ' + stemQ(w));
   const isNew = (x, today) => { const a = x && x.added; return !!a && /^\d{4}-\d{2}-\d{2}$/.test(a) && a <= today && K().dayNum(today) - K().dayNum(a) <= 30; };
   /* Часы работы по ходу плана: к каждой остановке приходим после предыдущих (сколько там пробудем — как STAY в shared.js,
      плюс дорога пешком); место должно быть открыто ещё хотя бы MIN_OPEN минут. «Открыто до» — по той остановке, что закрывается раньше */
@@ -153,9 +160,12 @@
       const st = k.planStops(p);
       if (!st.length) return null;
       const why = [], add = (e, t, w) => why.push({ e, t, w: w || 1 });
-      let want = 0, got = 0, matched = !words.length;
-      const hints = k.planHints(p), price = planPrice(st);
+      // spec — конкретное занятие (падел, каток, баня, караоке, компы…): «подходит» только план, где оно есть, а не любой «активный»
+      let want = 0, got = 0, matched = !words.length, specWant = 0, specGot = 0;
+      const hints = k.planHints(p), price = planPrice(st), priceMode = q.solo ? 'solo' : p.mode || mode;
       let s = WHEN_W[mo.when][p.when] || 0;
+      // «на закате» после заката — уже темно: снимаем бонус вечера и штрафуем (закат по месяцам, Москва и Петербург)
+      if (p.when === 'закат' && hourOf(mo.ts) > sunsetAt(city, mo.ts) + 0.25) s -= 3 + Math.max(0, s);
       if (any && p.mode === mode) s += 2;
       // жанр афиши в запросе («стендап», «театр») — планы с таким местом
       genreRx.forEach(([r, e, t]) => { want++; if (st.some(x => r.test(x.kind || '') || r.test(x.name || ''))) { got++; s += 3; add(e, t, 3); } });
@@ -172,7 +182,7 @@
       // бюджет
       const bud = q.bud || 0;
       if (bud && price > bud) s -= 4 * (price - bud);
-      else if (bud) add(...priceWhy(price, mode), 2);
+      else if (bud) add(...priceWhy(price, priceMode), 2);
       if (q.premium) { if (price >= 3) s += 1.5; if (st.some(x => x.mich)) { s += 1.5; add('⭐', 'гид Michelin', 3); } }
       // где
       if (pt && st[0] && st[0].lat != null) {
@@ -187,17 +197,27 @@
       // настроение: теги и подсказки
       (q.tags || []).forEach(t => {
         want++;
-        if (hasTag(p, t) || hints.includes(t) || (t === 'late' && p.when === 'ночь')) { got++; s += 3; if (TAG_WHY[t]) add(...TAG_WHY[t], 3); }
+        const ok = hasTag(p, t) || hints.includes(t) || (t === 'late' && p.when === 'ночь');
+        if (ok) { got++; s += 3; if (TAG_WHY[t]) add(...TAG_WHY[t], 3); }
+        if (SPEC_TAGS.has(t)) { specWant++; if (ok) { specGot++; s += 1; } }
       });
       (q.hints || []).forEach(h => { want++; if (hints.includes(h)) { got++; s += 3; if (TAG_WHY[h]) add(...TAG_WHY[h], 3); } });
       (q.cats || []).forEach(c => {
         want++;
         if (st.some(x => k.catOf(x) === c)) { got++; s += 2.5; if (CAT_WHY[c] && c !== 'walk') add(...CAT_WHY[c], 2); }
       });
-      (q.kinds || []).forEach(w => { want++; if (st.some(x => norm(x.kind).includes(w))) { got++; s += 3; } });
+      (q.kinds || []).forEach(w => { want++; specWant++; if (st.some(x => norm(x.kind).includes(w) || norm(x.name).includes(w))) { got++; specGot++; s += 4; } });
       if (want && !got) s -= 3;
       if (q.romantic && (hasTag(p, 'view') || hints.includes('view') || hints.includes('scenic'))) { s += 1.5; add('✨', 'красиво', 2); }
       if (q.fresh) { if (st.some(x => isNew(x, today)) || isNew(p, today)) { s += 3; add('✨', 'новое', 3); } else s -= 1; }
+      if (q.free) { if (st.every(x => (x.price || 1) <= 1)) s += 2; else s -= 2.5; }
+      // «надоели рестораны», «не хочу в бар»: план с таким местом — ниже
+      (q.not || []).forEach(c => {
+        const has = c === 'kino' ? st.some(x => /кино/i.test(x.kind || '')) : c === 'party' ? st.some(x => GENRE_KIND.party[0].test(x.kind || '')) : c === 'pc' ? hasTag(p, 'pc') : st.some(x => k.catOf(x) === c);
+        if (has) s -= 5;
+      });
+      // день рождения компанией: караоке, квест, баня, ночь — выше
+      if (q.bday && p.mode !== 'date' && ['karaoke', 'quest', 'banya', 'late', 'active', 'pc'].some(t => hasTag(p, t))) { s += 1.5; add('🎂', 'для дня рождения', 2); }
       // слова — по названиям и типам мест
       if (words.length) {
         const name = norm(p.title + ' ' + st.map(x => x.name).join(' ')), kind = norm(st.map(x => (x.kind || '') + ' ' + (x.note || '')).join(' ') + ' ' + (p.why || ''));
@@ -241,8 +261,8 @@
       }
       if (ctx.seen && ctx.seen.has(p.id)) s -= 1.5;
       if (q.random) s += (Math.random() - 0.5) * 5;
-      if (!why.length || (bud === 0 && why.length < 2)) add(...priceWhy(price, mode), 0.5);
-      return { plan: p, score: s, why: tidy(why), closed: oa.closed ? oa.closed.p.name : '', match: matched && (!want || got > 0), i: idx };
+      if (!why.length || (bud === 0 && why.length < 2)) add(...priceWhy(price, priceMode), 0.5);
+      return { plan: p, score: s, why: tidy(why), closed: oa.closed ? oa.closed.p.name : '', match: matched && (!want || got > 0) && (!specWant || specGot > 0), i: idx };
     }).filter(Boolean).sort((a, b) => (b.score - a.score) || a.i - b.i);
     return pickTop(scored, ctx.limit || 3, ctx.diverse !== false, x => x.plan.stops);
   }
@@ -305,6 +325,9 @@
       const lk = Object.keys(tg).find(t => tl.includes(t) && tg[t] === e.cat);
       if (lk) { s += 1.5; if (LIKE[lk]) add('💛', LIKE[lk], 2); }
       if (ctx.taste && (ctx.taste.avoid || []).includes('late') && e.time && e.time >= '22:00') s -= 2;
+      // тот же исполнитель или спектакль, что человек уже смотрел в афише, — выше и с подписью «🔔 снова Макан»
+      const it = ctx.interest ? ctx.interest(e) : null;
+      if (it) { s += it.seen ? 1.5 : 3; add('🔔', it.seen ? 'из просмотренного' : 'снова ' + it.label, 4); }
       add('📅', dayLine(day, e, today), 5);
       return { ev: e, day, score: s, why: tidy(why), i };
     }).filter(Boolean).sort((a, b) => (b.score - a.score) || a.i - b.i);
@@ -317,6 +340,50 @@
     if (e.long && day === today) return 'идёт сейчас';
     return (I() ? I().dayText(day, atMsk(today, 12)) : day) + t;
   };
+
+  /* ---------- «Топ дня» и «Топ недели»: вместо длинных списков — короткий выбор ----------
+     Отбор одинаковый для всех в этот день, без выдуманной «популярности»: события недели с баллами за жанр (концерты, стендап,
+     фестивали — выше), доступную цену и время; планы режима — как в подборке «Куда пойти» (погода, часы работы), с фото и новые — выше.
+     Не больше двух событий одного жанра. Интересы человека (ctx.interest — исполнители из просмотренной афиши) и вкус поднимают
+     своё, но основа общая. Разброс внутри дня стабильный: тот же топ весь день у всех.
+     → { day: элемент | null, week: [элементы] }, элемент — { kind: 'event', ev, day, why } или { kind: 'plan', plan, why } */
+  const TOP_CAT = { concert: 3, standup: 2.5, festival: 3, party: 2.5, show: 2, exhibition: 2, theatre: 1.5, sport: 1.5, football: 1.5, lecture: 1 };
+  const jitter = s => { let h = 2166136261; for (const ch of s) { h ^= ch.codePointAt(0); h = Math.imul(h, 16777619) >>> 0; } return h / 4294967296; };
+  function top(ctx) {
+    ctx = ctx || {};
+    const k = K(), city = ctx.city || k.city(), now = ctx.now == null ? Date.now() : +ctx.now, today = ymdOf(now), wkEnd = I().plusDays(now, 6);
+    const evs = (k.events({ from: today, to: wkEnd, mode: ctx.mode || null }) || []).filter(e => k.inCity(e, city)).map(e => {
+      const day = (k.eventDays(e, today) || [])[0];
+      if (!day) return null;
+      if (day === today && e.time && !(e.long || (e.end && e.end > e.start && !(Array.isArray(e.dates) && e.dates.length))) && atMsk(day, +e.time.slice(0, 2) + +e.time.slice(3, 5) / 60) < now + 20 * 60e3) return null;
+      const long = e.end && e.end > e.start && !(Array.isArray(e.dates) && e.dates.length);
+      const p0 = Array.isArray(e.price) ? +e.price[0] : null, why = [], add = (em, t, w) => why.push({ e: em, t, w: w || 1 });
+      let s = TOP_CAT[e.cat] || 1;
+      if (p0 === 0) { s += 2; add('🆓', 'бесплатно', 3); }
+      else if (p0 > 0) { s += p0 <= 1500 ? 1.5 : p0 <= 3000 ? 0.8 : p0 <= 6000 ? 0 : -2.5; add('🎟️', `от ${String(p0).replace(/\B(?=(\d{3})+(?!\d))/g, NB)}${NB}₽`, 1.5); }
+      if (long) s -= 1.2;
+      const it = ctx.interest ? ctx.interest(e) : null;
+      if (it) { s += it.seen ? 1.5 : 3; add('🔔', it.seen ? 'из просмотренного' : 'снова ' + it.label, 4); }
+      const tl = ctx.taste ? ctx.taste.vibes || [] : [], tg = { theatre: 'theatre', concert: 'concert', standup: 'standup', culture: 'exhibition', party: 'party' };
+      const lk = Object.keys(tg).find(t => tl.includes(t) && tg[t] === e.cat);
+      if (lk) { s += 1; if (LIKE[lk]) add('💛', LIKE[lk], 2); }
+      add('📅', long && day === today ? 'идёт сейчас' : dayLine(day, e, today), 5);
+      return { kind: 'event', ev: e, day, score: s + jitter(e.id + today) * 0.8, why: tidy(why) };
+    }).filter(Boolean).sort((a, b) => b.score - a.score);
+    const pls = plans({}, Object.assign({}, ctx, { now, city, limit: 10, diverse: true, anyMode: false })).map((r, i) => {
+      const ph = k.planPhoto ? k.planPhoto(r.plan) : null;
+      return { kind: 'plan', plan: r.plan, why: r.why, score: (10 - i) / 3 + (ph ? 1 : 0) + (isNew(r.plan, today) ? 1 : 0) + jitter(r.plan.id + today) * 0.8 };
+    }).sort((a, b) => b.score - a.score);
+    // топ дня — событие сегодня, если оно сильное, иначе лучший план на сейчас
+    const ev0 = evs.find(x => x.day === today && x.score >= 3.5);
+    const day = ev0 || pls[0] || evs[0] || null;
+    const per = day && day.kind === 'event' ? { [day.ev.cat]: 1 } : {};
+    const ew = evs.filter(x => x !== day && (per[x.ev.cat] = (per[x.ev.cat] || 0) + 1) <= 2).slice(0, 4);
+    const pw = pls.filter(x => x !== day).slice(0, 3), week = [];
+    // вперемешку: событие, план, событие, событие, план…
+    [ew[0], pw[0], ew[1], ew[2], pw[1], ew[3], pw[2]].forEach(x => { if (x) week.push(x); });
+    return { day, week };
+  }
 
   /* ---------- места: когда в запросе есть слова, раздел или тип ---------- */
   function places(q, ctx) {
@@ -350,5 +417,5 @@
     return out.slice(0, ctx.limit || 4);
   }
 
-  window.KudaPick = { plans, events, places, moment, indoorPlace, indoorPlan, whenAt, TAG_WHY };
+  window.KudaPick = { plans, events, places, top, moment, indoorPlace, indoorPlan, whenAt, TAG_WHY };
 })();

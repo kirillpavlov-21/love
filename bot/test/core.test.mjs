@@ -307,3 +307,34 @@ test('оформление: кнопка меню открывает Mini App, �
   assert.equal(T.all('setMyDescription').length, 0, 'описание владельца осталось');
   assert.equal(T.all('setMyShortDescription').length, 1);
 });
+
+test('как пишут люди: сленг понят, конкретное занятие — точно, незнакомое слово — «по остальному», а не пусто', async () => {
+  const p = parse('завтра после пар куда сходить с тян');
+  assert.equal(p.mode, 'date');
+  assert.equal(p.when, 'eve');
+  assert.deepEqual(p.words, [], 'служебные слова не ищем в названиях');
+  assert.equal(parse('др у друга нас 6 человек').mode, 'guys');
+  assert.equal(parse('катка в кс').tags.includes('rink'), false, '«катка» — игра, а не каток');
+  assert.deepEqual(parse('надоели рестораны').not, ['food']);
+  assert.equal(parse('до 1.5к').bud, 1);
+  assert.equal(parse('kuda shodit s devushkoi').mode, 'date', 'транслит');
+  const { T, bot } = make();
+  await bot.handle(msg('падел'));
+  assert.match(T.last('sendMessage').params.text, /<b>[^<]*Падел[^<]*<\/b>/, 'падел — план с паделом, а не любой «активный»');
+  await bot.handle(msg('аниме кафе'));
+  const m = T.last('sendMessage').params.text;
+  assert.match(m, /Про «аниме» готовых планов нет — подобрал по остальному/);
+  assert.ok(!/Планов под это не нашлось/.test(m));
+  await bot.handle(msg('привет'));
+  assert.match(T.last('sendMessage').params.text, /Привет! Я — «Куда идём\?»/);
+});
+
+test('бот: /top — топ дня и семь на неделю, у каждого — почему', async () => {
+  const { T, bot } = make();
+  await bot.handle(msg('/top'));
+  const m = T.last('sendMessage').params;
+  assert.match(m.text, /🔥 <b>Топ дня<\/b>/);
+  assert.match(m.text, /📅 <b>Топ недели<\/b>/);
+  assert.ok((m.text.match(/^<b>\d\.<\/b>/gm) || []).length >= 3);
+  assert.match(m.text, /Выбор «Куда идём\?»/);
+});

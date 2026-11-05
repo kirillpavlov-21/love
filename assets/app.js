@@ -1042,8 +1042,10 @@
         <div class="pf-overlay"><div class="pf-card">
           <div class="legend">${legend}</div>
           <button class="btn btn-primary" id="play">Поехали${I('arrow')}</button>
+          <button type="button" class="link-btn pf-skip-now">${GROUP ? 'Сразу к голосованию' : 'Пропустить игру'}</button>
         </div></div>
-      </div>`;
+      </div>
+      <button type="button" class="link-btn pf-skip hidden">Пропустить${I('arrow')}</button>`;
     const pf = $('.pf', el), catcher = $('.catcher', el), basket = $('.basket', el);
     const bar = $('.meter-bar i', el), num = $('.meter-num', el), hand = $('.pf-hand', el);
     let W = 0, H = 0, catX = 0, targetX = 0, items = [], running = false, raf = 0, last = 0, spawnIn = 0.3, score = 0, t = 0, moved = false;
@@ -1150,6 +1152,8 @@
       items = [];
       S.a.hearts = score;
       save();
+      clearTimeout(skipT);
+      $('.pf-skip', el).classList.add('hidden');
       mood(el, 'love');
       Sfx.fanfare(); vibrate([20, 40, 20]);
       const r = pf.getBoundingClientRect();
@@ -1165,7 +1169,13 @@
       $('button', ov).onclick = () => { Sfx.click(); next(); };
       refocus($('button', ov));
     }
+    // играть — по желанию: «Пропустить» на старте и через 12 с игры — кому-то нужно просто ответить, а не ловить сердечки
+    let skipT = 0;
+    const skip = () => { running = false; cancelAnimationFrame(raf); clearTimeout(skipT); S.a.hearts = score; save(); Sfx.click(); next(); };
+    $('.pf-skip-now', el).onclick = skip;
+    $('.pf-skip', el).onclick = skip;
     $('#play', el).onclick = () => {
+      skipT = setTimeout(() => { const b = $('.pf-skip', el); if (b && running) b.classList.remove('hidden'); }, 12000);
       Sfx.init(); Sfx.click();
       measure();
       $('.pf-overlay', el).remove();
@@ -1178,6 +1188,7 @@
     return () => {
       running = false;
       cancelAnimationFrame(raf);
+      clearTimeout(skipT);
       removeEventListener('resize', onResize);
       removeEventListener('keydown', onKey);
     };
