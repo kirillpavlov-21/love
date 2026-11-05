@@ -1936,7 +1936,9 @@
     return parts.join(' · ');
   }
   const whyHtml = why => why.length ? `<span class="now-why">${why.map(w => `<span>${esc(w.e)}${NB}${esc(w.t)}</span>`).join('')}</span>` : '';
-  function nowPlanHtml(r) {
+  // значок на фото первого плана: он — главный вариант, два других — запасные
+  const BEST = '<span class="now-best">Лучшее сейчас</span>';
+  function nowPlanHtml(r, i) {
     const p = r.plan, { st } = planMeta(p), ph = K.planPhoto(p);
     // нажали «Не то» — спрашиваем почему: от ответа зависит, что поменять (бюджет, расстояние, формат или «уже были»)
     if (noAsk === p.id) return `<div class="now-it now-noask" role="group" aria-label="Почему не подходит «${esc(p.title)}»">
@@ -1945,7 +1947,7 @@
     const other = p.mode && p.mode !== mode && K.MODES[p.mode] ? ' · ' + K.MODES[p.mode].label : '';
     return `<div class="now-it">
       <button type="button" class="qr-it now-main" data-plan="${esc(p.id)}">
-        ${ph ? `<span class="qr-ph"><img src="${esc(ph.t)}" alt="" loading="lazy" decoding="async"></span>` : `<span class="qr-ph cover ${cvOf(st[0])}"><span class="cv-e" aria-hidden="true">${esc(p.emoji || (st[0] && st[0].emoji) || '📍')}</span></span>`}
+        ${ph ? `<span class="qr-ph"><img src="${esc(i === 0 ? ph.s : ph.t)}" alt="" loading="lazy" decoding="async">${i === 0 ? BEST : ''}</span>` : `<span class="qr-ph cover ${cvOf(st[0])}"><span class="cv-e" aria-hidden="true">${esc(p.emoji || (st[0] && st[0].emoji) || '📍')}</span>${i === 0 ? BEST : ''}</span>`}
         <span class="qr-main"><b>${esc(p.title)}</b><small>${esc(st.map(x => x.name).join(' → ') + other)}</small>${whyHtml(r.why)}</span>
       </button>
       <button type="button" class="now-no" data-no="${esc(p.id)}" aria-label="Не то: ${esc(p.title)} — показать другое" title="Не то — показать другое">${I('x')}</button>
@@ -1982,7 +1984,10 @@
   let topSig = '';
   const DAY_W = ['воскресенье', 'понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота'];
   function topCover(x, big) {
-    if (x.kind === 'event') return `<span class="${big ? 'top-ph' : 'fy-ph'} afc-${esc(x.ev.cat || 'other')}"><span class="e" aria-hidden="true">${esc(x.ev.emoji || '🎫')}</span></span>`;
+    if (x.kind === 'event') {
+      const when = big ? (x.why.find(w => w.e === '📅') || {}).t || '' : '';
+      return `<span class="${big ? 'top-ph' : 'fy-ph'} afc-${esc(x.ev.cat || 'other')}"><span class="e" aria-hidden="true">${esc(x.ev.emoji || '🎫')}</span>${when ? `<span class="top-date" aria-hidden="true">${esc(when)}</span>` : ''}</span>`;
+    }
     const { st } = planMeta(x.plan), ph = K.planPhoto(x.plan);
     return ph ? `<span class="${big ? 'top-ph' : 'fy-ph'}"><img src="${esc(big ? ph.s : ph.t)}" alt="" loading="lazy" decoding="async"></span>`
       : `<span class="${big ? 'top-ph' : 'fy-ph'} cover ${cvOf(st[0])}">${coverEmo(st, x.plan)}</span>`;
@@ -2006,7 +2011,7 @@
       <div class="block-head"><h2 id="topTitle">🔥 Топ дня</h2><span class="top-when">${esc(when)}</span></div>
       <button type="button" class="top-day" ${topAttr(x)}>
         ${topCover(x, true)}
-        <span class="top-txt"><b>${esc(topTitle(x))}</b>${topSub(x) ? `<small>${esc(topSub(x))}</small>` : ''}${whyHtml(x.why)}</span>
+        <span class="top-txt"><b>${esc(topTitle(x))}</b>${topSub(x) ? `<small>${esc(topSub(x))}</small>` : ''}${whyHtml(x.kind === 'event' ? x.why.filter(w => w.e !== '📅') : x.why)}</span>
       </button>
       ${R.week.length > 2 ? `<div class="feed-head top-wk"><h3>📅 Топ недели</h3><span class="muted">${R.week.length} идей: события и планы</span></div>
       <div class="rail top-rail">${R.week.map((y, i) => `<button type="button" class="fy-card" ${topAttr(y)}>
@@ -2016,6 +2021,8 @@
     blk.classList.remove('hidden');
   }
   const TASTE_SKIP = 'kuda-taste-skip';
+  // вернулся (рассказал о себе или сайт уже знает его вкус) — вступление на главной свёрнуто: сразу поиск и подборка (hub.css → html.back)
+  if ((T.taste && T.taste()) || T.ready()) document.documentElement.classList.add('back');
   const tasteSkipped = () => { try { return localStorage.getItem(TASTE_SKIP) === '1'; } catch (e) { return true; } };
   function renderNow() {
     const box = $('#now');

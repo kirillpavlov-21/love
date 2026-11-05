@@ -20,7 +20,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preload" href="assets/hub.css?v=43" as="style">
+  <link rel="preload" href="assets/hub.css?v=44" as="style">
   <!-- Какие скрипты нужны этой странице. Каталог и афиша — только своего города: Москва — places.js, places-info.js, events.js;
        Петербург — places-spb.js, events-spb.js (так первый план появляется на 1–2 секунды раньше). Город — как у hub.js:
        карточка из ссылки (?plan=, ?place=, ?event=, ?col=, ?list=) → ?city= → выбранный раньше (localStorage 'kuda-city') → Москва;
@@ -65,9 +65,9 @@
   <!-- шрифты не держат первый показ: сначала текст системным шрифтом, Unbounded и Onest подменят его, когда загрузятся -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;600;700&display=swap"></noscript>
-  <link rel="stylesheet" href="assets/hub.css?v=43">
-  <link rel="stylesheet" href="assets/afisha.css?v=43">
-  <link rel="stylesheet" href="assets/reviews.css?v=43">
+  <link rel="stylesheet" href="assets/hub.css?v=44">
+  <link rel="stylesheet" href="assets/afisha.css?v=44">
+  <link rel="stylesheet" href="assets/reviews.css?v=44">
   <!-- без JavaScript карточек планов не будет — место под них и под их число (hub.css) не держим -->
   <noscript><style>.cards:empty { min-height: 0; } #count:empty::before { content: none; }</style></noscript>
 </head>
@@ -118,7 +118,7 @@
     <div id="now" aria-live="polite"><div class="now-head"><h2 id="nowTitle">Куда пойти сегодня</h2></div><div class="now-wait" aria-hidden="true"><i></i><i></i><i></i></div></div>
   </section>
   <!-- «🔥 Топ дня» и «📅 Топ недели»: один главный вариант и семь на неделю — рисует hub.js (renderTop, KudaPick.top) -->
-  <section class="block top hidden" id="topBlock" aria-labelledby="topTitle"><div id="top"></div></section>
+  <section class="block top-blk hidden" id="topBlock" aria-labelledby="topTitle"><div id="top"></div></section>
   <section class="block invite" aria-label="Позвать игрой">
     <div class="hero-mode" id="heroMode">
       <p class="hero-hook"><b>Не пиши «го?». Позови игрой</b>Ссылка-игра: сердечки, письмо, выбор места, дня и времени из твоих вариантов. Ответ вернётся к тебе с готовым маршрутом.</p>
@@ -236,7 +236,7 @@
     <div class="row"><button class="btn ghost" id="consentNo" type="button">Только нужное</button><button class="btn primary" id="consentYes" type="button">Разрешить</button></div>
   </div>
 
-  <script src="config.js?v=43"></script>
+  <script src="config.js?v=44"></script>
   <!-- Загрузчик: те же скрипты и в том же порядке, что раньше стояли тегами, но каталог и афиша — только города из KUDA_BOOT (см. <head>),
        а сервер и отзывы (api.js, reviews.js) — только когда сервер включён в config.js (api.url).
        Нет KUDA_BOOT (страница из старого кэша) — подключаем всё, как раньше. Петербург без Москвы: каталог начинается пустым

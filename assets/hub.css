@@ -632,7 +632,8 @@ button.rate-line:focus-visible { outline: 2px solid var(--accent); outline-offse
 .qr-it:hover { border-color: var(--line-2); }
 .qr-it:active { transform: scale(.99); }
 .qr-it:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.qr-ph { flex: none; display: grid; place-items: center; width: 64px; height: 64px; border-radius: 12px; overflow: hidden; background: var(--surface-3); font-size: 28px; line-height: 1; }
+.qr-ph { flex: none; display: grid; place-items: center; width: 64px; height: 64px; border-radius: 12px; overflow: hidden; background-color: var(--surface-3); font-size: 28px; line-height: 1; }
+.qr-ph.cover { background-color: var(--cv2, #22212A); }
 .qr-ph img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .qr-ph.cover .cv-e { font-size: 30px; }
 .qr-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
@@ -882,7 +883,9 @@ html.tg #pwaSlot, html.tg .kpwa-btn { display: none !important; }
 html.tg body { overscroll-behavior-y: none; }
 
 /* ================= «🔥 Топ дня» и «📅 Топ недели» (hub.js → renderTop) ================= */
-.top .block-head { align-items: baseline; }
+/* класс .top-blk, а не .top: .top — шапка сайта (flex), с ней раздел растягивался по ширине ленты на 1 400 px */
+.top-blk { min-width: 0; }
+.top-blk .block-head { align-items: baseline; }
 .top-when { color: var(--muted); font-size: 13px; font-weight: 500; }
 .top-day { display: grid; grid-template-columns: minmax(0, 1fr); width: 100%; min-width: 0; padding: 0; overflow: hidden; border-radius: 22px; border: 1px solid var(--line-2); background: var(--surface); color: var(--text); font: inherit; text-align: left; cursor: pointer; transition: transform .12s, border-color .15s; }
 .top-day:active { transform: scale(.985); }
@@ -909,3 +912,25 @@ html.tg body { overscroll-behavior-y: none; }
 @media (hover: hover) { .tq-quick button:hover { border-color: var(--accent); } }
 .tq-quick span { font-size: 18px; }
 .now-taste > .link { grid-column: 1 / -1; justify-self: start; }
+
+/* ================= Меньше вступления, один явный выбор ================= */
+/* В Mini App и у вернувшихся продукт уже знаком: заголовок и котик вступления — только для читалки, первым экраном — поиск и подборка */
+html.tg .hero h1, html.back .hero h1, html.tg .hero .hero-sub, html.back .hero .hero-sub { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+html.tg .hero .cat-slot, html.back .hero .cat-slot { display: none; }
+html.tg .hero, html.back .hero { padding-top: 14px; padding-bottom: 14px; gap: 10px; }
+/* «Куда пойти»: первый план — крупно, два других — запасные строкой (один фаворит вместо трёх равных) */
+#now .qr-list > .now-it:first-child:not(.now-noask) .now-main { flex-direction: column; align-items: stretch; gap: 10px; padding: 8px 8px 14px; }
+#now .qr-list > .now-it:first-child:not(.now-noask) .qr-ph { width: 100%; height: 172px; font-size: 56px; }
+#now .qr-list > .now-it:first-child:not(.now-noask) .qr-ph.cover .cv-e { font-size: 56px; }
+#now .qr-list > .now-it:first-child:not(.now-noask) .qr-main { gap: 4px; padding: 0 6px; }
+#now .qr-list > .now-it:first-child:not(.now-noask) .qr-main b { font: 700 18px/1.25 var(--display); letter-spacing: -.01em; }
+#now .qr-list > .now-it:first-child:not(.now-noask) .now-no { top: 16px; right: 16px; bottom: auto; width: 38px; height: 38px; border: 0; border-radius: 50%; background: rgba(15, 14, 19, .78); color: var(--text); }
+.now-best { display: none; }
+#now .qr-list > .now-it:first-child:not(.now-noask) .qr-ph { position: relative; }
+#now .qr-list > .now-it:first-child:not(.now-noask) .now-best { display: block; position: absolute; left: 10px; top: 10px; padding: 5px 10px; border-radius: 99px; background: rgba(15, 14, 19, .8); color: var(--text); font: 600 12px/1 var(--body); }
+/* «Топ дня» — событие: на обложке крупно, когда оно */
+.top-ph .e { position: absolute; right: 18px; top: 50%; transform: translateY(-50%); font-size: 72px; opacity: .9; }
+.top-date { position: absolute; left: 16px; bottom: 14px; max-width: 70%; color: #fff; font: 700 24px/1.1 var(--display); letter-spacing: -.02em; text-shadow: 0 2px 12px rgba(0, 0, 0, .3); }
+.top-date::first-letter { text-transform: uppercase; }
+/* «Не сейчас» — палец попадает с первого раза */
+.now-taste > .link { padding: 10px 2px; margin: -4px 0 -8px; }
