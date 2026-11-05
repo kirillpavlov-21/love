@@ -338,3 +338,22 @@ test('бот: /top — топ дня и семь на неделю, у кажд�
   assert.ok((m.text.match(/^<b>\d\.<\/b>/gm) || []).length >= 3);
   assert.match(m.text, /Выбор «Куда идём\?»/);
 });
+
+test('тестеры: /start tester_код — журнал действий, «Открыть приложение» с кодом, /stoptest — больше не пишем', async () => {
+  const T = fakeApi(), store = memoryStore(), log = [];
+  const bot = createBot({ api: T.api, store, catalog: async () => C, site: 'https://example.org/love/', name: 'kuda_test_bot', audit: r => log.push(r) });
+  await bot.handle(msg('просто так'));
+  assert.equal(log.length, 0, 'не тестер — не пишем');
+  await bot.handle(msg('/start tester_Anya'));
+  assert.equal((await store.get('u:11')).tester, 'anya');
+  const app = T.last('sendMessage').params.reply_markup.inline_keyboard.flat().find(b => b.web_app);
+  assert.match(app.web_app.url, /start\.html\?tg=1&tester=anya$/);
+  await bot.handle(msg('свидание в субботу'));
+  await bot.handle({ callback_query: { id: 'c1', from: ann, data: 'z', message: { message_id: 3, chat: priv } } });
+  assert.deepEqual(log.map(r => [r.tester, r.kind]), [['anya', 'message'], ['anya', 'message'], ['anya', 'button']]);
+  assert.equal(log[1].text, 'свидание в субботу');
+  await bot.handle(msg('/stoptest'));
+  await bot.handle(msg('ещё что-то'));
+  assert.equal(log.length, 3, 'после /stoptest — ничего');
+  assert.equal((await store.get('u:11')).tester, undefined);
+});

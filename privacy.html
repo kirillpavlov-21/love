@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="assets/hub.css?v=44">
+  <link rel="stylesheet" href="assets/hub.css?v=45">
   <style>
     .doc h1 { margin: 22px 0 6px; font: 700 clamp(20px, 6.4vw, 28px)/1.15 var(--display); letter-spacing: -.02em; overflow-wrap: break-word; hyphens: auto; }
     .doc h2 { margin: 30px 0 8px; font: 600 18px/1.3 var(--display); scroll-margin-top: 16px; }
@@ -95,6 +95,9 @@
     <h2 id="metrika">Яндекс Метрика</h2>
     <p>Счётчик подключается только после того, как ты нажмёшь «Разрешить» в плашке про аналитику. Туда уходят обезличенные события — открыт план, создано приглашение, открыта карточка события и т. п. — без имён и текстов приглашений. Метрика использует cookie. Передумал — «Настройки аналитики» внизу главной: счётчик отключится сразу, а его cookie удалятся. <span class="hidden" id="metrikaOff">Сейчас счётчик не подключён.</span></p>
 
+    <h2 id="testers">Если ты участвуешь в тестировании</h2>
+    <p>Тестеры получают личную ссылку с кодом теста (например, <code>?tester=anya</code>) или ссылку на бота с ним. На сайте появится плашка, и только после «Согласен» включится Яндекс Метрика с этим кодом: так автор видит, что делал каждый тестер, без имени и аккаунта Telegram. На главной Метрика записывает экран (Вебвизор) — нажатия и прокрутку; то, что вводят в поля, не записывается. В игре-приглашении и конструкторе экран не записывается, только нажатия. В боте после <code>/start tester_…</code> сообщения и нажатия тестера сохраняются в файле у автора бота, чтобы разобрать, где бот ошибается. Выйти из теста: на сайте — ссылка с <code>?tester=off</code> или кнопка «Удалить мои данные», в боте — <code>/stoptest</code>.</p>
+
     <h2 id="telegram">Уведомления в Telegram — по желанию</h2>
     <p>Создатель приглашения может получить у нашего бота ключ владельца — тогда ответы на его приглашения (имя, выбранные места и дни) приходят ему в Telegram. Их пересылает посредник на Google Apps Script — это серверы Google за пределами России. Посредник хранит номер чата, ключ, отпечатки приглашений и секретов; тексты ответов он не сохраняет. Если посредник сокращает ссылку, адрес хранится в его таблице 90 дней. Отключить уведомления — команда <code>/stop</code> боту. <span class="hidden" id="tgOff">Сейчас уведомления в Telegram выключены.</span></p>
     <p>Если ты пишешь нам в Telegram — в поддержку или боту, например об ошибке в карточке места, — мы получаем текст сообщения и твоё имя или ник в Telegram. Используем их только чтобы ответить и поправить каталог.</p>
@@ -130,7 +133,7 @@
   </main>
   <footer class="foot"><nav class="foot-links"><a href="start.html">← На главную</a><a href="rules.html">Правила рекомендаций</a><a href="partners.html">Для заведений</a></nav></footer>
   <div class="toast hidden" id="toast" role="status"></div>
-  <script src="config.js?v=44"></script>
+  <script src="config.js?v=45"></script>
   <script>
   (function () {
     var C = window.DATE_CONFIG || {}, sup = C.support || {}, site = C.site || {};
@@ -189,6 +192,6 @@
     };
   })();
   </script>
-  <script src="assets/pwa.js?v=44"></script>
+  <script src="assets/pwa.js?v=45"></script>
 </body>
 </html>

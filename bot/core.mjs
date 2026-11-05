@@ -69,7 +69,8 @@ export async function setupBot(api, site, log = () => {}) {
   if (s && !s.short_description) await api('setMyShortDescription', { short_description: SHORT }).catch(e => log('короткое описание не поставилось:', e.message));
 }
 
-export function createBot({ api, store, catalog, site, name = '', log = () => {} }) {
+/* audit(запись) — только для тестеров (/start tester_<код>): что они пишут и нажимают — для разбора, где бот путает (poll.mjs пишет в ~/.kuda/logs/testers.jsonl) */
+export function createBot({ api, store, catalog, site, name = '', log = () => {}, audit = null }) {
   const SITE = (site || 'https://kirillpavlov-21.github.io/love/').replace(/\/?$/, '/');
   let botName = name;
   const REFS = new WeakMap();
@@ -80,7 +81,7 @@ export function createBot({ api, store, catalog, site, name = '', log = () => {}
 
   /* ---------- люди и ссылки ---------- */
   const userOf = async id => Object.assign({ city: 'msk', mode: '' }, await store.get('u:' + id));
-  const saveUser = (id, u) => store.set('u:' + id, { city: u.city, mode: u.mode }, TTL.user);
+  const saveUser = (id, u) => store.set('u:' + id, Object.assign({ city: u.city, mode: u.mode }, u.tester ? { tester: u.tester } : null), TTL.user);
   const cq = c => (c === 'spb' ? '&city=spb' : '');
   const U = {
     plan: (p, c) => SITE + 'start.html?plan=' + encodeURIComponent(p.id) + cq(c),
@@ -320,7 +321,7 @@ export function createBot({ api, store, catalog, site, name = '', log = () => {}
       '<b>Напиши, что хочется, обычными словами</b>\n<blockquote>свидание недорого, если дождь\nнас пятеро в субботу, баня\nбар с видом у Чистых прудов</blockquote>\n\n' +
       `🗳️ В любом чате набери <code>${esc(at)}</code> и что хотите — соберу голосование «куда идём». Добавлять меня в чат не нужно.`;
     const rows = [];
-    if (chat.type === 'private') rows.push([{ text: '✨ Открыть приложение', web_app: { url: U.app(u.city) } }]);
+    if (chat.type === 'private') rows.push([{ text: '✨ Открыть приложение', web_app: { url: U.app(u.city, u.tester ? 'tester=' + encodeURIComponent(u.tester) : '') } }]);
     rows.push(
       [{ text: '🎯 Подобрать за 10 секунд', callback_data: 'z' }, { text: '🎲 Удиви меня', callback_data: 's' }],
       [{ text: '🔥 Топ недели', callback_data: 't' }, { text: '📅 Афиша сегодня', callback_data: 'a|today' }],
@@ -340,6 +341,13 @@ export function createBot({ api, store, catalog, site, name = '', log = () => {}
         await store.set('q:' + qid, Q, TTL.query);
         return sendCard(chat.id, queryCard(C, Q, qid, 0, priv));
       }
+    }
+    // тест с живыми людьми: t.me/<бот>?start=tester_<код>; выйти — /stoptest
+    if ((m = /^tester_([a-z0-9_-]{2,24})$/i.exec(arg)) && priv) {
+      u.tester = m[1].toLowerCase();
+      await saveUser(msg.from.id, u);
+      await send(chat.id, `🧪 <b>Спасибо, что тестируешь!</b>\nКод теста: <code>${esc(u.tester)}</code>. Пользуйся ботом и приложением как обычно и пиши как есть — так, как написал бы другу.\n\n<i>Пока идёт тест, твои сообщения и нажатия в этом боте сохраняются у автора, чтобы понять, где бот ошибается. Выйти из теста — /stoptest.</i>`);
+      return welcome(chat, u);
     }
     if ((m = /^q_([A-Za-z0-9_-]{2,60})$/.exec(arg))) { const t = unb64u(m[1]); if (t) return answerQuery(chat, msg.from, u, t); }
     // с сайта: «Голосование в Telegram» — t.me/<бот>?start=poll_<номер>_<номер>…
@@ -470,6 +478,7 @@ export function createBot({ api, store, catalog, site, name = '', log = () => {}
         case 'opros': case 'poll': return groupPoll(msg, u, arg);
         case 'kogda': case 'when': return daysPoll(msg);
         case 'gorod': case 'city': return cityMenu(chat, u);
+        case 'stoptest': delete u.tester; await saveUser(msg.from.id, u); return send(chat.id, 'Готово: тест закончен, больше ничего не сохраняю. Спасибо! 🙌');
         default: return priv ? help(chat, u) : null;
       }
     }
@@ -570,6 +579,14 @@ export function createBot({ api, store, catalog, site, name = '', log = () => {}
   async function handle(update) {
     const from = (update.message || update.callback_query || update.inline_query || {}).from;
     if (tooMany(from && from.id)) return null;
+    if (audit && from && !from.is_bot) {
+      const u = await userOf(from.id), m = update.message, c = update.callback_query, q = update.inline_query;
+      // /start tester_… — тоже в журнал: так видно, когда человек пришёл
+      const start = m && /^\/start tester_([a-z0-9_-]{2,24})$/i.exec(String(m.text || '').trim());
+      const code = u.tester || (start && start[1].toLowerCase());
+      if (code && !(m && /^\/stoptest/i.test(m.text || ''))) audit({ at: new Date().toISOString(), tester: code, chat: (m && m.chat.type) || (c && c.message && c.message.chat.type) || (q ? 'inline' : ''),
+        kind: m ? 'message' : c ? 'button' : 'inline', text: m ? String(m.text || '').slice(0, 300) : q ? String(q.query || '').slice(0, 120) : '', data: c ? String(c.data || '') : '' });
+    }
     try {
       if (update.message) return await onMessage(update.message);
       if (update.callback_query) return await onCallback(update.callback_query);

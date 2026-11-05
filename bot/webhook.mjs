@@ -6,6 +6,7 @@
    Telegram присылает его в заголовке X-Telegram-Bot-Api-Secret-Token, чужие запросы получают 401.
    SITE_URL, BOT_DATA, BOT_STORE — как в bot/poll.mjs. GET / — «живой ли» (для проверок хостинга). */
 import http from 'node:http';
+import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import crypto from 'node:crypto';
@@ -28,7 +29,10 @@ if (secret.length < 16 || !/^[A-Za-z0-9_-]+$/.test(secret)) { console.error('TG_
 const api = telegram(botToken(), { base: process.env.TG_API || undefined });   // TG_API — свой сервер Bot API (по умолчанию api.telegram.org)
 const store = fileStore(process.env.BOT_STORE || path.join(os.homedir(), '.kuda', 'bot-store.json'));
 const me = await api('getMe');
-const bot = createBot({ api, store, catalog: () => loadCatalog(src), site, name: me.username, log });
+// журнал тестеров (/start tester_<код>): одна строка JSON на действие, только у автора бота (сводка — node bot/testers.mjs)
+const TESTERS = process.env.BOT_TESTERS || path.join(os.homedir(), '.kuda', 'logs', 'testers.jsonl');
+const audit = rec => fs.promises.mkdir(path.dirname(TESTERS), { recursive: true, mode: 0o700 }).then(() => fs.promises.appendFile(TESTERS, JSON.stringify(rec) + '\n', { mode: 0o600 })).catch(e => log('журнал тестеров:', e.message));
+const bot = createBot({ api, store, catalog: () => loadCatalog(src), site, name: me.username, audit, log });
 await loadCatalog(src);
 
 const ok = (a, b) => { const x = Buffer.from(a), y = Buffer.from(b); return x.length === y.length && crypto.timingSafeEqual(x, y); };
