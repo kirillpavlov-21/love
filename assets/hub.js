@@ -299,7 +299,8 @@
     if (PLACES.filter(p => p.oh).length < PLACES.length / 5) PCAT_HAS.delete('open');
     LINE = new Map(safe(() => G.stations(city), []).filter(x => x && x.line).map(x => [x.name, x.line]));
   }
-  const PSTEP = 24;
+  // сначала 6 мест, дальше — по 12 кнопкой «Показать ещё»: длинный список с порога пугает, а не помогает выбрать
+  const PSTEP = 6, PMORE = 12;
   /* psort: '' — как обычно (с фото — выше), 'rating' — по сглаженной оценке гостей (только со своим сервером) */
   let pcat = 'all', pokr = 'all', pq = '', plimit = PSTEP, pview = 'list', psort = '';
   /* «Рядом со мной»: координаты берём из браузера только по нажатию и никуда не отправляем. Точка — своя у каждого города (geo.js) */
@@ -456,7 +457,7 @@
     setHtml('#how3', '<b>Итоги у всех одинаковые:</b> кто идёт, куда и в какой день — обновляются сами.');
     setHtml('#faqAnswer', 'Ответ появится в <a href="invites.html">«Моих приглашениях»</a> (значок в шапке), как только человек нажмёт «Отправить»: там видно, открыли ли приглашение, кто проголосовал и что ответили. ' +
       'Включи там уведомления — браузер сообщит о новом ответе, пока страница открыта.' + tgLine);
-    setText('#faqGroup', 'Выбери «Пацаны» или «Подружки», отметь подходящие планы и кинь ссылку в общий чат. Каждый отметит, куда и в какие дни может, — ' +
+    setText('#faqGroup', 'Выбери «Друзья» или «Подружки», отметь подходящие планы и кинь ссылку в общий чат. Каждый отметит, куда и в какие дни может, — ' +
       'итог у всех одинаковый и обновляется сам. При ничьей поможет колесо.');
     setHtml('#faqStore', 'Голоса и ответы на приглашения хранятся на нашем сервере в России и удаляются через 90 дней. Отзывы о местах тоже хранятся там и видны на сайте. ' +
       'Всё остальное — имена, места и даты — живёт в самой ссылке и в твоём браузере. Аккаунт не нужен. Подробнее — в <a href="privacy.html">политике конфиденциальности</a>.');
@@ -617,7 +618,8 @@
     syncUrl();
     T.ev('budget', { v: String(b), kind: where });
   }
-  const CSTEP = 24;
+  // планы — так же: 6 с порога, дальше по 12
+  const CSTEP = 6, CMORE = 12;
   let climit = CSTEP;
   /* Лента «Новые планы» — среди карточек после NEW_AT-й, когда фильтр «Все» */
   const NEW_AT = 4, RAIL_N = 12;
@@ -649,7 +651,7 @@
     $('#count').textContent = `${plans.length} ${plural(plans.length, 'план', 'плана', 'планов')}`;
     const rest = plans.length - Math.min(climit, plans.length);
     $('#cmore').classList.toggle('hidden', rest <= 0);
-    $('#cmore').textContent = `Показать ещё ${Math.min(rest, CSTEP)} из ${rest}`;
+    $('#cmore').textContent = `Показать ещё ${Math.min(rest, CMORE)} из ${rest}`;
     const rail = flt === 'all' && plans.length > NEW_AT ? newPlansRail(all) : '';
     const html = plans.slice(0, climit).map((p, i) => {
       const { st, legs, price } = planMeta(p);
@@ -769,6 +771,8 @@
     if (psort === 'rating' && !rated) psort = '';
     // по рейтингу: сглаженная оценка (у мест без отзывов — средняя), при равенстве — прежний порядок (с фото или ближе)
     if (psort === 'rating') list = list.map((p, i) => [p, safe(() => +RV.score(p.id), 0) || 0, i]).sort((a, b) => (b[1] - a[1]) || a[2] - b[2]).map(x => x[0]);
+    // в обычном порядке закрытые сейчас — после открытых: первым на глаза не должен попадаться «закрыто»
+    else if (!near) { const shut = p => { const o = K.openState(p); return !!o && !o.open; }; list = list.filter(p => !shut(p)).concat(list.filter(shut)); }
     const hasSaved = PLACES.some(p => T.isFav('place:' + p.id));
     const hasNew = PLACES.some(isNew);
     // сохранённые в другом городе: чип «🔖 Сохранённые» есть, а в нём — подсказка переключиться
@@ -803,7 +807,7 @@
       : '<p class="pl-empty">Ничего не нашлось. Попробуй другое слово или категорию.</p>';
     const rest = list.length - Math.min(plimit, list.length);
     $('#pmore').classList.toggle('hidden', rest <= 0 || pview === 'map');
-    $('#pmore').textContent = `Показать ещё ${Math.min(rest, PSTEP)} из ${rest}`;
+    $('#pmore').textContent = `Показать ещё ${Math.min(rest, PMORE)} из ${rest}`;
   }
   /* «Похожие рядом»: та же категория в пределах ~3 км, близкие признаки и то, что нравится человеку */
   function similarPlaces(id, n) {
@@ -1224,8 +1228,8 @@
     clearTimeout(pqTimer);
     pqTimer = setTimeout(() => { pq = e.target.value; plimit = PSTEP; renderPlaces(); }, 150);
   });
-  $('#pmore').onclick = () => { plimit += PSTEP; renderPlaces(); };
-  $('#cmore').onclick = () => { climit += CSTEP; renderCards(); };
+  $('#pmore').onclick = () => { plimit += PMORE; renderPlaces(); };
+  $('#cmore').onclick = () => { climit += CMORE; renderCards(); };
   $('#pokrs').addEventListener('click', e => {
     if (e.target.closest('button[data-near]')) { toggleNear(); return; }
     const b = e.target.closest('button[data-po]');
@@ -1909,7 +1913,7 @@
   /* Контекст подбора: город, режим, погода, точка «рядом», вкус, модель «Для тебя», оценки гостей */
   function pickCtx(o) {
     return Object.assign({
-      city, mode, anyMode: true, wetOn, point: near, taste: T.taste ? T.taste() : null,
+      city, mode, anyMode: true, wetOn, point: near, taste: T.taste ? T.taste() : null, interest: T.interestOf || null,
       learned: T.ready() ? (kind, id) => T.score(kind, id) : null,
       rating: RV ? id => safe(() => RV.score(id), 0) : null,
     }, o);
@@ -1932,7 +1936,9 @@
     return parts.join(' · ');
   }
   const whyHtml = why => why.length ? `<span class="now-why">${why.map(w => `<span>${esc(w.e)}${NB}${esc(w.t)}</span>`).join('')}</span>` : '';
-  function nowPlanHtml(r) {
+  // значок на фото первого плана: он — главный вариант, два других — запасные
+  const BEST = '<span class="now-best">Лучшее сейчас</span>';
+  function nowPlanHtml(r, i) {
     const p = r.plan, { st } = planMeta(p), ph = K.planPhoto(p);
     // нажали «Не то» — спрашиваем почему: от ответа зависит, что поменять (бюджет, расстояние, формат или «уже были»)
     if (noAsk === p.id) return `<div class="now-it now-noask" role="group" aria-label="Почему не подходит «${esc(p.title)}»">
@@ -1941,7 +1947,7 @@
     const other = p.mode && p.mode !== mode && K.MODES[p.mode] ? ' · ' + K.MODES[p.mode].label : '';
     return `<div class="now-it">
       <button type="button" class="qr-it now-main" data-plan="${esc(p.id)}">
-        ${ph ? `<span class="qr-ph"><img src="${esc(ph.t)}" alt="" loading="lazy" decoding="async"></span>` : `<span class="qr-ph cover ${cvOf(st[0])}"><span class="cv-e" aria-hidden="true">${esc(p.emoji || (st[0] && st[0].emoji) || '📍')}</span></span>`}
+        ${ph ? `<span class="qr-ph"><img src="${esc(i === 0 ? ph.s : ph.t)}" alt="" loading="lazy" decoding="async">${i === 0 ? BEST : ''}</span>` : `<span class="qr-ph cover ${cvOf(st[0])}"><span class="cv-e" aria-hidden="true">${esc(p.emoji || (st[0] && st[0].emoji) || '📍')}</span>${i === 0 ? BEST : ''}</span>`}
         <span class="qr-main"><b>${esc(p.title)}</b><small>${esc(st.map(x => x.name).join(' → ') + other)}</small>${whyHtml(r.why)}</span>
       </button>
       <button type="button" class="now-no" data-no="${esc(p.id)}" aria-label="Не то: ${esc(p.title)} — показать другое" title="Не то — показать другое">${I('x')}</button>
@@ -1972,7 +1978,51 @@
   const TG_APP = /^[A-Za-z0-9_]{5,32}$/.test(String((CFG.telegram || {}).app || '')) ? CFG.telegram.app : '';
   const tgRef = id => { let h = 0x811c9dc5; for (const ch of String(id)) { h ^= ch.codePointAt(0); h = Math.imul(h, 0x01000193) >>> 0; } return h.toString(36).padStart(6, '0').slice(-6); };
   const tgPollUrl = ids => (TG_APP && ids.length > 1 ? `https://t.me/${TG_APP}?start=poll_${ids.slice(0, 8).map(tgRef).join('_')}` : '');
+  /* ---------- «🔥 Топ дня» и «📅 Топ недели» (KudaPick.top): один главный вариант и семь на неделю вместо длинных списков ----------
+     Отбор общий на день (жанр, цена, погода, часы работы), свои интересы из афиши и вкус его подстраивают. Считаем заново,
+     только когда меняются город, режим, день, погода или интересы */
+  let topSig = '';
+  const DAY_W = ['воскресенье', 'понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота'];
+  function topCover(x, big) {
+    if (x.kind === 'event') {
+      const when = big ? (x.why.find(w => w.e === '📅') || {}).t || '' : '';
+      return `<span class="${big ? 'top-ph' : 'fy-ph'} afc-${esc(x.ev.cat || 'other')}"><span class="e" aria-hidden="true">${esc(x.ev.emoji || '🎫')}</span>${when ? `<span class="top-date" aria-hidden="true">${esc(when)}</span>` : ''}</span>`;
+    }
+    const { st } = planMeta(x.plan), ph = K.planPhoto(x.plan);
+    return ph ? `<span class="${big ? 'top-ph' : 'fy-ph'}"><img src="${esc(big ? ph.s : ph.t)}" alt="" loading="lazy" decoding="async"></span>`
+      : `<span class="${big ? 'top-ph' : 'fy-ph'} cover ${cvOf(st[0])}">${coverEmo(st, x.plan)}</span>`;
+  }
+  const topAttr = x => (x.kind === 'event' ? `data-open-event="${esc(x.ev.id)}"` : `data-plan="${esc(x.plan.id)}"`);
+  const topTitle = x => (x.kind === 'event' ? x.ev.title : x.plan.title);
+  const topSub = x => (x.kind === 'event' ? x.ev.venue || '' : planMeta(x.plan).st.map(s => s.name).join(' → '));
+  function renderTop() {
+    const box = $('#top'), blk = $('#topBlock');
+    if (!box || !blk) return;
+    if (!PK || typeof PK.top !== 'function') { blk.classList.add('hidden'); return; }
+    const ints = T.interests ? T.interests().slice(0, 5).map(x => x.key).join(',') : '';
+    const sig = [city, mode, todayYmd, WX ? WX.day + (wxHint(WX) ? 'w' : '') : '', ints].join('|');
+    if (sig === topSig) return;
+    topSig = sig;
+    const R = safe(() => PK.top(pickCtx({ interest: T.interestOf || null })), null);
+    if (!R || !R.day) { blk.classList.add('hidden'); return; }
+    const d = new Date(Date.now() + 3 * 3600e3), when = `${DAY_W[d.getUTCDay()]}, ${d.getUTCDate()} ${MON_G[d.getUTCMonth()]}`;
+    const x = R.day;
+    box.innerHTML = `
+      <div class="block-head"><h2 id="topTitle">🔥 Топ дня</h2><span class="top-when">${esc(when)}</span></div>
+      <button type="button" class="top-day" ${topAttr(x)}>
+        ${topCover(x, true)}
+        <span class="top-txt"><b>${esc(topTitle(x))}</b>${topSub(x) ? `<small>${esc(topSub(x))}</small>` : ''}${whyHtml(x.kind === 'event' ? x.why.filter(w => w.e !== '📅') : x.why)}</span>
+      </button>
+      ${R.week.length > 2 ? `<div class="feed-head top-wk"><h3>📅 Топ недели</h3><span class="muted">${R.week.length} идей: события и планы</span></div>
+      <div class="rail top-rail">${R.week.map((y, i) => `<button type="button" class="fy-card" ${topAttr(y)}>
+        ${topCover(y)}<i class="top-n" aria-hidden="true">${i + 1}</i>
+        <b>${esc(topTitle(y))}</b><small>${esc((y.why.find(w => w.e === '📅' || w.e === '🔔') || y.why[0] || { t: topSub(y) }).t)}</small></button>`).join('')}</div>` : ''}
+      <p class="block-note top-note">Выбор «Куда идём?» на сегодня: что идёт, по какой цене и с учётом погоды. <a href="rules.html#top">Как выбираем</a></p>`;
+    blk.classList.remove('hidden');
+  }
   const TASTE_SKIP = 'kuda-taste-skip';
+  // вернулся (рассказал о себе или сайт уже знает его вкус) — вступление на главной свёрнуто: сразу поиск и подборка (hub.css → html.back)
+  if ((T.taste && T.taste()) || T.ready()) document.documentElement.classList.add('back');
   const tasteSkipped = () => { try { return localStorage.getItem(TASTE_SKIP) === '1'; } catch (e) { return true; } };
   function renderNow() {
     const box = $('#now');
@@ -1986,21 +2036,26 @@
     const asked = !!askQ.trim();
     const skip = new Set((T.noList ? T.noList('plan') : []).concat(T.beenList ? T.beenList('plan') : []));
     // без запроса — только свой режим; спросили «компы» на вкладке «Свидание» — смотрим планы всех режимов
-    const found = safe(() => PK.plans(q, pickCtx({ limit: askN, skip, anyMode: asked && !q.mode })), []);
+    // с запасом: сначала фильтр «что назвали», потом askN — иначе подходящие планы терялись за лимитом
+    const found = safe(() => PK.plans(q, pickCtx({ limit: Math.max(30, askN), skip, anyMode: asked && !q.mode })), []);
     // назвали что-то конкретное (слова, настроение, раздел, жанр) — только планы, где это есть; иначе честное «не нашлось»
     const specific = q.words.length || q.tags.length || q.cats.length || q.kinds.length || q.ev.length || q.hints.length;
-    const plans = specific ? found.filter(r => r.match) : found;
+    // точных нет, а остальное в запросе понятно — лучшие по остальному с честной пометкой вместо «ничего не нашлось»
+    const strict = specific ? found.filter(r => r.match) : found;
+    const soft = !!specific && !strict.length && found.length > 0 && (q.chips.length > 0 || q.kinds.length > 0);
+    const pool = soft ? found : strict, plans = pool.slice(0, askN);
     const evs = safe(() => PK.events(q, pickCtx({ limit: 2 })), []);
     const pls = safe(() => PK.places(q, pickCtx({ limit: 4 })), []);
     const mo = PK.moment(q);
     // слова запроса нашлись в местах, а в планах — нет: места показываем первыми
-    const placesFirst = q.words.length && pls.length && !plans.length;
+    const placesFirst = (q.words.length || q.kinds.length) && pls.length && (soft || !plans.length);
     const got = asked && q.chips.length ? `<p class="now-got"><span class="k">Понял так:</span>${q.chips.map(c => `<span>${esc(c.e)}${NB}${esc(c.t)}</span>`).join('')}</p>` : '';
     const locMsg = q.near && !near ? `<p class="muted now-msg" role="status">${askLoc === 2 ? 'Не получилось узнать, где ты, — напиши станцию метро, например «у Чистых прудов».' : 'Определяем, где ты…'}</p>` : '';
     const prof = T.taste ? T.taste() : null;
     const taste = asked ? '' : prof ? profileLine(prof)
-      : !tasteSkipped() ? `<div class="now-taste"><span class="e" aria-hidden="true">👋</span><p><b>Давай познакомимся</b>Пара вопросов: с кем ходишь, что вам нравится и чего не надо, — и подборка будет под вас.</p>
-          <div class="row"><button type="button" class="btn primary" data-taste>Начать</button><button type="button" class="link" data-taste-skip>Не сейчас</button></div></div>` : '';
+      : !tasteSkipped() ? `<div class="now-taste"><span class="e" aria-hidden="true">👋</span><p><b>С кем сегодня?</b>Один тап — и подборка станет под вас. Ответ остаётся только в этом браузере.</p>
+          <div class="tq-quick" role="group" aria-label="С кем идёшь">${QUICK_WHO.map(([v, e, t]) => `<button type="button" data-quick-who="${v}"><span aria-hidden="true">${e}</span>${t}</button>`).join('')}</div>
+          <button type="button" class="link" data-taste-skip>Не сейчас</button></div>` : '';
     const rate = asked ? '' : rateCard();
     const planBlock = plans.length ? `<div class="qr-list">${plans.map(nowPlanHtml).join('')}</div>`
       : `<p class="pl-empty">${pls.length || evs.length ? 'Готовых планов под это нет — ниже места и события.' : 'Под такой запрос ничего не нашлось — убери пару слов или нажми «Очистить».'}</p>`;
@@ -2011,21 +2066,23 @@
     box.innerHTML = `
       <div class="now-head"><h2 id="nowTitle">${esc(asked ? 'Что нашлось' : nowTitle(mo))}</h2>${asked ? `<button type="button" class="mini" data-now-clear>${I('x')}Очистить</button>` : ''}</div>
       ${asked ? got : `<p class="now-sub">${esc(nowSub(mo, q))}</p>`}${locMsg}${rate}${taste}
-      ${placesFirst ? placeBlock : ''}${planBlock}
+      ${placesFirst ? placeBlock : ''}${soft ? `<p class="muted now-msg" role="status">🤔 ${q.words.length ? `Про «${esc(q.words.join(' '))}» готовых планов нет` : 'Точно под это готовых планов нет'} — подобрал по остальному.</p>` : ''}${planBlock}
       <div class="qr-foot">
-        ${found.length >= askN && plans.length >= askN && askN < NOW_MAX ? `<button type="button" class="btn ghost" data-now-more>${I('redo')}Ещё варианты</button>` : ''}
+        ${pool.length > askN && askN < NOW_MAX ? `<button type="button" class="btn ghost" data-now-more>${I('redo')}Ещё варианты</button>` : ''}
         ${inv && plans.length > 1 ? `<a class="btn ghost" href="${esc(inv)}" data-now-invite>${group ? '🗳️ Голосовать за эти' : '💌 Пусть выберет из этих'}</a>` : ''}
         ${tgPollUrl(ids) ? `<a class="btn ghost" href="${esc(tgPollUrl(ids))}" target="_blank" rel="noopener" data-now-tg>${document.documentElement.classList.contains('tg') ? '🗳️ Голосование в чат' : '✈️ Голосование в Telegram'}</a>` : ''}
       </div>
       ${evs.length ? `<p class="qr-k">В афише</p><div class="qr-list">${evs.map(nowEventHtml).join('')}</div>` : ''}
       ${placesFirst ? '' : placeBlock}
       <p class="now-foot"><button type="button" class="link" data-taste>${prof ? 'Мой профиль' : 'Рассказать о себе'}</button> · <button type="button" class="link" data-remind>🔔 Напоминать о ${mode === 'date' ? 'свиданиях' : 'встречах'}</button> · <a href="rules.html">Как работают рекомендации</a>${learned ? ' · <button type="button" class="link" data-now-reset>Забыть мои вкусы</button>' : ''}</p>`;
+    renderTop();
   }
 
-  /* ---------- «Давай познакомимся»: опрос при первом входе → KudaTrack.setTaste (только в этом браузере) ----------
+  /* ---------- «Давай познакомимся»: опрос → KudaTrack.setTaste (только в этом браузере) ----------
      С кем чаще ходишь (и первые ли свидания или давно вместе), что вам нравится, какое настроение, бюджет, чего не надо,
      откуда обычно едешь и — для свиданий — имена для приглашений. Каждый шаг можно пропустить; «Мой профиль» — пройти заново
-     с прежними ответами. Первый раз опрос открывается сам, если человек пришёл не по ссылке на карточку или приглашение */
+     с прежними ответами. Сам опрос не открывается: при первом входе в подборке — один вопрос «С кем сегодня?» (сначала польза,
+     потом вопросы), после ответа — «Ещё 3 вопроса — подберу точнее» */
   const LIKES = [['culture', '🏛️', 'Музеи и выставки'], ['theatre', '🎭', 'Театр'], ['concert', '🎤', 'Концерты'], ['standup', '🎙️', 'Стендап'],
     ['walk', '🌳', 'Прогулки и парки'], ['view', '🏙️', 'Красивые виды'], ['food', '🍽️', 'Вкусно поесть'], ['bar', '🍷', 'Бары и вино'],
     ['coffee', '☕', 'Кофе и десерты'], ['active', '⚡', 'Что-то активное'], ['banya', '🧖', 'Баня и спа'], ['kino', '🎬', 'Кино'],
@@ -2137,6 +2194,7 @@
     }
   });
   /* Строка «Под вас: …» под заголовком подборки — что запомнили, и «Изменить» */
+  const QUICK_WHO = [['date', '💕', 'Вторая половинка'], ['first', '💘', 'Первое свидание'], ['guys', '🍻', 'Друзья'], ['girls', '💅', 'Подруги']];
   function profileLine(t) {
     const out = [];
     if (t.stage === 'first') out.push(['💘', 'первые свидания']); else if (t.stage === 'long') out.push(['🏡', 'давно вместе']);
@@ -2145,15 +2203,11 @@
     (t.mood || []).slice(0, 1).forEach(k => LABEL[k] && out.push([LABEL[k][0], LABEL[k][1].toLowerCase()]));
     if (t.bud) out.push(['💸', t.bud === 1 ? (mode === 'date' ? `до 3${NB}000${NB}₽ на двоих` : `до 1${NB}500${NB}₽`) : t.bud === 2 ? (mode === 'date' ? `до 6${NB}000${NB}₽ на двоих` : `до 3${NB}000${NB}₽`) : 'можно дороже']);
     (t.avoid || []).forEach(k => LABEL[k] && out.push([LABEL[k][0], LABEL[k][1].toLowerCase()]));
+    const more = !(t.likes || []).length && !(t.mood || []).length && !(t.avoid || []).length
+      ? `<button type="button" class="link" data-taste-edit>Ещё 3 вопроса — подберу точнее</button>` : `<button type="button" class="link" data-taste-edit>Изменить</button>`;
+    if (t.who && !out.length) out.push([(QUICK_WHO.find(x => x[0] === (t.stage === 'first' ? 'first' : t.who)) || [])[1] || '', ((QUICK_WHO.find(x => x[0] === (t.stage === 'first' ? 'first' : t.who)) || [])[2] || '').toLowerCase()]);
     if (!out.length) return '';
-    return `<p class="now-got now-me"><span class="k">Под вас:</span>${out.map(([e, x]) => `<span>${e ? esc(e) + NB : ''}${esc(x)}</span>`).join('')}<button type="button" class="link" data-taste-edit>Изменить</button></p>`;
-  }
-  /* Первый вход: опрос открывается сам — после первой отрисовки, если пришли не по ссылке на карточку, подборку или приглашение */
-  function autoTaste() {
-    if (!IN || !PK || (T.taste && T.taste()) || tasteSkipped() || SH.isOpen()) return;
-    const q = new URLSearchParams(location.search);
-    if (['plan', 'place', 'event', 'col', 'list', 'q', 'quiz', 'tab', 'from', 'ref'].some(k => q.has(k)) || location.hash.length > 1) return;
-    openTaste({ auto: true });
+    return `<p class="now-got now-me"><span class="k">Под вас:</span>${out.map(([e, x]) => `<span>${e ? esc(e) + NB : ''}${esc(x)}</span>`).join('')}${more}</p>`;
   }
 
   /* ---------- «Как прошло?»: после похода — один тап (KudaTrack.pendingVisit / rate) ----------
@@ -2254,6 +2308,14 @@
     if (ch) ch.classList.add('hidden');
     if (nb) nb.classList.add('hidden');
   }
+  // «Топ дня» и «Топ недели»: событие — карточка афиши, план — карточка плана
+  const topBox = $('#top');
+  if (topBox) topBox.addEventListener('click', e => {
+    const ev = e.target.closest('[data-open-event]');
+    if (ev) { T.ev('top_open', { kind: 'event', id: ev.dataset.openEvent, mode }); openEvent(ev.dataset.openEvent); return; }
+    const p = e.target.closest('[data-plan]');
+    if (p) openPlan(p.dataset.plan, { src: 'top' });
+  });
   const nowBox = $('#nowBlock');
   if (nowBox) nowBox.addEventListener('click', e => {
     const t = e.target;
@@ -2274,6 +2336,15 @@
     if (t.closest('[data-now-more]')) { askN = Math.min(NOW_MAX, askN + 3); renderNow(); return; }
     if (t.closest('[data-now-clear]')) { askQ = ''; $('#askQ').value = ''; askN = 3; renderAsk(); syncUrl(); $('#askQ').focus(); return; }
     if (t.closest('[data-taste]')) { openTaste({ edit: !!(T.taste && T.taste()) }); return; }
+    const qw = t.closest('[data-quick-who]');
+    if (qw) {
+      const v = qw.dataset.quickWho, who = v === 'first' ? 'date' : v;
+      T.setTaste(Object.assign({}, (T.taste && T.taste()) || {}, { who, stage: v === 'first' ? 'first' : '' }));
+      T.ev('taste_quick', { mode, v });
+      askN = 3;
+      if (who !== mode) setMode(who); else renderNow();
+      return;
+    }
     if (t.closest('[data-taste-skip]')) { try { localStorage.setItem(TASTE_SKIP, '1'); } catch (err) { /* приватный режим */ } renderNow(); return; }
     if (t.closest('[data-now-reset]')) { T.reset(); renderNow(); toast('Забыли твои вкусы'); return; }
     if (t.closest('[data-now-invite]')) { T.ev('now_invite', { mode }); return; }
@@ -2539,7 +2610,6 @@
   if (!openFromQuery(QS, { adopt: restoring, rv: toRv }) && restoring) syncUrl(true);
   guestStrip();
   afterPaint(() => {
-    setTimeout(autoTaste, 600);
     bootAfisha();
     if (!WX) loadWx();
     cityAsk();

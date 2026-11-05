@@ -24,6 +24,8 @@ const rid = (n = 8) => Array.from(crypto.getRandomValues(new Uint8Array(n)), x =
 /* Короткий номер плана для кнопок и ссылок t.me/<бот>?start=… (там до 64 знаков): FNV-1a от id → 6 знаков base36 */
 const ref = id => { let h = 0x811c9dc5; for (const ch of String(id)) { h ^= ch.codePointAt(0); h = Math.imul(h, 0x01000193) >>> 0; } return h.toString(36).padStart(6, '0').slice(-6); };
 const b64u = s => Buffer.from(s, 'utf8').toString('base64url');
+const GREET = /^(привет|приветик|приветствую|хай|хей|здравствуй|здравствуйте|hello|hi|hey|ку|йо|салют|добр(ый|ое|ого) (день|вечер|утро|дня|вечера|утра)|ты кто|кто ты|что ты умеешь|что умеешь|помощь|help|start|старт|начать)[\s!.?)]*$/i;
+const THANKS = /^(спасибо|спс|сяб|благодарю|thanks|thx|пасиб[оа]?|круто|класс|супер|ок|окей|понял|ясно)[\s!.)]*$/i;
 const unb64u = s => { try { return Buffer.from(s, 'base64url').toString('utf8'); } catch (e) { return ''; } };
 /* Фото плана для превью над текстом: тот же снимок Wikimedia Commons, что на сайте, но jpg 960 px с upload.wikimedia.org
    (webp с сайта Telegram показывает плохо). Путь превью Commons — md5 от имени файла: /thumb/a/ab/Имя/960px-Имя */
@@ -43,6 +45,7 @@ const MODE_WORD = { date: 'свидание', guys: 'с друзьями', girls
 
 export const COMMANDS = [
   { command: 'podobrat', description: 'Подобрать план за 10 секунд' },
+  { command: 'top', description: 'Топ дня и недели' },
   { command: 'udivi', description: 'Удиви меня' },
   { command: 'afisha', description: 'Афиша: сегодня, завтра, выходные' },
   { command: 'opros', description: 'Опрос «куда идём» (в группе)' },
@@ -130,15 +133,26 @@ export function createBot({ api, store, catalog, site, name = '', log = () => {}
     const C = await catalog();
     const q = C.I.parse(String(text || '').slice(0, 120), { city: u.city });
     const city = q.city || u.city || 'msk';
-    const mode = q.mode || u.mode || o.mode || 'date';
-    const skip = new Set(o.skip || []);
-    const found = C.P.plans(q, { city, mode, anyMode: !q.mode, limit: o.limit || 3, skip });
-    // назвали что-то конкретное — только планы, где это есть; иначе честное «не нашлось» и места
+    // одному — без «свидания» по умолчанию; сохранённый «с кем» человека тоже держим (иначе «баня» у парня — женская баня)
+    const mode = q.mode || u.mode || (q.solo ? 'guys' : o.mode) || 'date';
+    const skip = new Set(o.skip || []), n = o.limit || 3;
+    // берём с запасом и только потом оставляем n: иначе подходящие планы терялись за лимитом до фильтра
+    let found = C.P.plans(q, { city, mode, anyMode: !q.mode && (!u.mode || q.solo), limit: 30, skip });
+    // назвали что-то конкретное — сначала планы, где это есть. Таких нет — лучшие по остальному с честной пометкой, а не пустой ответ:
+    // в тестах «как пишут люди» треть запросов уходила в «не нашлось» из-за одного незнакомого слова
     const specific = q.words.length || q.tags.length || q.cats.length || q.kinds.length || q.ev.length || q.hints.length;
-    const plans = specific ? found.filter(r => r.match) : found;
+    let strict = specific ? found.filter(r => r.match) : found;
+    // своего режима не хватило («батуты» у того, кто обычно с друзьями, есть только у подруг) — смотрим все режимы, раз «с кем» не сказали
+    if (specific && !strict.length && !q.mode && u.mode) {
+      const any = C.P.plans(q, { city, mode, anyMode: true, limit: 30, skip }), hit = any.filter(r => r.match);
+      if (hit.length) { found = any; strict = hit; }
+    }
+    // «по остальному» — только если что-то кроме незнакомых слов поняли (с кем, когда, бюджет, занятие); на бессмыслицу — честное «не нашлось»
+    const soft = !!specific && !strict.length && found.length > 0 && (q.chips.length > 0 || q.kinds.length > 0);
+    const plans = (soft ? found : strict).slice(0, n);
     const events = o.noEvents ? [] : C.P.events(q, { city, mode: q.mode || null, limit: 2 });
-    const places = q.words.length ? C.P.places(q, { city, limit: 3 }) : [];
-    return { C, q, city, mode: q.mode || (plans[0] && plans[0].plan.mode) || mode, plans, events, places };
+    const places = q.words.length || q.kinds.length ? C.P.places(q, { city, limit: 3 }) : [];
+    return { C, q, city, mode: q.mode || (plans[0] && plans[0].plan.mode) || mode, plans, events, places, soft };
   }
   const whyText = why => (why && why.length ? esc(why.map(w => w.e + ' ' + w.t).join(' · ')) : '');
   /* Карточка плана — одно сообщение, как в приложении: снимок над текстом (превью ссылки на фото Commons), название и остановки,
@@ -184,8 +198,10 @@ export function createBot({ api, store, catalog, site, name = '', log = () => {}
     return 'Куда идём' + (day ? ' ' + day.t : '') + '?';
   };
   // шапка карточки: как поняли запрос («🔎 свидание · вечером»), над ней — заголовок квиза или «Ещё варианты»
-  const topOf = (R, head) => [head ? `<b>${esc(head)}</b>` : '', R.q.chips.length ? '🔎 <i>' + esc(R.q.chips.map(c => c.e + ' ' + c.t).join(' · ')) + '</i>' : ''].filter(Boolean).join('\n');
-  const evFoot = R => (R.events.length ? '📅 <b>В афише</b>\n' + R.events.map(r => eventLine(r, R.city)).join('\n') : '');
+  const topOf = (R, head) => [head ? `<b>${esc(head)}</b>` : '', R.q.chips.length ? '🔎 <i>' + esc(R.q.chips.map(c => c.e + ' ' + c.t).join(' · ')) + '</i>' : '',
+    R.soft ? `🤔 <i>${R.q.words.length ? `Про «${esc(R.q.words.join(' '))}» готовых планов нет` : 'Точно под это готовых планов нет'} — подобрал по остальному</i>` : ''].filter(Boolean).join('\n');
+  const evFoot = R => [R.places.length && R.soft ? '📍 <b>Нашлись места</b>\n' + R.places.map(r => placeLine(r, R.city)).join('\n') : '',
+    R.events.length ? '📅 <b>В афише</b>\n' + R.events.map(r => eventLine(r, R.city)).join('\n') : ''].filter(Boolean).join('\n\n');
   const queryOf = (R, text, head) => ({ text, city: R.city, mode: R.mode, title: titleOf(R.q), ids: R.plans.map(r => r.plan.id), why: R.plans.map(r => r.why), top: topOf(R, head), foot: evFoot(R) });
   function emptyText(R) {
     const out = [topOf(R, 'Планов под это не нашлось')];
@@ -307,7 +323,8 @@ export function createBot({ api, store, catalog, site, name = '', log = () => {}
     if (chat.type === 'private') rows.push([{ text: '✨ Открыть приложение', web_app: { url: U.app(u.city) } }]);
     rows.push(
       [{ text: '🎯 Подобрать за 10 секунд', callback_data: 'z' }, { text: '🎲 Удиви меня', callback_data: 's' }],
-      [{ text: '📅 Афиша сегодня', callback_data: 'a|today' }, { text: '🗳️ Голосование в чат', switch_inline_query: '' }],
+      [{ text: '🔥 Топ недели', callback_data: 't' }, { text: '📅 Афиша сегодня', callback_data: 'a|today' }],
+      [{ text: '🗳️ Голосование в чат', switch_inline_query: '' }],
       [{ text: `📍 ${u.city === 'spb' ? 'Петербург' : 'Москва'} · сменить город`, callback_data: 'c|' + (u.city === 'spb' ? 'msk' : 'spb') }],
     );
     // картинка сверху — обложка сайта (assets/og-hub.png), превью большой картинкой над текстом
@@ -377,6 +394,28 @@ export function createBot({ api, store, catalog, site, name = '', log = () => {}
     return c ? editCb(c, card.text, kb, card.preview) : send(chat.id, card.text, kb, { link_preview_options: card.preview });
   }
 
+  /* «Топ дня» и «Топ недели» — тот же отбор, что на главной (KudaPick.top): один главный вариант и семь на неделю */
+  const DAY_W = ['воскресенье', 'понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота'];
+  async function topList(chat, u, c) {
+    const C = await catalog(), city = u.city || 'msk', mode = u.mode || (chat.type === 'private' ? 'date' : 'guys');
+    const R = C.P.top({ city, mode });
+    if (!R || !R.day) return send(chat.id, 'Сегодня топа нет — загляни в /afisha или напиши, что хочется.');
+    const d = new Date(Date.now() + 3 * 3600e3), priv = chat.type === 'private';
+    const link = x => (x.kind === 'event' ? U.event(x.ev, city) : U.plan(x.plan, city));
+    const name = x => (x.kind === 'event' ? x.ev.title : x.plan.title), emo = x => (x.kind === 'event' ? x.ev.emoji : x.plan.emoji) || '📍';
+    const why = x => esc((x.why || []).slice(0, 2).map(w => w.e + ' ' + w.t).join(' · '));
+    const day = R.day, ph = day.kind === 'plan' ? C.K.planPhoto(day.plan) : null, img = ph && ph.src !== 'Flickr' ? commonsThumb(ph.file) : '';
+    const text = [`🔥 <b>Топ дня</b> · ${DAY_W[d.getUTCDay()]}, ${d.getUTCDate()} ${MON[d.getUTCMonth()]}`, '',
+      `${esc(emo(day))} <a href="${esc(link(day))}"><b>${esc(name(day))}</b></a>`, `<i>${why(day)}</i>`, '',
+      '📅 <b>Топ недели</b>', ...R.week.map((x, i) => `<b>${i + 1}.</b> ${esc(emo(x))} <a href="${esc(link(x))}">${esc(name(x))}</a>\n<i>${why(x)}</i>`), '',
+      '<i>Выбор «Куда идём?»: что идёт, по какой цене и с учётом погоды — один на весь день.</i>',
+      img ? `<i>📷 ${esc(C.K.cleanAuthor(ph.a) || 'автор на Wikimedia Commons')}${ph.l ? ', ' + esc(ph.l) : ''} · Wikimedia Commons</i>` : ''].filter(x => x !== null).join('\n').trim();
+    const open = day.kind === 'plan' && priv ? { text: '✨ Топ дня подробнее', web_app: { url: U.app(city, 'plan=' + encodeURIComponent(day.plan.id)) } } : { text: '✨ Топ дня подробнее', url: link(day) };
+    const kb = { inline_keyboard: [[open], [{ text: '🎯 Подобрать под себя', callback_data: 'z' }, { text: '🎲 Удиви меня', callback_data: 's' }]] };
+    const preview = img ? { url: img, prefer_large_media: true, show_above_text: true } : NOPREV;
+    return c ? editCb(c, text, kb, preview) : send(chat.id, text, kb, { link_preview_options: preview });
+  }
+
   const AF = { today: 'сегодня', tomorrow: 'завтра', weekend: 'на выходных' };
   /* Афиша: события столбиком (эмодзи, название-ссылка, когда · сколько · где); переключатель дня меняет это же сообщение */
   async function afisha(chat, u, arg, c) {
@@ -425,6 +464,7 @@ export function createBot({ api, store, catalog, site, name = '', log = () => {}
       switch (cmd[1].toLowerCase()) {
         case 'start': return start(msg, u, arg);
         case 'podobrat': case 'quiz': return quizStart(chat);
+        case 'top': return topList(chat, u);
         case 'udivi': case 'random': return surprise(chat, u);
         case 'afisha': return afisha(chat, u, arg);
         case 'opros': case 'poll': return groupPoll(msg, u, arg);
@@ -440,6 +480,9 @@ export function createBot({ api, store, catalog, site, name = '', log = () => {}
       if (!mention && !reply) return;
     }
     const q = botName ? text.replace(new RegExp('@' + botName, 'ig'), ' ').trim() : text;
+    // «привет», «ты кто», «что умеешь» — приветствие с примерами; «спасибо» — короткий ответ, а не случайный план
+    if (GREET.test(q)) return welcome(chat, u);
+    if (THANKS.test(q)) return send(chat.id, 'Рад помочь 🙌 Если что — просто напиши, что хочется, или жми /podobrat.');
     return answerQuery(chat, msg.from, u, q);
   }
 
@@ -451,6 +494,7 @@ export function createBot({ api, store, catalog, site, name = '', log = () => {}
     const chat = c.message.chat, u = await userOf(c.from.id);
     if (k === 'z') { await answerCb(c); return quiz(c, parts); }
     if (k === 's') { await answerCb(c); return surprise(chat, u, parts[1] === 'e' ? c : null); }
+    if (k === 't') { await answerCb(c); return topList(chat, u); }
     if (k === 'a') { await answerCb(c); return afisha(chat, u, parts[1], parts[2] === 'e' ? c : null); }
     if (k === 'c') {
       u.city = parts[1] === 'spb' ? 'spb' : 'msk';

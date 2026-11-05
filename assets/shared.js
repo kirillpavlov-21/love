@@ -420,7 +420,8 @@
   const MODES = {
     date: { label: 'Свидание', emoji: '💕', theme: 'pink', acc: '', group: false },
     guys: {
-      label: 'Пацаны', emoji: '🍻', theme: 'sport', acc: 'shades', group: true,
+      // в переключателе — «Друзья»: компания бывает любой, а не только «пацаны» (заголовок приглашения по умолчанию прежний)
+      label: 'Друзья', emoji: '🍻', theme: 'sport', acc: 'shades', group: true,
       title: 'Пятница с пацанами',
       greeting: 'Йо! Я {cat}, и у меня срочное донесение: {me} собирает пацанов — «{title}». Но сначала разминка!',
       question: 'Погнали? Ты с нами?', yes: 'Я в деле', no: 'Не смогу',
