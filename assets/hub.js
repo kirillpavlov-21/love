@@ -193,7 +193,7 @@
   const EST_ONE = ['', `до 1${NB}500${NB}₽`, `1${NB}500–3${NB}000${NB}₽`, `от 3${NB}000${NB}₽`];
   // «до 3 000 ₽ на двоих» / «бесплатно» — для карточек планов вместо «₽₽» (прогулки по паркам ничего не стоят)
   // «бесплатно» — только парк, набережная, бульвар: в усадьбах, оранжереях и ботсадах вход платный
-  const PAID_WALK = /усадьб|огород|ботаническ|оранжере|дворец|музе|зоопарк|заповедн/i;
+  const PAID_WALK = /усадьб|огород|ботаническ|оранжере|дворец|музе|зоопарк|заповедн|станци|парадн/i;
   const freeWalk = p => K.catOf(p) === 'walk' && !PAID_WALK.test((p.kind || '') + ' ' + (p.name || ''));
   const estText = (price, free) => { const n = Math.max(1, Math.min(3, price || 1)); return free ? 'бесплатно' : mode === 'date' ? EST_PAIR[n] + ' на двоих' : EST_ONE[n] + ' на человека'; };
   function budgetEst(price) {
@@ -267,7 +267,7 @@
   /* ---------- каталог «Все места» ---------- */
   const PCATS = [['all', 'Все'], ['open', '🕐 Открыто сейчас'], ['saved', '🔖 Сохранённые'], ['new', '✨ Новое'], ['promo', '🎁 С промокодом'], ['pc', '🎮 Компы'],
     ...SEASON.filter(h => SEASON_LABEL[h]).map(h => [h, SEASON_LABEL[h]]),
-    ['first', '💘 Для первого свидания'], ['walk', 'Прогулки'], ['culture', 'Культура'], ['food', 'Рестораны'], ['michelin', 'Michelin'],
+    ['first', '💘 Для первого свидания'], ['photo', '📸 Для фото'], ['walk', 'Прогулки'], ['culture', 'Культура'], ['food', 'Рестораны'], ['michelin', 'Michelin'],
     ['coffee', 'Кофе'], ['bar', 'Бары'], ['fun', 'Развлечения'], ['spa', 'Бани и спа'], ['books', 'Книжные']];
   /* Округа Москвы или районы Петербурга (поле okr у места) — из K.CITIES[город].okrs, первым — «Вся Москва» / «Весь Петербург» */
   let OKRS = [], OKR_NAME = {};
@@ -577,12 +577,13 @@
   const CO = window.KudaCols || null;
   const colShelf = () => (CO ? safe(() => CO.shelf({ city, mode, wet: !!wxHint(WX) }), []) : []).slice(0, 10);
   const colTile = x => `<button type="button" class="col-tile" role="listitem" data-col="${esc(x.col.id)}"><span class="e" aria-hidden="true">${esc(x.col.emoji)}</span><b>${esc(x.col.title)}</b><small>${esc(CO.summary(x.items))}</small></button>`;
-  /* Пункт подборки в шторке — открывает свою карточку */
+  /* Пункт подборки в шторке — открывает свою карточку; слева — фото, если есть, иначе значок */
+  const colIco = (ph, e) => (ph ? `<span class="ce ph" aria-hidden="true"><img src="${esc(ph.t)}" alt="" loading="lazy" decoding="async"></span>` : `<span class="ce" aria-hidden="true">${esc(e)}</span>`);
   function colRow(r) {
     const x = r.x;
-    if (r.kind === 'place') return `<button type="button" class="col-it" data-open-place="${esc(r.id)}"><span class="ce" aria-hidden="true">${esc(x.emoji || '📍')}</span><span><b>${esc(x.name)}</b><small>${esc(x.kind)} · ${esc(K.metroText(x.metro))} · ${K.priceText(x.price)}</small></span></button>`;
-    if (r.kind === 'plan') return `<button type="button" class="col-it" data-open-plan="${esc(r.id)}"><span class="ce" aria-hidden="true">${esc(x.emoji || '🗺️')}</span><span><b>${esc(x.title)}</b><small>${esc(K.planStops(x).map(p => p.name).join(' → '))}</small></span></button>`;
-    return `<button type="button" class="col-it" data-open-event="${esc(r.id)}"><span class="ce" aria-hidden="true">${esc(x.emoji || '📅')}</span><span><b>${esc(x.title)}</b><small>${esc(evWhen(x))}${x.venue ? ' · ' + esc(x.venue) : ''}</small></span></button>`;
+    if (r.kind === 'place') return `<button type="button" class="col-it" data-open-place="${esc(r.id)}">${colIco(K.photo(x), x.emoji || '📍')}<span><b>${esc(x.name)}</b><small>${esc(x.kind)} · ${esc(K.metroText(x.metro))} · ${freeWalk(x) ? 'бесплатно' : K.priceText(x.price)}</small></span></button>`;
+    if (r.kind === 'plan') return `<button type="button" class="col-it" data-open-plan="${esc(r.id)}">${colIco(K.planPhoto(x), x.emoji || '🗺️')}<span><b>${esc(x.title)}</b><small>${esc(K.planStops(x).map(p => p.name).join(' → '))}</small></span></button>`;
+    return `<button type="button" class="col-it" data-open-event="${esc(r.id)}">${colIco(K.evPhoto ? K.evPhoto(x) : null, x.emoji || '📅')}<span><b>${esc(x.title)}</b><small>${esc(evWhen(x))}${x.venue ? ' · ' + esc(x.venue) : ''}</small></span></button>`;
   }
   /* Шторка подборки: вступление, пункты (у 'trip' — по разделам), «Позвать по подборке» и «Поделиться» */
   function colSheet(o) {
@@ -894,7 +895,7 @@
     const okr = p.okr && OKR_NAME[p.okr] && p.okr !== 'all' ? ' · ' + esc(OKR_NAME[p.okr]) : '';
     openSheet(`
       ${ph ? heroPh(p, p.name) : placeCover(p)}
-      <p class="eyebrow">${esc(p.kind)} · <span title="${esc(K.priceHint(p.price))}">${K.priceText(p.price)}</span>${okr}</p>
+      <p class="eyebrow">${esc(p.kind)} · <span title="${esc(freeWalk(p) ? 'вход свободный' : K.priceHint(p.price))}">${freeWalk(p) ? 'бесплатно' : K.priceText(p.price)}</span>${okr}</p>
       <div class="ttl-row"><h3>${esc(p.name)}</h3>${favBtn('place:' + id)}</div>
       ${p.mich ? `<p class="mich-line"><span class="mich">M</span>${MICH[p.mich]}</p>` : ''}
       ${sheetHints(K.placeHints(p).filter(h => h !== 'michelin' && !(h === 'first' && mode !== 'date')))}
@@ -1050,7 +1051,7 @@
       <div class="stop${pr ? ' has-promo' : ''}">
         ${stopPh(p)}
         <b>${esc(p.name)}${pr ? ' <span class="promo-tag">🎁 промокод</span>' : ''}</b>
-        <span class="k">${esc(p.kind)} · ${esc(K.metroText(p.metro))} · <span title="${esc(K.priceHint(p.price))}">${K.priceText(p.price)}</span></span>
+        <span class="k">${esc(p.kind)} · ${esc(K.metroText(p.metro))} · <span title="${esc(freeWalk(p) ? 'вход свободный' : K.priceHint(p.price))}">${freeWalk(p) ? 'бесплатно' : K.priceText(p.price)}</span></span>
         ${ohLine(p)}
         ${RV ? `<span class="stop-rate"><span data-rate-place="${esc(ids[i])}">${safe(() => RV.badge(ids[i]), '')}</span><button type="button" class="stop-rv" data-open-place="${esc(ids[i])}" data-rv>Отзывы<span class="vh"> о месте «${esc(p.name)}»</span></button></span>` : ''}
         <p>${esc(p.note)}</p>
@@ -1888,8 +1889,11 @@
       <span class="qr-main"><b>${esc(p.title)}</b><small>${esc(st.map(x => x.name).join(' → '))}</small>
         <span class="qr-meta">${esc(p.when)} · ${esc(estText(price, free))}${RV ? ` <span data-rate-plan="${esc(p.id)}">${safe(() => RV.planBadge(p), '')}</span>` : ''}</span>${quizRes && quizRes.why && quizRes.why.get(p.id) ? whyHtml(quizRes.why.get(p.id)) : ''}</span>
     </button>`; };
+  /* значок события: фото площадки (K.evPhoto), иначе эмодзи жанра */
+  const evTile = (e, cls) => { const ph = K.evPhoto ? K.evPhoto(e) : null;
+    return ph ? `<span class="${cls} evp" aria-hidden="true"><img src="${esc(ph.t)}" alt="" loading="lazy" decoding="async"></span>` : `<span class="${cls} afc-${esc(e.cat || 'other')}" aria-hidden="true">${esc(e.emoji || '📅')}</span>`; };
   const qrEvent = e => `<button type="button" class="qr-it" data-open-event="${esc(e.id)}">
-      <span class="qr-ph afc-${esc(e.cat || 'other')}" aria-hidden="true">${esc(e.emoji || '📅')}</span>
+      ${evTile(e, 'qr-ph')}
       <span class="qr-main"><b>${esc(e.title)}</b><small>${esc(evWhen(e, true))}${e.venue ? ' · ' + esc(e.venue) : ''}</small></span>
     </button>`;
   function renderQuizRes() {
@@ -2028,7 +2032,7 @@
     </div>`;
   }
   const nowEventHtml = r => `<button type="button" class="qr-it" data-open-event="${esc(r.ev.id)}">
-      <span class="qr-ph afc-${esc(r.ev.cat || 'other')}" aria-hidden="true">${esc(r.ev.emoji || '📅')}</span>
+      ${evTile(r.ev, 'qr-ph')}
       <span class="qr-main"><b>${esc(r.ev.title)}</b>${r.ev.venue ? `<small>${esc(r.ev.venue)}</small>` : ''}${whyHtml(r.why)}</span></button>`;
   const nowPlaceHtml = r => { const p = r.place, ph = K.photo(p);
     return `<button type="button" class="qr-it" data-place="${esc(p.id)}">
@@ -2060,7 +2064,8 @@
   function topCover(x, big) {
     if (x.kind === 'event') {
       const when = big ? (x.why.find(w => w.e === '📅') || {}).t || '' : '';
-      return `<span class="${big ? 'top-ph' : 'fy-ph'} afc-${esc(x.ev.cat || 'other')}"><span class="e" aria-hidden="true">${esc(x.ev.emoji || '🎫')}</span>${when ? `<span class="top-date" aria-hidden="true">${esc(when)}</span>` : ''}</span>`;
+      const ph = K.evPhoto ? K.evPhoto(x.ev) : null;
+      return `<span class="${big ? 'top-ph' : 'fy-ph'} ${ph ? 'evp' : 'afc-' + esc(x.ev.cat || 'other')}">${ph ? `<img src="${esc(big ? ph.s : ph.t)}" alt="" loading="lazy" decoding="async">` : `<span class="e" aria-hidden="true">${esc(x.ev.emoji || '🎫')}</span>`}${when ? `<span class="top-date" aria-hidden="true">${esc(when)}</span>` : ''}</span>`;
     }
     const { st } = planMeta(x.plan), ph = K.planPhoto(x.plan);
     return ph ? `<span class="${big ? 'top-ph' : 'fy-ph'}"><img src="${esc(big ? ph.s : ph.t)}" alt="" loading="lazy" decoding="async">${big ? phBadge(st) : ''}</span>`

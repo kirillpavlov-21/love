@@ -193,6 +193,8 @@
         lat: geo ? lat : null, lon: geo ? lon : null, price, age,
         url: /^https:\/\/[^\s"'<>]+$/i.test(String(raw.url || '').trim()) ? String(raw.url).trim() : '',
         note: String(raw.note || '').trim(),
+        // фото площадки: assets/photos.js ставит его на сырое событие (ключ «@площадка»)
+        ph: raw.ph && typeof raw.ph === 'object' && raw.ph.s ? raw.ph : null,
         fit: Array.isArray(raw.fit) ? raw.fit.filter(m => MODES.includes(m)) : [],
         long: !dates.length && dn(end) - dn(start) >= LONG_DAYS - 1,
         // регистрация (A2): нужна ли и когда откроется
@@ -474,7 +476,7 @@
     const p = K.placeById ? K.placeById(ev.place) : placesMap()[ev.place];
     return p && !p.closed ? p : null;
   }
-  const photoOf = ev => { const p = placeOf(ev); return p && K.photo ? K.photo(p) : null; };
+  const photoOf = ev => (K.evPhoto ? K.evPhoto(ev) : null);
   const reviewScore = () => { const R = window.KudaReviews; return R && typeof R.score === 'function' ? id => R.score(id) : null; };
 
   /* ---------- ссылки ---------- */
@@ -1022,9 +1024,9 @@
   }
   function sheetHtml(st, tok) {
     const ev = st.ev, ctx = st.ctx, t = ctx.today, place = placeOf(ev);
-    const ph = place && K.photo ? K.photo(place) : null;
+    const ph = photoOf(ev);
     const hero = ph && ph.s
-      ? `<figure class="af-ph"><img src="${esc(ph.s)}" width="720" height="450" alt="${esc(ev.venue || place.name)}" decoding="async">${K.photoCredit ? `<figcaption>${K.photoCredit(ph)}</figcaption>` : ''}</figure>`
+      ? `<figure class="af-ph"><img src="${esc(ph.s)}" width="720" height="450" alt="${esc(ev.venue || (place && place.name) || ev.title)}" decoding="async">${K.photoCredit ? `<figcaption>${K.photoCredit(ph)}</figcaption>` : ''}</figure>`
       : `<div class="af-hero afc-${ev.cat || 'other'}" aria-hidden="true"><span>${esc(ev.emoji)}</span></div>`;
     let pick = '';
     if (st.days.length > 1) {

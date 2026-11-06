@@ -530,6 +530,7 @@
     company: ['👯', 'Для компании', 'Компанией'],
     night: ['🌙', 'Работает круглосуточно', '24/7'],
     budget: ['💸', 'Недорого', 'Недорого'],
+    photo: ['📸', 'Красиво на фото', 'Для фото'],
   };
   const HINT_ORDER = Object.keys(HINTS);
   const HRX = {
@@ -586,7 +587,7 @@
     if (!st.length) return [];
     const per = st.map(placeHints), h = new Set();
     (plan.tags || []).concat(plan.hint || []).forEach(t => { if (HINTS[t]) h.add(t); });
-    per.forEach(a => a.forEach(x => { if (['halloween', 'newyear', 'michelin', 'view', 'autumn', 'first', 'scenic', 'company'].includes(x)) h.add(x); }));
+    per.forEach(a => a.forEach(x => { if (['halloween', 'newyear', 'michelin', 'view', 'autumn', 'first', 'scenic', 'company', 'photo'].includes(x)) h.add(x); }));
     if (per.every(a => a.includes('rain'))) h.add('rain');
     const top = Math.max(...st.map(p => p.price || 1));
     if (top <= 1) h.add('budget');
@@ -641,6 +642,8 @@
   /* все снимки места: главное фото и галерея (assets/gallery.js) */
   const photos = p => (p && p.ph ? [p.ph, ...(p.gal || [])] : []);
   const planPhoto = plan => planStops(plan).map(photo).find(Boolean) || null;
+  /* фото события — снимок площадки: места из каталога или самой площадки (assets/photos.js, ключ «@площадка»); афиши — чужие, их не берём */
+  const evPhoto = e => { const p = e && e.place ? placeById(e.place) : null; return (p && !p.closed && photo(p)) || (e && e.ph) || null; };
   /* Подпись автора без лишнего: ссылки на соцсети и каналы, просьбы «подписывайте так-то» и хвосты длиннее 60 знаков убираем */
   const SOC = '(?:telegram|телеграм|t\\.me|tg:|instagram|инстаграм|vk\\.com|вконтакте|youtube)';
   const RX_SOC_BOX = new RegExp('\\s*[([][^)\\]]*' + SOC + '[^)\\]]*[)\\]]', 'gi');   // «(Telegram: канал)» целиком
@@ -655,7 +658,7 @@
     if (!ph) return '';
     const src = ph.src === 'Flickr' ? 'Flickr' : 'Wikimedia Commons';
     const who = esc(cleanAuthor(ph.a) || 'автор на ' + (src === 'Flickr' ? 'Flickr' : 'Commons'));
-    return `Фото: ${/^https:\/\//i.test(ph.u || '') ? `<a href="${esc(ph.u)}" target="_blank" rel="noopener">${who}</a>` : who}${ph.l ? ', ' + esc(ph.l) : ''} · ${src}`;
+    return `Фото${ph.b ? ' здания' : ''}: ${/^https:\/\//i.test(ph.u || '') ? `<a href="${esc(ph.u)}" target="_blank" rel="noopener">${who}</a>` : who}${ph.l ? ', ' + esc(ph.l) : ''} · ${src}`;
   };
   function distM(a, b) {
     const R = 6371000, toR = x => x * Math.PI / 180;
@@ -1191,7 +1194,7 @@
     BASE, merge, defaults, diffInvite, encodeInvite, decodeInvite, encodeData, decodeData, readHash, esc, fill, hash,
     leftText, bookStop, bookText, arriveAt, arriveWhen, telHref, telText, ohDays, openState, closedOn, openText, ymd, parseYmd, addDays, listDates, fmtDay, dayNum, numDay, toMin, fromMin, relaySend, relayRegister, relayTest, shortLink, goRoute, sitePath, toB64url,
     CATS, catVars, catSVG, HEART_D, STAR_D, markD, ICONS, icon, MODE_ICON, tgUser, tgLink, calendarLinks,
-    MODES, modeOf, kuda, placeById, planById, planStops, catOf, photo, photos, planPhoto, photoCredit, cleanAuthor, HINTS, placeHints, planHints, hintChip, seasonHints,
+    MODES, modeOf, kuda, placeById, planById, planStops, catOf, photo, photos, planPhoto, evPhoto, photoCredit, cleanAuthor, HINTS, placeHints, planHints, hintChip, seasonHints,
     todayMsk, seasonNow, seasonOk, eventById, events, eventDays, sheet, homeRisk, bridgesToday, BRIDGES, LAST_METRO,
     distM, walkMin, priceText, priceHint, isMetro, metroText, mapUrl, routeUrl, stationPicker,
     CITIES, city, setCity, cityOf, cityConf, inCity, cityByPoint,

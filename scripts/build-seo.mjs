@@ -249,7 +249,7 @@ const PH_RX = /^assets\/ph\/(t\/)?[A-Za-z0-9._-]+\.(webp|jpe?g|png)$/;
 function goodPhoto(ph) {
   if (!ph || !PH_RX.test(ph.t || '') || !PH_RX.test(ph.s || '') || !ph.a || !ph.l || !/^https:\/\//.test(ph.u || '')) return null;
   if (!exists(ph.t) || !exists(ph.s)) return null;
-  return { t: ph.t, s: ph.s, a: String(ph.a), l: String(ph.l), u: String(ph.u) };
+  return { t: ph.t, s: ph.s, a: String(ph.a), l: String(ph.l), u: String(ph.u), b: ph.b ? 1 : 0 };
 }
 
 /* ---------- города: папка подборок, обороты текста, районы, адреса для schema.org ----------
@@ -360,7 +360,7 @@ const EVENTS_ALL = uniqBy((Array.isArray(CTX.KUDA_EVENTS) ? CTX.KUDA_EVENTS : []
   .filter(e => !(e.place && (ADULT.has(e.place) || ((D.places[e.place] || {}).adult))) && !ADULT_RX.test(e.title + ' ' + (e.note || '')) && !BAD.test(e.title))
   .map(e => {
     const days = eventDays(e), place = e.place ? PLACES_ALL.get(e.place) || null : null;
-    return Object.assign({}, e, { days, next: days[0], end: isYmd(e.end) && e.end >= e.start ? e.end : e.start, placeObj: place, ph: place ? place.ph : null,
+    return Object.assign({}, e, { days, next: days[0], end: isYmd(e.end) && e.end >= e.start ? e.end : e.start, placeObj: place, ph: (place && place.ph) || goodPhoto(e.ph),
       note: cleanText(e.note, 'событие ' + e.id), url: /^https:\/\//.test(e.url || '') && !BAD.test(e.url) ? e.url : '', fit: Array.isArray(e.fit) ? e.fit : [], city: cityOf(e) });
   })
   .filter(e => e.days.length);
@@ -608,7 +608,7 @@ function evWhen(e) {
 function credit(ph) {
   if (!ph) return '';
   const src = ph.src === 'Flickr' ? ' · Flickr' : /wikimedia\.org/.test(ph.u) ? ' · Wikimedia Commons' : '';
-  return `<p class="cr">Фото: <a href="${esc(ph.u)}" target="_blank" rel="noopener">${esc(ph.a)}</a>, ${esc(ph.l)}${src}</p>`;
+  return `<p class="cr">Фото${ph.b ? ' здания' : ''}: <a href="${esc(ph.u)}" target="_blank" rel="noopener">${esc(ph.a)}</a>, ${esc(ph.l)}${src}</p>`;
 }
 const LOGO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/></svg>';
 const HOW = '<section class="sec how" aria-labelledby="s-how"><h2 id="s-how">Как позвать</h2><ol>' +

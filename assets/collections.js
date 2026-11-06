@@ -21,6 +21,31 @@
   for (const c of L) if (c && c.id && !have.has(c.id)) { list.push(c); have.add(c.id); }
 })(window.KUDA, [
   // —— Москва ——
+  // «Места из ленты»: малоизвестное и красивое на фото (у мест hint 'photo') — Москва и Петербург
+  {
+    id: 'c-iz-lenty', kind: 'editorial', emoji: '📸', title: 'Места из ленты',
+    lead: 'Те самые кадры, под которыми спрашивают «где это?»: Сити с Шелепихинской набережной, дом-кольцо в Раменках, стеклянный цилиндр клуба Зуева, терем Перцовой. Почти всё бесплатно и не из путеводителей — архитектура, вода и правильный свет.',
+    items: ['shelepikha-emb', 'dom-koltso-na-nezhinskoy', 'klub-imeni-zueva', 'klub-imeni-rusakova', 'zdanie-tsentrosoyuza', 'khokhlovskaya-ploshchad', 'dokhodnyy-dom-isakova', 'osobnyak-arseniya-morozova', 'dom-porokhovshchikova', 'pertsova', 'narkomfin', 'melnikov-house', 'tessinsky-bridge', 'krutitsy', 'stantsiya-elektrozavodskaya'],
+    updated: '2026-11-06',
+  },
+  {
+    id: 'c-iz-lenty-interior', kind: 'editorial', emoji: '🪴', title: 'Кофейни, книжные и бары из ленты',
+    lead: 'Маленькие места, куда приходят ради света и интерьера: кофе под сводами колокольни, книжный с кофейней, особняк с лестницей-волной, бары с красивой стойкой. Не сети и не туристические точки.',
+    items: ['perezvon', 'polyandriya-letters', 'dom-burganova', 'ryabushinsky', 'mates-octagon', 'idu-lesom', 'kiosk-1936', 'kgallery', 'mokh', 'budem-blizhe', 'marie-laveau', 'anti-public-library'],
+    updated: '2026-11-06',
+  },
+  {
+    id: 'spb-c-iz-lenty', kind: 'editorial', emoji: '📸', title: 'Места из ленты',
+    lead: 'Петербург в стороне от Невского: ротонда на Гороховой, галереи дома Бака, проходные дворы Толстовского дома, замок с башнями на Петроградке, львы с цепями над Невой и закат в Комарово. Во дворах и парадных живут люди — ведите себя тихо.',
+    items: ['spb-paradnaya-s-rotondoy-dom-yakovleva', 'spb-dvor-doma-baka', 'spb-prokhodnye-dvory-tolstovskogo-doma', 'spb-traktornaya-ulitsa', 'spb-dom-kommuna-sleza-sotsializma', 'spb-dom-lidvalya', 'spb-dom-s-bashnyami', 'spb-stantsiya-metro-avtovo', 'spb-chesmenskaya-tserkov', 'spb-datsan-gunzechoyney', 'spb-kamennyy-ostrov', 'spb-lvy-u-dachi-bezborodko', 'spb-kolomna-semimoste', 'spb-stantsiya-metro-gornyy-institut', 'spb-kanonerskiy-ostrov', 'spb-komarovskiy-bereg'],
+    updated: '2026-11-06',
+  },
+  {
+    id: 'spb-c-iz-lenty-interior', kind: 'editorial', emoji: '🪴', title: 'Кофейни, книжные и бары из ленты',
+    lead: 'Кофейня на пяти этажах дома модерн, книжный об искусстве, старинная аптека, фотоателье Буллы и бар в кабинете графа Шувалова — места, где красиво внутри и куда редко доходят туристы.',
+    items: ['spb-dom-flou', 'spb-cafe-alto', 'spb-am-saint', 'spb-masters-bookstore', 'spb-dal', 'spb-muzey-peterburgskogo-avangarda-dom', 'spb-muzey-apteka-doktora-pelya', 'spb-muzey-kvartira-isaaka-brodskogo', 'spb-osobnyak-polovtsova-dom-arkhitektora', 'spb-muzey-fotosalon-karla-bully', 'spb-academia-bar-shuvaloff', 'spb-arkhitektor'],
+    updated: '2026-11-06',
+  },
   {
     id: 'c-kompy', kind: 'editorial', emoji: '🎮', title: 'Компы с друзьями', mode: ['guys'], filter: 'pc',
     lead: 'Клубы, где можно засесть всей пачкой: буткемпы на пятерых, приставки и мониторы для шутеров. Почти все работают круглосуточно, а час в общем зале стоит пару сотен рублей — удобно добрать ночь после бара.',

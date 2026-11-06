@@ -238,6 +238,9 @@
         words.forEach(w => { if (hit(name, w)) { s += 4; matched = true; } else if (hit(kind, w)) { s += 2.5; matched = true; } });
         if (!matched) s -= 3;
       }
+      // известное всем (pop: Красная площадь, ВДНХ…) — ниже, если его не назвали; красивое на фото (hint 'photo') — чуть выше
+      if (!words.length && st.some(x => x.pop)) s -= 2;
+      if (hints.includes('photo')) s += 0.6;
       // качество и вкус
       if (k.seasonHints && hints.some(h => k.seasonHints().includes(h))) s += 0.8;
       if (k.planPhoto(p)) s += 0.4;
@@ -415,19 +418,21 @@
   function places(q, ctx) {
     q = q || {}; ctx = ctx || {};
     const k = K(), city = q.city || ctx.city || k.city(), words = q.words || [];
-    if (!words.length && !(q.cats || []).length && !(q.kinds || []).length && !q.station) return [];
+    if (!words.length && !(q.cats || []).length && !(q.kinds || []).length && !q.station && !(q.hints || []).includes('photo')) return [];
     const mo = moment(q, ctx.now), D = k.kuda();
     const pt = q.station || (q.near ? ctx.point : null);
     const out = Object.entries(D.places).map(([id, raw], i) => {
       if (!raw || raw.adult || raw.closed || !k.seasonOk(raw)) return null;
       const p = Object.assign({ id }, raw);
       if (k.cityOf(p) !== city) return null;
-      let s = 0, rel = 0;
+      let s = 0, rel = 0, named = false;
       const why = [], add = (e, t, w) => why.push({ e, t, w: w || 1 });
       if (words.length) {
         const name = norm(p.name), kind = norm(p.kind), note = norm((p.note || '') + ' ' + (p.metro || ''));
-        words.forEach(w => { if (hit(name, w)) { s += 5; rel++; } else if (hit(kind, w)) { s += 3; rel++; } else if (hit(note, w)) { s += 1.5; rel++; } });
+        words.forEach(w => { if (hit(name, w)) { s += 5; rel++; named = true; } else if (hit(kind, w)) { s += 3; rel++; } else if (hit(note, w)) { s += 1.5; rel++; } });
       }
+      (q.hints || []).forEach(h => { if (k.placeHints(p).includes(h)) { s += 3; rel++; } });
+      if (p.pop && !named) s -= 1.5;
       (q.cats || []).forEach(c => { if (k.catOf(p) === c) { s += 3; rel++; } });
       (q.kinds || []).forEach(w => { if (norm(p.kind).includes(w)) { s += 3; rel++; } });
       (q.tags || []).forEach(t => { if (k.placeHints(p).includes(t)) s += 1.5; });

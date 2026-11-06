@@ -437,7 +437,7 @@ export function createBot({ api, store, catalog, site, name = '', log = () => {}
     const link = x => (x.kind === 'event' ? U.event(x.ev, city) : U.plan(x.plan, city));
     const name = x => (x.kind === 'event' ? x.ev.title : x.plan.title), emo = x => (x.kind === 'event' ? x.ev.emoji : x.plan.emoji) || '📍';
     const why = x => esc((x.why || []).slice(0, 2).map(w => w.e + ' ' + w.t).join(' · '));
-    const day = R.day, ph = day.kind === 'plan' ? C.K.planPhoto(day.plan) : null, img = ph && ph.src !== 'Flickr' ? commonsThumb(ph.file) : '';
+    const day = R.day, ph = day.kind === 'plan' ? C.K.planPhoto(day.plan) : C.K.evPhoto ? C.K.evPhoto(day.ev) : null, img = ph && ph.src !== 'Flickr' ? commonsThumb(ph.file) : '';
     const text = [`🔥 <b>Топ дня</b> · ${DAY_W[d.getUTCDay()]}, ${d.getUTCDate()} ${MON[d.getUTCMonth()]}`, '',
       `${esc(emo(day))} <a href="${esc(link(day))}"><b>${esc(name(day))}</b></a>`, `<i>${why(day)}</i>`, '',
       '📅 <b>Топ недели</b>', ...R.week.map((x, i) => `<b>${i + 1}.</b> ${esc(emo(x))} <a href="${esc(link(x))}">${esc(name(x))}</a>\n<i>${why(x)}</i>`), '',

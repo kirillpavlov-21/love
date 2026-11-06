@@ -35,7 +35,7 @@ export function reject(ids, why = 'лица людей') {
   const gone = [], keys = [];
   fs.writeFileSync(f, rows.filter(r => {
     if (!r.id || !imgs.has(r.img)) return true;
-    gone.push(r.id); keys.push(r.v[4] ? r.v[4].u : r.v[0]);
+    gone.push(r.id); keys.push(r.v[4] && r.v[4].u ? r.v[4].u : r.v[0]);
     return false;
   }).map(r => r.l).join('\n'));
   // auto.js: данные — JSON в вызове })({…});

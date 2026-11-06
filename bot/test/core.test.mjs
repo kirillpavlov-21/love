@@ -78,6 +78,17 @@ test('подбор: рэп и имя артиста — только то, гд�
     .forEach(x => assert.match(`${x.ev.title} ${x.ev.note || ''}`.toLowerCase(), /хаски/, x.ev.title));
 });
 
+test('подбор: «эстетичные места» — места из ленты; известное всем — только если назвали', () => {
+  const q = parse('эстетичные места для фото');
+  assert.ok(q.hints.includes('photo'));
+  const pl = C.P.places(q, { city: 'msk', limit: 8 });
+  assert.ok(pl.length >= 3 && pl.every(x => (x.place.hint || []).includes('photo')), pl.map(x => x.place.name).join(', '));
+  // попсовое (Красная площадь, ВДНХ…) не всплывает само, но находится по имени
+  const day = C.P.plans({}, { city: 'msk', mode: 'date', limit: 5 });
+  assert.ok(!day.some(x => C.K.planStops(x.plan).every(p => p.pop)), day.map(x => x.plan.title).join(', '));
+  assert.ok(C.P.places(parse('красная площадь'), { city: 'msk', limit: 3 }).some(x => x.place.name === 'Красная площадь'));
+});
+
 test('подбор: «компы» со свидания находят планы компании', () => {
   const r = C.P.plans(parse('компы до утра'), { city: 'msk', mode: 'date', anyMode: true, limit: 3 });
   assert.ok(r.every(x => (x.plan.tags || []).includes('pc')), r.map(x => x.plan.title).join(', '));
@@ -433,4 +444,17 @@ test('бот: «📷 Фото» — альбом снимков плана, у �
     assert.match(x.media, /^https:\/\/upload\.wikimedia\.org\/wikipedia\/commons\/thumb\//);
     assert.match(x.caption, /📷 .+ · Wikimedia Commons$/);
   });
+});
+
+test('афиша: фото площадки (ph от assets/photos.js) доходит до карточки события', async () => {
+  const fs = await import('node:fs'), vm = await import('node:vm');
+  const ctx = { console, location: { search: '', href: 'http://x/' }, navigator: {}, setTimeout, clearTimeout };
+  ctx.window = ctx; vm.createContext(ctx);
+  for (const f of ['assets/shared.js', 'assets/afisha.js']) vm.runInContext(fs.readFileSync(path.join(ROOT, f), 'utf8'), ctx, { filename: f });
+  const ph = { s: 'assets/ph/v-x.webp', t: 'assets/ph/t/v-x.webp', a: 'Автор', l: 'CC0', file: 'X.jpg', u: 'https://commons.wikimedia.org/wiki/File:X.jpg' };
+  const [withPh, noPh] = ctx.KudaAfisha._test.normalize([
+    { id: 'ev-x', title: 'Спектакль', cat: 'theatre', start: '2026-11-10', time: '19:00', venue: 'Театр', ph },
+    { id: 'ev-y', title: 'Концерт', start: '2026-11-10', venue: 'Клуб' }]);
+  assert.equal(withPh.ph.s, ph.s);
+  assert.equal(noPh.ph, null);
 });
