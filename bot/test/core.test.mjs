@@ -65,6 +65,19 @@ test('подбор: «под крышей» — все остановки в п�
   assert.ok(near.length >= 2, 'хотя бы два плана в пределах 2,5 км от станции');
 });
 
+test('подбор: рэп и имя артиста — только то, где это правда есть', () => {
+  const q = parse('рэп');
+  assert.deepEqual(q.kinds, ['рэп']);
+  // мест «под рэп» в каталоге нет — значит, честное «нет», а не опера «по остальному»
+  assert.ok(!C.P.plans(q, { city: 'msk', mode: 'guys', anyMode: true, limit: 5 }).some(x => x.match));
+  const ev = C.P.events(q, { city: 'msk', mode: 'guys', limit: 5 });
+  assert.ok(ev.length > 0, 'рэп-концерты в афише ближайших двух месяцев');
+  ev.forEach(x => assert.match(`${x.ev.title} ${x.ev.note || ''}`.toLowerCase(), /рэп|трэп|хип/, x.ev.title));
+  // «концерт <имя>»: чужие концерты жанр не вытягивает
+  C.P.events(parse('концерт хаски'), { city: 'msk', mode: 'guys', limit: 3 })
+    .forEach(x => assert.match(`${x.ev.title} ${x.ev.note || ''}`.toLowerCase(), /хаски/, x.ev.title));
+});
+
 test('подбор: «компы» со свидания находят планы компании', () => {
   const r = C.P.plans(parse('компы до утра'), { city: 'msk', mode: 'date', anyMode: true, limit: 3 });
   assert.ok(r.every(x => (x.plan.tags || []).includes('pc')), r.map(x => x.plan.title).join(', '));

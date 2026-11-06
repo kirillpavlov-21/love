@@ -22,7 +22,7 @@
 })(window.KUDA, [
   // —— Москва ——
   {
-    id: 'c-kompy', kind: 'editorial', emoji: '🎮', title: 'Компы с пацанами', mode: ['guys'], filter: 'pc',
+    id: 'c-kompy', kind: 'editorial', emoji: '🎮', title: 'Компы с друзьями', mode: ['guys'], filter: 'pc',
     lead: 'Клубы, где можно засесть всей пачкой: буткемпы на пятерых, приставки и мониторы для шутеров. Почти все работают круглосуточно, а час в общем зале стоит пару сотен рублей — удобно добрать ночь после бара.',
     items: ['winstrike', 'roku', 'avulus-cyber-space', 'tsentr-kibersporta-mayakovskaya', 'tsentr-kibersporta-moskva-siti', 'tsentr-kibersporta-novokuznetskaya',
       'blinkgame', 'colizeum-park-pobedy', 'colizeum-shabolovka', 'colizeum-kievskaya', '1shot-alekseevskaya', 'iziplay', 'obekt-35'],
@@ -133,7 +133,7 @@
     updated: '2026-10-19',
   },
   {
-    id: 'spb-c-kompy', kind: 'editorial', emoji: '🎮', title: 'Компы с пацанами', mode: ['guys'], filter: 'pc',
+    id: 'spb-c-kompy', kind: 'editorial', emoji: '🎮', title: 'Компы с друзьями', mode: ['guys'], filter: 'pc',
     lead: 'Круглосуточные клубы у метро: премиум-залы с топовым железом, буткемпы на команду, приставки и кальян в лаунжах. Самые недорогие — порядка 150 ₽ за час.',
     items: ['spb-colizeum-premium', 'spb-colizeum-premium-petrogradka', 'spb-colizeum-zagorodnyy', 'spb-colizeum-ligov', 'spb-cyberx', 'spb-n7-omega', 'spb-kiberprayd', 'spb-community-heroes', 'spb-kibersporta', 'spb-full-focus', 'spb-divinity-space', 'spb-yotunkheym', 'spb-tron-kiber', 'spb-xarena', 'spb-fobos'],
     updated: '2026-10-19',

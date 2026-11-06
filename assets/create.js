@@ -750,8 +750,10 @@
     state.levels[kindOf(state.mode)] = Object.assign({}, inv.levels);
     renderLevels(state.levels[kindOf(state.mode)]);
     $('#heartsGoal').value = inv.heartsGoal || 12;
-    // «Нет» убегает — только в свидании; в черновике компании хранится выбор для свидания
-    const no = state.mode === 'date' ? inv.noButton : src._no;
+    // «Нет» убегает — только в свидании; в черновике компании хранится выбор для свидания.
+    // Новая форма — честная «Нет» (фокус-группа: на первом свидании убегающая давит); config.js не трогаем — в старых ссылках «убегает» не записано
+    const fresh = Object.keys(src).every(k => k === 'mode' || k === 'theme');
+    const no = fresh ? 'real' : state.mode === 'date' ? inv.noButton : src._no;
     $('#noButton').value = no === 'real' ? 'real' : 'runaway';
     renderList('places', (inv.places || []).filter(p => p && (p.title || (p.plan && K.planById(p.plan)))));
     $('#placeSurprise').checked = !!inv.placeSurprise;
@@ -1603,6 +1605,11 @@
     const w = window.open('', '_blank');
     freshLink().then(() => { const l = previewLink(step); if (w && !w.closed) w.location.href = l; else location.href = l; });
   }
+  /* Быстрое приглашение: 'pick' — открыть выбор мест, 'all' — показать все настройки */
+  function openMore(what) {
+    if (what === 'all') document.body.classList.remove('quick');
+    else $('#placesCard').classList.add('pick-open');
+  }
   /* Скопировать не вышло (старый браузер, запрет буфера) — показываем поле со ссылкой и выделяем её */
   function showLink() {
     const el = $('#link');
@@ -1614,6 +1621,7 @@
   function untilBad() {
     if (!isGroup() || !uMode() || readUntil()) return false;
     toast('Срок «Решаем до» не подходит — поправь его или выбери «Без срока»');
+    openMore('all');
     const f = $('#untilAt');
     if (f) { f.scrollIntoView({ behavior: 'smooth', block: 'center' }); f.focus({ preventScroll: true }); }
     return true;
@@ -1696,6 +1704,8 @@
     });
     form.addEventListener('click', e => {
       const t = e.target;
+      const more = t.closest('[data-more]');
+      if (more) { openMore(more.dataset.more); return; }
       const sw = t.closest('.sw');
       if (sw) {
         if (sw.dataset.cat) state.cat = sw.dataset.cat;
@@ -1716,6 +1726,7 @@
       if (t.closest('[data-ev-del]')) { setEvent(''); changed(); return; }
       if (t.closest('[data-ev-change]')) {
         setEvent(''); pk.tab = 'events'; pk.limit = PK_STEP; renderPicker(); changed();
+        openMore('pick');
         const pick = $('#datePlans');
         if (pick) pick.scrollIntoView({ behavior: 'smooth', block: 'start' });
         return;

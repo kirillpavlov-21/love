@@ -311,6 +311,11 @@
     let list = (k.events({ from: fromD, to: toD, mode }) || []).filter(e => k.inCity(e, city));
     // на сегодня пусто — смотрим на три дня вперёд
     if (list.length < 2 && !q.day) list = list.concat((k.events({ from: today, to: I().plusDays(now, 3), mode }) || []).filter(e => k.inCity(e, city) && !list.includes(e)));
+    // назвали исполнителя или жанр («хаски», «рэп») без дня, а в ближайшие дни такого нет — ищем на два месяца вперёд:
+    // «Хаски 5 декабря» честнее, чем чужой концерт сегодня
+    const named = (q.words || []).concat(q.kinds || []);
+    const evTxt = e => norm(e.title + ' ' + (e.venue || '') + ' ' + (e.note || ''));
+    if (!q.day && named.length && !list.some(e => named.some(w => hit(evTxt(e), w)))) list = list.concat((k.events({ from: today, to: I().plusDays(now, 60), mode }) || []).filter(e => k.inCity(e, city) && !list.includes(e)));
     const maxRub = q.free ? 0 : q.bud === 1 ? 1500 : q.bud === 2 ? 3000 : Infinity;
     const pt = q.station || (q.near ? ctx.point : null);
     const words = q.words || [];
@@ -330,10 +335,15 @@
       if (p0 === 0 && !q.free) add('🆓', 'бесплатно', 2);
       else if (p0 > 0) add('🎟️', `от ${String(p0).replace(/\B(?=(\d{3})+(?!\d))/g, NB)}${NB}₽`, 1.5);
       if (pt && e.lat != null) { const d = k.distM(pt, e); s += Math.max(-2, 2 - d / 2500); add('📍', distWhy(d, q.station ? 'от м.' + NB + q.station.name : 'от тебя'), 3); }
-      if (words.length) {
+      if (words.length || (q.kinds || []).length) {
         const txt = norm(e.title + ' ' + (e.venue || '') + ' ' + (e.note || ''));
         const n = words.filter(w => hit(txt, w)).length;
-        s += n ? 4 * n : -3;
+        // жанр и имя («концерт макана», «стендап щербакова») — без этого имени событие не подходит, жанр его не вытягивает.
+        // shortcut: описательное слово («спектакль для подростков») тоже считается именем — пусто вместо «любой спектакль»; если жалоб много — словарь таких слов в intent.js
+        if (words.length) s += n ? 4 * n : (q.ev || []).length ? -8 : -3;
+        // конкретное занятие или жанр («рэп», «квиз») — событие подходит, только если оно правда про это
+        const kn = (q.kinds || []).filter(w => hit(txt, w) || (w === 'рэп' && (hit(txt, 'трэп') || hit(txt, 'хип хоп')))).length;
+        if ((q.kinds || []).length) s += kn ? 5 * kn : -6;
       }
       if (e.long) s -= (q.ev || []).includes('exhibition') ? 0 : 1;
       if (day === today && !q.day) s += 0.5;

@@ -38,7 +38,8 @@ const commonsThumb = (file, w = 960) => {
 };
 // «м. Арбатская»; МЦД и электрички — как есть («Переделкино (МЦД-4)»), «Мытищи (ж/д)» → «ж/д Мытищи» (как DateKit.metroText)
 const metroText = m => (/\(ж\/д\)$/.test(m) ? 'ж/д ' + m.replace(/\s*\(ж\/д\)$/, '') : /\(МЦД[^)]*\)$/.test(m) ? m : 'м. ' + m);
-const PRICE_W = ['', '💸 недорого', '💳 средний чек', '💎 можно шикануть'];
+// в рублях, как на сайте (фокус-группа: «недорого» у всех своё): свидание — на двоих, компания — на человека
+const PRICE_W = { date: ['', '💸 до 3 000 ₽ на двоих', '💳 3–6 тыс. ₽ на двоих', '💎 от 6 000 ₽ на двоих'], one: ['', '💸 до 1 500 ₽ на человека', '💳 1 500–3 000 ₽ на человека', '💎 от 3 000 ₽ на человека'] };
 const WHEN_W = { утро: '🌅 утром', день: '☀️ днём', вечер: '🌆 вечером', ночь: '🌙 ночью' };
 const WD = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
 const MON = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
@@ -166,7 +167,7 @@ export function createBot({ api, store, catalog, site, name = '', log = () => {}
     const st = C.K.planStops(p), ph = C.K.planPhoto(p);
     const img = ph && ph.src !== 'Flickr' ? commonsThumb(ph.file) : '';
     const price = Math.max(0, ...st.map(x => +x.price || 0));
-    const facts = [st[0] && st[0].metro ? '🚇 ' + esc(metroText(st[0].metro)) : '', PRICE_W[price] || '', WHEN_W[p.when] || ''].filter(Boolean).join(' · ');
+    const facts = [st[0] && st[0].metro ? '🚇 ' + esc(metroText(st[0].metro)) : '', PRICE_W[p.mode === 'date' ? 'date' : 'one'][price] || '', WHEN_W[p.when] || ''].filter(Boolean).join(' · ');
     const w = whyText(why), out = [];
     if (o.top) out.push(o.top, '');
     out.push(`${esc(p.emoji || '📍')} <b>${esc(p.title)}</b>`, `<i>${esc(st.map(x => x.name).join(' → '))}</i>`);

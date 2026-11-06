@@ -420,13 +420,13 @@
   const MODES = {
     date: { label: 'Свидание', emoji: '💕', theme: 'pink', acc: '', group: false },
     guys: {
-      // в переключателе — «Друзья»: компания бывает любой, а не только «пацаны» (заголовок приглашения по умолчанию прежний)
+      // в переключателе — «Друзья»: компания бывает любой, а не только «пацаны» (тексты по умолчанию — тоже про компанию: смешанные компании спотыкались о «собирает пацанов»)
       label: 'Друзья', emoji: '🍻', theme: 'sport', acc: 'shades', group: true,
-      title: 'Пятница с пацанами',
-      greeting: 'Йо! Я {cat}, и у меня срочное донесение: {me} собирает пацанов — «{title}». Но сначала разминка!',
+      title: 'Пятница с друзьями',
+      greeting: 'Йо! Я {cat}, и у меня срочное донесение: {me} собирает компанию — «{title}». Но сначала разминка!',
       question: 'Погнали? Ты с нами?', yes: 'Я в деле', no: 'Не смогу',
       catchTitle: 'Собери всё для вечера', good: ['🍕', '🎱', '🎳', '🏆', '🔥'], gold: '👑', bad: '🧦',
-      done: 'Кидай ссылку пацанам в чат — пусть тоже отметятся.',
+      done: 'Кидай ссылку в общий чат — пусть тоже отметятся.',
     },
     girls: {
       label: 'Подружки', emoji: '💅', theme: 'lavender', acc: 'bow', group: true,
@@ -760,7 +760,9 @@
     const list = bridgesTonight(day).map(b => ({ b, m: nightMin(b.open[0][0]) })).sort((x, y) => x.m - y.m);
     return list.length ? { first: list[0].b.name, at: list[0].b.open[0][0].replace(/^0/, ''), n: list.length } : null;
   }
-  const priceText = n => '₽'.repeat(Math.max(1, Math.min(3, n || 1)));
+  // в рублях, а не «₽₽» (фокус-группа: «скажи честно, сколько»); на человека, как в places.js
+  const PRICE_RUB = ['', 'до 1500 ₽', '1500–3000 ₽', 'от 3000 ₽'];
+  const priceText = n => PRICE_RUB[Math.max(1, Math.min(3, n || 1))];
   /* Что значат ₽ — подсказка к значку цены (как в places.js) */
   const PRICE_HINT = ['', 'до ~1 500 ₽ на человека', '~1 500–3 000 ₽ на человека', 'от ~3 000 ₽ на человека'];
   const priceHint = n => PRICE_HINT[Math.max(1, Math.min(3, n || 1))];

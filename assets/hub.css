@@ -214,6 +214,11 @@ html[data-acc="shades"] .cat .acc-shades, html[data-acc="bow"] .cat .acc-bow { d
 .gal-track::-webkit-scrollbar { display: none; }
 .gal-track:focus-visible { outline: 2px solid var(--accent, #F2A7C8); outline-offset: 3px; border-radius: 20px; }
 .gal-it { flex: 0 0 100%; min-width: 0; margin: 0; scroll-snap-align: start; scroll-snap-stop: always; }
+/* В карточке места виден край следующего снимка — самый понятный знак «листай дальше» (NN/g: peek сильнее точек).
+   Счётчик и точки — над текущим кадром, хвост ::after даёт последнему кадру встать к левому краю */
+.hero-ph:not(.one) .gal-it { flex-basis: 86%; }
+.hero-ph:not(.one) .gal-track::after { content: ''; flex: 0 0 calc(14% - 8px); }
+.hero-ph:not(.one) .gal-ui { right: 14%; }
 .gal-zoom { display: block; width: 100%; padding: 0; border: 0; background: none; cursor: zoom-in; }
 .gal-it img { display: block; width: 100%; aspect-ratio: var(--ar); object-fit: cover; border-radius: var(--r); background: var(--surface-2); }
 .stop-ph .gal-it img { background: var(--surface-3); }
@@ -955,6 +960,7 @@ html.tg .hero, html.back .hero { padding-top: 14px; padding-bottom: 14px; gap: 1
 .card-ph .ph-cnt, .top-ph .ph-cnt,
 #now .qr-list > .now-it:first-child:not(.now-noask) .ph-cnt { display: inline-flex; align-items: center; gap: 5px; position: absolute; right: 10px; top: 10px; padding: 5px 9px; border-radius: 99px; background: rgba(15, 14, 19, .8); color: var(--text); font: 600 12px/1 var(--body); }
 .ph-cnt .ic { width: 14px; height: 14px; }
+#now .qr-list > .now-it:first-child:not(.now-noask) .ph-cnt { top: auto; bottom: 10px; } /* сверху справа — кнопка «Не то» */
 #now .qr-list > .now-it:first-child:not(.now-noask) .now-best { display: block; position: absolute; left: 10px; top: 10px; padding: 5px 10px; border-radius: 99px; background: rgba(15, 14, 19, .8); color: var(--text); font: 600 12px/1 var(--body); }
 /* «Топ дня» — событие: на обложке крупно, когда оно */
 .top-ph .e { position: absolute; right: 18px; top: 50%; transform: translateY(-50%); font-size: 72px; opacity: .9; }
@@ -962,3 +968,6 @@ html.tg .hero, html.back .hero { padding-top: 14px; padding-bottom: 14px; gap: 1
 .top-date::first-letter { text-transform: uppercase; }
 /* «Не сейчас» — палец попадает с первого раза */
 .now-taste > .link { padding: 10px 2px; margin: -4px 0 -8px; }
+/* Честное «нет»: под конкретное слово плана нет — говорим это заметно, а не мелкой строкой (фокус-группа) */
+.now-soft { margin: 0 0 12px; padding: 12px 14px; border-radius: 16px; background: var(--surface-2); border: 1px solid var(--line-2); font-size: 14px; line-height: 1.45; color: var(--muted-2); }
+.now-soft b { display: block; margin-bottom: 2px; color: var(--text); font-size: 15px; }

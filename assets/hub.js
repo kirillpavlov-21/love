@@ -79,11 +79,11 @@
       call: 'Позвать на свидание сюда',
     },
     guys: {
-      hook: 'Пацаны, голосуем: компы, баня или бар?',
+      hook: 'Голосуем всей компанией: компы, баня или бар?',
       text: LIVE ? 'Скинь ссылку в общий чат — каждый отметит, куда и когда может. Итог у всех одинаковый и обновляется сам.'
         : 'Скинь ссылку в общий чат — каждый отметит, куда и в какие дни может, а при ничьей поможет колесо.',
-      cta: 'Собрать пацанов',
-      call: 'Позвать пацанов сюда',
+      cta: 'Собрать компанию',
+      call: 'Позвать друзей сюда',
     },
     girls: {
       hook: 'Девичник без 200 сообщений в чате',
@@ -191,6 +191,11 @@
   /* Ориентир для карточки: на двоих (свидание) или на человека (компания) */
   const EST_PAIR = ['', `до 3${NB}000${NB}₽`, `3–6${NB}тыс.${NB}₽`, `от 6${NB}000${NB}₽`];
   const EST_ONE = ['', `до 1${NB}500${NB}₽`, `1${NB}500–3${NB}000${NB}₽`, `от 3${NB}000${NB}₽`];
+  // «до 3 000 ₽ на двоих» / «бесплатно» — для карточек планов вместо «₽₽» (прогулки по паркам ничего не стоят)
+  // «бесплатно» — только парк, набережная, бульвар: в усадьбах, оранжереях и ботсадах вход платный
+  const PAID_WALK = /усадьб|огород|ботаническ|оранжере|дворец|музе|зоопарк|заповедн/i;
+  const freeWalk = p => K.catOf(p) === 'walk' && !PAID_WALK.test((p.kind || '') + ' ' + (p.name || ''));
+  const estText = (price, free) => { const n = Math.max(1, Math.min(3, price || 1)); return free ? 'бесплатно' : mode === 'date' ? EST_PAIR[n] + ' на двоих' : EST_ONE[n] + ' на человека'; };
   function budgetEst(price) {
     const n = Math.max(1, Math.min(3, price || 1)), pair = mode === 'date';
     return `<p class="budget-est">${I('wallet')}<span><b>≈${NB}${pair ? EST_PAIR[n] + ' на двоих' : EST_ONE[n] + ' на человека'}</b> · ориентир по ценам мест</span></p>`;
@@ -235,7 +240,7 @@
     box.textContent = b ? `🌉 Мосты сегодня: первым разводят ${b.first} — около ${b.at}. Планируй, как вернуться домой` : '';
   }
   const legText = (min, plan) => hasTag(plan, 'drive') || min > 30 ? 'на транспорте' : `${min} мин пешком`;
-  const priceTag = n => `<span class="price" title="${esc(K.priceHint(n))}">${K.priceText(n)}</span>`;
+  const priceTag = (n, free) => `<span class="price" title="${esc(free ? 'вход свободный' : K.priceHint(n))}">${free ? 'бесплатно' : K.priceText(n)}</span>`;
 
   /* Подсказки к планам и местам («🍂 Красиво осенью», «💘 Для первого свидания»…) — в shared.js.
      Сезонные (🎃, 🎄, 🍂) shared.js сам прячет вне срока; здесь — только фильтры и плашки на текущий сезон */
@@ -524,7 +529,7 @@
     halloween: ['🎃', 'Тематично на Хэллоуин', 'Готика, бункеры, Булгаков и квесты'],
     newyear: ['🎄', 'Новогоднее настроение', 'Катки, ярмарки и огоньки'],
     autumn: ['🍂', 'Куда пойти осенью', 'Парки, усадьбы и бульвары в листьях'],
-    pc: ['🎮', 'Компы для пацанов', 'Компьютерные клубы по всей Москве и еда рядом'],
+    pc: ['🎮', 'Компы с друзьями', 'Компьютерные клубы по всей Москве и еда рядом'],
   };
   /* Постоянная плашка: компы — только у пацанов, и первой */
   const PROMO_TILE = { guys: ['pc'] };
@@ -704,10 +709,11 @@
     const html = plans.slice(0, climit).map((p, i) => {
       const { st, legs, price } = planMeta(p);
       return `<button type="button" class="card" data-plan="${esc(p.id)}" style="animation-delay:${(Math.min(i, 8) * 0.05).toFixed(2)}s">
-        ${planVisual(p, st)}<span class="card-head"><span class="ttl">${esc(p.title)}</span><span class="card-meta">${priceTag(price)}</span></span>
+        ${planVisual(p, st)}<span class="card-head"><span class="ttl">${esc(p.title)}</span></span>
         <span class="route">${routeHtml(p, st, legs)}</span>
         <span class="chips">
           <span class="chip">${I('clock')}${esc(p.when)}</span>
+          <span class="chip">${I('wallet')}${estText(price, st.every(freeWalk))}</span>
           <span class="chip">${st[0] && K.isMetro(st[0].metro) ? metroBadge(st[0].metro) + esc(st[0].metro) : esc(st[0] ? K.metroText(st[0].metro) : '')}</span>
           ${cardHints(p)}${planPromo(p) ? '<span class="chip promo-tag">🎁 промокод</span>' : ''}
         </span>
@@ -848,7 +854,7 @@
       <button type="button" class="pl-item${promoOf(p.id) ? ' has-promo' : ''}" data-pid="${esc(p.id)}">
         ${emoTile(p)}
         <span class="pl-main"><span class="pl-name"><span class="nm">${esc(p.name)}</span>${p.mich ? '<span class="mich" title="' + MICH[p.mich] + '">M</span>' : ''}${promoOf(p.id) ? '<span class="promo-tag" title="Есть промокод">🎁</span>' : ''}${placeRate(p.id)}</span><span class="pl-sub">${p.dist != null ? `<b class="dist">${distText(p.dist)}</b> · ` : ''}${esc(K.metroText(p.metro))} · ${buzzOn(p) ? '🔥 ' : ''}${ohBadge(p)}${listHints(p)}${esc(p.kind)}</span></span>
-        ${priceTag(p.price)}
+        ${priceTag(p.price, freeWalk(p))}
       </button>` + (i === NEWP_AT - 1 ? rail : '')).join('') + (pcat === 'saved' ? favHint('place', fe) + (CO ? '<button type="button" class="mini share-list" data-share-list>🔗 Поделиться списком</button>' : '') : '')
       : pcat === 'saved' ? (fe ? favHint('place', fe) : '<p class="pl-empty">Здесь появятся места, которые ты сохранишь значком 🔖 в карточке.</p>')
       : bud ? '<p class="pl-empty">В этом бюджете ничего не нашлось — попробуй «любой» или другую категорию.</p>'
@@ -1055,7 +1061,7 @@
     const anyPh = st.some(p => K.photo(p));
     openSheet(`
       ${anyPh ? '' : `<div class="hero-cv cover ${cvOf(st[0])}" aria-hidden="true">${coverEmo(st, plan)}</div>`}
-      <p class="eyebrow">${[esc(plan.when), `<span title="${esc(K.priceHint(price))}">${K.priceText(price)}</span>`].filter(Boolean).join(' · ')}</p>
+      <p class="eyebrow">${[esc(plan.when), esc(estText(price, st.every(freeWalk)))].filter(Boolean).join(' · ')}</p>
       <div class="ttl-row"><h3>${esc(plan.title)}</h3>${favBtn('plan:' + plan.id)}</div>
       ${sheetHints(K.planHints(plan).filter(h => !(h === 'first' && mode !== 'date')))}
       <div class="sheet-slot" data-slot="rating">${ratingLine('plan', plan.id)}</div>
@@ -1876,11 +1882,11 @@
       if (h) h.focus({ preventScroll: true });
     });
   }
-  const qrPlan = p => { const { st, price } = planMeta(p), ph = K.planPhoto(p);
+  const qrPlan = p => { const { st, price } = planMeta(p), ph = K.planPhoto(p), free = st.every(freeWalk);
     return `<button type="button" class="qr-it" data-plan="${esc(p.id)}">
       ${ph ? `<span class="qr-ph"><img src="${esc(ph.t)}" alt="" loading="lazy" decoding="async"></span>` : `<span class="qr-ph cover ${cvOf(st[0])}"><span class="cv-e" aria-hidden="true">${esc(p.emoji || (st[0] && st[0].emoji) || '📍')}</span></span>`}
       <span class="qr-main"><b>${esc(p.title)}</b><small>${esc(st.map(x => x.name).join(' → '))}</small>
-        <span class="qr-meta">${esc(p.when)} · <span title="${esc(K.priceHint(price))}">${K.priceText(price)}</span>${RV ? ` <span data-rate-plan="${esc(p.id)}">${safe(() => RV.planBadge(p), '')}</span>` : ''}</span>${quizRes && quizRes.why && quizRes.why.get(p.id) ? whyHtml(quizRes.why.get(p.id)) : ''}</span>
+        <span class="qr-meta">${esc(p.when)} · ${esc(estText(price, free))}${RV ? ` <span data-rate-plan="${esc(p.id)}">${safe(() => RV.planBadge(p), '')}</span>` : ''}</span>${quizRes && quizRes.why && quizRes.why.get(p.id) ? whyHtml(quizRes.why.get(p.id)) : ''}</span>
     </button>`; };
   const qrEvent = e => `<button type="button" class="qr-it" data-open-event="${esc(e.id)}">
       <span class="qr-ph afc-${esc(e.cat || 'other')}" aria-hidden="true">${esc(e.emoji || '📅')}</span>
@@ -2137,16 +2143,19 @@
     const placeBlock = pls.length ? `<p class="qr-k">Места</p><div class="qr-list">${pls.map(nowPlaceHtml).join('')}</div>` : '';
     const ids = plans.map(r => r.plan.id), group = mode !== 'date';
     const inv = nowInviteUrl(ids, asked ? askQ : nowTitle(mo).replace(/^Куда пойти /, 'Куда идём '));
+    const cta = $('#heroMode .btn.primary');   // «Создать приглашение» — сразу с этими планами, а не с «Кофейня / Кино»
+    if (cta) cta.href = inv || createUrl(mode);
     const learned = (T.taste && T.taste()) || T.ready();
     box.innerHTML = `
       <div class="now-head"><h2 id="nowTitle">${esc(asked ? 'Что нашлось' : nowTitle(mo))}</h2>${asked ? `<button type="button" class="mini" data-now-clear>${I('x')}Очистить</button>` : ''}</div>
-      ${asked ? got : `<p class="now-sub">${esc(nowSub(mo, q))}</p>`}${locMsg}${rate}${taste}
-      ${placesFirst ? placeBlock : ''}${soft ? `<p class="muted now-msg" role="status">🤔 ${q.words.length ? `Про «${esc(q.words.join(' '))}» готовых планов нет` : 'Точно под это готовых планов нет'} — подобрал по остальному.</p>` : ''}${planBlock}
+      ${asked ? got : `<p class="now-sub">${esc(nowSub(mo, q))}</p>`}${locMsg}${rate}${prof ? taste : ''}
+      ${placesFirst ? placeBlock : ''}${soft ? `<p class="now-soft" role="status"><b>${q.words.length || q.kinds.length ? `Про «${esc((q.words.length ? q.words : q.kinds).join(' '))}» готовых планов нет` : 'Точно под это готовых планов нет'}</b>Ниже — ближайшее по остальным словам запроса. Уберёшь лишнее слово — найдётся больше.</p>` : ''}${planBlock}
       <div class="qr-foot">
         ${pool.length > askN && askN < NOW_MAX ? `<button type="button" class="btn ghost" data-now-more>${I('redo')}Ещё варианты</button>` : ''}
         ${inv && plans.length > 1 ? `<a class="btn ghost" href="${esc(inv)}" data-now-invite>${group ? '🗳️ Голосовать за эти' : '💌 Пусть выберет из этих'}</a>` : ''}
         ${tgPollUrl(ids) ? `<a class="btn ghost" href="${esc(tgPollUrl(ids))}" target="_blank" rel="noopener" data-now-tg>${document.documentElement.classList.contains('tg') ? '🗳️ Голосование в чат' : '✈️ Голосование в Telegram'}</a>` : ''}
       </div>
+      ${prof ? '' : taste /* знакомство — под планами: первым экраном фото «Лучшего сейчас», а не анкета */}
       ${evs.length ? `<p class="qr-k">В афише</p><div class="qr-list">${evs.map(nowEventHtml).join('')}</div>` : ''}
       ${placesFirst ? '' : placeBlock}
       <p class="now-foot"><button type="button" class="link" data-taste>${prof ? 'Мой профиль' : 'Рассказать о себе'}</button> · <button type="button" class="link" data-remind>🔔 Напоминать о ${mode === 'date' ? 'свиданиях' : 'встречах'}</button> · <a href="rules.html">Как работают рекомендации</a>${learned ? ' · <button type="button" class="link" data-now-reset>Забыть мои вкусы</button>' : ''}</p>`;

@@ -13,18 +13,18 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="assets/create.css?v=46">
-  <link rel="stylesheet" href="assets/reviews.css?v=46">
+  <link rel="stylesheet" href="assets/create.css?v=47">
+  <link rel="stylesheet" href="assets/reviews.css?v=47">
 </head>
-<body data-mode="date">
+<body data-mode="date" class="quick">
   <header class="top">
     <div>
       <div class="top-links">
         <a class="back" href="start.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/></svg><span>Куда идём?</span></a>
         <a class="back mine-link" href="invites.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 13l2.6-7.2A2 2 0 0 1 7.5 4.5h9a2 2 0 0 1 1.9 1.3L21 13"/><path d="M3 13v5a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5h-5l-1.5 2.5h-5L8 13z"/></svg>Мои приглашения</a>
       </div>
-      <h1>Конструктор приглашения</h1>
-      <p>Заполни поля, скопируй ссылку и отправь — регистрация не нужна. Всё, что ты отправил, собрано в «Моих приглашениях».</p>
+      <h1>Приглашение за минуту</h1>
+      <p>Впиши имена, проверь места — ссылка уже готова. Регистрация не нужна, всё отправленное — в «Моих приглашениях».</p>
     </div>
     <div class="modeseg" id="modeSeg" role="group" aria-label="Повод"></div>
   </header>
@@ -33,23 +33,31 @@
     <main class="form" id="form">
 
       <section class="card">
-        <h2>1. Кого приглашаем</h2>
+        <h2>Кого приглашаем</h2>
         <p class="hint quick">Хватит имён — остальное уже настроено, ссылка готова сразу.</p>
         <div class="grid2">
           <label class="only-date">Кого зовёшь <input id="her" maxlength="40" placeholder="Имя" autocomplete="off"></label>
-          <label class="only-group">Что за сбор <input id="title" maxlength="40" placeholder="Пятница с пацанами" autocomplete="off"></label>
+          <label class="only-group">Что за сбор <input id="title" maxlength="40" placeholder="Пятница с друзьями" autocomplete="off"></label>
           <label>Твоё имя <input id="me" maxlength="40" placeholder="Имя" autocomplete="given-name"></label>
         </div>
         <div class="only-date who-row"><span class="field-label" id="whoLabel">Обращаться</span><div class="seg" id="who" role="group" aria-labelledby="whoLabel"><button type="button" data-who="f">к ней</button><button type="button" data-who="m">к нему</button></div></div>
-        <label>Имя котика-почтальона <input id="catName" maxlength="30" placeholder="Мурчик" autocomplete="off"></label>
-        <div class="field-label" id="catsLabel">Котик</div>
-        <div class="swatches" id="cats" role="group" aria-labelledby="catsLabel"></div>
-        <div class="field-label" id="themesLabel">Цвета</div>
-        <div class="swatches" id="themes" role="group" aria-labelledby="themesLabel"></div>
+        <label class="only-date no-row">Кнопка «Нет»
+          <select id="noButton">
+            <option value="real">честная, можно нажать</option>
+            <option value="runaway">убегает от пальца — для своих</option>
+          </select>
+        </label>
+        <div class="adv">
+          <label>Имя котика-почтальона <input id="catName" maxlength="30" placeholder="Мурчик" autocomplete="off"></label>
+          <div class="field-label" id="catsLabel">Котик</div>
+          <div class="swatches" id="cats" role="group" aria-labelledby="catsLabel"></div>
+          <div class="field-label" id="themesLabel">Цвета</div>
+          <div class="swatches" id="themes" role="group" aria-labelledby="themesLabel"></div>
+        </div>
       </section>
 
-      <section class="card">
-        <h2>2. Тексты</h2>
+      <section class="card adv">
+        <h2>Тексты</h2>
         <p class="hint">Можно вставлять <code class="only-date">{her}</code><span class="only-date"> — имя того, кого зовёшь, </span><code class="only-group">{title}</code><span class="only-group"> — название сбора, </span><code>{me}</code> — твоё имя, <code>{cat}</code> — имя котика.</p>
         <label>Приветствие котика <textarea id="greeting" rows="3" maxlength="300"></textarea></label>
         <label>Вопрос в письме <input id="question" maxlength="120"></label>
@@ -57,46 +65,41 @@
         <label class="only-date">Фраза в финале <input id="finale" maxlength="160"></label>
       </section>
 
-      <section class="card">
-        <h2>3. Уровни</h2>
+      <section class="card adv">
+        <h2>Уровни</h2>
         <div id="levels" class="toggles"></div>
-        <div class="grid2">
-          <label>Сколько поймать в 1-м уровне <input id="heartsGoal" type="number" min="3" max="50" inputmode="numeric"></label>
-          <label class="only-date">Кнопка «Нет»
-            <select id="noButton">
-              <option value="runaway">убегает от пальца</option>
-              <option value="real">честная, можно нажать</option>
-            </select>
-          </label>
-        </div>
+        <label>Сколько поймать в 1-м уровне <input id="heartsGoal" type="number" min="3" max="50" inputmode="numeric"></label>
         <p class="hint only-group">Кнопка «Не смогу» в компании всегда честная — друзья смогут отказаться.</p>
       </section>
 
       <section class="card only-group">
-        <h2>4. Варианты для голосования</h2>
+        <h2>Варианты для голосования</h2>
         <p class="hint">Отметь готовые планы, места каталога или события из афиши и/или добавь свои варианты — друзья свайпнут «за» или «против». Лучше 3–8 вариантов, максимум 20.</p>
         <div class="plan-pick" id="planPick"></div>
         <div class="list" id="opts"></div>
         <button class="btn-add" type="button" data-add="opts">+ Свой вариант</button>
       </section>
 
-      <section class="card only-date">
-        <h2>4. Места <small>(свайпы)</small></h2>
+      <section class="card only-date" id="placesCard">
+        <h2>Места <small>(свайпы)</small></h2>
         <div id="evBox" class="ev-box hidden"></div>
         <div id="placesEd">
-          <p class="hint">Выбери готовый план, любое из <span id="placeCount">960+</span> мест <span id="placeCity">Москвы</span> или событие из афиши — каждое место станет карточкой для свайпа. Подсказки помогут: 🍂 красиво осенью, 💘 для первого свидания, ☔ если дождь.</p>
-          <div class="plan-pick" id="datePlans"></div>
           <div class="list" id="places"></div>
+          <button class="btn-more pick-more" type="button" data-more="pick">Выбрать другие места</button>
+          <div class="pick-box">
+            <p class="hint">Выбери готовый план, любое из <span id="placeCount">960+</span> мест <span id="placeCity">Москвы</span> или событие из афиши — каждое место станет карточкой для свайпа. Подсказки помогут: 🍂 красиво осенью, 💘 для первого свидания, ☔ если дождь.</p>
+            <div class="plan-pick" id="datePlans"></div>
+          </div>
           <button class="btn-add" type="button" data-add="places">+ Добавить место</button>
-          <div class="toggles compact">
+          <div class="toggles compact adv">
             <label class="tg"><input type="checkbox" id="placeSurprise"><span></span><b>Карточка «🎁 Сюрприз»</b><i>выбираешь ты</i></label>
             <label class="tg"><input type="checkbox" id="placeCustom"><span></span><b>Карточка «✍️ Свой вариант»</b><i>свой вариант текстом</i></label>
           </div>
         </div>
       </section>
 
-      <section class="card">
-        <h2>5. Даты <small>(календарь)</small></h2>
+      <section class="card adv">
+        <h2>Даты <small>(календарь)</small></h2>
         <p class="ev-note hidden" id="evDates"></p>
         <div id="dateEd">
           <p class="ev-cap hidden" id="dateCap">Если выберет другое место:</p>
@@ -123,8 +126,8 @@
         </div>
       </section>
 
-      <section class="card only-group">
-        <h2>6. Во сколько и до когда решаем</h2>
+      <section class="card only-group adv">
+        <h2>Во сколько и до когда решаем</h2>
         <button class="btn-add preset-now" type="button" id="presetNow">⚡ Сегодня, решаем за час</button>
         <div class="toggles compact">
           <label class="tg"><input type="checkbox" id="slotAsk" checked><span></span><b>Спросить, во сколько</b><i>до 4 вариантов; один — время уже решено</i></label>
@@ -144,8 +147,8 @@
         <p class="hint" id="untilInfo" aria-live="polite">После срока голосование закроется, итог у всех будет одинаковый.</p>
       </section>
 
-      <section class="card only-date">
-        <h2>6. Время</h2>
+      <section class="card only-date adv">
+        <h2>Время</h2>
         <p class="ev-note hidden" id="evTime"></p>
         <div id="timeEd">
           <p class="ev-cap hidden" id="timeCap">Если выберет другое место:</p>
@@ -161,8 +164,8 @@
         </div>
       </section>
 
-      <section class="card only-date">
-        <h2>7. Еда <small>(свайпы)</small></h2>
+      <section class="card only-date adv">
+        <h2>Еда <small>(свайпы)</small></h2>
         <div class="list" id="food"></div>
         <p class="hint hidden" id="foodInfo">Список пуст — уровень с едой пропустим.</p>
         <button class="btn-add" type="button" data-add="food">+ Добавить блюдо</button>
@@ -170,6 +173,8 @@
       </section>
 
       <div class="emoji-bar hidden" id="emojiBar" role="toolbar" aria-label="Эмодзи"></div>
+
+      <button class="btn-more all-more" type="button" data-more="all"><span class="only-date">Настроить всё: котик, тексты, уровни, даты, время, еда</span><span class="only-group">Настроить всё: тексты, уровни, дни, время и срок</span></button>
 
       <section class="card result" id="result">
         <h2 id="resTitle">Ссылка-приглашение</h2>
@@ -199,7 +204,7 @@
         <p class="hint">Сохраняются в этом браузере, когда копируешь, отправляешь или открываешь ссылку.</p>
       </section>
 
-      <details class="card tgbox" id="tg">
+      <details class="card tgbox adv" id="tg">
         <summary><span class="tg-sum"><span id="tgTitle">Ответ в Telegram</span> <small>(необязательно)</small></span><span class="tg-on hidden" id="tgOn">включено</span></summary>
         <div class="tg-body">
           <label>Твой ник в Telegram <input id="tgu" maxlength="40" placeholder="@username" autocomplete="off" autocapitalize="off" spellcheck="false"><small>Если укажешь ник, в конце игры появится кнопка «Написать в Telegram» — ответ откроется прямо в вашем чате.</small></label>
@@ -222,7 +227,7 @@
         </div>
       </details>
 
-      <div class="footer-actions">
+      <div class="footer-actions adv">
         <button class="btn" type="button" id="reset">Сбросить к настройкам по умолчанию</button>
       </div>
     </main>
@@ -241,25 +246,25 @@
   </div>
   <div class="toast hidden" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="config.js?v=46"></script>
-  <script src="assets/shared.js?v=46"></script>
-  <script src="assets/places.js?v=46"></script>
-  <script src="assets/places-spb.js?v=46"></script>
-  <script src="assets/places-info.js?v=46"></script>
-  <script src="assets/events.js?v=46"></script>
-  <script src="assets/events-spb.js?v=46"></script>
-  <script src="assets/sport.js?v=46"></script>
-  <script src="assets/auto.js?v=46"></script>
-  <script src="assets/photos.js?v=46"></script>
-  <script src="assets/gallery.js?v=46"></script>
-  <script src="assets/collections.js?v=46"></script>
-  <script src="assets/collections-auto.js?v=46"></script>
-  <script src="assets/cols.js?v=46"></script>
-  <script src="assets/api.js?v=46"></script>
-  <script src="assets/reviews.js?v=46"></script>
-  <script src="assets/track.js?v=46"></script>
-  <script src="assets/auth.js?v=46"></script>
-  <script src="assets/create.js?v=46"></script>
-  <script src="assets/pwa.js?v=46"></script>
+  <script src="config.js?v=47"></script>
+  <script src="assets/shared.js?v=47"></script>
+  <script src="assets/places.js?v=47"></script>
+  <script src="assets/places-spb.js?v=47"></script>
+  <script src="assets/places-info.js?v=47"></script>
+  <script src="assets/events.js?v=47"></script>
+  <script src="assets/events-spb.js?v=47"></script>
+  <script src="assets/sport.js?v=47"></script>
+  <script src="assets/auto.js?v=47"></script>
+  <script src="assets/photos.js?v=47"></script>
+  <script src="assets/gallery.js?v=47"></script>
+  <script src="assets/collections.js?v=47"></script>
+  <script src="assets/collections-auto.js?v=47"></script>
+  <script src="assets/cols.js?v=47"></script>
+  <script src="assets/api.js?v=47"></script>
+  <script src="assets/reviews.js?v=47"></script>
+  <script src="assets/track.js?v=47"></script>
+  <script src="assets/auth.js?v=47"></script>
+  <script src="assets/create.js?v=47"></script>
+  <script src="assets/pwa.js?v=47"></script>
 </body>
 </html>

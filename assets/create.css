@@ -70,6 +70,12 @@ select { -webkit-appearance: none; appearance: none; padding-right: 42px; backgr
 .btn:disabled { opacity: .45; cursor: not-allowed; transform: none; background: var(--surface-2); }
 .btn-add { border: 1px dashed rgba(244, 241, 234, .3); background: transparent; color: var(--text); border-radius: 14px; min-height: 46px; width: 100%; font: inherit; font-weight: 600; cursor: pointer; margin: 2px 0 12px; }
 .btn-add:hover { border-color: var(--accent); color: var(--accent); }
+/* Быстрое приглашение: сначала имена и места, остальное — по «Настроить всё» */
+.btn-more { display: block; width: 100%; min-height: 48px; margin: 2px 0 14px; padding: 10px 16px; border: 1px solid var(--line-2, rgba(244, 241, 234, .16)); border-radius: 14px; background: transparent; color: var(--text); font: inherit; font-weight: 600; line-height: 1.35; cursor: pointer; }
+.btn-more:hover { border-color: var(--accent); color: var(--accent); }
+.btn-more:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+body.quick .adv, body.quick #placesCard:not(.pick-open) .pick-box, body.quick #placesCard:not(.pick-open) [data-add="places"],
+body:not(.quick) .btn-more, #placesCard.pick-open .pick-more { display: none; }
 .row { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
 
 /* свотчи */

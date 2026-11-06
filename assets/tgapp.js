@@ -44,13 +44,30 @@
       safe(() => W.MainButton.setParams(Object.assign({ text: '🗳️ Голосование в чат', color: ACCENT, text_color: ON_ACCENT }, at('7.10') ? { has_shine_effect: true } : null)));
       W.MainButton.onClick(() => { const a = pollLink(); if (a) vote(a); });
     }
+    // вторая кнопка внизу — «Позвать»: приглашение сразу с этими планами («Пусть выберет из этих»)
+    const inviteLink = () => document.querySelector('a[data-now-invite]');
+    const sec = at('7.10') && W.SecondaryButton;
+    if (sec) {
+      safe(() => W.SecondaryButton.setParams({ text: '💌 Позвать', position: 'left' }));
+      W.SecondaryButton.onClick(() => { const a = inviteLink(); if (a) { haptic('light'); location.href = a.href; } });
+    }
     if (at('6.1')) W.BackButton.onClick(() => { haptic('light'); history.back(); });
     let raf = 0;
     const sync = () => {
       raf = 0;
       if (at('6.1')) safe(() => (sheetOpen() ? W.BackButton.show() : W.BackButton.hide()));
       if (main) safe(() => (!sheetOpen() && pollLink() && at('6.7') ? W.MainButton.show() : W.MainButton.hide()));
+      if (sec) safe(() => (!sheetOpen() && inviteLink() ? W.SecondaryButton.show() : W.SecondaryButton.hide()));
     };
+    // галерея и полноэкранный просмотр: лёгкий щелчок на каждом новом фото
+    const galAt = new WeakMap();
+    document.addEventListener('scroll', e => {
+      const t = e.target;
+      if (!t.classList || !(t.classList.contains('gal-track') || t.classList.contains('lb-track')) || !t.clientWidth) return;
+      const i = Math.round(t.scrollLeft / t.clientWidth);
+      if (galAt.has(t) && galAt.get(t) !== i) haptic();
+      galAt.set(t, i);
+    }, true);
     new MutationObserver(() => { if (!raf) raf = requestAnimationFrame(sync); }).observe(document.body, { attributes: true, attributeFilter: ['class'], childList: true, subtree: true });
     sync();
 
