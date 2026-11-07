@@ -373,3 +373,7 @@ a.btn { text-decoration: none; }
 .seg.seg-wrap { display: flex; flex-wrap: wrap; gap: 2px; }
 #untilAt { margin-bottom: 8px; }
 @media (max-width: 420px) { .slot-ed { grid-template-columns: repeat(2, 1fr); } }
+
+/* iOS: ленивое фото в контейнере с place-items: center остаётся сдвинутым вниз — растягиваем абсолютно (как в hub.css) */
+.pk-im { position: relative; }
+.pk-im img { position: absolute; inset: 0; }

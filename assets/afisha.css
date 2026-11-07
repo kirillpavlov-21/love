@@ -239,3 +239,7 @@
 }
 
 .af-remind { margin-top: 6px; display: inline-flex; }
+
+/* iOS: ленивое фото в контейнере с place-items: center остаётся сдвинутым вниз — растягиваем абсолютно (как в hub.css) */
+.af-cov, .af-ccov, .af-np-e { position: relative; }
+.af-cov img, .af-ccov img, .af-np-e img { position: absolute; inset: 0; }

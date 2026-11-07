@@ -976,3 +976,8 @@ html.tg .hero, html.back .hero { padding-top: 14px; padding-bottom: 14px; gap: 1
 /* фото слева у пункта подборки */
 .col-it .ce.ph { width: 44px; height: 44px; border-radius: 10px; overflow: hidden; background: var(--surface-3); }
 .col-it .ce.ph img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+/* iOS (Safari и мини-приложение): ленивое фото в контейнере с place-items: center после загрузки
+   остаётся сдвинутым вниз, сверху пустая полоса — кладём его абсолютно на весь контейнер */
+.fy-ph, .pl-emo, .qr-ph, .col-it .ce.ph { position: relative; }
+.fy-ph img, .top-ph img, .pl-emo img, .qr-ph img, .col-it .ce.ph img { position: absolute; inset: 0; }
