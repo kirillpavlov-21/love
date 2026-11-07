@@ -178,31 +178,6 @@ STATUS:CONFIRMED
 TRANSP:TRANSPARENT
 END:VEVENT
 BEGIN:VEVENT
-UID:ev-viktor-borisov-musatov-garmoniya-obraza-20260709-last@kirillpavlov-2
- 1.github.io
-DTSTAMP:20261015T000000Z
-DTSTART;VALUE=DATE:20261108
-DTEND;VALUE=DATE:20261109
-SUMMARY:Последний день: Виктор Борисов-Мусат
- ов. Гармония образа
-LOCATION:Третьяковка на Кадашёвской\, Кадашё
- вская наб.\, 12
-GEO:55.742977;37.618758
-DESCRIPTION:Больше 140 работ символиста Борисов
- а-Мусатова из двадцати собраний\, часть п
- оказывают впервые. Мечтательная и очень 
- романтичная живопись.\nОт 450 ₽\, 12+\nБилет
- ы и подробности: https://afisha.yandex.ru/moscow/art/viktor-b
- orisov-musatov-garmoniia-obraza\nПозвать друзей — в «Ку
- да идём?»: https://kirillpavlov-21.github.io/love/start.html?event=
- ev-viktor-borisov-musatov-garmoniya-obraza-20260709&m=date
-URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-viktor-boris
- ov-musatov-garmoniya-obraza-20260709&m=date
-CATEGORIES:Выставка
-STATUS:CONFIRMED
-TRANSP:TRANSPARENT
-END:VEVENT
-BEGIN:VEVENT
 UID:ev-shut-balakirev-lenkom-20261108-20261108@kirillpavlov-21.github.io
 DTSTAMP:20261015T000000Z
 DTSTART;TZID=Europe/Moscow:20261108T190000
