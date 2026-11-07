@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-07T19:30:00+03:00",
+  "title": "Design System: Куда идём?",
+  "extensions": {
+    "colorMeta": {
+      "night-ground": { "role": "neutral", "displayName": "Night Ground" },
+      "surface": { "role": "neutral", "displayName": "Surface" },
+      "ink": { "role": "neutral", "displayName": "Warm Ink" },
+      "date-pink": { "role": "primary", "displayName": "Date Pink", "tonalRamp": ["#3D0F1B", "#661A2E", "#991F42", "#CC2C5A", "#FF6F91", "#FF8FA8", "#FFB3C4", "#FFD9E2"] },
+      "friends-lime": { "role": "primary", "displayName": "Friends Lime (mode «Друзья»)" },
+      "girls-lavender": { "role": "primary", "displayName": "Girls Lavender (mode «Подружки»)" },
+      "yes-green": { "role": "tertiary", "displayName": "Yes Stamp Green" }
+    },
+    "shadows": [
+      { "name": "deck-lift", "value": "0 18px 40px rgba(0, 0, 0, .35)", "purpose": "Top swipe card above the stack." },
+      { "name": "float", "value": "0 20px 50px rgba(0, 0, 0, .35)", "purpose": "Bottom sheets and the constructor result panel." }
+    ],
+    "motion": [
+      { "name": "card-in", "value": "cubic-bezier(.2, .9, .3, 1) .5s", "purpose": "Feed cards entering." },
+      { "name": "deck-fling", "value": "transform .22s ease, opacity .22s ease", "purpose": "Swipe card leaving after a decision." }
+    ],
+    "breakpoints": [ { "name": "wide", "value": "620px" } ]
+  },
+  "components": [
+    { "name": "Primary Button", "kind": "button", "refersTo": "button-primary", "description": "One main action per region; accent of the current mode.",
+      "html": "<button class=\"ds-btn-primary\">Создать приглашение</button>",
+      "css": ".ds-btn-primary{display:inline-flex;align-items:center;justify-content:center;min-height:52px;padding:0 22px;border:0;border-radius:16px;background:#FF6F91;color:#1C0A10;font:700 16px Onest,system-ui,sans-serif;cursor:pointer;transition:transform .15s}.ds-btn-primary:active{transform:scale(.97)}.ds-btn-primary:focus-visible{outline:2px solid #FF6F91;outline-offset:3px}" },
+    { "name": "Ghost Button", "kind": "button", "refersTo": "button-ghost", "description": "Secondary actions.",
+      "html": "<button class=\"ds-btn-ghost\">Ещё варианты</button>",
+      "css": ".ds-btn-ghost{display:inline-flex;align-items:center;justify-content:center;min-height:52px;padding:0 22px;border:1px solid rgba(244,241,234,.16);border-radius:16px;background:transparent;color:#F4F1EA;font:600 16px Onest,system-ui,sans-serif;cursor:pointer}.ds-btn-ghost:hover{border-color:#FF6F91}.ds-btn-ghost:focus-visible{outline:2px solid #FF6F91;outline-offset:3px}" },
+    { "name": "Mode Switch", "kind": "nav", "refersTo": "mode-switch-on", "description": "Three equal segments; the active one carries the accent.",
+      "html": "<div class=\"ds-modes\"><button class=\"on\">Свидание</button><button>Друзья</button><button>Подружки</button></div>",
+      "css": ".ds-modes{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:5px;border-radius:18px;background:rgba(26,25,32,.86);border:1px solid rgba(244,241,234,.16)}.ds-modes button{height:46px;border:0;border-radius:14px;background:transparent;color:#C9C5D2;font:600 15px Onest,system-ui,sans-serif}.ds-modes button.on{background:#FF6F91;color:#1C0A10;font-weight:700}" },
+    { "name": "Chip", "kind": "chip", "refersTo": "chip", "description": "Facts and filters on cards.",
+      "html": "<span class=\"ds-chip\">вечер</span>",
+      "css": ".ds-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:99px;background:#22212A;color:#C9C5D2;font:500 13px Onest,system-ui,sans-serif}" },
+    { "name": "Swipe Deck Card", "kind": "custom", "refersTo": "deck-card", "description": "Signature card: photo, kind pill, credit, name, one fact line.",
+      "html": "<article class=\"ds-deck\"><span class=\"k\">место</span><small class=\"cr\">© автор</small><div class=\"t\"><b>The Bix</b><span>Джаз-бар · м. Пушкинская · 1500–3000 ₽</span></div></article>",
+      "css": ".ds-deck{position:relative;width:320px;height:400px;border-radius:24px;overflow:hidden;background:linear-gradient(to top,rgba(10,9,14,.92),rgba(10,9,14,0) 55%),#2A2932;box-shadow:0 18px 40px rgba(0,0,0,.35);color:#F4F1EA;font-family:Onest,system-ui,sans-serif}.ds-deck .k{position:absolute;left:14px;top:14px;padding:6px 10px;border-radius:99px;background:rgba(15,14,19,.72);font:600 12px/1 Onest,sans-serif}.ds-deck .cr{position:absolute;right:14px;top:18px;font-size:10px;color:rgba(244,241,234,.72)}.ds-deck .t{position:absolute;left:18px;right:18px;bottom:18px;display:grid;gap:6px}.ds-deck b{font:700 22px/1.15 Unbounded,'Arial Black',sans-serif;letter-spacing:-.02em}.ds-deck .t span{color:#C9C5D2;font-size:14px}" }
+  ],
+  "narrative": {
+    "northStar": "Ночной город (The Night City)",
+    "keyCharacteristics": [
+      "Near-black violet ground, tonal surfaces stepped in three levels, hairline borders instead of shadows on content.",
+      "One accent per screen, re-tinted by mode; never two accents competing.",
+      "Unbounded for the display voice, Onest for everything people read or tap.",
+      "Real place photography, credited on the image itself, no faces.",
+      "Line icons in one stroke weight; emoji are not interface icons."
+    ],
+    "rules": [
+      { "name": "The One Lit Sign Rule", "body": "A screen has one accent colour, the current mode's. Status, decoration and emphasis never introduce a second hue.", "section": "colors" },
+      { "name": "The Mode Recolours Everything Rule", "body": "Components read the accent from --accent / --on-accent / --glow; nothing hard-codes pink, so switching mode recolours the page at once.", "section": "colors" },
+      { "name": "The One Line Rule", "body": "Under a name there is at most one line of facts (type · metro · price, or day · time · venue). A second explanatory caption is a defect.", "section": "typography" },
+      { "name": "The No Neon Halo Rule", "body": "Shadows are neutral black with offset and blur. A coloured, zero-offset glow around buttons or cards is not part of this world; the accent's soft radial glow lives only behind the hero panel, never around controls.", "section": "elevation" }
+    ]
+  }
+}

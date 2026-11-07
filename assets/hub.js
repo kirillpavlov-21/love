@@ -522,7 +522,7 @@
       `<span class="dot${i ? ' o' : ''}"></span><span class="stop-name">${esc(p.name)} <span>· ${esc(kindLow(p.kind))}</span></span>`).join('');
   }
   /* на карточке — до трёх подсказок; «недорого» и так видно по цене */
-  const cardHints = p => K.planHints(p).filter(h => h !== 'budget').slice(0, 3).map(h => K.hintChip(h, 'short')).join('');
+  const cardHints = p => K.planHints(p).filter(h => h !== 'budget').slice(0, 1).map(h => K.hintChip(h, 'short')).join('');
   const sheetHints = hs => hs.length ? `<p class="hints-line">${hs.map(h => K.hintChip(h)).join('')}</p>` : '';
   /* Сезонные плашки над планами: Хэллоуин, Новый год, осень — только в свой срок (подписи под город — CITY_TXT) */
   const SEASON_TILES = {
@@ -2056,7 +2056,7 @@
   const TG_APP = /^[A-Za-z0-9_]{5,32}$/.test(String((CFG.telegram || {}).app || '')) ? CFG.telegram.app : '';
   const tgRef = id => { let h = 0x811c9dc5; for (const ch of String(id)) { h ^= ch.codePointAt(0); h = Math.imul(h, 0x01000193) >>> 0; } return h.toString(36).padStart(6, '0').slice(-6); };
   const tgPollUrl = ids => (TG_APP && ids.length > 1 ? `https://t.me/${TG_APP}?start=poll_${ids.slice(0, 8).map(tgRef).join('_')}` : '');
-  /* ---------- «🔥 Топ дня» и «📅 Топ недели» (KudaPick.top): один главный вариант и семь на неделю вместо длинных списков ----------
+  /* ---------- «Выбор недели» (KudaPick.top): одна лента — выбор дня первой карточкой, за ним неделя — вместо длинных списков ----------
      Отбор общий на день (жанр, цена, погода, часы работы), свои интересы из афиши и вкус его подстраивают. Считаем заново,
      только когда меняются город, режим, день, погода или интересы */
   let topSig = '';
@@ -2086,17 +2086,13 @@
     if (!R || !R.day) { blk.classList.add('hidden'); return; }
     const d = new Date(Date.now() + 3 * 3600e3), when = `${DAY_W[d.getUTCDay()]}, ${d.getUTCDate()} ${MON_G[d.getUTCMonth()]}`;
     const x = R.day;
+    const key = y => topAttr(y), list = [x].concat(R.week.filter(y => key(y) !== key(x))).slice(0, 7);
     box.innerHTML = `
-      <div class="block-head"><h2 id="topTitle">🔥 Топ дня</h2><span class="top-when">${esc(when)}</span></div>
-      <button type="button" class="top-day" ${topAttr(x)}>
-        ${topCover(x, true)}
-        <span class="top-txt"><b>${esc(topTitle(x))}</b>${topSub(x) ? `<small>${esc(topSub(x))}</small>` : ''}${whyHtml(x.kind === 'event' ? x.why.filter(w => w.e !== '📅') : x.why)}</span>
-      </button>
-      ${R.week.length > 2 ? `<div class="feed-head top-wk"><h3>📅 Топ недели</h3><span class="muted">${R.week.length} идей: события и планы</span></div>
-      <div class="rail top-rail">${R.week.map((y, i) => `<button type="button" class="fy-card" ${topAttr(y)}>
-        ${topCover(y)}<i class="top-n" aria-hidden="true">${i + 1}</i>
-        <b>${esc(topTitle(y))}</b><small>${esc((y.why.find(w => w.e === '📅' || w.e === '🔔') || y.why[0] || { t: topSub(y) }).t)}</small></button>`).join('')}</div>` : ''}
-      <p class="block-note top-note">Выбор «Куда идём?» на сегодня: что идёт, по какой цене и с учётом погоды. <a href="rules.html#top">Как выбираем</a></p>`;
+      <div class="block-head"><h2 id="topTitle">Выбор недели</h2><span class="top-when">${esc(when)}</span></div>
+      <div class="rail top-rail">${list.map((y, i) => `<button type="button" class="fy-card${i ? '' : ' top-first'}" ${topAttr(y)}>
+        ${topCover(y)}<i class="top-n" aria-hidden="true">${i ? i + 1 : 'сегодня'}</i>
+        <b>${esc(topTitle(y))}</b><small>${esc(i ? (y.why.find(w => w.e === '📅' || w.e === '🔔') || y.why[0] || { t: topSub(y) }).t : topSub(y) || (y.why[0] || {}).t || '')}</small></button>`).join('')}</div>
+      <p class="block-note top-note"><a href="rules.html#top">Как выбираем</a></p>`;
     blk.classList.remove('hidden');
   }
   const TASTE_SKIP = 'kuda-taste-skip';
@@ -2122,7 +2118,9 @@
     // точных нет, а остальное в запросе понятно — лучшие по остальному с честной пометкой вместо «ничего не нашлось»
     const strict = specific ? found.filter(r => r.match) : found;
     const soft = !!specific && !strict.length && found.length > 0 && (q.chips.length > 0 || q.kinds.length > 0);
-    const pool = soft ? found : strict, plans = pool.slice(0, askN);
+    // без запроса — один фаворит: личный подбор уже делает колода над лентой; «Ещё варианты» раскрывает остальные
+    const lim = asked ? askN : askN - 2;
+    const pool = soft ? found : strict, plans = pool.slice(0, lim);
     // выбирают глазами: крупная карточка «Лучшее сейчас» без фото проигрывает — если среди первых трёх есть план с фото
     // почти той же оценки (разница до 1,5), он встаёт первым
     if (plans.length > 1 && !K.planPhoto(plans[0].plan)) {
@@ -2130,7 +2128,7 @@
       if (j > 0) plans.unshift(plans.splice(j, 1)[0]);
     }
     noteShown(plans.map(r => r.plan.id));
-    const evs = safe(() => PK.events(q, pickCtx({ limit: 2 })), []);
+    const evs = asked ? safe(() => PK.events(q, pickCtx({ limit: 2 })), []) : [];
     const pls = safe(() => PK.places(q, pickCtx({ limit: 4 })), []);
     const mo = PK.moment(q);
     // слова запроса нашлись в местах, а в планах — нет: места показываем первыми
@@ -2139,8 +2137,8 @@
     const locMsg = q.near && !near ? `<p class="muted now-msg" role="status">${askLoc === 2 ? 'Не получилось узнать, где ты, — напиши станцию метро, например «у Чистых прудов».' : 'Определяем, где ты…'}</p>` : '';
     const prof = T.taste ? T.taste() : null;
     const taste = asked ? '' : prof ? profileLine(prof)
-      : !tasteSkipped() ? `<div class="now-taste"><span class="e" aria-hidden="true">👋</span><p><b>С кем сегодня?</b>Один тап — и подборка станет под вас. Ответ остаётся только в этом браузере.</p>
-          <div class="tq-quick" role="group" aria-label="С кем идёшь">${QUICK_WHO.map(([v, e, t]) => `<button type="button" data-quick-who="${v}"><span aria-hidden="true">${e}</span>${t}</button>`).join('')}</div>
+      : !tasteSkipped() ? `<div class="now-taste"><p><b>С кем сегодня?</b>Один тап — и подборка станет под вас. Ответ остаётся только в этом браузере.</p>
+          <div class="tq-quick" role="group" aria-label="С кем идёшь">${QUICK_WHO.map(([v, e, t]) => `<button type="button" data-quick-who="${v}">${t}</button>`).join('')}</div>
           <button type="button" class="link" data-taste-skip>Не сейчас</button></div>` : '';
     const rate = asked ? '' : rateCard();
     const planBlock = plans.length ? `<div class="qr-list">${plans.map(nowPlanHtml).join('')}</div>`
@@ -2156,7 +2154,7 @@
       ${asked ? got : `<p class="now-sub">${esc(nowSub(mo, q))}</p>`}${locMsg}${rate}${prof ? taste : ''}
       ${placesFirst ? placeBlock : ''}${soft ? `<p class="now-soft" role="status"><b>${q.words.length || q.kinds.length ? `Про «${esc((q.words.length ? q.words : q.kinds).join(' '))}» готовых планов нет` : 'Точно под это готовых планов нет'}</b>Ниже — ближайшее по остальным словам запроса. Уберёшь лишнее слово — найдётся больше.</p>` : ''}${planBlock}
       <div class="qr-foot">
-        ${pool.length > askN && askN < NOW_MAX ? `<button type="button" class="btn ghost" data-now-more>${I('redo')}Ещё варианты</button>` : ''}
+        ${pool.length > lim && askN < NOW_MAX ? `<button type="button" class="btn ghost" data-now-more>${I('redo')}Ещё варианты</button>` : ''}
         ${inv && plans.length > 1 ? `<a class="btn ghost" href="${esc(inv)}" data-now-invite>${group ? '🗳️ Голосовать за эти' : '💌 Пусть выберет из этих'}</a>` : ''}
         ${tgPollUrl(ids) ? `<a class="btn ghost" href="${esc(tgPollUrl(ids))}" target="_blank" rel="noopener" data-now-tg>${document.documentElement.classList.contains('tg') ? '🗳️ Голосование в чат' : '✈️ Голосование в Telegram'}</a>` : ''}
       </div>

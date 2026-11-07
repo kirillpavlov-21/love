@@ -11,3 +11,7 @@ private/
 
 # отчёт scripts/daily.mjs для текста PR
 .daily-report.md
+
+# скилл impeccable: черновики выбора направления и снимки проверки — не для сайта
+.impeccable/mocks/
+.impeccable/review/

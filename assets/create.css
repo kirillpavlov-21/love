@@ -47,7 +47,7 @@ input, textarea, select {
   background: var(--surface-2); border: 1px solid var(--line-2); border-radius: 14px; padding: 12px 14px; outline: none;
   transition: border-color .2s;
 }
-input::placeholder, textarea::placeholder { color: #6F6A7A; }
+input::placeholder, textarea::placeholder { color: var(--muted); }
 textarea { resize: vertical; line-height: 1.45; }
 input:focus, textarea:focus, select:focus { border-color: var(--accent); }
 /* свой значок вместо системной стрелки: та стояла вплотную к рамке */
@@ -127,7 +127,7 @@ body:not(.quick) .btn-more, #placesCard.pick-open .pick-more { display: none; }
 .seg input:focus-visible + span, .chip input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* результат */
-.result { border-color: rgba(var(--rgb), .5); box-shadow: 0 0 0 1px rgba(var(--rgb), .2), 0 20px 50px rgba(var(--rgb), .08); }
+.result { border-color: rgba(var(--rgb), .5); box-shadow: 0 20px 50px rgba(0, 0, 0, .35); }
 .linkbox { display: flex; gap: 8px; }
 .linkbox input { margin: 0; font-size: 13px; font-family: ui-monospace, Menlo, monospace; }
 .status { padding: 10px 12px; border-radius: 12px; font-weight: 600; font-size: 14px; margin-bottom: 10px; background: rgba(255, 196, 81, .1); color: #F5C451; }
