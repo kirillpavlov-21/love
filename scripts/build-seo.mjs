@@ -607,8 +607,11 @@ function evWhen(e) {
 }
 function credit(ph) {
   if (!ph) return '';
-  const src = ph.src === 'Flickr' ? ' · Flickr' : /wikimedia\.org/.test(ph.u) ? ' · Wikimedia Commons' : '';
-  return `<p class="cr">Фото${ph.b ? ' здания' : ''}: <a href="${esc(ph.u)}" target="_blank" rel="noopener">${esc(ph.a)}</a>, ${esc(ph.l)}${src}</p>`;
+  // Flickr, «сайт места» (лицензии нет — только источник) или Commons
+  const src = ph.src ? ' · ' + esc(ph.src) : /wikimedia\.org/.test(ph.u) ? ' · Wikimedia Commons' : '';
+  // без страницы источника (снимок фотографа из его соцсетей) — автор без ссылки
+  const who = /^https:\/\//i.test(ph.u || '') ? `<a href="${esc(ph.u)}" target="_blank" rel="noopener">${esc(ph.a)}</a>` : esc(ph.a);
+  return `<p class="cr">Фото${ph.b ? ' здания' : ''}: ${who}${ph.l ? ', ' + esc(ph.l) : ''}${src}</p>`;
 }
 const LOGO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/></svg>';
 const HOW = '<section class="sec how" aria-labelledby="s-how"><h2 id="s-how">Как позвать</h2><ol>' +
@@ -1612,7 +1615,7 @@ ${events ? staleNote(c) + '\n' : ''}${body}
 <footer class="foot">
 <nav class="fl" aria-label="Разделы сайта"><a href="${href('start.html', c)}">Главная</a><a href="${href('#index', c)}">Все подборки</a><a href="${href('@m', c)}">Все места</a>${other}<a href="${href('create.html', c)}" rel="nofollow">Конструктор приглашений</a><a href="${href('partners.html', c)}">Для заведений</a><a href="${href('privacy.html', c)}">Конфиденциальность</a>${rules}</nav>
 <p>Места проверяем каждый месяц. Часы работы лучше уточнить в Яндекс Картах перед выходом. Цена — ориентир на человека: ₽ — до 1 500 ₽, ₽₽ — 1 500–3 000 ₽, ₽₽₽ — дороже.</p>
-<p>Координаты © участники OpenStreetMap. Фото — Wikimedia Commons и Flickr под свободными лицензиями, автор и лицензия указаны под снимком.</p>
+<p>Координаты © участники OpenStreetMap. Фото — Wikimedia Commons и Flickr под свободными лицензиями, а также с сайтов самих мест; автор или источник указаны под снимком.</p>
 </footer>${events ? '\n' + staleJs() : ''}${tail ? '\n' + tail : ''}
 </body>
 </html>

@@ -656,8 +656,9 @@
   /* Ссылка на страницу файла — только https (данные приходят и из автоматического каталога) */
   const photoCredit = ph => {
     if (!ph) return '';
-    const src = ph.src === 'Flickr' ? 'Flickr' : 'Wikimedia Commons';
-    const who = esc(cleanAuthor(ph.a) || 'автор на ' + (src === 'Flickr' ? 'Flickr' : 'Commons'));
+    // источник: Commons (без src), Flickr или «сайт места» — тогда автор = домен сайта, ссылка — на сам сайт
+    const src = esc(ph.src || 'Wikimedia Commons');
+    const who = esc(cleanAuthor(ph.a) || 'автор на ' + (ph.src ? ph.src : 'Commons'));
     return `Фото${ph.b ? ' здания' : ''}: ${/^https:\/\//i.test(ph.u || '') ? `<a href="${esc(ph.u)}" target="_blank" rel="noopener">${who}</a>` : who}${ph.l ? ', ' + esc(ph.l) : ''} · ${src}`;
   };
   function distM(a, b) {

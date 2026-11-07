@@ -21,30 +21,55 @@
   for (const c of L) if (c && c.id && !have.has(c.id)) { list.push(c); have.add(c.id); }
 })(window.KUDA, [
   // —— Москва ——
-  // «Места из ленты»: малоизвестное и красивое на фото (у мест hint 'photo') — Москва и Петербург
+  // «Места из ленты»: то, что снимают в соцсетях и о чём спрашивают «где это?» (у мест hint 'photo'). Состав — по исследованию
+  // подборок городских медиа и лент (2026-11-07): виды, дворы, пряничные храмы, загородные усадьбы, кофейни-пекарни и интерьерные бары
   {
     id: 'c-iz-lenty', kind: 'editorial', emoji: '📸', title: 'Места из ленты',
-    lead: 'Те самые кадры, под которыми спрашивают «где это?»: Сити с Шелепихинской набережной, дом-кольцо в Раменках, стеклянный цилиндр клуба Зуева, терем Перцовой. Почти всё бесплатно и не из путеводителей — архитектура, вода и правильный свет.',
-    items: ['shelepikha-emb', 'dom-koltso-na-nezhinskoy', 'klub-imeni-zueva', 'klub-imeni-rusakova', 'zdanie-tsentrosoyuza', 'khokhlovskaya-ploshchad', 'dokhodnyy-dom-isakova', 'osobnyak-arseniya-morozova', 'dom-porokhovshchikova', 'pertsova', 'narkomfin', 'melnikov-house', 'tessinsky-bridge', 'krutitsy', 'stantsiya-elektrozavodskaya'],
-    updated: '2026-11-06',
+    lead: 'Кадры, под которыми спрашивают «где это?»: Сити над рекой с новой набережной на Шелепихе, изразцовый терем во дворе Тверской, пряничные храмы XVII века, смотровая над излучиной у Академии наук и неоготические башни Михалкова. Почти всё бесплатно.',
+    items: ['shelepikha-emb', 'beregovoy-naberezhnaya', 'smotrovaya-ran', 'savvinskoe-podvorie', 'khram-nikoly-khamovniki', 'khram-troitsy-nikitniki', 'dom-mosselproma', 'osobnyak-arseniya-morozova', 'osobnyak-stakheeva', 'pertsova', 'krutitsy', 'usadba-mikhalkovo', 'dom-koltso-na-nezhinskoy', 'novodevichy-ponds'],
+    updated: '2026-11-07',
   },
   {
-    id: 'c-iz-lenty-interior', kind: 'editorial', emoji: '🪴', title: 'Кофейни, книжные и бары из ленты',
-    lead: 'Маленькие места, куда приходят ради света и интерьера: кофе под сводами колокольни, книжный с кофейней, особняк с лестницей-волной, бары с красивой стойкой. Не сети и не туристические точки.',
-    items: ['perezvon', 'polyandriya-letters', 'dom-burganova', 'ryabushinsky', 'mates-octagon', 'idu-lesom', 'kiosk-1936', 'kgallery', 'mokh', 'budem-blizhe', 'marie-laveau', 'anti-public-library'],
-    updated: '2026-11-06',
+    id: 'c-iz-lenty-za-gorod', kind: 'editorial', emoji: '🏰', title: 'За город из ленты',
+    lead: 'Куда уехать на день за лучшими кадрами сезона: «английский» замок в Марфине, пруд с парусником в Ромашкове, храм-корона в Дубровицах, сказочное Абрамцево, дачи 1930-х в Кратове и закат на Сенеже. До большинства мест — на электричке.',
+    items: ['usadba-marfino', 'romashkovo-klevoe-mesto', 'abramtsevo', 'dubrovitsy', 'usadba-bykovo', 'serednikovo', 'kratovo', 'ozero-senezh', 'gorki-leninskie', 'zvenigorod-savvino', 'ostafyevo', 'arkhangelskoe'],
+    updated: '2026-11-07',
+  },
+  {
+    id: 'c-iz-lenty-interior', kind: 'editorial', emoji: '🥐', title: 'Кофейни и пекарни из ленты',
+    lead: 'Маленькие места, ради которых едут через весь город: французская пекарня в переулке за Остоженкой, булки у Чистых прудов, бриоши с инжиром у Маяковской, чай во дворе на Гоголевском, кофе под сводами колокольни и китайский чайный дом на Мясницкой.',
+    items: ['la-poste', 'aaark', 'sandra-bulok', 'chetverg', 'skrepka', 'meteorite', 'nitka-gogolevsky', 'perezvon', 'chaynyy-dom-myasnitskaya', 'jules-zang', 'urbech', 'kgallery'],
+    updated: '2026-11-07',
+  },
+  {
+    id: 'c-krasivye-biblioteki', kind: 'editorial', emoji: '📚', title: 'Красивые библиотеки и книжные',
+    lead: 'Где читать, работать и фотографироваться среди книг: усадьба со стеклянным атриумом у Чистых прудов, особняк с каминами на Спартаковской, книжный в палатах XVII века и «Подписные издания» в музее импрессионизма. В библиотеки вход бесплатный по читательскому билету.',
+    items: ['biblioteka-turgeneva', 'biblioteka-pushkina', 'ozero', 'podpisnye', 'kgallery'],
+    updated: '2026-11-07',
+  },
+  {
+    id: 'c-atmosfernye-bary', kind: 'editorial', emoji: '🍸', title: 'Бары с необычным интерьером',
+    lead: 'Бары, куда идут за интерьером не меньше, чем за коктейлями: город после катастрофы в «Хиросиме», мозаичный череп Дня мёртвых в Arrurru, лаунж-джунгли La Fume, неоновый бархат Cactus, дублинский паб с книжными полками и винодельня у Бауманской.',
+    items: ['hiroshima-moya-lyubov', 'arrurru', 'la-fume', 'cactus-komsomolsky', 'odonoghues', 'urban-winery', 'tapbarrel'],
+    updated: '2026-11-07',
   },
   {
     id: 'spb-c-iz-lenty', kind: 'editorial', emoji: '📸', title: 'Места из ленты',
-    lead: 'Петербург в стороне от Невского: ротонда на Гороховой, галереи дома Бака, проходные дворы Толстовского дома, замок с башнями на Петроградке, львы с цепями над Невой и закат в Комарово. Во дворах и парадных живут люди — ведите себя тихо.',
-    items: ['spb-paradnaya-s-rotondoy-dom-yakovleva', 'spb-dvor-doma-baka', 'spb-prokhodnye-dvory-tolstovskogo-doma', 'spb-traktornaya-ulitsa', 'spb-dom-kommuna-sleza-sotsializma', 'spb-dom-lidvalya', 'spb-dom-s-bashnyami', 'spb-stantsiya-metro-avtovo', 'spb-chesmenskaya-tserkov', 'spb-datsan-gunzechoyney', 'spb-kamennyy-ostrov', 'spb-lvy-u-dachi-bezborodko', 'spb-kolomna-semimoste', 'spb-stantsiya-metro-gornyy-institut', 'spb-kanonerskiy-ostrov', 'spb-komarovskiy-bereg'],
-    updated: '2026-11-06',
+    lead: 'Петербург, который снимают все, но мало кто находит: лестница-«ромашка» на Ломоносова, ротонда на Гороховой, проходные дворы Толстовского дома, замок с башнями на Петроградке, львы с цепями над Невой и мраморные станции метро. Здесь живут люди — ведите себя тихо.',
+    items: ['spb-paradnaya-romashka', 'spb-paradnaya-s-rotondoy-dom-yakovleva', 'spb-prokhodnye-dvory-tolstovskogo-doma', 'spb-dom-s-bashnyami', 'spb-dom-lidvalya', 'spb-kolomna-semimoste', 'spb-lvy-u-dachi-bezborodko', 'spb-stantsiya-metro-avtovo', 'spb-stantsiya-metro-gornyy-institut', 'spb-chesmenskaya-tserkov', 'spb-datsan-gunzechoyney', 'spb-dom-kommuna-sleza-sotsializma'],
+    updated: '2026-11-07',
   },
   {
-    id: 'spb-c-iz-lenty-interior', kind: 'editorial', emoji: '🪴', title: 'Кофейни, книжные и бары из ленты',
-    lead: 'Кофейня на пяти этажах дома модерн, книжный об искусстве, старинная аптека, фотоателье Буллы и бар в кабинете графа Шувалова — места, где красиво внутри и куда редко доходят туристы.',
-    items: ['spb-dom-flou', 'spb-cafe-alto', 'spb-am-saint', 'spb-masters-bookstore', 'spb-dal', 'spb-muzey-peterburgskogo-avangarda-dom', 'spb-muzey-apteka-doktora-pelya', 'spb-muzey-kvartira-isaaka-brodskogo', 'spb-osobnyak-polovtsova-dom-arkhitektora', 'spb-muzey-fotosalon-karla-bully', 'spb-academia-bar-shuvaloff', 'spb-arkhitektor'],
-    updated: '2026-11-06',
+    id: 'spb-c-iz-lenty-za-gorod', kind: 'editorial', emoji: '🏰', title: 'За город из ленты',
+    lead: 'Пригороды без толп Петергофа: золотая лиственничная роща у Рощина, белый земляной замок в Гатчине, скалы Монрепо над заливом, каменная Голова в Сергиевке, деревянные «Кижи» на Неве и закат в Комарове.',
+    items: ['spb-lindulovskaya-roshcha', 'spb-prioratskiy-dvorets', 'spb-monrepo', 'spb-sergievka', 'spb-bogoslovka', 'spb-komarovskiy-bereg', 'spb-oranienbaum', 'spb-kronshtadt-yakornaya'],
+    updated: '2026-11-07',
+  },
+  {
+    id: 'spb-c-iz-lenty-interior', kind: 'editorial', emoji: '🥂', title: 'Бары и рестораны с красивым интерьером',
+    lead: 'Где красиво внутри и за окном: люстры и бархат Commode на Невском, книжный бар «Конец прекрасной эпохи», купола Казанского собора с крыши Terrassa, Исаакий из окон F11 и весь город с 41-го этажа.',
+    items: ['spb-commode', 'spb-konets-prekrasnoy', 'spb-terrassa', 'spb-f11', 'spb-etazh-41', 'spb-oggi-bistro', 'spb-russkaya-ryumochnaya', 'spb-harvest', 'spb-self-edge', 'spb-papasha-klauss'],
+    updated: '2026-11-07',
   },
   {
     id: 'c-kompy', kind: 'editorial', emoji: '🎮', title: 'Компы с друзьями', mode: ['guys'], filter: 'pc',
