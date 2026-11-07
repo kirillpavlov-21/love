@@ -25,8 +25,8 @@
   // подборок городских медиа и лент (2026-11-07): виды, дворы, пряничные храмы, загородные усадьбы, кофейни-пекарни и интерьерные бары
   {
     id: 'c-iz-lenty', kind: 'editorial', emoji: '📸', title: 'Места из ленты',
-    lead: 'Кадры, под которыми спрашивают «где это?»: Сити над рекой с новой набережной на Шелепихе, изразцовый терем во дворе Тверской, пряничные храмы XVII века, смотровая над излучиной у Академии наук и неоготические башни Михалкова. Почти всё бесплатно.',
-    items: ['shelepikha-emb', 'beregovoy-naberezhnaya', 'smotrovaya-ran', 'savvinskoe-podvorie', 'khram-nikoly-khamovniki', 'khram-troitsy-nikitniki', 'dom-mosselproma', 'osobnyak-arseniya-morozova', 'osobnyak-stakheeva', 'pertsova', 'krutitsy', 'usadba-mikhalkovo', 'dom-koltso-na-nezhinskoy', 'novodevichy-ponds'],
+    lead: 'Кадры, под которыми спрашивают «где это?»: Сити над рекой с набережной у «Берегового», изразцовый терем во дворе Тверской, пряничные храмы XVII века, смотровая над излучиной у Академии наук и неоготические башни Михалкова. Почти всё бесплатно.',
+    items: ['beregovoy-naberezhnaya', 'smotrovaya-ran', 'savvinskoe-podvorie', 'khram-nikoly-khamovniki', 'khram-troitsy-nikitniki', 'dom-mosselproma', 'osobnyak-arseniya-morozova', 'osobnyak-stakheeva', 'pertsova', 'krutitsy', 'usadba-mikhalkovo', 'dom-koltso-na-nezhinskoy', 'novodevichy-ponds'],
     updated: '2026-11-07',
   },
   {

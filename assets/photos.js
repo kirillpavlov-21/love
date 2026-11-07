@@ -433,7 +433,6 @@
     "perezvon": ["Bell_tower_of_Church_of_Beheading_of_John_the_Baptist_in_Moscow.jpg","Dmitry Ivanov.","CC BY-SA 4.0",null,{"b":1}],
     "spb-muzey-peterburgskogo-avangarda-dom": ["Matushin_house.jpg","MaryannaNesina","CC BY 3.0"],
     "spb-muzey-fotosalon-karla-bully": ["Nevsky_54.jpg","Karl Bulla","общественное достояние"],
-    "shelepikha-emb": ["Новая Шелепихинская набережная","Андрей Мошкаров (@andrey_moshkarov_ph)","",null,{"src":"соцсети автора"}],
     "la-poste": ["La Poste","@laposte.moscow","",null,{"src":"страница заведения"}],
     "aaark": ["aaark.","@aaark.cafe","",null,{"src":"страница заведения"}],
     "chetverg": ["Четверг","@lovechetverg","",null,{"src":"страница заведения"}],
