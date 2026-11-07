@@ -98,8 +98,8 @@
   </nav>
 
   <main id="main">
-  <!-- «Листай и выбирай»: колода карточек над лентой — рисует assets/deck.js; место под неё держим, чтобы страница не прыгала -->
-  <section class="block deck-blk" id="deckBlock" aria-label="Листай и выбирай: вправо — хочу, влево — не то"><div class="dk" id="deck"></div></section>
+  <!-- «Куда пойдём?»: с кем, когда и «Листать 10 карточек» (игра на весь экран) — рисует assets/deck.js; место под панель держим, чтобы страница не прыгала -->
+  <section class="block deck-blk" id="deckBlock" aria-labelledby="deckTitle"><div class="dk" id="deck"></div></section>
   <section class="hero" id="hero" aria-labelledby="heroTitle">
     <div class="cat-slot" id="heroCat" aria-hidden="true"></div>
     <h1 id="heroTitle">Куда идём? Решим за&nbsp;пару минут</h1>
@@ -111,7 +111,7 @@
       <button class="btn primary ask-go" type="submit" aria-label="Подобрать"><span class="l">Подобрать</span><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></button>
     </form>
     <div class="ask-chips" id="askChips" role="group" aria-label="Быстрый подбор">
-      <div class="ask-row"><button type="button" class="ask-chip" data-tok="сейчас" aria-pressed="false">Сейчас</button><button type="button" class="ask-chip" data-tok="сегодня вечером" aria-pressed="false">Сегодня вечером</button><button type="button" class="ask-chip" data-tok="завтра" aria-pressed="false">Завтра</button><button type="button" class="ask-chip" data-tok="на выходных" aria-pressed="false">На выходных</button></div>
+      
       <div class="ask-row"><button type="button" class="ask-chip" data-tok="поговорить" aria-pressed="false">Поговорить</button><button type="button" class="ask-chip" data-tok="под крышей" aria-pressed="false">Под крышей</button><button type="button" class="ask-chip" data-tok="с видом" aria-pressed="false">С видом</button><button type="button" class="ask-chip" data-tok="активно" aria-pressed="false">Активно</button><button type="button" class="ask-chip" data-tok="культура" aria-pressed="false">Культура</button><button type="button" class="ask-chip" data-tok="бар" aria-pressed="false">Бар</button><button type="button" class="ask-chip" data-tok="недорого" aria-pressed="false">Недорого</button><button type="button" class="ask-chip" data-tok="допоздна" aria-pressed="false">Допоздна</button></div>
     </div>
   </section>

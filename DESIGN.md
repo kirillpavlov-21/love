@@ -88,11 +88,11 @@ components:
     textColor: "{colors.ink}"
     rounded: "{rounded.lg}"
     padding: "18px"
-  mode-switch-on:
+  chip-choice-on:
     backgroundColor: "{colors.date-pink}"
     textColor: "{colors.date-pink-ink}"
-    rounded: "{rounded.md}"
-    height: "46px"
+    rounded: "{rounded.pill}"
+    height: "40px"
   deck-card:
     backgroundColor: "{colors.surface-raised}"
     textColor: "{colors.ink}"
@@ -113,7 +113,7 @@ components:
 
 The site is the city after dark seen from a phone: a near-black, faintly violet ground, warm off-white type, and one lit sign at a time. The single accent is the colour of the evening being planned (pink for a date, lime for friends, lavender for girls' nights), so the interface changes mood with the mode switch rather than with decoration. Photographs of real places carry the colour; the chrome stays quiet so a photo can own the screen.
 
-Density is low by doctrine. The home leads with one swipe card, then a compact search, then a single favourite plan; everything else is one tap or one scroll away. Copy is short, in the product's own spoken Russian, and never explains what the layout already shows.
+Density is low by doctrine. The home leads with one question, «Куда пойдём?» (with whom, when, then a ten-card game on its own screen), then a compact search, then a single favourite plan; everything else is one tap or one scroll away. Copy is short, in the product's own spoken Russian, and never explains what the layout already shows.
 
 The owner chose this world over replacement directions (2026-11-07) and named two failure modes for future work: «слишком мило» (cartoonish, emoji-heavy) and «скучно-корпоративно» (correct but characterless).
 
@@ -138,7 +138,7 @@ A dark, slightly violet night palette with exactly one luminous accent that foll
 
 ### Neutral
 - **Night Ground** (#0F0E13): page background in every mode.
-- **Surface** (#1A1920): cards, sheets, the mode bar.
+- **Surface** (#1A1920): cards, sheets, the «Куда пойдём?» panel.
 - **Surface Raised** (#22212A): chips, inputs inside panels, photo placeholders, rows inside a sheet.
 - **Surface Top** (#2A2932): the highest tonal step (empty thumbnails, pressed rows).
 - **Hairline** (8% ink) and **Hairline Strong** (16% ink): every border; strong for interactive outlines.
@@ -170,7 +170,7 @@ A dark, slightly violet night palette with exactly one luminous accent that foll
 
 ## Layout
 
-A single centred column, max 760px, with 20px side gutters (safe-area aware) on every viewport; desktop shows the same column, not a wider grid. The home stacks: header, sticky mode bar, swipe deck (min(58vh, 460px) tall), compact search with one scrolling row of text chips, one favourite plan, the «Выбор недели» rail, the invitation block, then the catalogue feed (plans, afisha, places). Horizontal rails scroll with snap and bleed to the screen edge. Spacing steps are 6, 10, 14, 18 and 20px; groups sit tight inside, sections separate by 18–24px.
+A single centred column, max 760px, with 20px side gutters (safe-area aware) on every viewport; desktop shows the same column, not a wider grid. The home stacks: header with section tabs, the «Куда пойдём?» panel, compact search with one scrolling row of text chips, one favourite plan, the «Выбор недели» rail, the invitation block, then the catalogue feed (plans, afisha, places). Horizontal rails scroll with snap and bleed to the screen edge. Spacing steps are 6, 10, 14, 18 and 20px; groups sit tight inside, sections separate by 18–24px.
 
 ## Elevation & Depth
 
@@ -212,11 +212,11 @@ Soft, generous corners that grow with the object: 12px for small controls, 16px 
 - **Focus:** the border shifts to the accent.
 
 ### Navigation
-- **Mode bar:** sticky segmented control of three equal buttons on a translucent Surface with backdrop blur; the active one is filled with the accent.
+- **Mode:** chosen in the «Куда пойдём?» panel (Вдвоём / Друзья / Подруги / Один); the first three switch the site mode and its accent, there is no separate mode bar on the home.
 - **Section tabs:** small pills under the header that jump to «Планы», «Афиша», «Места».
 
-### Swipe Deck
-The signature interaction: one full-bleed photo card at a time with a dark gradient foot, a small «место / маршрут / событие» pill top-left, the photo credit top-right in 10px, the name in Display and one fact line. Dragging right reveals a green «Хочу» stamp, left a pink «Не то»; past 90px the card flies off along its drag direction. Below sit the round ✕ (Surface, hairline) and ♥ (accent fill) buttons with the «Хочу сходить · N» pill between them, which opens the «Сегодня — сюда» sheet.
+### Card Game «Куда пойдём?»
+The signature interaction, in two parts. On the home, a Surface panel (24px radius, soft accent glow top-right) holds the title in Display, a fan of three tilted photo thumbnails, two rows of pill chips (with whom; when), one full-width primary «Листать 10 карточек» and a quiet underlined «Хочу сходить · N». The button opens a full-screen game over the page: ✕, a 6px accent progress bar and «3 из 10» on top; one full-bleed photo card with a dark gradient foot, a «место / маршрут / событие» pill, the photo credit in 10px, the name in Display and one fact line; round ✕ (Surface, hairline) and ♥ (accent) below. Dragging right shows a green «Хочу» stamp, left a pink «Не то»; past 90px the card flies off. After ten cards a result screen shows «Сегодня — сюда»: one large pick and two spares, «Ещё 10 карточек» and «Всё сохранённое». Back closes the game.
 
 ## Do's and Don'ts
 
