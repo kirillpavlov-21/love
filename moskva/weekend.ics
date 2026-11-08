@@ -21,95 +21,6 @@ TZNAME:MSK
 END:STANDARD
 END:VTIMEZONE
 BEGIN:VEVENT
-UID:ev-big-stendap-20261016-20261107@kirillpavlov-21.github.io
-DTSTAMP:20261015T000000Z
-DTSTART;VALUE=DATE:20261107
-DTEND;VALUE=DATE:20261108
-SUMMARY:Биг стендап
-LOCATION:Стендап клуб на Трубной\, Большой за
- л\, Рождественский бул.\, 10/7\, стр. 1
-GEO:55.766182;37.626196
-DESCRIPTION:Фирменный вечер клуба: опытные ком
- ики с обкатанным материалом. Показы почт
- и каждый день\, по пятницам и субботам — 
- в 19:00 и 21:00.\n950–1 500 ₽\, 18+\nБилеты и подроб
- ности: https://afisha.yandex.ru/moscow/standup/big-stand-up\nПозв
- ать друзей — в «Куда идём?»: https://kirillpavlov-21
- .github.io/love/start.html?event=ev-big-stendap-20261016&m=date
-URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-big-stendap-
- 20261016&m=date
-CATEGORIES:Стендап
-STATUS:CONFIRMED
-TRANSP:TRANSPARENT
-END:VEVENT
-BEGIN:VEVENT
-UID:ev-aleksandr-rozenbaum-20261017-20261107@kirillpavlov-21.github.io
-DTSTAMP:20261015T000000Z
-DTSTART;TZID=Europe/Moscow:20261107T190000
-DTEND;TZID=Europe/Moscow:20261107T210000
-SUMMARY:Александр Розенбаум
-LOCATION:Театр Российской армии\, Большая сце
- на\, Суворовская пл.\, 2
-GEO:55.782814;37.613918
-DESCRIPTION:Юбилейная серия сольных концертов
- : знаменитые песни\, новые вещи и разгово
- р с залом о жизни. Вечеров много — до 8 но
- ября\, можно выбрать удобный.\n5 000–44 000 
- ₽\, 6+\nБилеты и подробности: https://afisha.yandex.ru
- /moscow/concert/aleksandr-rozenbaum-iubileinye-kontserty\nПозвать 
- друзей — в «Куда идём?»: https://kirillpavlov-21.github
- .io/love/start.html?event=ev-aleksandr-rozenbaum-20261017&m=date
-URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-aleksandr-ro
- zenbaum-20261017&m=date
-CATEGORIES:Концерт
-STATUS:CONFIRMED
-TRANSP:TRANSPARENT
-END:VEVENT
-BEGIN:VEVENT
-UID:ev-pozhary-et-cetera-20261107-20261107@kirillpavlov-21.github.io
-DTSTAMP:20261015T000000Z
-DTSTART;TZID=Europe/Moscow:20261107T190000
-DTEND;TZID=Europe/Moscow:20261107T213000
-SUMMARY:Пожары
-LOCATION:Театр Et Cetera\, Фролов пер.\, 2
-GEO:55.765011;37.635808
-DESCRIPTION:Важди Муавад сам поставил свою зна
- менитую пьесу: брат и сестра распутывают
-  прошлое матери. Сильная трагедия на 3 ч 15
-  мин с антрактом.\n18+\nБилеты и подробност
- и: https://et-cetera.ru/performance/pojaryi/\nПозвать друзей
-  — в «Куда идём?»: https://kirillpavlov-21.github.io/love/sta
- rt.html?event=ev-pozhary-et-cetera-20261107&m=date
-URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-pozhary-et-c
- etera-20261107&m=date
-CATEGORIES:Спектакль
-STATUS:CONFIRMED
-TRANSP:TRANSPARENT
-END:VEVENT
-BEGIN:VEVENT
-UID:ev-zhestkiy-stendap-20261016-20261107@kirillpavlov-21.github.io
-DTSTAMP:20261015T000000Z
-DTSTART;TZID=Europe/Moscow:20261107T230000
-DTEND;TZID=Europe/Moscow:20261108T003000
-SUMMARY:Жёсткий стендап
-LOCATION:Стендап клуб на Трубной\, Большой за
- л\, Рождественский бул.\, 10/7\, стр. 1
-GEO:55.766182;37.626196
-DESCRIPTION:Ночной формат для тех\, кто не обиж
- ается: ведущий и четыре комика без цензу
- ры и запретных тем. Идёт по пятницам и су
- бботам в 23:00.\nОт 1 200 ₽\, 18+\nБилеты и подро
- бности: https://afisha.yandex.ru/moscow/standup/zhiostkii-stendap\n
- Позвать друзей — в «Куда идём?»: https://kirillp
- avlov-21.github.io/love/start.html?event=ev-zhestkiy-stendap-20261016&m=gu
- ys
-URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-zhestkiy-ste
- ndap-20261016&m=guys
-CATEGORIES:Стендап
-STATUS:CONFIRMED
-TRANSP:TRANSPARENT
-END:VEVENT
-BEGIN:VEVENT
 UID:ev-7-chudes-sveta-kaleydoskop-20261017-20261108@kirillpavlov-21.github.
  io
 DTSTAMP:20261015T000000Z
@@ -134,71 +45,47 @@ STATUS:CONFIRMED
 TRANSP:TRANSPARENT
 END:VEVENT
 BEGIN:VEVENT
-UID:ev-koshachya-vselennaya-20261107-20261108@kirillpavlov-21.github.io
+UID:ev-big-stendap-20261016-20261108@kirillpavlov-21.github.io
 DTSTAMP:20261015T000000Z
 DTSTART;VALUE=DATE:20261108
 DTEND;VALUE=DATE:20261109
-SUMMARY:Кошачья вселенная
-LOCATION:Artplay\, Нижняя Сыромятническая ул.\, 10\,
-  стр. 2
-GEO:55.752334;37.671329
-DESCRIPTION:Двухдневная выставка о котах: живо
- пись\, скульптура и графика в разных стил
- ях. После можно погулять по дизайн-кварт
- алу.\nОт 500 ₽\, 0+\nБилеты и подробности: https
- ://afisha.yandex.ru/moscow/art/koshachya-vselennaya-2026\nПозвать 
- друзей — в «Куда идём?»: https://kirillpavlov-21.github
- .io/love/start.html?event=ev-koshachya-vselennaya-20261107&m=date
-URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-koshachya-vs
- elennaya-20261107&m=date
-CATEGORIES:Выставка
-STATUS:CONFIRMED
-TRANSP:TRANSPARENT
-END:VEVENT
-BEGIN:VEVENT
-UID:ev-vals-boston-20261017-20261108@kirillpavlov-21.github.io
-DTSTAMP:20261015T000000Z
-DTSTART;VALUE=DATE:20261108
-DTEND;VALUE=DATE:20261109
-SUMMARY:Вальс-бостон
-LOCATION:Театр эстрады\, Берсеневская наб.\, 20/
- 2
-GEO:55.744819;37.611473
-DESCRIPTION:Мюзикл Михаила Миронова на песнях 
- Александра Розенбаума — история длиною 
- в жизнь. Играют почти каждый день до 29 но
- ября\, в выходные дважды.\n1 800–20 000 ₽\, 16+\
- nБилеты и подробности: https://vals-boston.ru/\nПозв
+SUMMARY:Биг стендап
+LOCATION:Стендап клуб на Трубной\, Большой за
+ л\, Рождественский бул.\, 10/7\, стр. 1
+GEO:55.766182;37.626196
+DESCRIPTION:Фирменный вечер клуба: опытные ком
+ ики с обкатанным материалом. Показы почт
+ и каждый день\, по пятницам и субботам — 
+ в 19:00 и 21:00.\n950–1 500 ₽\, 18+\nБилеты и подроб
+ ности: https://afisha.yandex.ru/moscow/standup/big-stand-up\nПозв
  ать друзей — в «Куда идём?»: https://kirillpavlov-21
- .github.io/love/start.html?event=ev-vals-boston-20261017&m=date
-URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-vals-boston-
- 20261017&m=date
-CATEGORIES:Спектакль
+ .github.io/love/start.html?event=ev-big-stendap-20261016&m=date
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-big-stendap-
+ 20261016&m=date
+CATEGORIES:Стендап
 STATUS:CONFIRMED
 TRANSP:TRANSPARENT
 END:VEVENT
 BEGIN:VEVENT
-UID:ev-viktor-borisov-musatov-garmoniya-obraza-20260709-last@kirillpavlov-2
- 1.github.io
+UID:ev-aleksandr-rozenbaum-20261017-20261108@kirillpavlov-21.github.io
 DTSTAMP:20261015T000000Z
-DTSTART;VALUE=DATE:20261108
-DTEND;VALUE=DATE:20261109
-SUMMARY:Последний день: Виктор Борисов-Мусат
- ов. Гармония образа
-LOCATION:Третьяковка на Кадашёвской\, Кадашё
- вская наб.\, 12
-GEO:55.742977;37.618758
-DESCRIPTION:Больше 140 работ символиста Борисов
- а-Мусатова из двадцати собраний\, часть п
- оказывают впервые. Мечтательная и очень 
- романтичная живопись.\nОт 450 ₽\, 12+\nБилет
- ы и подробности: https://afisha.yandex.ru/moscow/art/viktor-b
- orisov-musatov-garmoniia-obraza\nПозвать друзей — в «Ку
- да идём?»: https://kirillpavlov-21.github.io/love/start.html?event=
- ev-viktor-borisov-musatov-garmoniya-obraza-20260709&m=date
-URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-viktor-boris
- ov-musatov-garmoniya-obraza-20260709&m=date
-CATEGORIES:Выставка
+DTSTART;TZID=Europe/Moscow:20261108T190000
+DTEND;TZID=Europe/Moscow:20261108T210000
+SUMMARY:Александр Розенбаум
+LOCATION:Театр Российской армии\, Большая сце
+ на\, Суворовская пл.\, 2
+GEO:55.782814;37.613918
+DESCRIPTION:Юбилейная серия сольных концертов
+ : знаменитые песни\, новые вещи и разгово
+ р с залом о жизни. Вечеров много — до 8 но
+ ября\, можно выбрать удобный.\n5 000–44 000 
+ ₽\, 6+\nБилеты и подробности: https://afisha.yandex.ru
+ /moscow/concert/aleksandr-rozenbaum-iubileinye-kontserty\nПозвать 
+ друзей — в «Куда идём?»: https://kirillpavlov-21.github
+ .io/love/start.html?event=ev-aleksandr-rozenbaum-20261017&m=date
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-aleksandr-ro
+ zenbaum-20261017&m=date
+CATEGORIES:Концерт
 STATUS:CONFIRMED
 TRANSP:TRANSPARENT
 END:VEVENT
@@ -247,46 +134,24 @@ STATUS:CONFIRMED
 TRANSP:TRANSPARENT
 END:VEVENT
 BEGIN:VEVENT
-UID:ev-monte-kristo-operetta-20261110-20261114@kirillpavlov-21.github.io
+UID:ev-vals-boston-20261017-20261114@kirillpavlov-21.github.io
 DTSTAMP:20261015T000000Z
 DTSTART;VALUE=DATE:20261114
 DTEND;VALUE=DATE:20261115
-SUMMARY:Монте-Кристо
-LOCATION:Московский театр оперетты\, ул. Боль
- шая Дмитровка\, 6
-GEO:55.760226;37.616295
-DESCRIPTION:Самый известный российский мюзикл
-  о мести графа по Дюма возвращается блок
- ами: 10–15 ноября и 8–13 декабря. В выходные
-  идёт дважды\, в 14:00 и 19:00.\n1 000–9 100 ₽\, 12+\n
- Билеты и подробности: https://mosoperetta.ru/repertuar/m
- onte-kristo1/\nПозвать друзей — в «Куда идём?»: 
- https://kirillpavlov-21.github.io/love/start.html?event=ev-monte-kristo-op
- eretta-20261110&m=date
-URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-monte-kristo
- -operetta-20261110&m=date
-CATEGORIES:Спектакль
-STATUS:CONFIRMED
-TRANSP:TRANSPARENT
-END:VEVENT
-BEGIN:VEVENT
-UID:ev-bond-s-knopkoy-20261114-20261114@kirillpavlov-21.github.io
-DTSTAMP:20261015T000000Z
-DTSTART;TZID=Europe/Moscow:20261114T200000
-DTEND;TZID=Europe/Moscow:20261114T220000
-SUMMARY:Бонд с кнопкой
-LOCATION:ВТБ Арена\, Ленинградский просп.\, 36
-GEO:55.791293;37.558638
-DESCRIPTION:Большой концерт «Бонда с кнопкой»:
-  тёплые песни\, под которые хорошо петь в
- двоём. Билеты одни из самых доступных ср
- еди арен осени.\nОт 1 900 ₽\, 16+\nБилеты и по
- дробности: https://vtb-arena.com/poster/bond-s-knopkoy/\nПозв
+SUMMARY:Вальс-бостон
+LOCATION:Театр эстрады\, Берсеневская наб.\, 20/
+ 2
+GEO:55.744819;37.611473
+DESCRIPTION:Мюзикл Михаила Миронова на песнях 
+ Александра Розенбаума — история длиною 
+ в жизнь. Играют почти каждый день до 29 но
+ ября\, в выходные дважды.\n1 800–20 000 ₽\, 16+\
+ nБилеты и подробности: https://vals-boston.ru/\nПозв
  ать друзей — в «Куда идём?»: https://kirillpavlov-21
- .github.io/love/start.html?event=ev-bond-s-knopkoy-20261114&m=date
-URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-bond-s-knopk
- oy-20261114&m=date
-CATEGORIES:Концерт
+ .github.io/love/start.html?event=ev-vals-boston-20261017&m=date
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-vals-boston-
+ 20261017&m=date
+CATEGORIES:Спектакль
 STATUS:CONFIRMED
 TRANSP:TRANSPARENT
 END:VEVENT
@@ -316,6 +181,29 @@ STATUS:CONFIRMED
 TRANSP:TRANSPARENT
 END:VEVENT
 BEGIN:VEVENT
+UID:ev-zhestkiy-stendap-20261016-20261114@kirillpavlov-21.github.io
+DTSTAMP:20261015T000000Z
+DTSTART;TZID=Europe/Moscow:20261114T230000
+DTEND;TZID=Europe/Moscow:20261115T003000
+SUMMARY:Жёсткий стендап
+LOCATION:Стендап клуб на Трубной\, Большой за
+ л\, Рождественский бул.\, 10/7\, стр. 1
+GEO:55.766182;37.626196
+DESCRIPTION:Ночной формат для тех\, кто не обиж
+ ается: ведущий и четыре комика без цензу
+ ры и запретных тем. Идёт по пятницам и су
+ бботам в 23:00.\nОт 1 200 ₽\, 18+\nБилеты и подро
+ бности: https://afisha.yandex.ru/moscow/standup/zhiostkii-stendap\n
+ Позвать друзей — в «Куда идём?»: https://kirillp
+ avlov-21.github.io/love/start.html?event=ev-zhestkiy-stendap-20261016&m=gu
+ ys
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-zhestkiy-ste
+ ndap-20261016&m=guys
+CATEGORIES:Стендап
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
 UID:ev-atlantida-tayna-shesti-mirov-20261021-20261115@kirillpavlov-21.githu
  b.io
 DTSTAMP:20261015T000000Z
@@ -339,24 +227,24 @@ STATUS:CONFIRMED
 TRANSP:TRANSPARENT
 END:VEVENT
 BEGIN:VEVENT
-UID:ev-poezd-chekhov-dva-orla-20261016-20261115@kirillpavlov-21.github.io
+UID:ev-monte-kristo-operetta-20261110-20261115@kirillpavlov-21.github.io
 DTSTAMP:20261015T000000Z
 DTSTART;VALUE=DATE:20261115
 DTEND;VALUE=DATE:20261116
-SUMMARY:Поезд\, Чехов\, два орла
-LOCATION:Иммерсивный театр «Морфеус»\, Садов
- ническая наб.\, 71 (вход со двора)
-GEO:55.737852;37.639875
-DESCRIPTION:Иммерсивная комедия с закрытыми г
- лазами: семь зрителей попадают в Москву 1
- 903 года с театральными интригами и кафе. 
- Полтора часа\, несколько сеансов в день.\n
- 3 900–4 900 ₽\, 16+\nБилеты и подробности: https:
- //www.kinoafisha.info/event/poezd-chehov-dva-orla_id1037902/\nПозват
- ь друзей — в «Куда идём?»: https://kirillpavlov-21.git
- hub.io/love/start.html?event=ev-poezd-chekhov-dva-orla-20261016&m=date
-URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-poezd-chekho
- v-dva-orla-20261016&m=date
+SUMMARY:Монте-Кристо
+LOCATION:Московский театр оперетты\, ул. Боль
+ шая Дмитровка\, 6
+GEO:55.760226;37.616295
+DESCRIPTION:Самый известный российский мюзикл
+  о мести графа по Дюма возвращается блок
+ ами: 10–15 ноября и 8–13 декабря. В выходные
+  идёт дважды\, в 14:00 и 19:00.\n1 000–9 100 ₽\, 12+\n
+ Билеты и подробности: https://mosoperetta.ru/repertuar/m
+ onte-kristo1/\nПозвать друзей — в «Куда идём?»: 
+ https://kirillpavlov-21.github.io/love/start.html?event=ev-monte-kristo-op
+ eretta-20261110&m=date
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-monte-kristo
+ -operetta-20261110&m=date
 CATEGORIES:Спектакль
 STATUS:CONFIRMED
 TRANSP:TRANSPARENT
@@ -402,6 +290,94 @@ DESCRIPTION:Танцевальный концерт «Заточки»: х
  21.github.io/love/start.html?event=ev-zatochka-20261115&m=guys
 URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-zatochka-202
  61115&m=guys
+CATEGORIES:Концерт
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ev-kabala-svyatosh-20261023-20261121@kirillpavlov-21.github.io
+DTSTAMP:20261015T000000Z
+DTSTART;TZID=Europe/Moscow:20261121T190000
+DTEND;TZID=Europe/Moscow:20261121T213000
+SUMMARY:Кабала святош
+LOCATION:МХТ имени Чехова\, Камергерский пер.\
+ , 3
+GEO:55.759913;37.612753
+DESCRIPTION:Булгаков о Мольере: великий актёр\,
+  король и цена милости власти. Постановк
+ а Юрия Квятковского с Константином Хабе
+ нским\, три часа с антрактом.\n16+\nБилеты и 
+ подробности: https://afisha.yandex.ru/moscow/theatre_show/kabal
+ a-sviatosh-mkht-im-chekhova\nПозвать друзей — в «Куда
+  идём?»: https://kirillpavlov-21.github.io/love/start.html?event=ev-k
+ abala-svyatosh-20261023&m=date
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-kabala-svyat
+ osh-20261023&m=date
+CATEGORIES:Спектакль
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ev-pozhary-et-cetera-20261107-20261121@kirillpavlov-21.github.io
+DTSTAMP:20261015T000000Z
+DTSTART;TZID=Europe/Moscow:20261121T190000
+DTEND;TZID=Europe/Moscow:20261121T213000
+SUMMARY:Пожары
+LOCATION:Театр Et Cetera\, Фролов пер.\, 2
+GEO:55.765011;37.635808
+DESCRIPTION:Важди Муавад сам поставил свою зна
+ менитую пьесу: брат и сестра распутывают
+  прошлое матери. Сильная трагедия на 3 ч 15
+  мин с антрактом.\n18+\nБилеты и подробност
+ и: https://et-cetera.ru/performance/pojaryi/\nПозвать друзей
+  — в «Куда идём?»: https://kirillpavlov-21.github.io/love/sta
+ rt.html?event=ev-pozhary-et-cetera-20261107&m=date
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-pozhary-et-c
+ etera-20261107&m=date
+CATEGORIES:Спектакль
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ev-yubiley-sverdlovskogo-rok-kluba-20261121-20261121@kirillpavlov-21.gi
+ thub.io
+DTSTAMP:20261015T000000Z
+DTSTART;TZID=Europe/Moscow:20261121T190000
+DTEND;TZID=Europe/Moscow:20261121T210000
+SUMMARY:Юбилей свердловского рок-клуба
+LOCATION:ВТБ Арена\, Ленинградский просп.\, 36
+GEO:55.791293;37.558638
+DESCRIPTION:Вечер к 40-летию Свердловского рок-
+ клуба — колыбели «Наутилуса»\, «Чайфа» и
+  «Агаты Кристи». Состав участников уточн
+ яй на сайте арены.\nОт 4 000 ₽\, 6+\nБилеты и 
+ подробности: https://vtb-arena.com/poster/yubiley-sverdlovskogo
+ -rok-kluba/\nПозвать друзей — в «Куда идём?»: ht
+ tps://kirillpavlov-21.github.io/love/start.html?event=ev-yubiley-sverdlovs
+ kogo-rok-kluba-20261121&m=date
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-yubiley-sver
+ dlovskogo-rok-kluba-20261121&m=date
+CATEGORIES:Концерт
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ev-bravo-20261121-20261121@kirillpavlov-21.github.io
+DTSTAMP:20261015T000000Z
+DTSTART;TZID=Europe/Moscow:20261121T200000
+DTEND;TZID=Europe/Moscow:20261121T220000
+SUMMARY:Браво
+LOCATION:Atmosphere\, Шмитовский пр-д\, 32а\, стр. 1
+GEO:55.756829;37.530098
+DESCRIPTION:Легендарные «Браво» с большим кон
+ цертом: «Этот город»\, «Любите\, девушки» 
+ и твистовый рок-н-ролл\, под который хоче
+ тся танцевать.\n2 000–10 000 ₽\, 0+\nБилеты и п
+ одробности: https://afisha.yandex.ru/moscow/concert/bravo-2026-1
+ 1-21\nПозвать друзей — в «Куда идём?»: https://k
+ irillpavlov-21.github.io/love/start.html?event=ev-bravo-20261121&m=date
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-bravo-202611
+ 21&m=date
 CATEGORIES:Концерт
 STATUS:CONFIRMED
 TRANSP:TRANSPARENT
