@@ -750,6 +750,11 @@
     "domik-v-sadu": ["Домик в саду","@domikvsadu","",null,{"src":"страница заведения"}],
     "matreshka": ["Матрёшка","@matryoshka_moscow","",null,{"src":"страница заведения"}],
     "found-ramen": ["Found Rāmen & Rekōdo","@found.ramen","",null,{"src":"страница заведения"}],
+    // —— добор 2026-11-09 ——
+    "tsentralnyy-dom-uchenykh": ["ЛьвыДОМА_УЧЁНЫХ_-_panoramio.jpg","salech hcelas","CC BY 3.0"],
+    "spb-aleksandro-nevskaya-lavra": ["Троицкий_собор_Александро-Невской_лавры_2023_02.jpg","Никонико962","CC BY-SA 4.0"],
+    "spb-dom-leningradskoy-pyshki": ["Palace_of_Arts_of_the_Leningrad_Oblast_2012-09_1348771875.jpg","Артём Светлов","CC BY-SA 4.0"],
+    "spb-kisskiss": ["Комплекс_домов_А.Г._Каплуна_и_А.А._Каплуна_Лиговский_проспект_33-35_Санкт-Петербург_2024_01.png","Никонико962","CC BY-SA 4.0",null,{"b":1}],
   };
   const places = (window.KUDA || {}).places || {};
   // «@площадка» — фото площадки события, которой нет в каталоге мест: достаётся всем событиям с этим venue (картинка — по id в 4-м поле)
