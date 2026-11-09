@@ -15,7 +15,7 @@ import {
   isCopied, copiedRun, similarTitle, findDupEvent, leakOf, safeHref,
 } from '../run.mjs';
 import { parseAutoJs, loadCatalog, validatePlan } from '../lib/catalog.mjs';
-import { renderAutoJs, emptyAutoData, MERGE_JS } from '../lib/autojs.mjs';
+import { renderAutoJs, emptyAutoData, MERGE_JS, EVENTS_STUB } from '../lib/autojs.mjs';
 import { closeInboxFile } from '../close-inbox.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -44,8 +44,9 @@ async function makeRepo(dir) {
   const src = f => path.join(ROOT, 'assets', f);
   await fs.writeFile(path.join(dir, 'assets/places.js'), readFileSync(src('places.js'), 'utf8') + EXTRA_PLACES);
   for (const f of ['geo.js', 'photos.js']) await fs.copyFile(src(f), path.join(dir, 'assets', f));
-  // заглушки events.js и auto.js — как в репозитории
-  for (const f of ['events.js', 'auto.js']) await fs.copyFile(src(f), path.join(dir, 'assets', f));
+  // пустые events.js и auto.js: живые данные ежедневного прогона в репозитории не должны влиять на тест
+  await fs.writeFile(path.join(dir, 'assets/events.js'), EVENTS_STUB);
+  await fs.writeFile(path.join(dir, 'assets/auto.js'), renderAutoJs(emptyAutoData()));
   return dir;
 }
 
@@ -543,7 +544,9 @@ test('код слияния auto.js: свои места не перезапис
   assert.deepEqual(plain(ctx.KUDA_EVENTS.map(e => e.id)), ['ev-1']);
   // данные читаются обратно тем же разбором, что в catalog.mjs
   assert.deepEqual(parseAutoJs(js), { ...data, closed: ['b'] });
-  assert.deepEqual(parseAutoJs(readFileSync(path.join(ROOT, 'assets/auto.js'), 'utf8')), emptyAutoData());
+  assert.deepEqual(parseAutoJs(renderAutoJs(emptyAutoData())), emptyAutoData());
+  // auto.js в репозитории (пустой или с данными ежедневного прогона) разбирается тем же кодом
+  assert.deepEqual(Object.keys(parseAutoJs(readFileSync(path.join(ROOT, 'assets/auto.js'), 'utf8'))).sort(), Object.keys(emptyAutoData()).sort());
 });
 
 /* ---------- сбои и защита ---------- */

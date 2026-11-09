@@ -15,7 +15,7 @@ import {
 import {
   loadCatalog, parseStations, placeCity, cityOf, findMatch, slugId, placeId, validatePlan, nearbyPlaces, catalogIndex, parseAutoJs,
 } from '../lib/catalog.mjs';
-import { renderAutoJs, emptyAutoData } from '../lib/autojs.mjs';
+import { renderAutoJs, emptyAutoData, EVENTS_STUB } from '../lib/autojs.mjs';
 import { buildExtractUser, buildPlansUser, buildPhotoUser, normItem, requestKey } from '../lib/llm.mjs';
 import { labelCity, fetchInbox } from '../lib/sources/inbox.mjs';
 import {
@@ -581,7 +581,10 @@ async function makeRepo(dir) {
   const src = f => path.join(ROOT, 'assets', f);
   await fs.writeFile(path.join(dir, 'assets/places.js'), readFileSync(src('places.js'), 'utf8') + MSK_EXTRA);
   await fs.writeFile(path.join(dir, 'assets/places-spb.js'), SPB_EXTRA);
-  for (const f of ['geo.js', 'photos.js', 'events.js', 'events-spb.js', 'sport.js', 'auto.js']) await fs.copyFile(src(f), path.join(dir, 'assets', f));
+  for (const f of ['geo.js', 'photos.js', 'events-spb.js', 'sport.js']) await fs.copyFile(src(f), path.join(dir, 'assets', f));
+  // пустые events.js и auto.js: живые данные ежедневного прогона в репозитории не должны влиять на тест
+  await fs.writeFile(path.join(dir, 'assets/events.js'), EVENTS_STUB);
+  await fs.writeFile(path.join(dir, 'assets/auto.js'), renderAutoJs(emptyAutoData()));
   return dir;
 }
 
