@@ -750,6 +750,8 @@
     "domik-v-sadu": ["Домик в саду","@domikvsadu","",null,{"src":"страница заведения"}],
     "matreshka": ["Матрёшка","@matryoshka_moscow","",null,{"src":"страница заведения"}],
     "found-ramen": ["Found Rāmen & Rekōdo","@found.ramen","",null,{"src":"страница заведения"}],
+    // —— добор 2026-11-10 ——
+    "spb-dvorets-kottedzh": ["7587.2._Петергоф._Спальня_во_дворце_Коттедж.jpg","GAlexandrova","CC BY-SA 4.0"],
   };
   const places = (window.KUDA || {}).places || {};
   // «@площадка» — фото площадки события, которой нет в каталоге мест: достаётся всем событиям с этим venue (картинка — по id в 4-м поле)
