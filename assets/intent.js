@@ -195,6 +195,28 @@
     [rxw('новое', 'новые', 'новых', 'новинки', 'новенькое', 'недавно открылось', 'открылось'), o => { o.fresh = true; o.vibe.push(['new', '✨', 'новое']); }],
     [rx('удиви', 'что угодно', 'куда угодно', 'без разниц', 'все равно', 'рандом', 'случайн', 'на удачу', 'наугад', 'сюрприз'), o => { o.random = true; }],
   ];
+  /* Опечатки в словах «с кем»: «с девушуой», «с друзьяи» — это про компанию, а не про название места.
+     Сравниваем с готовыми формами по расстоянию Левенштейна; «другой/другие» — обычные слова, их не трогаем. */
+  const WHO_TYPO = [
+    ['date', ['девушкой', 'девушкой', 'девушка', 'девушку', 'парнем', 'любимой', 'любимым', 'женой', 'мужем', 'свидание']],
+    ['girls', ['подругой', 'подругами', 'подружкой', 'подружками', 'девчонками', 'девичник']],
+    ['guys', ['друзьями', 'другом', 'пацанами', 'ребятами', 'коллегами', 'компанией']],
+  ];
+  const NOT_WHO = new Set(['другой', 'другие', 'другая', 'другое', 'другую', 'других', 'другим', 'дружно']);
+  function lev(a, b) {
+    const d = Array.from({ length: b.length + 1 }, (_, j) => j);
+    for (let i = 1; i <= a.length; i++) {
+      let prev = d[0]; d[0] = i;
+      for (let j = 1; j <= b.length; j++) { const t = d[j]; d[j] = Math.min(d[j] + 1, d[j - 1] + 1, prev + (a[i - 1] === b[j - 1] ? 0 : 1)); prev = t; }
+    }
+    return d[b.length];
+  }
+  function whoTypo(w) {
+    if (w.length < 5 || NOT_WHO.has(w)) return null;
+    const max = w.length >= 7 ? 2 : 1;
+    for (const [m, forms] of WHO_TYPO) for (const f of forms) if (Math.abs(f.length - w.length) <= max && lev(w, f) <= max) return m;
+    return null;
+  }
   /* Пустые слова: их не ищем в названиях */
   const STOP = new Set(('куда сходить сходим пойти пойдем идем идти хочу хочется хотим хотелось можно где что как ' +
     'нибудь нибуть какой какое какую какие место места местечко варианты вариант идея идеи посоветуй подскажи подскажите посоветуйте ' +
@@ -281,7 +303,9 @@
     t = t.replace(NOT_RX, (all, w) => { const c = (NOT_CAT.find(([r]) => r.test(w)) || [])[1]; if (!c) return all; o.not.add(c); o.vibe.push(['not', '🙅', 'не ' + w]); return ' '; }).replace(/ {2,}/g, ' ');
     RULES.forEach(([r, fn]) => cut(r, m => fn(o, m)));
     // остальные слова — ищем по названиям и типам мест
-    o.words = t.trim().split(' ').filter(w => w.length >= 3 && !STOP.has(w) && !/^\d+$/.test(w)).slice(0, 6);
+    o.words = t.trim().split(' ').filter(w => w.length >= 3 && !STOP.has(w) && !NOT_WHO.has(w) && !/^\d+$/.test(w)).slice(0, 6);
+    // слово с опечаткой из «с кем» — это режим, а не название: «Про «девушуой» готовых планов нет» не показываем
+    o.words = o.words.filter(w => { const m = whoTypo(w); if (m) { o.modes[m] = 1; return false; } return true; });
 
     o.mode = o.modes.date >= 1 ? 'date' : o.modes.girls ? 'girls' : o.modes.guys || o.group ? 'guys' : o.modes.date ? 'date' : null;
     if (o.romDate && !o.mode) o.mode = 'date';

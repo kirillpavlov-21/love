@@ -2144,7 +2144,9 @@
     const planBlock = plans.length ? `<div class="qr-list">${plans.map(nowPlanHtml).join('')}</div>`
       : `<p class="pl-empty">${pls.length || evs.length ? 'Готовых планов под это нет — ниже места и события.' : 'Под такой запрос ничего не нашлось — убери пару слов или нажми «Очистить».'}</p>`;
     const placeBlock = pls.length ? `<p class="qr-k">Места</p><div class="qr-list">${pls.map(nowPlaceHtml).join('')}</div>` : '';
-    const ids = plans.map(r => r.plan.id), group = mode !== 'date';
+    // в приглашение — до шести подходящих планов, а не только три на экране: у того, кого зовут, должен быть выбор
+    // точных мало — добираем лучшими из той же выдачи (found уже отсортирован по запросу, часам и вкусу)
+    const ids = [...new Set(plans.concat(pool, found).map(r => r.plan.id))].slice(0, Math.max(plans.length, 6)), group = mode !== 'date';
     const inv = nowInviteUrl(ids, asked ? askQ : nowTitle(mo).replace(/^Куда пойти /, 'Куда идём '));
     const cta = $('#heroMode .btn.primary');   // «Создать приглашение» — сразу с этими планами, а не с «Кофейня / Кино»
     if (cta) cta.href = inv || createUrl(mode);

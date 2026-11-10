@@ -1658,6 +1658,17 @@
       if (nm(prof.me) && !$('#me').value.trim()) $('#me').value = nm(prof.me);
       if (nm(prof.partner) && !$('#her').value.trim()) $('#her').value = nm(prof.partner);
     }
+    // подставленное имя при первом касании выделяем: начнёшь печатать — оно заменится, а не допишется («СашаКирилл»)
+    ['me', 'her'].forEach(id => {
+      const inp = $('#' + id);
+      if (!inp || !inp.value.trim()) return;
+      inp.dataset.prefill = '1';
+      inp.addEventListener('focus', () => {
+        if (inp.dataset.prefill === '1') setTimeout(() => { try { inp.setSelectionRange(0, inp.value.length); } catch (e) { /* ок */ } }, 0);
+      });
+      inp.addEventListener('mouseup', e => { if (inp.dataset.prefill === '1') e.preventDefault(); }, { once: true });
+      inp.addEventListener('input', () => { delete inp.dataset.prefill; }, { once: true });
+    });
     saveName(false);   // имя из черновика или входа — только если игра ещё не знает имени
     tgStatus();
     renderHist();

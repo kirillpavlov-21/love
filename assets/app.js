@@ -1727,7 +1727,7 @@
       deck.innerHTML = items.map((f, i) => `
         <div class="fcard${f.ph ? ' has-ph' : ''}" data-i="${i}" data-e="${esc(f.emoji)}" style="--c:${FCOL[i % FCOL.length]};z-index:${items.length - i}">
           <span class="tag like" aria-hidden="true">${cfg.likeTag}</span><span class="tag nope" aria-hidden="true">${cfg.nopeTag}</span>
-          ${f.ph ? `<div class="fph"><img src="${esc(f.ph.s)}" alt="" draggable="false" decoding="async"><span class="fcap">© ${esc(phAuthor(f.ph))}, ${esc(f.ph.l)}</span></div>` : ''}
+          ${f.ph ? `<div class="fph"${f.ph.t ? ` style="background:#22212A url('${esc(f.ph.t)}') center/cover"` : ''}><img src="${esc(f.ph.s)}" alt="" draggable="false" decoding="async"><span class="fcap">© ${esc(phAuthor(f.ph))}, ${esc(f.ph.l)}</span></div>` : ''}
           <div class="fe">${esc(f.emoji)}</div>${f.when ? `<div class="fdate">${I('calendar')}${esc(f.whenShort || f.when)}</div>` : ''}<div class="ft${f.title.length > 40 ? ' xs' : f.title.length > 24 ? ' s' : ''}">${esc(f.title)}</div>${f.note ? `<div class="fn${f.title.length > 24 || f.when ? ' s' : ''}">${esc(f.note)}</div>` : ''}
           ${f.tags && f.tags.length ? `<div class="ftags">${f.tags.map(t => `<span>${esc(t)}</span>`).join('')}</div>` : ''}
           ${f.stops ? `<div class="opt-stops">${esc(f.stops)}</div>` : ''}
@@ -3079,6 +3079,9 @@
     }
     if (!EVENT && S.a.place && S.a.place.kind === 'event') { S.a.place = null; dropEvent(); }
     STEPS = buildSteps();
+    // фото карточек мест качаем сразу, пока человек читает письмо и ловит сердечки: в медленной сети (github.io из России)
+    // к уровню «Куда пойдём?» карточка уже с фото, а не тёмная
+    if (!GROUP) placeOpts().forEach(o => { if (o.ph) [o.ph.t, o.ph.s].filter(Boolean).forEach(src => { const im = new Image(); im.decoding = 'async'; im.src = src; }); });
     floaters();
     if (GROUP) {
       voterId();
