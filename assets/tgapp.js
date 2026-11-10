@@ -27,7 +27,8 @@
     if (at('7.7')) safe(() => W.disableVerticalSwipes());
     document.documentElement.dataset.tgPlatform = W.platform || '';
 
-    const sheetOpen = () => document.body.classList.contains('sheet-open');
+    // полноэкранная игра «Куда пойдём?» (html.dk-lock) — как открытая шторка: нижние кнопки Telegram прячем, «Назад» закрывает игру
+    const sheetOpen = () => document.body.classList.contains('sheet-open') || document.documentElement.classList.contains('dk-lock');
     const pollLink = () => document.querySelector('a[data-now-tg]');
     // голосование: inline-запрос «опрос <номер> <номер>…» — бот соберёт карточку с кнопками в выбранном чате
     function vote(a) {
@@ -68,7 +69,9 @@
       if (galAt.has(t) && galAt.get(t) !== i) haptic();
       galAt.set(t, i);
     }, true);
-    new MutationObserver(() => { if (!raf) raf = requestAnimationFrame(sync); }).observe(document.body, { attributes: true, attributeFilter: ['class'], childList: true, subtree: true });
+    const mo = new MutationObserver(() => { if (!raf) raf = requestAnimationFrame(sync); });
+    mo.observe(document.body, { attributes: true, attributeFilter: ['class'], childList: true, subtree: true });
+    mo.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     sync();
 
     document.addEventListener('click', e => {
