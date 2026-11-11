@@ -11,15 +11,15 @@
    "lastmod": "2026-11-11"
   },
   "moskva/svidanie/index.html": {
-   "sha": "b941e3ae987cd828",
+   "sha": "c6fc292ad81d20b3",
    "lastmod": "2026-11-11"
   },
   "moskva/pervoe-svidanie/index.html": {
-   "sha": "4739c9fcadbfd8c9",
+   "sha": "66a0f96347d6ed0b",
    "lastmod": "2026-11-11"
   },
   "moskva/nedorogoe-svidanie/index.html": {
-   "sha": "20d073d326c2cbf1",
+   "sha": "131ba33db5915213",
    "lastmod": "2026-11-11"
   },
   "moskva/s-druzyami/index.html": {
@@ -27,7 +27,7 @@
    "lastmod": "2026-11-11"
   },
   "moskva/devichnik/index.html": {
-   "sha": "564a005ad066f256",
+   "sha": "0d4c4fa620bbb3e0",
    "lastmod": "2026-11-11"
   },
   "moskva/segodnya/index.html": {
@@ -35,7 +35,7 @@
    "lastmod": "2026-11-11"
   },
   "moskva/vyhodnye/index.html": {
-   "sha": "04954469aa0d4d25",
+   "sha": "86777f913690f772",
    "lastmod": "2026-11-11"
   },
   "moskva/vecherom-posle-raboty/index.html": {
@@ -59,7 +59,7 @@
    "lastmod": "2026-11-11"
   },
   "moskva/osen/index.html": {
-   "sha": "72adf409fba586f6",
+   "sha": "d17a4e56cb90543d",
    "lastmod": "2026-11-11"
   },
   "moskva/zima/index.html": {
@@ -67,7 +67,7 @@
    "lastmod": "2026-11-11"
   },
   "moskva/restorany/index.html": {
-   "sha": "6900d761c64b3b87",
+   "sha": "872405a57a9785ce",
    "lastmod": "2026-11-11"
   },
   "moskva/kofejni/index.html": {
@@ -83,7 +83,7 @@
    "lastmod": "2026-11-11"
   },
   "moskva/muzei/index.html": {
-   "sha": "3dc09a2a2e2a39f8",
+   "sha": "6baa7d5e0cc1988b",
    "lastmod": "2026-11-11"
   },
   "moskva/teatry/index.html": {
@@ -103,7 +103,7 @@
    "lastmod": "2026-11-11"
   },
   "moskva/krishi-i-panoramy/index.html": {
-   "sha": "7769594e89525f25",
+   "sha": "70a869d7f56fdfeb",
    "lastmod": "2026-11-11"
   },
   "moskva/kompyuternye-kluby/index.html": {
@@ -131,7 +131,7 @@
    "lastmod": "2026-11-11"
   },
   "moskva/kuda-shodit-cao/index.html": {
-   "sha": "77142469b2744b14",
+   "sha": "b5ec634ba0ecc2ba",
    "lastmod": "2026-11-11"
   },
   "moskva/kuda-shodit-sao/index.html": {
@@ -271,7 +271,7 @@
    "lastmod": "2026-11-11"
   },
   "moskva/kuda-shodit-u-metro-kropotkinskaya/index.html": {
-   "sha": "513dfafaa0064dd2",
+   "sha": "d173bc78551329c2",
    "lastmod": "2026-11-11"
   },
   "moskva/kuda-shodit-u-metro-krylatskoe/index.html": {
@@ -619,7 +619,7 @@
    "lastmod": "2026-11-11"
   },
   "moskva/m/antipa/index.html": {
-   "sha": "8a16193e8a408e0a",
+   "sha": "cc78dc5dc6d8de8c",
    "lastmod": "2026-11-11"
   },
   "moskva/m/anvio/index.html": {
@@ -4757,7 +4757,7 @@
  },
  "static": {
   "start.html": {
-   "sha": "5650544b592030cc",
+   "sha": "d49cd5db510d833d",
    "lastmod": "2026-11-11"
   },
   "start.html?m=guys": {
@@ -4769,7 +4769,7 @@
    "lastmod": "2026-11-11"
   },
   "start.html?city=spb": {
-   "sha": "a29b7502178e47fc",
+   "sha": "eabbeb0f2cce1ba6",
    "lastmod": "2026-11-11"
   },
   "partners.html": {
