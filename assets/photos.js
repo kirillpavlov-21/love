@@ -750,6 +750,9 @@
     "domik-v-sadu": ["Домик в саду","@domikvsadu","",null,{"src":"страница заведения"}],
     "matreshka": ["Матрёшка","@matryoshka_moscow","",null,{"src":"страница заведения"}],
     "found-ramen": ["Found Rāmen & Rekōdo","@found.ramen","",null,{"src":"страница заведения"}],
+    // —— добор 2026-11-12 ——
+    "osobnyak-zinaidy-morozovoy": ["Особняк_Зинаиды_Морозовой_на_Спиридоновке.jpg","Vzorets","CC BY-SA 4.0"],
+    "vvedenskoe-kladbishche": ["Дом_у_северо-восточных_ворот_Введенского_кладбища_Москва_2026_01.jpg","Никонико962","CC BY-SA 4.0"],
   };
   const places = (window.KUDA || {}).places || {};
   // «@площадка» — фото площадки события, которой нет в каталоге мест: достаётся всем событиям с этим venue (картинка — по id в 4-м поле)
