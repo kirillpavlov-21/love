@@ -21,98 +21,8 @@ TZNAME:MSK
 END:STANDARD
 END:VTIMEZONE
 BEGIN:VEVENT
-UID:ev-spb-do-svadby-dozhivet-20261017-20261108@kirillpavlov-21.github.io
-DTSTAMP:20261107T000000Z
-DTSTART;VALUE=DATE:20261108
-DTEND;VALUE=DATE:20261109
-SUMMARY:До свадьбы доживёт
-LOCATION:Иммерсивный театр «Морфеус»\, наб. р
- еки Мойки\, 28
-GEO:59.938846;30.319923
-DESCRIPTION:Иммерсивная комедия-расследовани
- е: после бурного девичника вы просыпаете
- сь в разгромленном номере\, а невеста исч
- езла. Группа 2–8 человек\, сеансы с 13:00 до 2
- 1:30.\n3 000–3 500 ₽\, 18+\nБилеты и подробности:
-  https://afisha.yandex.ru/saint-petersburg/immersive-theatre/do-svadby-doz
- hiviot\nПозвать друзей — в «Куда идём?»: https:/
- /kirillpavlov-21.github.io/love/start.html?event=ev-spb-do-svadby-dozhivet
- -20261017&m=girls&city=spb
-URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-spb-do-svadb
- y-dozhivet-20261017&m=girls&city=spb
-CATEGORIES:Спектакль
-STATUS:CONFIRMED
-TRANSP:TRANSPARENT
-END:VEVENT
-BEGIN:VEVENT
-UID:ev-spb-traviata-20261107-20261108@kirillpavlov-21.github.io
-DTSTAMP:20261107T000000Z
-DTSTART;VALUE=DATE:20261108
-DTEND;VALUE=DATE:20261109
-SUMMARY:Травиата
-LOCATION:Мариинский-2\, ул. Декабристов\, 34
-GEO:59.925119;30.294285
-DESCRIPTION:Верди о парижской куртизанке Виол
- етте — лучшая опера для первого знакомс
- тва с жанром. Поют по-итальянски с титрам
- и\; 7 ноября в 19:00\, 8 ноября — в 13:00 и 19:00.\n1 1
- 00–8 000 ₽\, 12+\nБилеты и подробности: https://ww
- w.mariinsky.ru/playbill/playbill/2026/11/7/2_1900/\nПозвать дру
- зей — в «Куда идём?»: https://kirillpavlov-21.github.io/lo
- ve/start.html?event=ev-spb-traviata-20261107&m=date&city=spb
-URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-spb-traviata
- -20261107&m=date&city=spb
-CATEGORIES:Спектакль
-STATUS:CONFIRMED
-TRANSP:TRANSPARENT
-END:VEVENT
-BEGIN:VEVENT
-UID:ev-fb-zenit-rostov-20261108-20261108@kirillpavlov-21.github.io
-DTSTAMP:20261107T000000Z
-DTSTART;TZID=Europe/Moscow:20261108T183000
-DTEND;TZID=Europe/Moscow:20261108T203000
-SUMMARY:Зенит — Ростов
-LOCATION:Газпром Арена\, Футбольная аллея\, 1
-GEO:59.972377;30.221061
-DESCRIPTION:В воскресенье вечером «Зенит» при
- нимает «Ростов» на «Газпром Арене». Посл
- е игры можно всей компанией обсудить мат
- ч в баре неподалёку.\nБилеты и подробност
- и: https://tickets.fc-zenit.ru/\nПозвать друзей — в «К
- уда идём?»: https://kirillpavlov-21.github.io/love/start.html?even
- t=ev-fb-zenit-rostov-20261108&m=guys&city=spb
-URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-fb-zenit-ros
- tov-20261108&m=guys&city=spb
-CATEGORIES:Футбол
-STATUS:CONFIRMED
-TRANSP:TRANSPARENT
-END:VEVENT
-BEGIN:VEVENT
-UID:ev-spb-stendap-po-zhenski-20261017-20261108@kirillpavlov-21.github.io
-DTSTAMP:20261107T000000Z
-DTSTART;TZID=Europe/Moscow:20261108T193000
-DTEND;TZID=Europe/Moscow:20261108T210000
-SUMMARY:Стендап по-женски
-LOCATION:Commode\, Невский пр.\, 47
-GEO:59.932507;30.347550
-DESCRIPTION:У микрофона только девушки-комики 
- из Петербурга и Москвы: про бывших\, свид
- ания и всё наболевшее. Идёт почти каждый 
- вечер на Невском — готовый план для деви
- чника.\n390–1 990 ₽\, 18+\nБилеты и подробност
- и: https://afisha.yandex.ru/saint-petersburg/standup/stand-up-po-zhenski-
- spb\nПозвать друзей — в «Куда идём?»: https://ki
- rillpavlov-21.github.io/love/start.html?event=ev-spb-stendap-po-zhenski-20
- 261017&m=girls&city=spb
-URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-spb-stendap-
- po-zhenski-20261017&m=girls&city=spb
-CATEGORIES:Стендап
-STATUS:CONFIRMED
-TRANSP:TRANSPARENT
-END:VEVENT
-BEGIN:VEVENT
 UID:ev-spb-dva-kapitana-20261024-20261114@kirillpavlov-21.github.io
-DTSTAMP:20261107T000000Z
+DTSTAMP:20261113T000000Z
 DTSTART;VALUE=DATE:20261114
 DTEND;VALUE=DATE:20261115
 SUMMARY:Два капитана
@@ -135,7 +45,7 @@ TRANSP:TRANSPARENT
 END:VEVENT
 BEGIN:VEVENT
 UID:ev-spb-etno-mekhanika-20261114-20261114@kirillpavlov-21.github.io
-DTSTAMP:20261107T000000Z
+DTSTAMP:20261113T000000Z
 DTSTART;TZID=Europe/Moscow:20261114T190000
 DTEND;TZID=Europe/Moscow:20261114T230000
 SUMMARY:Этно-механика
@@ -158,7 +68,7 @@ TRANSP:TRANSPARENT
 END:VEVENT
 BEGIN:VEVENT
 UID:ev-spb-surganova-i-orkestr-20261114-20261114@kirillpavlov-21.github.io
-DTSTAMP:20261107T000000Z
+DTSTAMP:20261113T000000Z
 DTSTART;TZID=Europe/Moscow:20261114T190000
 DTEND;TZID=Europe/Moscow:20261114T210000
 SUMMARY:Сурганова и Оркестр
@@ -183,7 +93,7 @@ END:VEVENT
 BEGIN:VEVENT
 UID:ev-spb-tot-samyy-myunkhgauzen-20261029-20261114@kirillpavlov-21.github.
  io
-DTSTAMP:20261107T000000Z
+DTSTAMP:20261113T000000Z
 DTSTART;TZID=Europe/Moscow:20261114T190000
 DTEND;TZID=Europe/Moscow:20261114T213000
 SUMMARY:Тот самый Мюнхгаузен
@@ -206,7 +116,7 @@ TRANSP:TRANSPARENT
 END:VEVENT
 BEGIN:VEVENT
 UID:ev-spb-aysvill-20261020-20261115@kirillpavlov-21.github.io
-DTSTAMP:20261107T000000Z
+DTSTAMP:20261113T000000Z
 DTSTART;VALUE=DATE:20261115
 DTEND;VALUE=DATE:20261116
 SUMMARY:Айсвилль
@@ -228,32 +138,8 @@ STATUS:CONFIRMED
 TRANSP:TRANSPARENT
 END:VEVENT
 BEGIN:VEVENT
-UID:ev-spb-sudnyy-den-20261017-20261115@kirillpavlov-21.github.io
-DTSTAMP:20261107T000000Z
-DTSTART;VALUE=DATE:20261115
-DTEND;VALUE=DATE:20261116
-SUMMARY:Судный день
-LOCATION:Иммерсивный театр «Морфеус»\, наб. р
- еки Мойки\, 28
-GEO:59.938846;30.319923
-DESCRIPTION:Иммерсивный тру-крайм: вы присяжны
- е\, изучаете улики по делу о пропавшем по
- дростке и решаете судьбу подозреваемого
- . Группа 6–14 человек\, начало в 18:00–19:45.\nО
- т 4 500 ₽\, 18+\nБилеты и подробности: https://afis
- ha.yandex.ru/saint-petersburg/immersive-theatre/sudnyi-den-immersivnyi-tea
- tr-morfeus\nПозвать друзей — в «Куда идём?»: htt
- ps://kirillpavlov-21.github.io/love/start.html?event=ev-spb-sudnyy-den-202
- 61017&m=guys&city=spb
-URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-spb-sudnyy-d
- en-20261017&m=guys&city=spb
-CATEGORIES:Спектакль
-STATUS:CONFIRMED
-TRANSP:TRANSPARENT
-END:VEVENT
-BEGIN:VEVENT
 UID:ev-spb-moskvina-led-i-sudba-20261114-20261115@kirillpavlov-21.github.io
-DTSTAMP:20261107T000000Z
+DTSTAMP:20261113T000000Z
 DTSTART;TZID=Europe/Moscow:20261115T180000
 DTEND;TZID=Europe/Moscow:20261115T200000
 SUMMARY:Москвина. Лёд и судьба
@@ -277,7 +163,7 @@ TRANSP:TRANSPARENT
 END:VEVENT
 BEGIN:VEVENT
 UID:ev-spb-zhenitba-20261101-20261115@kirillpavlov-21.github.io
-DTSTAMP:20261107T000000Z
+DTSTAMP:20261113T000000Z
 DTSTART;TZID=Europe/Moscow:20261115T190000
 DTEND;TZID=Europe/Moscow:20261115T213000
 SUMMARY:Женитьба
@@ -300,9 +186,32 @@ STATUS:CONFIRMED
 TRANSP:TRANSPARENT
 END:VEVENT
 BEGIN:VEVENT
+UID:ev-spb-stendap-po-zhenski-20261017-20261115@kirillpavlov-21.github.io
+DTSTAMP:20261113T000000Z
+DTSTART;TZID=Europe/Moscow:20261115T193000
+DTEND;TZID=Europe/Moscow:20261115T210000
+SUMMARY:Стендап по-женски
+LOCATION:Commode\, Невский пр.\, 47
+GEO:59.932507;30.347550
+DESCRIPTION:У микрофона только девушки-комики 
+ из Петербурга и Москвы: про бывших\, свид
+ ания и всё наболевшее. Идёт почти каждый 
+ вечер на Невском — готовый план для деви
+ чника.\n390–1 990 ₽\, 18+\nБилеты и подробност
+ и: https://afisha.yandex.ru/saint-petersburg/standup/stand-up-po-zhenski-
+ spb\nПозвать друзей — в «Куда идём?»: https://ki
+ rillpavlov-21.github.io/love/start.html?event=ev-spb-stendap-po-zhenski-20
+ 261017&m=girls&city=spb
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-spb-stendap-
+ po-zhenski-20261017&m=girls&city=spb
+CATEGORIES:Стендап
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
 UID:ev-spb-revizor-s-prodolzheniem-20261024-20261121@kirillpavlov-21.github
  .io
-DTSTAMP:20261107T000000Z
+DTSTAMP:20261113T000000Z
 DTSTART;TZID=Europe/Moscow:20261121T180000
 DTEND;TZID=Europe/Moscow:20261121T203000
 SUMMARY:Ревизор с продолжением
@@ -325,7 +234,7 @@ TRANSP:TRANSPARENT
 END:VEVENT
 BEGIN:VEVENT
 UID:ev-spb-peterburg-gogolya-20261017-20261121@kirillpavlov-21.github.io
-DTSTAMP:20261107T000000Z
+DTSTAMP:20261113T000000Z
 DTSTART;TZID=Europe/Moscow:20261121T190000
 DTEND;TZID=Europe/Moscow:20261121T213000
 SUMMARY:Петербург Гоголя
@@ -348,7 +257,7 @@ TRANSP:TRANSPARENT
 END:VEVENT
 BEGIN:VEVENT
 UID:ev-spb-raymonda-20261119-20261121@kirillpavlov-21.github.io
-DTSTAMP:20261107T000000Z
+DTSTAMP:20261113T000000Z
 DTSTART;TZID=Europe/Moscow:20261121T190000
 DTEND;TZID=Europe/Moscow:20261121T213000
 SUMMARY:Раймонда
@@ -371,7 +280,7 @@ TRANSP:TRANSPARENT
 END:VEVENT
 BEGIN:VEVENT
 UID:ev-spb-garik-sukachev-20261121-20261121@kirillpavlov-21.github.io
-DTSTAMP:20261107T000000Z
+DTSTAMP:20261113T000000Z
 DTSTART;TZID=Europe/Moscow:20261121T200000
 DTEND;TZID=Europe/Moscow:20261121T220000
 SUMMARY:Гарик Сукачёв
@@ -388,6 +297,101 @@ DESCRIPTION:Гарик и его музыканты дают большой
  m=guys&city=spb
 URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-spb-garik-su
  kachev-20261121&m=guys&city=spb
+CATEGORIES:Концерт
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ev-spb-do-svadby-dozhivet-20261017-20261122@kirillpavlov-21.github.io
+DTSTAMP:20261113T000000Z
+DTSTART;VALUE=DATE:20261122
+DTEND;VALUE=DATE:20261123
+SUMMARY:До свадьбы доживёт
+LOCATION:Иммерсивный театр «Морфеус»\, наб. р
+ еки Мойки\, 28
+GEO:59.938846;30.319923
+DESCRIPTION:Иммерсивная комедия-расследовани
+ е: после бурного девичника вы просыпаете
+ сь в разгромленном номере\, а невеста исч
+ езла. Группа 2–8 человек\, сеансы с 13:00 до 2
+ 1:30.\n3 000–3 500 ₽\, 18+\nБилеты и подробности:
+  https://afisha.yandex.ru/saint-petersburg/immersive-theatre/do-svadby-doz
+ hiviot\nПозвать друзей — в «Куда идём?»: https:/
+ /kirillpavlov-21.github.io/love/start.html?event=ev-spb-do-svadby-dozhivet
+ -20261017&m=girls&city=spb
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-spb-do-svadb
+ y-dozhivet-20261017&m=girls&city=spb
+CATEGORIES:Спектакль
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ev-spb-romeo-i-dzhuletta-20261020-20261122@kirillpavlov-21.github.io
+DTSTAMP:20261113T000000Z
+DTSTART;VALUE=DATE:20261122
+DTEND;VALUE=DATE:20261123
+SUMMARY:Ромео и Джульетта
+LOCATION:Мариинский театр\, Театральная пл.\, 1
+GEO:59.925393;30.295836
+DESCRIPTION:Шекспировская история на музыку П
+ рокофьева — один из самых эмоциональных
+  балетов Мариинки. 20 и 21 октября в 19:00\, а 22
+  ноября два показа: в 13:00 и 19:00.\n2 400–14 000 
+ ₽\, 6+\nБилеты и подробности: https://www.mariinsky.ru
+ /playbill/playbill/2026/10/20/1_1900/\nПозвать друзей — в 
+ «Куда идём?»: https://kirillpavlov-21.github.io/love/start.html?
+ event=ev-spb-romeo-i-dzhuletta-20261020&m=date&city=spb
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-spb-romeo-i-
+ dzhuletta-20261020&m=date&city=spb
+CATEGORIES:Спектакль
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ev-spb-sudnyy-den-20261017-20261122@kirillpavlov-21.github.io
+DTSTAMP:20261113T000000Z
+DTSTART;VALUE=DATE:20261122
+DTEND;VALUE=DATE:20261123
+SUMMARY:Судный день
+LOCATION:Иммерсивный театр «Морфеус»\, наб. р
+ еки Мойки\, 28
+GEO:59.938846;30.319923
+DESCRIPTION:Иммерсивный тру-крайм: вы присяжны
+ е\, изучаете улики по делу о пропавшем по
+ дростке и решаете судьбу подозреваемого
+ . Группа 6–14 человек\, начало в 18:00–19:45.\nО
+ т 4 500 ₽\, 18+\nБилеты и подробности: https://afis
+ ha.yandex.ru/saint-petersburg/immersive-theatre/sudnyi-den-immersivnyi-tea
+ tr-morfeus\nПозвать друзей — в «Куда идём?»: htt
+ ps://kirillpavlov-21.github.io/love/start.html?event=ev-spb-sudnyy-den-202
+ 61017&m=guys&city=spb
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-spb-sudnyy-d
+ en-20261017&m=guys&city=spb
+CATEGORIES:Спектакль
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ev-spb-chigadaev-big-band-lyubov-i-dzhaz-20261122-20261122@kirillpavlov
+ -21.github.io
+DTSTAMP:20261113T000000Z
+DTSTART;TZID=Europe/Moscow:20261122T200000
+DTEND;TZID=Europe/Moscow:20261122T220000
+SUMMARY:Chigadaev Big Band. «Любовь и джаз»
+LOCATION:Филармония им. Шостаковича\, Большой
+  зал\, Михайловская ул.\, 2
+GEO:59.936142;30.331758
+DESCRIPTION:Биг-бэнд Станислава Чигадаева в Бо
+ льшом зале Филармонии: Эллингтон\, сюита 
+ из «Ла-Ла Ленда»\, латина и «Мамбо № 5». Би
+ леты от 500 ₽ — отличный вечер для свидан
+ ия.\n500–1 300 ₽\, 6+\nБилеты и подробности: htt
+ ps://afisha.yandex.ru/saint-petersburg/concert/chigadaev-big-band-liubov-i
+ -dzhaz\nПозвать друзей — в «Куда идём?»: https:/
+ /kirillpavlov-21.github.io/love/start.html?event=ev-spb-chigadaev-big-band
+ -lyubov-i-dzhaz-20261122&m=date&city=spb
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-spb-chigadae
+ v-big-band-lyubov-i-dzhaz-20261122&m=date&city=spb
 CATEGORIES:Концерт
 STATUS:CONFIRMED
 TRANSP:TRANSPARENT
