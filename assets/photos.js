@@ -750,6 +750,9 @@
     "domik-v-sadu": ["Домик в саду","@domikvsadu","",null,{"src":"страница заведения"}],
     "matreshka": ["Матрёшка","@matryoshka_moscow","",null,{"src":"страница заведения"}],
     "found-ramen": ["Found Rāmen & Rekōdo","@found.ramen","",null,{"src":"страница заведения"}],
+    // —— добор 2026-11-13 ——
+    "finch-2": ["Moscow_-_Bolshoy_Afanasevskiy_14_-_2024-01-07_-_p2.jpg","Александр Сигачёв","CC BY-SA 4.0",null,{"b":1}],
+    "spb-dom-aviatorov": ["Petlyakov_Pe-2_at_the_house_of_the_aviators_museum_of_Vsevolozhsk_(8).jpg","Reda Kerbouche","CC BY-SA 4.0"],
   };
   const places = (window.KUDA || {}).places || {};
   // «@площадка» — фото площадки события, которой нет в каталоге мест: достаётся всем событиям с этим venue (картинка — по id в 4-м поле)
