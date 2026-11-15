@@ -750,6 +750,10 @@
     "domik-v-sadu": ["Домик в саду","@domikvsadu","",null,{"src":"страница заведения"}],
     "matreshka": ["Матрёшка","@matryoshka_moscow","",null,{"src":"страница заведения"}],
     "found-ramen": ["Found Rāmen & Rekōdo","@found.ramen","",null,{"src":"страница заведения"}],
+    // —— добор 2026-11-15 ——
+    "spb-teatralnaya-biblioteka": ["Театральная_библиотека_25.01.21.jpg","Chirukhin Igor","CC BY-SA 4.0"],
+    "@Центральный детский мир": ["Clock_Children's_world_Часы_Детский_мир.jpg","AlixSaz","CC BY-SA 4.0","v-tsentralnyy-detskiy-mir"],
+    "@Англиканская церковь Святого Андрея": ["АнгликанскийХРАМ_-_panoramio.jpg","salech hcelas","CC BY 3.0","v-anglikanskaya-tserkov-svyatogo-andreya"],
   };
   const places = (window.KUDA || {}).places || {};
   // «@площадка» — фото площадки события, которой нет в каталоге мест: достаётся всем событиям с этим venue (картинка — по id в 4-м поле)
