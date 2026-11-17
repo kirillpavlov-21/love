@@ -750,6 +750,9 @@
     "domik-v-sadu": ["Домик в саду","@domikvsadu","",null,{"src":"страница заведения"}],
     "matreshka": ["Матрёшка","@matryoshka_moscow","",null,{"src":"страница заведения"}],
     "found-ramen": ["Found Rāmen & Rekōdo","@found.ramen","",null,{"src":"страница заведения"}],
+    // —— добор 2026-11-17 ——
+    "spb-sunduk": ["Фурштатская_42,_СПб.jpg","Анастасия Юрьевна Львова","CC BY-SA 4.0",null,{"b":1}],
+    "spb-oranzhereya-tavricheskogo-sada": ["Пальмовая_оранжерея_(Таврический_сад).jpg","Екатерина Борисова","CC BY-SA 4.0"],
   };
   const places = (window.KUDA || {}).places || {};
   // «@площадка» — фото площадки события, которой нет в каталоге мест: достаётся всем событиям с этим venue (картинка — по id в 4-м поле)
