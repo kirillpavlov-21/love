@@ -750,6 +750,29 @@
     "domik-v-sadu": ["Домик в саду","@domikvsadu","",null,{"src":"страница заведения"}],
     "matreshka": ["Матрёшка","@matryoshka_moscow","",null,{"src":"страница заведения"}],
     "found-ramen": ["Found Rāmen & Rekōdo","@found.ramen","",null,{"src":"страница заведения"}],
+    // —— добор 2026-11-04 ——
+    "atom": ["20240214_Interior_of_VDNKh_Atom_Pavilion_06.jpg","Сергей А. Демидов","CC BY 4.0"],
+    // —— добор 2026-11-09 ——
+    "tsentralnyy-dom-uchenykh": ["ЛьвыДОМА_УЧЁНЫХ_-_panoramio.jpg","salech hcelas","CC BY 3.0"],
+    "spb-aleksandro-nevskaya-lavra": ["Троицкий_собор_Александро-Невской_лавры_2023_02.jpg","Никонико962","CC BY-SA 4.0"],
+    "spb-kisskiss": ["Комплекс_домов_А.Г._Каплуна_и_А.А._Каплуна_Лиговский_проспект_33-35_Санкт-Петербург_2024_01.png","Никонико962","CC BY-SA 4.0",null,{"b":1}],
+    // —— добор 2026-11-10 ——
+    "spb-dvorets-kottedzh": ["7587.2._Петергоф._Спальня_во_дворце_Коттедж.jpg","GAlexandrova","CC BY-SA 4.0"],
+    // —— добор 2026-11-12 ——
+    "osobnyak-zinaidy-morozovoy": ["Особняк_Зинаиды_Морозовой_на_Спиридоновке.jpg","Vzorets","CC BY-SA 4.0"],
+    "vvedenskoe-kladbishche": ["Дом_у_северо-восточных_ворот_Введенского_кладбища_Москва_2026_01.jpg","Никонико962","CC BY-SA 4.0"],
+    // —— добор 2026-11-13 ——
+    "finch-2": ["Moscow_-_Bolshoy_Afanasevskiy_14_-_2024-01-07_-_p2.jpg","Александр Сигачёв","CC BY-SA 4.0",null,{"b":1}],
+    "spb-dom-aviatorov": ["Petlyakov_Pe-2_at_the_house_of_the_aviators_museum_of_Vsevolozhsk_(8).jpg","Reda Kerbouche","CC BY-SA 4.0"],
+    // —— добор 2026-11-15 ——
+    "spb-teatralnaya-biblioteka": ["Театральная_библиотека_25.01.21.jpg","Chirukhin Igor","CC BY-SA 4.0"],
+    "@Центральный детский мир": ["Clock_Children's_world_Часы_Детский_мир.jpg","AlixSaz","CC BY-SA 4.0","v-tsentralnyy-detskiy-mir"],
+    "@Англиканская церковь Святого Андрея": ["АнгликанскийХРАМ_-_panoramio.jpg","salech hcelas","CC BY 3.0","v-anglikanskaya-tserkov-svyatogo-andreya"],
+    // —— добор 2026-11-16 ——
+    "anglikanskaya-tserkov-svyatogo-andreya": ["АнгликанскийХРАМ_-_panoramio.jpg","salech hcelas","CC BY 3.0"],
+    // —— добор 2026-11-17 ——
+    "spb-sunduk": ["Фурштатская_42,_СПб.jpg","Анастасия Юрьевна Львова","CC BY-SA 4.0",null,{"b":1}],
+    "spb-oranzhereya-tavricheskogo-sada": ["Пальмовая_оранжерея_(Таврический_сад).jpg","Екатерина Борисова","CC BY-SA 4.0"],
   };
   const places = (window.KUDA || {}).places || {};
   // «@площадка» — фото площадки события, которой нет в каталоге мест: достаётся всем событиям с этим venue (картинка — по id в 4-м поле)
