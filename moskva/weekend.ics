@@ -21,96 +21,6 @@ TZNAME:MSK
 END:STANDARD
 END:VTIMEZONE
 BEGIN:VEVENT
-UID:ev-big-stendap-20261016-20261121@kirillpavlov-21.github.io
-DTSTAMP:20261117T000000Z
-DTSTART;VALUE=DATE:20261121
-DTEND;VALUE=DATE:20261122
-SUMMARY:Биг стендап
-LOCATION:Стендап клуб на Трубной\, Большой за
- л\, Рождественский бул.\, 10/7\, стр. 1
-GEO:55.766182;37.626196
-DESCRIPTION:Фирменный вечер клуба: опытные ком
- ики с обкатанным материалом. Показы почт
- и каждый день\, по пятницам и субботам — 
- в 19:00 и 21:00.\n950–1 500 ₽\, 18+\nБилеты и подроб
- ности: https://afisha.yandex.ru/moscow/standup/big-stand-up\nПозв
- ать друзей — в «Куда идём?»: https://kirillpavlov-21
- .github.io/love/start.html?event=ev-big-stendap-20261016&m=date
-URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-big-stendap-
- 20261016&m=date
-CATEGORIES:Стендап
-STATUS:CONFIRMED
-TRANSP:TRANSPARENT
-END:VEVENT
-BEGIN:VEVENT
-UID:ev-kabala-svyatosh-20261023-20261121@kirillpavlov-21.github.io
-DTSTAMP:20261117T000000Z
-DTSTART;TZID=Europe/Moscow:20261121T190000
-DTEND;TZID=Europe/Moscow:20261121T213000
-SUMMARY:Кабала святош
-LOCATION:МХТ имени Чехова\, Камергерский пер.\
- , 3
-GEO:55.759913;37.612753
-DESCRIPTION:Булгаков о Мольере: великий актёр\,
-  король и цена милости власти. Постановк
- а Юрия Квятковского с Константином Хабе
- нским\, три часа с антрактом.\n16+\nБилеты и 
- подробности: https://afisha.yandex.ru/moscow/theatre_show/kabal
- a-sviatosh-mkht-im-chekhova\nПозвать друзей — в «Куда
-  идём?»: https://kirillpavlov-21.github.io/love/start.html?event=ev-k
- abala-svyatosh-20261023&m=date
-URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-kabala-svyat
- osh-20261023&m=date
-CATEGORIES:Спектакль
-STATUS:CONFIRMED
-TRANSP:TRANSPARENT
-END:VEVENT
-BEGIN:VEVENT
-UID:ev-pozhary-et-cetera-20261107-20261121@kirillpavlov-21.github.io
-DTSTAMP:20261117T000000Z
-DTSTART;TZID=Europe/Moscow:20261121T190000
-DTEND;TZID=Europe/Moscow:20261121T213000
-SUMMARY:Пожары
-LOCATION:Театр Et Cetera\, Фролов пер.\, 2
-GEO:55.765011;37.635808
-DESCRIPTION:Важди Муавад сам поставил свою зна
- менитую пьесу: брат и сестра распутывают
-  прошлое матери. Сильная трагедия на 3 ч 15
-  мин с антрактом.\n18+\nБилеты и подробност
- и: https://et-cetera.ru/performance/pojaryi/\nПозвать друзей
-  — в «Куда идём?»: https://kirillpavlov-21.github.io/love/sta
- rt.html?event=ev-pozhary-et-cetera-20261107&m=date
-URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-pozhary-et-c
- etera-20261107&m=date
-CATEGORIES:Спектакль
-STATUS:CONFIRMED
-TRANSP:TRANSPARENT
-END:VEVENT
-BEGIN:VEVENT
-UID:ev-bukhgalter-moy-bukhgalter-teatr-na-melnikova-20261121-20261121@kiril
- lpavlov-21.github.io
-DTSTAMP:20261117T000000Z
-DTSTART;TZID=Europe/Moscow:20261121T193000
-DTEND;TZID=Europe/Moscow:20261121T220000
-SUMMARY:Бухгалтер\, мой бухгалтер
-LOCATION:Театр на Мельникова\, ул. Мельникова\
- , 7\, стр. 1
-GEO:55.725548;37.673468
-DESCRIPTION:Комедийный мюзикл о девяностых: ск
- ромный бухгалтер\, строгая начальница и 
- роман\, которого нет в должностной инстр
- укции.\nОт 700 ₽\, 12+\nБилеты и подробности: 
- https://iframeab-pre8259.intickets.ru/event/75891605/\nПозвать др
- узей — в «Куда идём?»: https://kirillpavlov-21.github.io/
- love/start.html?event=ev-bukhgalter-moy-bukhgalter-teatr-na-melnikova-2026
- 1121&m=date
-URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-bukhgalter-m
- oy-bukhgalter-teatr-na-melnikova-20261121&m=date
-CATEGORIES:Спектакль
-STATUS:CONFIRMED
-TRANSP:TRANSPARENT
-END:VEVENT
-BEGIN:VEVENT
 UID:ev-7-chudes-sveta-kaleydoskop-20261017-20261122@kirillpavlov-21.github.
  io
 DTSTAMP:20261117T000000Z
@@ -135,24 +45,24 @@ STATUS:CONFIRMED
 TRANSP:TRANSPARENT
 END:VEVENT
 BEGIN:VEVENT
-UID:ev-vals-boston-20261017-20261122@kirillpavlov-21.github.io
+UID:ev-big-stendap-20261016-20261122@kirillpavlov-21.github.io
 DTSTAMP:20261117T000000Z
 DTSTART;VALUE=DATE:20261122
 DTEND;VALUE=DATE:20261123
-SUMMARY:Вальс-бостон
-LOCATION:Театр эстрады\, Берсеневская наб.\, 20/
- 2
-GEO:55.744819;37.611473
-DESCRIPTION:Мюзикл Михаила Миронова на песнях 
- Александра Розенбаума — история длиною 
- в жизнь. Играют почти каждый день до 29 но
- ября\, в выходные дважды.\n1 800–20 000 ₽\, 16+\
- nБилеты и подробности: https://vals-boston.ru/\nПозв
+SUMMARY:Биг стендап
+LOCATION:Стендап клуб на Трубной\, Большой за
+ л\, Рождественский бул.\, 10/7\, стр. 1
+GEO:55.766182;37.626196
+DESCRIPTION:Фирменный вечер клуба: опытные ком
+ ики с обкатанным материалом. Показы почт
+ и каждый день\, по пятницам и субботам — 
+ в 19:00 и 21:00.\n950–1 500 ₽\, 18+\nБилеты и подроб
+ ности: https://afisha.yandex.ru/moscow/standup/big-stand-up\nПозв
  ать друзей — в «Куда идём?»: https://kirillpavlov-21
- .github.io/love/start.html?event=ev-vals-boston-20261017&m=date
-URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-vals-boston-
- 20261017&m=date
-CATEGORIES:Спектакль
+ .github.io/love/start.html?event=ev-big-stendap-20261016&m=date
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-big-stendap-
+ 20261016&m=date
+CATEGORIES:Стендап
 STATUS:CONFIRMED
 TRANSP:TRANSPARENT
 END:VEVENT
@@ -293,25 +203,23 @@ STATUS:CONFIRMED
 TRANSP:TRANSPARENT
 END:VEVENT
 BEGIN:VEVENT
-UID:ev-novaya-opera-perezhivaniy-zhizn-20261019-20261129@kirillpavlov-21.gi
- thub.io
+UID:ev-vals-boston-20261017-20261129@kirillpavlov-21.github.io
 DTSTAMP:20261117T000000Z
 DTSTART;VALUE=DATE:20261129
 DTEND;VALUE=DATE:20261130
-SUMMARY:Новая опера переживаний «Жизнь»
-LOCATION:Театр Наций\, Новое пространство\, Ст
- растной бул.\, 12\, стр. 2
-GEO:55.766867;37.611437
-DESCRIPTION:Часовая премьера Александра Шумил
- ина на музыку Антона Светличного\, где вм
- есто сюжета — эмоции. В каждый из дней дв
- а показа: в 18:00 и 20:00.\n12+\nБилеты и подробно
- сти: https://theatreofnations.ru/performances/novaya-opera-perezhivanij
- -zhizn\nПозвать друзей — в «Куда идём?»: https:/
- /kirillpavlov-21.github.io/love/start.html?event=ev-novaya-opera-perezhiva
- niy-zhizn-20261019&m=date
-URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-novaya-opera
- -perezhivaniy-zhizn-20261019&m=date
+SUMMARY:Вальс-бостон
+LOCATION:Театр эстрады\, Берсеневская наб.\, 20/
+ 2
+GEO:55.744819;37.611473
+DESCRIPTION:Мюзикл Михаила Миронова на песнях 
+ Александра Розенбаума — история длиною 
+ в жизнь. Играют почти каждый день до 29 но
+ ября\, в выходные дважды.\n1 800–20 000 ₽\, 16+\
+ nБилеты и подробности: https://vals-boston.ru/\nПозв
+ ать друзей — в «Куда идём?»: https://kirillpavlov-21
+ .github.io/love/start.html?event=ev-vals-boston-20261017&m=date
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-vals-boston-
+ 20261017&m=date
 CATEGORIES:Спектакль
 STATUS:CONFIRMED
 TRANSP:TRANSPARENT
@@ -383,6 +291,94 @@ DESCRIPTION:Редкий сольный концерт продюсера-
  ev-20261129&m=date
 URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-maksim-fadee
  v-20261129&m=date
+CATEGORIES:Концерт
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ev-bezumnyy-den-ili-zhenitba-figaro-lenkom-20261017-20261205@kirillpavl
+ ov-21.github.io
+DTSTAMP:20261117T000000Z
+DTSTART;VALUE=DATE:20261205
+DTEND;VALUE=DATE:20261206
+SUMMARY:Безумный день\, или Женитьба Фигаро
+LOCATION:Ленком Марка Захарова\, ул. Малая Дми
+ тровка\, 6
+GEO:55.767743;37.606522
+DESCRIPTION:Бомарше по-ленкомовски с 1993 года: б
+ ыстрая и озорная комедия интриг\, посвящ
+ ённая Андрею Миронову. Вечером в 19:00\, 18 о
+ ктября и 6 декабря ещё и в 12:00.\n16+\nБилеты и
+  подробности: https://lenkom.ru/shows/bezumnyy-den-ili-zhenitba
+ -figaro\nПозвать друзей — в «Куда идём?»: https:
+ //kirillpavlov-21.github.io/love/start.html?event=ev-bezumnyy-den-ili-zhen
+ itba-figaro-lenkom-20261017&m=date
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-bezumnyy-den
+ -ili-zhenitba-figaro-lenkom-20261017&m=date
+CATEGORIES:Спектакль
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ev-fb-rodina-cska-20261205-20261205@kirillpavlov-21.github.io
+DTSTAMP:20261117T000000Z
+DTSTART;TZID=Europe/Moscow:20261205T151500
+DTEND;TZID=Europe/Moscow:20261205T171500
+SUMMARY:Родина — ЦСКА
+LOCATION:Арена Химки\, Химки\, ул. Кирова\, вл. 24
+GEO:55.885401;37.454182
+DESCRIPTION:Дерби двух московских клубов: «Род
+ ина» — ЦСКА. Атмосфера особенная\, так чт
+ о собирай компанию и бери места рядом.\nБ
+ илеты и подробности: https://rodina.moscow/\nПозват
+ ь друзей — в «Куда идём?»: https://kirillpavlov-21.git
+ hub.io/love/start.html?event=ev-fb-rodina-cska-20261205&m=guys
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-fb-rodina-cs
+ ka-20261205&m=guys
+CATEGORIES:Футбол
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ev-premiya-zolotoy-grammofon-20261205-20261205@kirillpavlov-21.github.i
+ o
+DTSTAMP:20261117T000000Z
+DTSTART;TZID=Europe/Moscow:20261205T190000
+DTEND;TZID=Europe/Moscow:20261205T210000
+SUMMARY:Премия «Золотой граммофон»
+LOCATION:ВТБ Арена\, Ленинградский просп.\, 36
+GEO:55.791293;37.558638
+DESCRIPTION:Церемония музыкальной премии: нес
+ колько часов живых номеров десятков поп-
+ артистов подряд. Почти как плейлист года
+ \, только вживую.\nОт 4 500 ₽\, 16+\nБилеты и п
+ одробности: https://vtb-arena.com/poster/xxxi-tseremoniya-vruche
+ niya-natsionalnoy-muzykalnoy-premii-zolotoy-grammofon/\nПозвать д
+ рузей — в «Куда идём?»: https://kirillpavlov-21.github.i
+ o/love/start.html?event=ev-premiya-zolotoy-grammofon-20261205&m=date
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-premiya-zolo
+ toy-grammofon-20261205&m=date
+CATEGORIES:Шоу
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ev-kalinov-most-20261205-20261205@kirillpavlov-21.github.io
+DTSTAMP:20261117T000000Z
+DTSTART;TZID=Europe/Moscow:20261205T200000
+DTEND;TZID=Europe/Moscow:20261205T220000
+SUMMARY:Калинов Мост
+LOCATION:16 Тонн\, ул. Пресненский Вал\, 6\, стр. 1
+GEO:55.764309;37.564371
+DESCRIPTION:Сибирский рок Дмитрия Ревякина в к
+ лубном зале «16 Тонн»: живой звук\, сцена в
+  паре метров и бар под рукой.\n2 500–7 000 ₽\
+ , 16+\nБилеты и подробности: https://afisha.yandex.ru/mo
+ scow/concert/kalinov-most-2026-12-05\nПозвать друзей — в 
+ «Куда идём?»: https://kirillpavlov-21.github.io/love/start.html?
+ event=ev-kalinov-most-20261205&m=guys
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-kalinov-most
+ -20261205&m=guys
 CATEGORIES:Концерт
 STATUS:CONFIRMED
 TRANSP:TRANSPARENT
