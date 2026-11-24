@@ -21,102 +21,8 @@ TZNAME:MSK
 END:STANDARD
 END:VTIMEZONE
 BEGIN:VEVENT
-UID:ev-spb-romeo-i-dzhuletta-20261020-20261122@kirillpavlov-21.github.io
-DTSTAMP:20261122T000000Z
-DTSTART;VALUE=DATE:20261122
-DTEND;VALUE=DATE:20261123
-SUMMARY:Ромео и Джульетта
-LOCATION:Мариинский театр\, Театральная пл.\, 1
-GEO:59.925393;30.295836
-DESCRIPTION:Шекспировская история на музыку П
- рокофьева — один из самых эмоциональных
-  балетов Мариинки. 20 и 21 октября в 19:00\, а 22
-  ноября два показа: в 13:00 и 19:00.\n2 400–14 000 
- ₽\, 6+\nБилеты и подробности: https://www.mariinsky.ru
- /playbill/playbill/2026/10/20/1_1900/\nПозвать друзей — в 
- «Куда идём?»: https://kirillpavlov-21.github.io/love/start.html?
- event=ev-spb-romeo-i-dzhuletta-20261020&m=date&city=spb
-URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-spb-romeo-i-
- dzhuletta-20261020&m=date&city=spb
-CATEGORIES:Спектакль
-STATUS:CONFIRMED
-TRANSP:TRANSPARENT
-END:VEVENT
-BEGIN:VEVENT
-UID:ev-spb-revizor-s-prodolzheniem-20261024-20261122@kirillpavlov-21.github
- .io
-DTSTAMP:20261122T000000Z
-DTSTART;TZID=Europe/Moscow:20261122T180000
-DTEND;TZID=Europe/Moscow:20261122T203000
-SUMMARY:Ревизор с продолжением
-LOCATION:Александринский театр\, пл. Островск
- ого\, 6
-GEO:59.931796;30.336182
-DESCRIPTION:Новый «Ревизор» Валерия Фокина на 
- сцене\, где гоголевскую комедию впервые 
- сыграли в 1836 году. Большой вечер — около 
- 3 ч 20 мин\, начало в 18:00.\n500–12 000 ₽\, 18+\nБил
- еты и подробности: https://afisha.yandex.ru/saint-petersbur
- g/theatre_show/revizor-s-prodolzheniem\nПозвать друзей — в
-  «Куда идём?»: https://kirillpavlov-21.github.io/love/start.html
- ?event=ev-spb-revizor-s-prodolzheniem-20261024&m=date&city=spb
-URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-spb-revizor-
- s-prodolzheniem-20261024&m=date&city=spb
-CATEGORIES:Спектакль
-STATUS:CONFIRMED
-TRANSP:TRANSPARENT
-END:VEVENT
-BEGIN:VEVENT
-UID:ev-spb-stendap-po-zhenski-20261017-20261122@kirillpavlov-21.github.io
-DTSTAMP:20261122T000000Z
-DTSTART;TZID=Europe/Moscow:20261122T193000
-DTEND;TZID=Europe/Moscow:20261122T210000
-SUMMARY:Стендап по-женски
-LOCATION:Commode\, Невский пр.\, 47
-GEO:59.932507;30.347550
-DESCRIPTION:У микрофона только девушки-комики 
- из Петербурга и Москвы: про бывших\, свид
- ания и всё наболевшее. Идёт почти каждый 
- вечер на Невском — готовый план для деви
- чника.\n390–1 990 ₽\, 18+\nБилеты и подробност
- и: https://afisha.yandex.ru/saint-petersburg/standup/stand-up-po-zhenski-
- spb\nПозвать друзей — в «Куда идём?»: https://ki
- rillpavlov-21.github.io/love/start.html?event=ev-spb-stendap-po-zhenski-20
- 261017&m=girls&city=spb
-URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-spb-stendap-
- po-zhenski-20261017&m=girls&city=spb
-CATEGORIES:Стендап
-STATUS:CONFIRMED
-TRANSP:TRANSPARENT
-END:VEVENT
-BEGIN:VEVENT
-UID:ev-spb-chigadaev-big-band-lyubov-i-dzhaz-20261122-20261122@kirillpavlov
- -21.github.io
-DTSTAMP:20261122T000000Z
-DTSTART;TZID=Europe/Moscow:20261122T200000
-DTEND;TZID=Europe/Moscow:20261122T220000
-SUMMARY:Chigadaev Big Band. «Любовь и джаз»
-LOCATION:Филармония им. Шостаковича\, Большой
-  зал\, Михайловская ул.\, 2
-GEO:59.936142;30.331758
-DESCRIPTION:Биг-бэнд Станислава Чигадаева в Бо
- льшом зале Филармонии: Эллингтон\, сюита 
- из «Ла-Ла Ленда»\, латина и «Мамбо № 5». Би
- леты от 500 ₽ — отличный вечер для свидан
- ия.\n500–1 300 ₽\, 6+\nБилеты и подробности: htt
- ps://afisha.yandex.ru/saint-petersburg/concert/chigadaev-big-band-liubov-i
- -dzhaz\nПозвать друзей — в «Куда идём?»: https:/
- /kirillpavlov-21.github.io/love/start.html?event=ev-spb-chigadaev-big-band
- -lyubov-i-dzhaz-20261122&m=date&city=spb
-URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-spb-chigadae
- v-big-band-lyubov-i-dzhaz-20261122&m=date&city=spb
-CATEGORIES:Концерт
-STATUS:CONFIRMED
-TRANSP:TRANSPARENT
-END:VEVENT
-BEGIN:VEVENT
 UID:ev-spb-spartak-20261128-20261128@kirillpavlov-21.github.io
-DTSTAMP:20261122T000000Z
+DTSTAMP:20261124T000000Z
 DTSTART;VALUE=DATE:20261128
 DTEND;VALUE=DATE:20261129
 SUMMARY:Спартак
@@ -138,7 +44,7 @@ TRANSP:TRANSPARENT
 END:VEVENT
 BEGIN:VEVENT
 UID:ev-spb-idiot-baltiyskiy-dom-20261127-20261128@kirillpavlov-21.github.io
-DTSTAMP:20261122T000000Z
+DTSTAMP:20261124T000000Z
 DTSTART;TZID=Europe/Moscow:20261128T190000
 DTEND;TZID=Europe/Moscow:20261128T213000
 SUMMARY:Идиот
@@ -162,7 +68,7 @@ TRANSP:TRANSPARENT
 END:VEVENT
 BEGIN:VEVENT
 UID:ev-spb-peterburg-gogolya-20261017-20261128@kirillpavlov-21.github.io
-DTSTAMP:20261122T000000Z
+DTSTAMP:20261124T000000Z
 DTSTART;TZID=Europe/Moscow:20261128T190000
 DTEND;TZID=Europe/Moscow:20261128T213000
 SUMMARY:Петербург Гоголя
@@ -185,7 +91,7 @@ TRANSP:TRANSPARENT
 END:VEVENT
 BEGIN:VEVENT
 UID:ev-spb-bravo-20261128-20261128@kirillpavlov-21.github.io
-DTSTAMP:20261122T000000Z
+DTSTAMP:20261124T000000Z
 DTSTART;TZID=Europe/Moscow:20261128T200000
 DTEND;TZID=Europe/Moscow:20261128T220000
 SUMMARY:Браво
@@ -206,32 +112,8 @@ STATUS:CONFIRMED
 TRANSP:TRANSPARENT
 END:VEVENT
 BEGIN:VEVENT
-UID:ev-spb-do-svadby-dozhivet-20261017-20261129@kirillpavlov-21.github.io
-DTSTAMP:20261122T000000Z
-DTSTART;VALUE=DATE:20261129
-DTEND;VALUE=DATE:20261130
-SUMMARY:До свадьбы доживёт
-LOCATION:Иммерсивный театр «Морфеус»\, наб. р
- еки Мойки\, 28
-GEO:59.938846;30.319923
-DESCRIPTION:Иммерсивная комедия-расследовани
- е: после бурного девичника вы просыпаете
- сь в разгромленном номере\, а невеста исч
- езла. Группа 2–8 человек\, сеансы с 13:00 до 2
- 1:30.\n3 000–3 500 ₽\, 18+\nБилеты и подробности:
-  https://afisha.yandex.ru/saint-petersburg/immersive-theatre/do-svadby-doz
- hiviot\nПозвать друзей — в «Куда идём?»: https:/
- /kirillpavlov-21.github.io/love/start.html?event=ev-spb-do-svadby-dozhivet
- -20261017&m=girls&city=spb
-URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-spb-do-svadb
- y-dozhivet-20261017&m=girls&city=spb
-CATEGORIES:Спектакль
-STATUS:CONFIRMED
-TRANSP:TRANSPARENT
-END:VEVENT
-BEGIN:VEVENT
 UID:ev-spb-malevich-20261129-20261129@kirillpavlov-21.github.io
-DTSTAMP:20261122T000000Z
+DTSTAMP:20261124T000000Z
 DTSTART;VALUE=DATE:20261129
 DTEND;VALUE=DATE:20261130
 SUMMARY:Малевич
@@ -253,7 +135,7 @@ TRANSP:TRANSPARENT
 END:VEVENT
 BEGIN:VEVENT
 UID:ev-spb-schaste-bdt-20261029-20261129@kirillpavlov-21.github.io
-DTSTAMP:20261122T000000Z
+DTSTAMP:20261124T000000Z
 DTSTART;VALUE=DATE:20261129
 DTEND;VALUE=DATE:20261130
 SUMMARY:Счастье
@@ -277,7 +159,7 @@ TRANSP:TRANSPARENT
 END:VEVENT
 BEGIN:VEVENT
 UID:ev-spb-khitraya-vdova-20261031-20261129@kirillpavlov-21.github.io
-DTSTAMP:20261122T000000Z
+DTSTAMP:20261124T000000Z
 DTSTART;TZID=Europe/Moscow:20261129T190000
 DTEND;TZID=Europe/Moscow:20261129T213000
 SUMMARY:Хитрая вдова
@@ -300,8 +182,31 @@ STATUS:CONFIRMED
 TRANSP:TRANSPARENT
 END:VEVENT
 BEGIN:VEVENT
+UID:ev-spb-stendap-po-zhenski-20261017-20261129@kirillpavlov-21.github.io
+DTSTAMP:20261124T000000Z
+DTSTART;TZID=Europe/Moscow:20261129T193000
+DTEND;TZID=Europe/Moscow:20261129T210000
+SUMMARY:Стендап по-женски
+LOCATION:Commode\, Невский пр.\, 47
+GEO:59.932507;30.347550
+DESCRIPTION:У микрофона только девушки-комики 
+ из Петербурга и Москвы: про бывших\, свид
+ ания и всё наболевшее. Идёт почти каждый 
+ вечер на Невском — готовый план для деви
+ чника.\n390–1 990 ₽\, 18+\nБилеты и подробност
+ и: https://afisha.yandex.ru/saint-petersburg/standup/stand-up-po-zhenski-
+ spb\nПозвать друзей — в «Куда идём?»: https://ki
+ rillpavlov-21.github.io/love/start.html?event=ev-spb-stendap-po-zhenski-20
+ 261017&m=girls&city=spb
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-spb-stendap-
+ po-zhenski-20261017&m=girls&city=spb
+CATEGORIES:Стендап
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
 UID:ev-spb-dva-kapitana-20261024-20261205@kirillpavlov-21.github.io
-DTSTAMP:20261122T000000Z
+DTSTAMP:20261124T000000Z
 DTSTART;VALUE=DATE:20261205
 DTEND;VALUE=DATE:20261206
 SUMMARY:Два капитана
@@ -325,7 +230,7 @@ END:VEVENT
 BEGIN:VEVENT
 UID:ev-spb-tshchetnaya-predostorozhnost-20261017-20261205@kirillpavlov-21.g
  ithub.io
-DTSTAMP:20261122T000000Z
+DTSTAMP:20261124T000000Z
 DTSTART;VALUE=DATE:20261205
 DTEND;VALUE=DATE:20261206
 SUMMARY:Тщетная предосторожность
@@ -348,7 +253,7 @@ TRANSP:TRANSPARENT
 END:VEVENT
 BEGIN:VEVENT
 UID:ev-fb-zenit-baltika-20261205-20261205@kirillpavlov-21.github.io
-DTSTAMP:20261122T000000Z
+DTSTAMP:20261124T000000Z
 DTSTART;TZID=Europe/Moscow:20261205T173000
 DTEND;TZID=Europe/Moscow:20261205T193000
 SUMMARY:Зенит — Балтика
@@ -369,7 +274,7 @@ TRANSP:TRANSPARENT
 END:VEVENT
 BEGIN:VEVENT
 UID:ev-spb-krematoriy-20261205-20261205@kirillpavlov-21.github.io
-DTSTAMP:20261122T000000Z
+DTSTAMP:20261124T000000Z
 DTSTART;TZID=Europe/Moscow:20261205T200000
 DTEND;TZID=Europe/Moscow:20261205T220000
 SUMMARY:Крематорий
@@ -387,6 +292,30 @@ DESCRIPTION:Армен Григорян и «Крематорий» уст
 URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-spb-kremator
  iy-20261205&m=guys&city=spb
 CATEGORIES:Концерт
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ev-spb-zoykina-kvartira-20261111-20261206@kirillpavlov-21.github.io
+DTSTAMP:20261124T000000Z
+DTSTART;TZID=Europe/Moscow:20261206T190000
+DTEND;TZID=Europe/Moscow:20261206T213000
+SUMMARY:Зойкина квартира
+LOCATION:Театр им. Комиссаржевской\, Итальянс
+ кая ул.\, 19
+GEO:59.936094;30.335049
+DESCRIPTION:Булгаковская авантюра времён НЭПа
+ : под вывеской ателье Зоя Пельц копит ден
+ ьги\, чтобы увезти любимого графа в Ниццу
+ . Чёрный юмор\, мистика и криминал.\n300–4 00
+ 0 ₽\, 18+\nБилеты и подробности: https://afisha.yande
+ x.ru/saint-petersburg/theatre_show/zoikina-kvartira-teatr-im-komissarzhevs
+ koi\nПозвать друзей — в «Куда идём?»: https://ki
+ rillpavlov-21.github.io/love/start.html?event=ev-spb-zoykina-kvartira-2026
+ 1111&m=date&city=spb
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-spb-zoykina-
+ kvartira-20261111&m=date&city=spb
+CATEGORIES:Спектакль
 STATUS:CONFIRMED
 TRANSP:TRANSPARENT
 END:VEVENT

@@ -21,34 +21,10 @@ TZNAME:MSK
 END:STANDARD
 END:VTIMEZONE
 BEGIN:VEVENT
-UID:ev-7-chudes-sveta-kaleydoskop-20261017-20261122@kirillpavlov-21.github.
- io
-DTSTAMP:20261122T000000Z
-DTSTART;VALUE=DATE:20261122
-DTEND;VALUE=DATE:20261123
-SUMMARY:7 чудес света
-LOCATION:Гастротеатр «Калейдоскоп»\, Моховая
-  ул.\, 15/1\, стр. 1
-GEO:55.756787;37.613794
-DESCRIPTION:Гастрошоу у Манежной: два часа пут
- ешествия от пирамид Гизы до садов Семира
- миды\, к каждому чуду — свой сет. Вариант 
- для особого свидания.\n18 000–25 000 ₽\, 12+\nБ
- илеты и подробности: https://afisha.yandex.ru/moscow/imme
- rsive-theatre/7-chudes-sveta-7-wonders-of-the-ancient-world\nПозват
- ь друзей — в «Куда идём?»: https://kirillpavlov-21.git
- hub.io/love/start.html?event=ev-7-chudes-sveta-kaleydoskop-20261017&m=date
-URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-7-chudes-sve
- ta-kaleydoskop-20261017&m=date
-CATEGORIES:Спектакль
-STATUS:CONFIRMED
-TRANSP:TRANSPARENT
-END:VEVENT
-BEGIN:VEVENT
-UID:ev-big-stendap-20261016-20261122@kirillpavlov-21.github.io
-DTSTAMP:20261122T000000Z
-DTSTART;VALUE=DATE:20261122
-DTEND;VALUE=DATE:20261123
+UID:ev-big-stendap-20261016-20261128@kirillpavlov-21.github.io
+DTSTAMP:20261124T000000Z
+DTSTART;VALUE=DATE:20261128
+DTEND;VALUE=DATE:20261129
 SUMMARY:Биг стендап
 LOCATION:Стендап клуб на Трубной\, Большой за
  л\, Рождественский бул.\, 10/7\, стр. 1
@@ -67,53 +43,9 @@ STATUS:CONFIRMED
 TRANSP:TRANSPARENT
 END:VEVENT
 BEGIN:VEVENT
-UID:ev-vivaldi-vremena-goda-eldar-20261122-20261122@kirillpavlov-21.github.
- io
-DTSTAMP:20261122T000000Z
-DTSTART;TZID=Europe/Moscow:20261122T160000
-DTEND;TZID=Europe/Moscow:20261122T180000
-SUMMARY:Вивальди. Времена года
-LOCATION:Эльдар\, Ленинский просп.\, 105
-GEO:55.665250;37.513424
-DESCRIPTION:Оркестр играет Вивальди и другую к
- лассику при свечах\, а художник тут же ри
- сует картины на воде\, которые выводят на
-  экран.\nБилеты и подробности: https://stageon.ru/e
- vent/cmpggayiu01pjn8kyqhst5g2n\nПозвать друзей — в «Ку
- да идём?»: https://kirillpavlov-21.github.io/love/start.html?event=
- ev-vivaldi-vremena-goda-eldar-20261122&m=date
-URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-vivaldi-vrem
- ena-goda-eldar-20261122&m=date
-CATEGORIES:Концерт
-STATUS:CONFIRMED
-TRANSP:TRANSPARENT
-END:VEVENT
-BEGIN:VEVENT
-UID:ev-nezhnoe-serdtse-tabakova-20261106-20261122@kirillpavlov-21.github.io
-DTSTAMP:20261122T000000Z
-DTSTART;TZID=Europe/Moscow:20261122T190000
-DTEND;TZID=Europe/Moscow:20261122T213000
-SUMMARY:Нежное сердце
-LOCATION:Театр Табакова\, Историческая сцена\
- , ул. Чаплыгина\, 1А
-GEO:55.764320;37.645878
-DESCRIPTION:Весенняя премьера «Табакерки»: во
- девиль графа Соллогуба с песнями и фокус
- ами в легендарном подвале на Чаплыгина. 
- Лёгкие 1 ч 20 мин.\n16+\nБилеты и подробности:
-  https://tabakov.ru/performances/nezhnoye-serdtse/\nПозвать дру
- зей — в «Куда идём?»: https://kirillpavlov-21.github.io/lo
- ve/start.html?event=ev-nezhnoe-serdtse-tabakova-20261106&m=date
-URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-nezhnoe-serd
- tse-tabakova-20261106&m=date
-CATEGORIES:Спектакль
-STATUS:CONFIRMED
-TRANSP:TRANSPARENT
-END:VEVENT
-BEGIN:VEVENT
 UID:ev-nedorosl-teatr-na-melnikova-20261128-20261128@kirillpavlov-21.github
  .io
-DTSTAMP:20261122T000000Z
+DTSTAMP:20261124T000000Z
 DTSTART;TZID=Europe/Moscow:20261128T120000
 DTEND;TZID=Europe/Moscow:20261128T143000
 SUMMARY:Недоросль
@@ -136,7 +68,7 @@ TRANSP:TRANSPARENT
 END:VEVENT
 BEGIN:VEVENT
 UID:ev-fantasy-folk-fest-20261128-20261128@kirillpavlov-21.github.io
-DTSTAMP:20261122T000000Z
+DTSTAMP:20261124T000000Z
 DTSTART;TZID=Europe/Moscow:20261128T170000
 DTEND;TZID=Europe/Moscow:20261128T210000
 SUMMARY:Fantasy Folk Fest
@@ -159,7 +91,7 @@ END:VEVENT
 BEGIN:VEVENT
 UID:ev-sergey-orlov-programma-zvezda-20261127-20261128@kirillpavlov-21.gith
  ub.io
-DTSTAMP:20261122T000000Z
+DTSTAMP:20261124T000000Z
 DTSTART;TZID=Europe/Moscow:20261128T200000
 DTEND;TZID=Europe/Moscow:20261128T213000
 SUMMARY:Сергей Орлов. Программа «Звезда»
@@ -180,31 +112,32 @@ STATUS:CONFIRMED
 TRANSP:TRANSPARENT
 END:VEVENT
 BEGIN:VEVENT
-UID:ev-zhestkiy-stendap-20261016-20261128@kirillpavlov-21.github.io
-DTSTAMP:20261122T000000Z
-DTSTART;TZID=Europe/Moscow:20261128T230000
-DTEND;TZID=Europe/Moscow:20261129T003000
-SUMMARY:Жёсткий стендап
-LOCATION:Стендап клуб на Трубной\, Большой за
- л\, Рождественский бул.\, 10/7\, стр. 1
-GEO:55.766182;37.626196
-DESCRIPTION:Ночной формат для тех\, кто не обиж
- ается: ведущий и четыре комика без цензу
- ры и запретных тем. Идёт по пятницам и су
- бботам в 23:00.\nОт 1 200 ₽\, 18+\nБилеты и подро
- бности: https://afisha.yandex.ru/moscow/standup/zhiostkii-stendap\n
- Позвать друзей — в «Куда идём?»: https://kirillp
- avlov-21.github.io/love/start.html?event=ev-zhestkiy-stendap-20261016&m=gu
- ys
-URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-zhestkiy-ste
- ndap-20261016&m=guys
-CATEGORIES:Стендап
+UID:ev-7-chudes-sveta-kaleydoskop-20261017-20261129@kirillpavlov-21.github.
+ io
+DTSTAMP:20261124T000000Z
+DTSTART;VALUE=DATE:20261129
+DTEND;VALUE=DATE:20261130
+SUMMARY:7 чудес света
+LOCATION:Гастротеатр «Калейдоскоп»\, Моховая
+  ул.\, 15/1\, стр. 1
+GEO:55.756787;37.613794
+DESCRIPTION:Гастрошоу у Манежной: два часа пут
+ ешествия от пирамид Гизы до садов Семира
+ миды\, к каждому чуду — свой сет. Вариант 
+ для особого свидания.\n18 000–25 000 ₽\, 12+\nБ
+ илеты и подробности: https://afisha.yandex.ru/moscow/imme
+ rsive-theatre/7-chudes-sveta-7-wonders-of-the-ancient-world\nПозват
+ ь друзей — в «Куда идём?»: https://kirillpavlov-21.git
+ hub.io/love/start.html?event=ev-7-chudes-sveta-kaleydoskop-20261017&m=date
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-7-chudes-sve
+ ta-kaleydoskop-20261017&m=date
+CATEGORIES:Спектакль
 STATUS:CONFIRMED
 TRANSP:TRANSPARENT
 END:VEVENT
 BEGIN:VEVENT
 UID:ev-vals-boston-20261017-20261129@kirillpavlov-21.github.io
-DTSTAMP:20261122T000000Z
+DTSTAMP:20261124T000000Z
 DTSTART;VALUE=DATE:20261129
 DTEND;VALUE=DATE:20261130
 SUMMARY:Вальс-бостон
@@ -225,32 +158,9 @@ STATUS:CONFIRMED
 TRANSP:TRANSPARENT
 END:VEVENT
 BEGIN:VEVENT
-UID:ev-vse-budet-chelentano-20261107-20261129@kirillpavlov-21.github.io
-DTSTAMP:20261122T000000Z
-DTSTART;VALUE=DATE:20261129
-DTEND;VALUE=DATE:20261130
-SUMMARY:Всё будет Челентано!
-LOCATION:МДМ (Московский дворец молодёжи)\, Бо
- льшой зал\, Комсомольский просп.\, 28
-GEO:55.726974;37.579855
-DESCRIPTION:Музыкальная комедия на хитах Челе
- нтано и итальянской эстрады — лёгкая\, к
- ак старые кинокомедии. По выходным есть 
- дневные показы.\nОт 1 100 ₽\, 12+\nБилеты и по
- дробности: https://afisha.yandex.ru/moscow/musical/vse-budet-chel
- entano\nПозвать друзей — в «Куда идём?»: https:/
- /kirillpavlov-21.github.io/love/start.html?event=ev-vse-budet-chelentano-2
- 0261107&m=date
-URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-vse-budet-ch
- elentano-20261107&m=date
-CATEGORIES:Спектакль
-STATUS:CONFIRMED
-TRANSP:TRANSPARENT
-END:VEVENT
-BEGIN:VEVENT
 UID:ev-organnyy-mir-anime-vselennaya-khayao-20261129-20261129@kirillpavlov-
  21.github.io
-DTSTAMP:20261122T000000Z
+DTSTAMP:20261124T000000Z
 DTSTART;TZID=Europe/Moscow:20261129T150000
 DTEND;TZID=Europe/Moscow:20261129T170000
 SUMMARY:Органный мир аниме. Вселенная Хаяо М
@@ -274,7 +184,7 @@ TRANSP:TRANSPARENT
 END:VEVENT
 BEGIN:VEVENT
 UID:ev-maksim-fadeev-20261129-20261129@kirillpavlov-21.github.io
-DTSTAMP:20261122T000000Z
+DTSTAMP:20261124T000000Z
 DTSTART;TZID=Europe/Moscow:20261129T190000
 DTEND;TZID=Europe/Moscow:20261129T210000
 SUMMARY:Максим Фадеев
@@ -298,7 +208,7 @@ END:VEVENT
 BEGIN:VEVENT
 UID:ev-bezumnyy-den-ili-zhenitba-figaro-lenkom-20261017-20261205@kirillpavl
  ov-21.github.io
-DTSTAMP:20261122T000000Z
+DTSTAMP:20261124T000000Z
 DTSTART;VALUE=DATE:20261205
 DTEND;VALUE=DATE:20261206
 SUMMARY:Безумный день\, или Женитьба Фигаро
@@ -321,7 +231,7 @@ TRANSP:TRANSPARENT
 END:VEVENT
 BEGIN:VEVENT
 UID:ev-fb-rodina-cska-20261205-20261205@kirillpavlov-21.github.io
-DTSTAMP:20261122T000000Z
+DTSTAMP:20261124T000000Z
 DTSTART;TZID=Europe/Moscow:20261205T151500
 DTEND;TZID=Europe/Moscow:20261205T171500
 SUMMARY:Родина — ЦСКА
@@ -342,7 +252,7 @@ END:VEVENT
 BEGIN:VEVENT
 UID:ev-premiya-zolotoy-grammofon-20261205-20261205@kirillpavlov-21.github.i
  o
-DTSTAMP:20261122T000000Z
+DTSTAMP:20261124T000000Z
 DTSTART;TZID=Europe/Moscow:20261205T190000
 DTEND;TZID=Europe/Moscow:20261205T210000
 SUMMARY:Премия «Золотой граммофон»
@@ -364,7 +274,7 @@ TRANSP:TRANSPARENT
 END:VEVENT
 BEGIN:VEVENT
 UID:ev-kalinov-most-20261205-20261205@kirillpavlov-21.github.io
-DTSTAMP:20261122T000000Z
+DTSTAMP:20261124T000000Z
 DTSTART;TZID=Europe/Moscow:20261205T200000
 DTEND;TZID=Europe/Moscow:20261205T220000
 SUMMARY:Калинов Мост
@@ -379,6 +289,93 @@ DESCRIPTION:Сибирский рок Дмитрия Ревякина в к
  event=ev-kalinov-most-20261205&m=guys
 URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-kalinov-most
  -20261205&m=guys
+CATEGORIES:Концерт
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ev-vse-budet-chelentano-20261107-20261206@kirillpavlov-21.github.io
+DTSTAMP:20261124T000000Z
+DTSTART;VALUE=DATE:20261206
+DTEND;VALUE=DATE:20261207
+SUMMARY:Всё будет Челентано!
+LOCATION:МДМ (Московский дворец молодёжи)\, Бо
+ льшой зал\, Комсомольский просп.\, 28
+GEO:55.726974;37.579855
+DESCRIPTION:Музыкальная комедия на хитах Челе
+ нтано и итальянской эстрады — лёгкая\, к
+ ак старые кинокомедии. По выходным есть 
+ дневные показы.\nОт 1 100 ₽\, 12+\nБилеты и по
+ дробности: https://afisha.yandex.ru/moscow/musical/vse-budet-chel
+ entano\nПозвать друзей — в «Куда идём?»: https:/
+ /kirillpavlov-21.github.io/love/start.html?event=ev-vse-budet-chelentano-2
+ 0261107&m=date
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-vse-budet-ch
+ elentano-20261107&m=date
+CATEGORIES:Спектакль
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ev-fb-spartak-dinamo-20261206-20261206@kirillpavlov-21.github.io
+DTSTAMP:20261124T000000Z
+DTSTART;TZID=Europe/Moscow:20261206T170000
+DTEND;TZID=Europe/Moscow:20261206T190000
+SUMMARY:Спартак — Динамо
+LOCATION:Лукойл Арена\, Волоколамское ш.\, 69
+GEO:55.817589;37.440610
+DESCRIPTION:Московское дерби на «Лукойл Арене
+ »: «Спартак» принимает «Динамо». На таки
+ е игры трибуны собираются полные — биле
+ ты лучше взять заранее.\nБилеты и подробн
+ ости: https://tickets.spartak.com/\nПозвать друзей — в
+  «Куда идём?»: https://kirillpavlov-21.github.io/love/start.html
+ ?event=ev-fb-spartak-dinamo-20261206&m=guys
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-fb-spartak-d
+ inamo-20261206&m=guys
+CATEGORIES:Футбол
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ev-mamulki-bend-petrovich-20261206-20261206@kirillpavlov-21.github.io
+DTSTAMP:20261124T000000Z
+DTSTART;TZID=Europe/Moscow:20261206T190000
+DTEND;TZID=Europe/Moscow:20261206T210000
+SUMMARY:Мамульки Bend
+LOCATION:Петрович\, ул. Мясницкая\, 24/7\, стр. 3
+GEO:55.762511;37.636448
+DESCRIPTION:Праздничные концерты группы\, кото
+ рая мешает ска\, диско\, панк и джаз с фоль
+ клором и каверами. Шумный вечер для комп
+ ании друзей.\nОт 1 200 ₽\nБилеты и подробно
+ сти: https://iframeab-pre4799.intickets.ru/seance/76255185/\nПозва
+ ть друзей — в «Куда идём?»: https://kirillpavlov-21.g
+ ithub.io/love/start.html?event=ev-mamulki-bend-petrovich-20261206&m=guys
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-mamulki-bend
+ -petrovich-20261206&m=guys
+CATEGORIES:Концерт
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ev-maksim-20261206-20261206@kirillpavlov-21.github.io
+DTSTAMP:20261124T000000Z
+DTSTART;TZID=Europe/Moscow:20261206T200000
+DTEND;TZID=Europe/Moscow:20261206T220000
+SUMMARY:МакSим
+LOCATION:TAU\, Рязанский просп.\, 8а\, стр. 10
+GEO:55.723916;37.753049
+DESCRIPTION:Песни\, на которых взрослели в нуле
+ вых: «Знаешь ли ты»\, «Трудный возраст» —
+  зал подпевает весь вечер. Клубная площа
+ дка TAU\, воскресенье.\n4 000–35 000 ₽\, 16+\nБил
+ еты и подробности: https://afisha.yandex.ru/moscow/concert/
+ maksim-2026-12-06\nПозвать друзей — в «Куда идём?
+ »: https://kirillpavlov-21.github.io/love/start.html?event=ev-maksim-2026
+ 1206&m=date
+URL:https://kirillpavlov-21.github.io/love/start.html?event=ev-maksim-20261
+ 206&m=date
 CATEGORIES:Концерт
 STATUS:CONFIRMED
 TRANSP:TRANSPARENT
