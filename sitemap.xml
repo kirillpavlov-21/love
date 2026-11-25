@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Сгенерировано scripts/build-seo.mjs — не править руками: адрес сайта меняется константой SITE в скрипте. -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://kirillpavlov-21.github.io/love/start.html</loc><lastmod>2026-11-24</lastmod><changefreq>daily</changefreq><priority>1.0</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/start.html?m=guys</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.9</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/start.html?m=girls</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.9</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/start.html?city=spb</loc><lastmod>2026-11-24</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/partners.html</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/rules.html</loc><lastmod>2026-11-24</lastmod><changefreq>yearly</changefreq><priority>0.2</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/privacy.html</loc><lastmod>2026-11-24</lastmod><changefreq>yearly</changefreq><priority>0.2</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/svidanie/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/start.html</loc><lastmod>2026-11-25</lastmod><changefreq>daily</changefreq><priority>1.0</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/start.html?m=guys</loc><lastmod>2026-11-25</lastmod><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/start.html?m=girls</loc><lastmod>2026-11-25</lastmod><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/start.html?city=spb</loc><lastmod>2026-11-25</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/partners.html</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/rules.html</loc><lastmod>2026-11-25</lastmod><changefreq>yearly</changefreq><priority>0.2</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/privacy.html</loc><lastmod>2026-11-25</lastmod><changefreq>yearly</changefreq><priority>0.2</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/</loc><lastmod>2026-11-25</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/svidanie/</loc><lastmod>2026-11-25</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/pervoe-svidanie/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/nedorogoe-svidanie/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/s-druzyami/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/devichnik/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/segodnya/</loc><lastmod>2026-11-24</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/vyhodnye/</loc><lastmod>2026-11-24</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/vecherom-posle-raboty/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/pozdno-vecherom/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/halloween/</loc><lastmod>2026-11-24</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/novyj-god/</loc><lastmod>2026-11-24</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/nedorogoe-svidanie/</loc><lastmod>2026-11-25</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/s-druzyami/</loc><lastmod>2026-11-25</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/devichnik/</loc><lastmod>2026-11-25</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/segodnya/</loc><lastmod>2026-11-25</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/vyhodnye/</loc><lastmod>2026-11-25</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/vecherom-posle-raboty/</loc><lastmod>2026-11-25</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/pozdno-vecherom/</loc><lastmod>2026-11-25</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/halloween/</loc><lastmod>2026-11-25</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/novyj-god/</loc><lastmod>2026-11-25</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/katki/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/osen/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/zima/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
@@ -27,18 +27,18 @@
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/kofejni/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/bary/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/parki/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/muzei/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/teatry/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/muzei/</loc><lastmod>2026-11-25</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/teatry/</loc><lastmod>2026-11-25</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/kvesty/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/bani/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/karaoke/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/krishi-i-panoramy/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/kompyuternye-kluby/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/koncerty/</loc><lastmod>2026-11-24</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/spektakli/</loc><lastmod>2026-11-24</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/vystavki/</loc><lastmod>2026-11-24</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/stendap/</loc><lastmod>2026-11-24</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/futbol/</loc><lastmod>2026-11-24</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/koncerty/</loc><lastmod>2026-11-25</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/spektakli/</loc><lastmod>2026-11-25</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/vystavki/</loc><lastmod>2026-11-25</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/stendap/</loc><lastmod>2026-11-25</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/futbol/</loc><lastmod>2026-11-25</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/kuda-shodit-cao/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/kuda-shodit-sao/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/kuda-shodit-svao/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
@@ -158,7 +158,7 @@
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/podborki/kryshi/</loc><lastmod>2026-11-18</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/podborki/bary/</loc><lastmod>2026-11-18</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/16-tonn/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/16-tonn/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/1shot-alekseevskaya/</loc><lastmod>2026-11-08</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/2mood/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/8-25/</loc><lastmod>2026-11-18</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
@@ -395,7 +395,7 @@
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/colizeum-zvezdochka/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/comedy-34/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/comedy-hall/</loc><lastmod>2026-11-18</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/conservatory/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/conservatory/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/copen-57/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/core-mio/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/cosmos/</loc><lastmod>2026-11-18</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
@@ -472,14 +472,14 @@
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/ekonika-yogurt/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/ekta/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/el-idilio/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/eldar/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/eldar/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/electrotheatre/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/eliso/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/ermitazh/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/erna/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/erwin/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/erwin-reka/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/estrady/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/estrady/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/et-cetera/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/eva/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/everest-gaming/</loc><lastmod>2026-11-08</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
@@ -510,11 +510,11 @@
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/from-berlin/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/fudkholl-druzhba/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/gallery-lounge/</loc><lastmod>2026-11-18</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/garage/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/garage/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/garazhi/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/gelikon-opera/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/geraldine/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/ges2/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/ges2/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/gogol-house/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/gogolevsky/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/goodson-bar/</loc><lastmod>2026-11-18</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
@@ -545,7 +545,7 @@
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/history-museum/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/hite/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/hooligan-group/</loc><lastmod>2026-11-18</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/house-of-music/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/house-of-music/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/huamin/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/icity/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/idu-lesom/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
@@ -556,7 +556,7 @@
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/illuzion/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/ilovecake/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/immerscape/</loc><lastmod>2026-11-18</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/impressionism/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/impressionism/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/inkubo/</loc><lastmod>2026-11-18</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/ino-m2/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/inspiro/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
@@ -574,7 +574,7 @@
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/japanese-garden/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/jean-jacques/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/jep/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/jewish-museum/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/jewish-museum/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/jimmy-poy/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/jims-pub/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/jinju-paveletskaya/</loc><lastmod>2026-11-18</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
@@ -586,7 +586,7 @@
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/kafedra/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/kaif-provenance/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/kalabasa/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/kaleidoscope/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/kaleidoscope/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/kalitnikovskie-bani/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/karaoke-pro/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/karaokelights/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
@@ -637,7 +637,7 @@
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/klaustro/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/klub-811/</loc><lastmod>2026-11-18</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/klub-imeni-rusakova/</loc><lastmod>2026-11-18</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/klub-imeni-zueva/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/klub-imeni-zueva/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/km20/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/knorozov/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/kofe-2046/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
@@ -688,7 +688,7 @@
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/le-mans/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/lefortovo-park/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/leninka/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/lenkom/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/lenkom/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/lermontov-house/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/levoberezhny-park/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/levyi-bereg/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
@@ -719,9 +719,9 @@
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/mama-varit-pokrovka/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/mama-varit-stremyanny/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/mamie/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/mamm/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/mamm/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/mandys-pokrovka/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/manezh/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/manezh/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/mansurovskiy-pereulok/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/manul/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/marfo-mariinskaya/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
@@ -730,7 +730,7 @@
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/marie-laveau/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/masa-madre/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/masa-madre-meshcherskiy/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/masterskaya-fomenko/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/masterskaya-fomenko/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/mates-gruzinka/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/mates-octagon/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/mates-patriki/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
@@ -744,7 +744,7 @@
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/meteorite/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/metropol/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/meykhana/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/mht/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/mht/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/mikhaylovskoe/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/miks/</loc><lastmod>2026-11-18</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/milovida/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
@@ -764,7 +764,7 @@
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/moscow-city/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/mosfilm/</loc><lastmod>2026-11-18</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/moskino-kosmos/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/moskovskaya-operetta/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/moskovskaya-operetta/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/moskovskiy-kerling-klub/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/moskovskiy-teatr-myuzikla/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/moskva-na-volne/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
@@ -796,7 +796,7 @@
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/neon-kiber-launzh-zona-spartak/</loc><lastmod>2026-11-08</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/nephew/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/neskuchny/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/newtretyakov/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/newtretyakov/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/night-kids/</loc><lastmod>2026-11-18</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/niki/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/niki-piano/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
@@ -899,7 +899,7 @@
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/pomme-verte/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/portal-vr/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/potapovskie-bani/</loc><lastmod>2026-11-18</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/praktika/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/praktika/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/premium-cyber/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/pro-khinkali/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/prove-kalish/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
@@ -908,8 +908,8 @@
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/pulcinella-himki/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/purkins-pub-nagatinskaya/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/pushkin/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/pushkin-museum-prechistenka/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/pushkinmuseum/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/pushkin-museum-prechistenka/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/pushkinmuseum/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/pyatnitskaya/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/pyur-spa/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/qlo/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
@@ -1028,12 +1028,12 @@
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/soprano/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/south-river-station/</loc><lastmod>2026-11-18</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/sova-tekstilshchiki/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/sovremennik/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/sovremennik/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/spletni/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/st-basil/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/st-riders/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/stand-up-patriki/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/standup/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/standup/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/standup-store/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/stanislavsky-music-theatre/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/stantsiya-2025/</loc><lastmod>2026-11-18</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
@@ -1052,7 +1052,7 @@
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/svinya-i-roza/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/sweet-belka-coffee/</loc><lastmod>2026-11-18</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/syrovarnya/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/tabakerka/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/tabakerka/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/taco-project/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/taezhnye-bani/</loc><lastmod>2026-11-18</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/taganka-theatre/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
@@ -1063,14 +1063,14 @@
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/tears-of/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/teatr-eleny-kamburovoy/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/teatr-gogolya/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/teatr-mayakovskogo/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/teatr-mayakovskogo/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/teatr-modern/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/teatr-mossoveta/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/teatr-mossoveta/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/teatr-na-bronnoy/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/teatr-na-melnikova/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/teatr-na-melnikova/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/teatr-na-trubnoy/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/teatr-natsiy/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/teatr-pushkina/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/teatr-natsiy/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/teatr-pushkina/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/teatr-rossiyskoy-armii/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/teatr-satiry/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/teatr-shalom/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
@@ -1140,13 +1140,13 @@
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/uzkoe/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/vaffel/</loc><lastmod>2026-11-18</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/vagankovo/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/vakhtangov/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/vakhtangov/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/valdo/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/valiko-kozikha/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/vamos-padel-club/</loc><lastmod>2026-11-18</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/varshavskie-bani/</loc><lastmod>2026-11-18</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/vasnetsov-house/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/vdnh/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/vdnh/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/vedogon-teatr/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/venom-cyber-lounge/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/venom-cyber-zone-mitino/</loc><lastmod>2026-11-08</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
@@ -1189,7 +1189,7 @@
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/zakon-bernulli/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/zareche-troitsk/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/zaryadye/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/zaryadye-hall/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/zaryadye-hall/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/zaryadye-rest/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/zatsepi-kislovsky/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/zdanie-tsentrosoyuza/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
@@ -1206,39 +1206,39 @@
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/zoo/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/zoo-museum-msu/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/zorka/</loc><lastmod>2026-11-18</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/zotov/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/zotov/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/zoyka/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/moskva/m/zvenigorod-savvino/</loc><lastmod>2026-11-18</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/svidanie/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/</loc><lastmod>2026-11-25</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/svidanie/</loc><lastmod>2026-11-25</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/pervoe-svidanie/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/nedorogoe-svidanie/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/s-druzyami/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/devichnik/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/segodnya/</loc><lastmod>2026-11-24</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/vyhodnye/</loc><lastmod>2026-11-24</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/vecherom-posle-raboty/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/pozdno-vecherom/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/halloween/</loc><lastmod>2026-11-24</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/novyj-god/</loc><lastmod>2026-11-24</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/nedorogoe-svidanie/</loc><lastmod>2026-11-25</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/s-druzyami/</loc><lastmod>2026-11-25</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/devichnik/</loc><lastmod>2026-11-25</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/segodnya/</loc><lastmod>2026-11-25</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/vyhodnye/</loc><lastmod>2026-11-25</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/vecherom-posle-raboty/</loc><lastmod>2026-11-25</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/pozdno-vecherom/</loc><lastmod>2026-11-25</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/halloween/</loc><lastmod>2026-11-25</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/novyj-god/</loc><lastmod>2026-11-25</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/osen/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/zima/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/restorany/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/kofejni/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/bary/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/bary/</loc><lastmod>2026-11-25</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/parki/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/muzei/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/teatry/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/muzei/</loc><lastmod>2026-11-25</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/teatry/</loc><lastmod>2026-11-25</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/kvesty/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/bani/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/karaoke/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/krishi-i-panoramy/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/kompyuternye-kluby/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/koncerty/</loc><lastmod>2026-11-24</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/spektakli/</loc><lastmod>2026-11-24</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/vystavki/</loc><lastmod>2026-11-24</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/stendap/</loc><lastmod>2026-11-24</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/futbol/</loc><lastmod>2026-11-24</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/koncerty/</loc><lastmod>2026-11-25</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/spektakli/</loc><lastmod>2026-11-25</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/vystavki/</loc><lastmod>2026-11-25</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/stendap/</loc><lastmod>2026-11-25</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/futbol/</loc><lastmod>2026-11-25</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/kuda-shodit-centr/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/kuda-shodit-petrogradskaya-storona/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/kuda-shodit-vasilevskij-ostrov/</loc><lastmod>2026-11-24</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
@@ -1296,7 +1296,7 @@
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-addict/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-af-brew/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-akvapark-piterlend/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-aleksandrinskiy-teatr/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-aleksandrinskiy-teatr/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-aleksandro-nevskaya-lavra/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-aleksandrovskiy-park/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-aleksandrovskiy-park-pushkin/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
@@ -1311,27 +1311,27 @@
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-artmuza/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-aster/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-atom-heart/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-aurora-concert/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-aurora-concert/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-avcd/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-ba/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-babka/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-balovni-sudby/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-balovni-sudby/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-bani-yaroslavskom/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-banschiki/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-banya-vodoley/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-bar-vitya/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-baski-monegaski/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-bdt-tovstonogova/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-bdt-tovstonogova/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-bekitser/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-bellevue/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-bertgold/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-big-wine/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-biografiya/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-bkz-oktyabrskiy/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-bkz-oktyabrskiy/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-blackchops/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-bliny-da-pyshki/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-bogoslovka/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-bolshoy-filarmonii/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-bolshoy-filarmonii/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-botanicheskiy-sad/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-bouling-tipanova/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-bouling-v-tk-sennaya/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
@@ -1349,7 +1349,7 @@
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-cave-01/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-chang/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-chao-kakao/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-cheshskaya-pivnitsa/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-cheshskaya-pivnitsa/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-chesmenskaya-tserkov/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-cin-ma/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-civil/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
@@ -1357,7 +1357,7 @@
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-colizeum-premium/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-colizeum-premium-petrogradka/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-colizeum-zagorodnyy/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-commode/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-commode/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-community-heroes/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-cyberx/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-daiquiri/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
@@ -1365,7 +1365,7 @@
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-datsan-gunzechoyney/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-degtyarnye-bani/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-didi/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-dikkens/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-dikkens/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-divinity-space/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-dojo/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-dom-aviatorov/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
@@ -1394,7 +1394,7 @@
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-el-copitas/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-elagin-ostrov/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-em/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-erarta/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-erarta/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-ermitazh-zimniy/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-etazh-41/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-f11/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
@@ -1409,20 +1409,20 @@
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-galereya-anna/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-galereya-mariny/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-garazh-siti/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-gazprom-arena/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-gazprom-arena/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-geologorazvedochnyy-muzey/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-giallo-bistro/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-glavnyy-shtab/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-glavnyy-shtab/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-golden-strike/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-gorkiy/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-grand-maket/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-grelka/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-grustnyy-bar/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-harry-not/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-harry-not/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-harvest/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-hat/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-hooligans-konyushennoy/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-hooligans-sadovoy/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-hooligans-konyushennoy/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-hooligans-sadovoy/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-inner/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-isaakievskiy-sobor/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-izumrudnyy-gorod/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
@@ -1433,7 +1433,7 @@
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-kamennyy-ostrov/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-kamyshi/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-kanonerskiy-ostrov/</loc><lastmod>2026-11-08</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-kapella/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-kapella/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-kazachi-bani/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-kgallery/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-khorovod/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
@@ -1455,9 +1455,9 @@
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-kona/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-konets-prekrasnoy/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-konstantinovskiy-park/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-kontsertnyy-finlyandskogo/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-kontsertnyy-finlyandskogo/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-kontsertnyy-mariinskogo/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-korpus-benua/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-korpus-benua/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-kotelnaya-kamchatka/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-kreyser-avrora/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-kriek-italyanskoy/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
@@ -1466,11 +1466,11 @@
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-kruglye-bani/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-kulturnyy-kvartal/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-kunstkamera/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-kusatsu/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-kusatsu/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-kuznechnyy-rynok/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-kuznya-house/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-kwakinn/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-lakhta-obzornaya/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-lakhta-obzornaya/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-lakhtinskie-bani/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-larisy/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-lavraki-bistro/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
@@ -1490,10 +1490,10 @@
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-malyy-filarmonii/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-mama-tata/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-mandragora/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-manezh/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-manezh/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-manneken-pis/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-mansarda/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-mariinskiy-2/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-mariinskiy-2/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-mariinskiy-teatr/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-marsovo-pole/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-masharabi/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
@@ -1509,12 +1509,12 @@
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-mere/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-mich-le/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-mikhaylovskiy-inzhenernyy/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-mikhaylovskiy-teatr/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-mikhaylovskiy-teatr/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-mindal-cafe/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-mir-vr/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-misp-muzey/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-mntn-coffee/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-mollie-irish/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-mollie-irish/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-molodezhnyy-teatr/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-monastyrskie-pyshki/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-monrepo/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
@@ -1540,7 +1540,7 @@
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-muzey-kvartira-isaaka-brodskogo/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-muzey-kvartira-kuindzhi/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-muzey-nabokova/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-muzey-oberiu/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-muzey-oberiu/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-muzey-peterburgskogo-avangarda-dom/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-muzey-politicheskoy/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-muzey-shtiglitsa/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
@@ -1574,7 +1574,7 @@
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-oy/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-padel-klub/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-palkin/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-papasha-klauss/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-papasha-klauss/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-paradnaya-kanshina/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-paradnaya-romashka/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-paradnaya-s-rotondoy-dom-yakovleva/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
@@ -1608,11 +1608,11 @@
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-primorskie-bani/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-primorskiy-park/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-prioratskiy-dvorets/</loc><lastmod>2026-11-18</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-priyut-komedianta/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-priyut-komedianta/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-probka/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-prokhodnye-dvory-tolstovskogo-doma/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-prostovino/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-puberty/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-puberty/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-put/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-pyshechka/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-pyshechka-2/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
@@ -1644,9 +1644,9 @@
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-sergievka/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-severnaya-stena/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-severyanin/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-sevkabel-port/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-sevkabel-port/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-seyf-coffee/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-shamrock/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-shamrock/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-sheremetevskiy-dvorets/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-shuvalovskiy-park/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-sibaristica/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
@@ -1677,13 +1677,13 @@
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-tchk/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-teatr-akademii/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-teatr-estrady/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-teatr-festival/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-teatr-komedii/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-teatr-komissarzhevskoy/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-teatr-lensoveta/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-teatr-festival/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-teatr-komedii/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-teatr-komissarzhevskoy/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-teatr-lensoveta/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-teatr-liteynom/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-teatr-masterskaya/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-teatr-muzykalnoy/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-teatr-muzykalnoy/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-teatr-osobnyak/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-teatr-subbota/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-teatr-zazerkale/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
@@ -1693,15 +1693,15 @@
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-teplo/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-terrassa/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-tishine/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-tolstyy-fraer/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-tolstyy-fraer-vasilevskom/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-tolstyy-fraer/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-tolstyy-fraer-vasilevskom/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-traktornaya-ulitsa/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-tron-kiber/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-trubocheriya/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-tsentralnyy-voenno/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-tsiferblat-moyke/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-tsirk-fontanke/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-tyuz-bryantseva/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-tyuz-bryantseva/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-udelnyy-park/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-ulitsa-zodchego/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-union/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
@@ -1717,7 +1717,7 @@
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-vse-svobodny/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-vzaperti-kazanskoy/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-vzaperti-solyanom/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-wall/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-wall/</loc><lastmod>2026-11-25</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-we-want/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-wow-bowling/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://kirillpavlov-21.github.io/love/spb/m/spb-xander/</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
